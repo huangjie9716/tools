@@ -32,7 +32,6 @@
         }
         a { text-decoration: none; color: inherit; }
 
-        /* ===== 导航栏：垂直居中布局 ===== */
         .navbar {
             background: rgba(255,255,255,0.95);
             backdrop-filter: blur(12px);
@@ -72,7 +71,6 @@
             color: #334155;
         }
 
-        /* 英雄区 */
         .hero {
             background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
             color: #1e293b;
@@ -160,7 +158,6 @@
             border-radius: 3px;
         }
 
-        /* 学科标签 */
         .subject-tabs {
             display: flex;
             flex-wrap: wrap;
@@ -198,7 +195,6 @@
             gap: 1.8rem;
         }
 
-        /* 卡片 */
         .tool-card {
             background: var(--card-bg);
             border-radius: var(--radius);
@@ -295,7 +291,6 @@
             white-space: nowrap;
         }
 
-        /* 占位 */
         .placeholder-card {
             background: #ffffff;
             border: 2px dashed #dce3f0;
@@ -323,7 +318,6 @@
             color: inherit;
         }
 
-        /* 模态框 */
         .modal {
             display: none;
             position: fixed;
@@ -419,7 +413,6 @@
 </head>
 <body>
 
-<!-- 垂直居中导航栏 -->
 <div class="navbar">
     <div class="logo">中学教师数字工具箱</div>
     <div class="navbar-meta">
@@ -443,7 +436,10 @@
                 <h3>🏋️ 初中物理力学双人答题赛</h3>
                 <p>两人对战模式，涵盖初中力学核心知识点，增强课堂互动与趣味性。</p>
                 <div class="tool-meta"><span>📅 更新：2026.07.24</span><span>🔖 v1.2</span></div>
-                <div class="tool-actions"><a href="v1.2machanicsquiz.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
+                <div class="tool-actions">
+                    <!-- 物理工具代码已移至 physics 文件夹 -->
+                    <a href="physics/v1.2machanicsquiz.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                </div>
             </div>
         </div>
     </div>
@@ -452,28 +448,50 @@
     <div class="category">
         <div class="category-title"><span class="icon">📚</span><h2>其他学科教学类</h2></div>
         <div class="subject-tabs" id="subjectTabs">
-            <button class="subject-tab active" data-subject="math">数学</button>
-            <button class="subject-tab" data-subject="chinese">语文</button>
+            <!-- 学科顺序：语文、数学、英语、化学、道法、历史，默认激活语文 -->
+            <button class="subject-tab active" data-subject="chinese">语文</button>
+            <button class="subject-tab" data-subject="math">数学</button>
             <button class="subject-tab" data-subject="english">英语</button>
             <button class="subject-tab" data-subject="chemistry">化学</button>
             <button class="subject-tab" data-subject="politics">道法</button>
             <button class="subject-tab" data-subject="history">历史</button>
         </div>
-        <div class="subject-panel active" id="panel-math">
+        <!-- 语文面板（默认显示，占位） -->
+        <div class="subject-panel active" id="panel-chinese">
+            <div class="tool-grid">
+                <div class="placeholder-card"><div class="big-icon">📖</div><p>功能开发中，敬请期待</p></div>
+            </div>
+        </div>
+        <!-- 数学面板 -->
+        <div class="subject-panel" id="panel-math">
             <div class="tool-grid">
                 <div class="tool-card">
                     <h3>📐 初中数学公式可视化互动学习</h3>
                     <p>动态演示代数与几何公式，支持参数调节，让抽象概念看得见。</p>
                     <div class="tool-meta"><span>📅 更新：2026.07.24</span><span>🔖 v1.1</span></div>
-                    <div class="tool-actions"><a href="v1.1mathformula.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
+                    <div class="tool-actions">
+                        <!-- 数学工具代码已移至 others/math 文件夹 -->
+                        <a href="others/math/v1.1mathformula.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="subject-panel" id="panel-chinese"><div class="tool-grid"><div class="placeholder-card"><div class="big-icon">📖</div><p>功能开发中，敬请期待</p></div></div></div>
-        <div class="subject-panel" id="panel-english"><div class="tool-grid"><div class="placeholder-card"><div class="big-icon">🇬🇧</div><p>功能开发中，敬请期待</p></div></div></div>
-        <div class="subject-panel" id="panel-chemistry"><div class="tool-grid"><div class="placeholder-card"><div class="big-icon">🧪</div><p>功能开发中，敬请期待</p></div></div></div>
-        <div class="subject-panel" id="panel-politics"><div class="tool-grid"><div class="placeholder-card"><div class="big-icon">⚖️</div><p>功能开发中，敬请期待</p></div></div></div>
-        <div class="subject-panel" id="panel-history"><div class="tool-grid"><div class="placeholder-card"><div class="big-icon">🏛️</div><p>功能开发中，敬请期待</p></div></div></div>
+        <!-- 英语面板 -->
+        <div class="subject-panel" id="panel-english">
+            <div class="tool-grid"><div class="placeholder-card"><div class="big-icon">🇬🇧</div><p>功能开发中，敬请期待</p></div></div>
+        </div>
+        <!-- 化学面板 -->
+        <div class="subject-panel" id="panel-chemistry">
+            <div class="tool-grid"><div class="placeholder-card"><div class="big-icon">🧪</div><p>功能开发中，敬请期待</p></div></div>
+        </div>
+        <!-- 道法面板 -->
+        <div class="subject-panel" id="panel-politics">
+            <div class="tool-grid"><div class="placeholder-card"><div class="big-icon">⚖️</div><p>功能开发中，敬请期待</p></div></div>
+        </div>
+        <!-- 历史面板 -->
+        <div class="subject-panel" id="panel-history">
+            <div class="tool-grid"><div class="placeholder-card"><div class="big-icon">🏛️</div><p>功能开发中，敬请期待</p></div></div>
+        </div>
     </div>
 
     <!-- 班级管理类 -->
@@ -484,7 +502,7 @@
         </div>
     </div>
 
-    <!-- 成绩分析系统 -->
+    <!-- 成绩分析系统（所有分析工具代码已移至 analysis 文件夹） -->
     <div class="category">
         <div class="category-title"><span class="icon">📊</span><h2>成绩分析系统</h2></div>
         <div class="tool-grid">
@@ -493,41 +511,71 @@
                 <h3>🎯 增值评价分析系统</h3>
                 <p>基于学生成长数据，科学衡量教学增值效果。提供年级、班级、学科三种分析视角。</p>
                 <div class="tool-meta"><span>📅 更新：2026.07.22</span><span>🔖 v1.4/1.2</span></div>
-                <div class="tool-actions"><button class="btn btn-primary" onclick="openModal()">🚀 选择版本进入</button></div>
-                <div class="tool-guide"><span>📘 操作指南下载：</span><a href="guides/addguide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
+                <div class="tool-actions">
+                    <button class="btn btn-primary" onclick="openModal()">🚀 选择版本进入</button>
+                </div>
+                <div class="tool-guide">
+                    <span>📘 操作指南下载：</span>
+                    <a href="guides/addguide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
+                </div>
             </div>
             <!-- 结果评价 -->
             <div class="tool-card">
                 <h3>📈 结果评价分析系统</h3>
                 <p>对考试成绩进行横向与纵向对比，生成多维度统计报表，辅助终结性评价。</p>
                 <div class="tool-meta"><span>📅 更新：2026.07.22</span><span>🔖 v1.2</span></div>
-                <div class="tool-actions"><a href="v1.2result.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
-                <div class="tool-templates"><span>📥 数据模板下载：</span><a href="templates/Resulttemplate.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a></div>
-                <div class="tool-guide"><span>📘 操作指南下载：</span><a href="guides/resultguide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
+                <div class="tool-actions">
+                    <a href="analysis/v1.2result.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                </div>
+                <div class="tool-templates">
+                    <span>📥 数据模板下载：</span>
+                    <a href="templates/Resulttemplate.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a>
+                </div>
+                <div class="tool-guide">
+                    <span>📘 操作指南下载：</span>
+                    <a href="guides/resultguide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
+                </div>
             </div>
             <!-- 上线达标预测 -->
             <div class="tool-card">
                 <h3>📊 上线达标预测及增量分析系统</h3>
                 <p>预测学生学科上线概率，分析增量变化，为临界生辅导提供精准数据支撑。</p>
                 <div class="tool-meta"><span>📅 更新：2026.07.22</span><span>🔖 v1.3</span></div>
-                <div class="tool-actions"><a href="v1.3predict.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
-                <div class="tool-templates"><span>📥 数据模板下载：</span><a href="templates/Predicttemplate1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a><a href="templates/Predicttemplate2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a></div>
-                <div class="tool-guide"><span>📘 操作指南下载：</span><a href="guides/predictguide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
+                <div class="tool-actions">
+                    <a href="analysis/v1.3predict.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                </div>
+                <div class="tool-templates">
+                    <span>📥 数据模板下载：</span>
+                    <a href="templates/Predicttemplate1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
+                    <a href="templates/Predicttemplate2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
+                </div>
+                <div class="tool-guide">
+                    <span>📘 操作指南下载：</span>
+                    <a href="guides/predictguide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
+                </div>
             </div>
             <!-- 试题分析 -->
             <div class="tool-card">
                 <h3>📝 试题分析系统</h3>
                 <p>计算试题难度、区分度，分析试卷信效度，帮助优化命题质量。</p>
                 <div class="tool-meta"><span>📅 更新：2026.07.22</span><span>🔖 v1.4</span></div>
-                <div class="tool-actions"><a href="v1.4tesst.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
-                <div class="tool-templates"><span>📥 数据模板下载：</span><a href="templates/Testtemplate.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a></div>
-                <div class="tool-guide"><span>📘 操作指南下载：</span><a href="guides/testguide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
+                <div class="tool-actions">
+                    <a href="analysis/v1.4tesst.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                </div>
+                <div class="tool-templates">
+                    <span>📥 数据模板下载：</span>
+                    <a href="templates/Testtemplate.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a>
+                </div>
+                <div class="tool-guide">
+                    <span>📘 操作指南下载：</span>
+                    <a href="guides/testguide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- 模态框 -->
+<!-- 模态框：增值评价版本选择 -->
 <div class="modal" id="versionModal">
     <div class="modal-content">
         <span class="modal-close" onclick="closeModal()">&times;</span>
@@ -536,15 +584,33 @@
         <div class="version-list">
             <div class="version-item">
                 <div class="version-info"><h4>👔 年级主任版 (v1.4)</h4><p>全年级宏观数据，多班级对比，掌握整体增值趋势</p></div>
-                <div class="version-actions"><a href="v1.4gradedirector.html" target="_blank" class="btn btn-primary">进入工具</a><div class="template-group"><a href="templates/GradedirectorTemple1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a><a href="templates/GradedirectorTemple2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a></div></div>
+                <div class="version-actions">
+                    <a href="analysis/v1.4gradedirector.html" target="_blank" class="btn btn-primary">进入工具</a>
+                    <div class="template-group">
+                        <a href="templates/GradedirectorTemple1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
+                        <a href="templates/GradedirectorTemple2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
+                    </div>
+                </div>
             </div>
             <div class="version-item">
                 <div class="version-info"><h4>🏫 班主任版 (v1.2)</h4><p>班级整体及学生个体增值追踪，辅助班会与家长沟通</p></div>
-                <div class="version-actions"><a href="v1.2headteacher.html" target="_blank" class="btn btn-primary">进入工具</a><div class="template-group"><a href="templates/HeadteacherTemplate1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a><a href="templates/HeadteacherTemplate2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a></div></div>
+                <div class="version-actions">
+                    <a href="analysis/v1.2headteacher.html" target="_blank" class="btn btn-primary">进入工具</a>
+                    <div class="template-group">
+                        <a href="templates/HeadteacherTemplate1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
+                        <a href="templates/HeadteacherTemplate2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
+                    </div>
+                </div>
             </div>
             <div class="version-item">
                 <div class="version-info"><h4>📘 科任老师版 (v1.2)</h4><p>学科视角下的学生增值数据，支持分层教学与个别辅导</p></div>
-                <div class="version-actions"><a href="v1.2subjectteacher.html" target="_blank" class="btn btn-primary">进入工具</a><div class="template-group"><a href="templates/SubjectteacherTemplate1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a><a href="templates/SubjectteacherTemplate2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a></div></div>
+                <div class="version-actions">
+                    <a href="analysis/v1.2subjectteacher.html" target="_blank" class="btn btn-primary">进入工具</a>
+                    <div class="template-group">
+                        <a href="templates/SubjectteacherTemplate1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
+                        <a href="templates/SubjectteacherTemplate2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
