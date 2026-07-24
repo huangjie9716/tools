@@ -437,7 +437,6 @@
                 <p>两人对战模式，涵盖初中力学核心知识点，增强课堂互动与趣味性。</p>
                 <div class="tool-meta"><span>📅 更新：2026.07.24</span><span>🔖 v1.2</span></div>
                 <div class="tool-actions">
-                    <!-- 物理工具代码已移至 physics 文件夹 -->
                     <a href="physics/v1.2machanicsquiz.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
                 </div>
             </div>
@@ -448,7 +447,6 @@
     <div class="category">
         <div class="category-title"><span class="icon">📚</span><h2>其他学科教学类</h2></div>
         <div class="subject-tabs" id="subjectTabs">
-            <!-- 学科顺序：语文、数学、英语、化学、道法、历史，默认激活语文 -->
             <button class="subject-tab active" data-subject="chinese">语文</button>
             <button class="subject-tab" data-subject="math">数学</button>
             <button class="subject-tab" data-subject="english">英语</button>
@@ -456,10 +454,19 @@
             <button class="subject-tab" data-subject="politics">道法</button>
             <button class="subject-tab" data-subject="history">历史</button>
         </div>
-        <!-- 语文面板（默认显示，占位） -->
+        <!-- 语文面板 -->
         <div class="subject-panel active" id="panel-chinese">
             <div class="tool-grid">
-                <div class="placeholder-card"><div class="big-icon">📖</div><p>功能开发中，敬请期待</p></div>
+                <!-- 新增：初中语文必背古诗文 -->
+                <div class="tool-card">
+                    <h3>📜 初中语文必背古诗文</h3>
+                    <p>收录初中阶段必背古诗文，支持朗读、释义、名句赏析，让经典背诵不再枯燥。</p>
+                    <div class="tool-meta"><span>📅 更新：2026.07.24</span><span>🔖 v1.0</span></div>
+                    <div class="tool-actions">
+                        <!-- 请根据实际文件名修改 href -->
+                        <a href="others/chinese/v1.0chinesepoetry.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                    </div>
+                </div>
             </div>
         </div>
         <!-- 数学面板 -->
@@ -470,7 +477,6 @@
                     <p>动态演示代数与几何公式，支持参数调节，让抽象概念看得见。</p>
                     <div class="tool-meta"><span>📅 更新：2026.07.24</span><span>🔖 v1.1</span></div>
                     <div class="tool-actions">
-                        <!-- 数学工具代码已移至 others/math 文件夹 -->
                         <a href="others/math/v1.1mathformula.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
                     </div>
                 </div>
@@ -502,7 +508,7 @@
         </div>
     </div>
 
-    <!-- 成绩分析系统（所有分析工具代码已移至 analysis 文件夹） -->
+    <!-- 成绩分析系统 -->
     <div class="category">
         <div class="category-title"><span class="icon">📊</span><h2>成绩分析系统</h2></div>
         <div class="tool-grid">
@@ -514,10 +520,7 @@
                 <div class="tool-actions">
                     <button class="btn btn-primary" onclick="openModal()">🚀 选择版本进入</button>
                 </div>
-                <div class="tool-guide">
-                    <span>📘 操作指南下载：</span>
-                    <a href="guides/addguide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
-                </div>
+                <div class="tool-guide"><span>📘 操作指南下载：</span><a href="guides/addguide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
             </div>
             <!-- 结果评价 -->
             <div class="tool-card">
@@ -527,14 +530,8 @@
                 <div class="tool-actions">
                     <a href="analysis/v1.2result.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
                 </div>
-                <div class="tool-templates">
-                    <span>📥 数据模板下载：</span>
-                    <a href="templates/Resulttemplate.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a>
-                </div>
-                <div class="tool-guide">
-                    <span>📘 操作指南下载：</span>
-                    <a href="guides/resultguide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
-                </div>
+                <div class="tool-templates"><span>📥 数据模板下载：</span><a href="templates/Resulttemplate.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a></div>
+                <div class="tool-guide"><span>📘 操作指南下载：</span><a href="guides/resultguide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
             </div>
             <!-- 上线达标预测 -->
             <div class="tool-card">
@@ -544,15 +541,8 @@
                 <div class="tool-actions">
                     <a href="analysis/v1.3predict.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
                 </div>
-                <div class="tool-templates">
-                    <span>📥 数据模板下载：</span>
-                    <a href="templates/Predicttemplate1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
-                    <a href="templates/Predicttemplate2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
-                </div>
-                <div class="tool-guide">
-                    <span>📘 操作指南下载：</span>
-                    <a href="guides/predictguide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
-                </div>
+                <div class="tool-templates"><span>📥 数据模板下载：</span><a href="templates/Predicttemplate1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a><a href="templates/Predicttemplate2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a></div>
+                <div class="tool-guide"><span>📘 操作指南下载：</span><a href="guides/predictguide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
             </div>
             <!-- 试题分析 -->
             <div class="tool-card">
@@ -562,20 +552,14 @@
                 <div class="tool-actions">
                     <a href="analysis/v1.4tesst.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
                 </div>
-                <div class="tool-templates">
-                    <span>📥 数据模板下载：</span>
-                    <a href="templates/Testtemplate.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a>
-                </div>
-                <div class="tool-guide">
-                    <span>📘 操作指南下载：</span>
-                    <a href="guides/testguide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
-                </div>
+                <div class="tool-templates"><span>📥 数据模板下载：</span><a href="templates/Testtemplate.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a></div>
+                <div class="tool-guide"><span>📘 操作指南下载：</span><a href="guides/testguide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- 模态框：增值评价版本选择 -->
+<!-- 模态框 -->
 <div class="modal" id="versionModal">
     <div class="modal-content">
         <span class="modal-close" onclick="closeModal()">&times;</span>
