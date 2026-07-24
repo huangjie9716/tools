@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>试题分析系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js">
+    </script>
+    <style>
+        :root {
+            --primary: #1a3a5c;
+            --primary-light: #2a5f7a;
+            --accent: #3b7da8;
+            --bg: #f0f4f8;
+            --card-bg: #ffffff;
+            --text: #1e2a3a;
+            --text-secondary: #5a6a7a;
+            --border: #e2e8f0;
+            --green-bg: #e1f5e8;
+            --green-text: #1a6a3a;
+            --green-border: #b8dfc6;
+            --red-bg: #fce4e4;
+            --red-text: #b22234;
+            --gray-bg: #f0f2f5;
+            --gray-text: #8a9aaa;
+            --shadow: 0 4px 16px rgba(26, 58, 92, 0.08);
+            --shadow-hover: 0 8px 28px rgba(26, 58, 92, 0.14);
+            --radius: 18px;
+            --radius-sm: 12px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'STHeiti', 'Noto Sans SC', 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(160deg, #eef2f7 0%, #f4f7fb 30%, #f8fafc 60%, #eef3f8 100%);
+            padding: 28px 36px;
+            color: #1e2a3a;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        /* ========== Header ========== */
+        .header {
+            background: linear-gradient(135deg, #142d47 0%, #1a3a5c 30%, #1f4a6e 60%, #1a3a5c 100%);
+            color: #fff;
+            padding: 36px 44px 28px;
+            border-radius: 20px;
+            box-shadow: 0 10px 32px rgba(20, 45, 71, 0.3);
+            margin-bottom: 24px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -40px;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: -30px;
+            width: 140px;
+            height: 140px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .header h1 {
+            font-weight: 700;
+            font-size: 38px;
+            letter-spacing: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 18px;
+        }
+        .header h1 .icon-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 52px;
+            height: 52px;
+            background: rgba(255, 255, 255, 0.13);
+            border-radius: 14px;
+            font-size: 30px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .header .source-info {
+            position: relative;
+            z-index: 1;
+            text-align: left;
+            font-size: 14px;
+            line-height: 1.9;
+            color: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 14px 22px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(2px);
+            max-width: 750px;
+            margin: 0 auto;
+        }
+        .header .source-info strong {
+            color: #fff;
+            font-weight: 600;
+        }
+        .header .source-info .divider {
+            display: inline-block;
+            width: 1px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.3);
+            margin: 0 10px;
+            vertical-align: middle;
+        }
+
+        /* ========== Upload Card ========== */
+        .upload-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 36px 42px;
+            box-shadow: var(--shadow);
+            margin-bottom: 26px;
+            border: 2px dashed #dce3ed;
+            transition: all var(--transition);
+            position: relative;
+        }
+        .upload-card:hover {
+            border-color: #b8c8dd;
+            box-shadow: var(--shadow-hover);
+        }
+        .upload-card.has-file {
+            border-color: #b8dfc6;
+            border-style: solid;
+            background: #fdfeff;
+        }
+        .upload-area {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 18px;
+        }
+        .upload-area .btn-upload {
+            background: var(--primary-light);
+            color: #fff;
+            border: none;
+            padding: 14px 34px;
+            border-radius: 44px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            box-shadow: 0 4px 14px rgba(42, 95, 122, 0.3);
+        }
+        .upload-area .btn-upload:hover {
+            background: #1a4a62;
+            box-shadow: 0 6px 20px rgba(42, 95, 122, 0.4);
+            transform: translateY(-1px);
+        }
+        .upload-area .btn-upload:active {
+            transform: scale(0.96);
+            box-shadow: 0 2px 8px rgba(42, 95, 122, 0.25);
+        }
+        .upload-area .btn-reupload {
+            background: #fff;
+            color: #5a6a7a;
+            border: 2px solid #dce3ed;
+            padding: 12px 26px;
+            border-radius: 44px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: none;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            letter-spacing: 0.3px;
+        }
+        .upload-area .btn-reupload.visible {
+            display: inline-flex;
+        }
+        .upload-area .btn-reupload:hover {
+            border-color: #b0c0d4;
+            background: #f8fafc;
+            color: #3a4a5a;
+        }
+        .upload-area .btn-reupload:active {
+            transform: scale(0.96);
+        }
+        .file-display {
+            flex: 1;
+            min-width: 260px;
+            padding: 16px 24px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 56px;
+            background: #f5f7fa;
+            color: #8a9aaa;
+            border: 1px solid #e8ecf2;
+        }
+        .file-display.no-file {
+            background: #f5f7fa;
+            color: #8a9aaa;
+            border: 1px solid #e8ecf2;
+        }
+        .file-display.has-file {
+            background: #e1f5e8;
+            color: #1a6a3a;
+            border: 1px solid #b8dfc6;
+            font-weight: 600;
+        }
+        .file-display .file-icon {
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .file-display .file-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .file-display .file-name {
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 400px;
+        }
+        .file-display .file-size {
+            font-size: 12px;
+            font-weight: 400;
+            opacity: 0.7;
+        }
+        .file-display .placeholder-text {
+            font-size: 14px;
+            font-weight: 400;
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+        .upload-tip-inline {
+            margin-top: 16px;
+            font-size: 13px;
+            color: #7a8a9a;
+            background: #fafbfd;
+            padding: 12px 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-light);
+            line-height: 1.7;
+            letter-spacing: 0.2px;
+        }
+        .upload-tip-inline code {
+            background: #e9edf4;
+            padding: 3px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #1a3a5c;
+            font-weight: 500;
+            letter-spacing: 0;
+        }
+        .upload-tip-inline strong {
+            color: #1a3a5c;
+        }
+
+        /* ========== Status Message ========== */
+        .status-msg {
+            padding: 14px 24px;
+            border-radius: 12px;
+            margin-top: 16px;
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            display: none;
+            transition: all var(--transition);
+        }
+        .status-msg.success {
+            display: block;
+            background: #e1f5e8;
+            color: #1a6a3a;
+            border: 1px solid #b8dfc6;
+        }
+        .status-msg.error {
+            display: block;
+            background: #fce4e4;
+            color: #a12222;
+            border: 1px solid #f5c6cb;
+        }
+        .status-msg.info {
+            display: block;
+            background: #e3f0fa;
+            color: #1a4a6a;
+            border: 1px solid #b8d4e8;
+        }
+
+        /* ========== Threshold Settings Card ========== */
+        .threshold-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 22px 30px;
+            box-shadow: var(--shadow);
+            margin-bottom: 22px;
+            border: 1px solid #e9edf4;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 18px;
+            transition: all var(--transition);
+        }
+        .threshold-card .section-label {
+            font-weight: 700;
+            font-size: 16px;
+            color: #1a3a5c;
+            letter-spacing: 0.4px;
+            white-space: nowrap;
+        }
+        .threshold-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .threshold-input-group label {
+            font-weight: 500;
+            font-size: 14px;
+            color: #4a5a6a;
+            letter-spacing: 0.3px;
+        }
+        .threshold-input-group input {
+            width: 80px;
+            padding: 10px 12px;
+            border: 2px solid #dce3ed;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 500;
+            text-align: center;
+            color: #1a3a5c;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+        .threshold-input-group input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(42, 95, 122, 0.1);
+        }
+        .threshold-input-group .separator {
+            font-weight: 500;
+            color: #7a8a9a;
+            margin: 0 4px;
+        }
+        .btn-recalculate {
+            background: #2a5f7a;
+            color: #fff;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 0.4px;
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(42, 95, 122, 0.3);
+        }
+        .btn-recalculate:hover {
+            background: #1a4a62;
+            box-shadow: 0 6px 18px rgba(42, 95, 122, 0.4);
+            transform: translateY(-1px);
+        }
+        .btn-recalculate:active {
+            transform: scale(0.96);
+        }
+        .btn-recalculate:disabled {
+            background: #b0c4d4;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* ========== Cards ========== */
+        .card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 26px 30px;
+            box-shadow: var(--shadow);
+            margin-bottom: 22px;
+            border: 1px solid #e9edf4;
+            overflow-x: auto;
+            transition: box-shadow var(--transition);
+        }
+        .card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a3a5c;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            letter-spacing: 0.4px;
+        }
+        .card-title .sub {
+            font-weight: 400;
+            font-size: 14px;
+            color: #6a7a8a;
+            margin-left: 4px;
+            letter-spacing: 0.2px;
+        }
+        .card-title .tag {
+            background: #e9edf4;
+            padding: 3px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #4a5a6a;
+            letter-spacing: 0.3px;
+        }
+
+        /* ========== Table ========== */
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 6px;
+            border-radius: 10px;
+            border: 1px solid #e8ecf2;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 14px;
+            min-width: 600px;
+        }
+        table th {
+            background: #f2f5fa;
+            color: #1a3a5c;
+            font-weight: 700;
+            padding: 11px 16px;
+            border: 1px solid #dce3ed;
+            text-align: center;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            letter-spacing: 0.3px;
+        }
+        table td {
+            padding: 9px 16px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            white-space: nowrap;
+            letter-spacing: 0.2px;
+        }
+        table tr:nth-child(even) td {
+            background: #fafcff;
+        }
+        table tr:hover td {
+            background: #f0f7ff;
+        }
+        table .row-label {
+            font-weight: 600;
+            color: #1a3a5c;
+            background: #f5f8fc !important;
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            letter-spacing: 0.4px;
+        }
+
+        /* ========== Tags ========== */
+        .tag-simple {
+            background: #d4edda;
+            color: #155724;
+            padding: 3px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .tag-medium {
+            background: #fff3cd;
+            color: #856404;
+            padding: 3px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .tag-hard {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 3px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .diff-positive {
+            color: #1a7a3a;
+            font-weight: 700;
+            background: #e1f5e8;
+            padding: 3px 10px;
+            border-radius: 7px;
+            letter-spacing: 0.2px;
+        }
+        .diff-negative {
+            color: #b22234;
+            font-weight: 700;
+            background: #fce4e4;
+            padding: 3px 10px;
+            border-radius: 7px;
+            letter-spacing: 0.2px;
+        }
+        .diff-zero {
+            color: #6a7a8a;
+            font-weight: 500;
+        }
+
+        /* ========== Badge Count ========== */
+        .badge-count {
+            border-radius: 30px;
+            padding: 2px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 22px;
+            display: inline-block;
+            margin-left: 6px;
+            letter-spacing: 0.3px;
+        }
+
+        /* ========== Suggestion Box ========== */
+        .suggestion-box {
+            background: #f8fbff;
+            border-radius: 14px;
+            padding: 18px 22px;
+            margin-top: 12px;
+            border-left: 5px solid var(--primary-light);
+            transition: background var(--transition);
+        }
+        .suggestion-box:hover {
+            background: #f2f7fd;
+        }
+        .suggestion-box .class-name {
+            font-weight: 700;
+            font-size: 16px;
+            color: #1a3a5c;
+            margin-bottom: 8px;
+            letter-spacing: 0.4px;
+        }
+        .suggestion-box .topic-list {
+            font-size: 14px;
+            color: #2a4a6a;
+            line-height: 1.9;
+            letter-spacing: 0.2px;
+        }
+
+        /* ========== Buttons ========== */
+        .btn-download {
+            background: #28a745;
+            color: #fff;
+            border: none;
+            padding: 11px 26px;
+            border-radius: 40px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.4px;
+            box-shadow: 0 4px 14px rgba(40, 167, 69, 0.25);
+        }
+        .btn-download:hover {
+            background: #1e7e34;
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.35);
+            transform: translateY(-1px);
+        }
+        .btn-download:active {
+            transform: scale(0.96);
+        }
+        .btn-download-table {
+            background: #6c757d;
+            color: #fff;
+            border: none;
+            padding: 9px 22px;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.25);
+        }
+        .btn-download-table:hover {
+            background: #5a6268;
+            box-shadow: 0 6px 16px rgba(108, 117, 125, 0.35);
+        }
+
+        /* ========== Responsive ========== */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px 14px;
+            }
+            .header {
+                padding: 24px 18px 18px;
+                border-radius: 16px;
+            }
+            .header h1 {
+                font-size: 26px;
+                letter-spacing: 1.5px;
+                gap: 8px;
+            }
+            .header h1 .icon-wrap {
+                width: 40px;
+                height: 40px;
+                font-size: 22px;
+                border-radius: 10px;
+            }
+            .header .source-info {
+                font-size: 12px;
+                padding: 10px 14px;
+                text-align: center;
+                line-height: 1.7;
+            }
+            .header .source-info .divider {
+                display: none;
+            }
+            .header .source-info br {
+                display: block;
+            }
+            .upload-card,
+            .threshold-card {
+                padding: 20px 16px;
+                border-radius: 16px;
+            }
+            .upload-area,
+            .threshold-card {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .upload-area .btn-upload,
+            .upload-area .btn-reupload,
+            .btn-recalculate {
+                width: 100%;
+                justify-content: center;
+            }
+            .file-display {
+                min-width: auto;
+                padding: 14px 18px;
+                font-size: 14px;
+                min-height: 48px;
+            }
+            .file-display .file-name {
+                max-width: 200px;
+            }
+            .card {
+                padding: 18px 14px;
+                border-radius: 14px;
+            }
+            table {
+                font-size: 12px;
+                min-width: 400px;
+            }
+            table th,
+            table td {
+                padding: 7px 10px;
+            }
+            .btn-download,
+            .btn-download-table {
+                width: 100%;
+                justify-content: center;
+                margin-top: 8px;
+            }
+            .threshold-input-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .threshold-input-group input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ==================== Header ==================== -->
+        <div class="header">
+            <h1>
+                <span class="icon-wrap">📋</span>
+                试题分析系统
+            </h1>
+            <div class="source-info">
+                <strong>理论来源：</strong>《基于难度指数模型》——珠海市教育研究院黄玉平主任团队<br>
+                <strong>设计制作：</strong>珠海市九洲中学 黄结（优化改进、最新版工具获取、闲聊、合作交流等请联系vx：Phys_H）
+            </div>
+        </div>
+
+        <!-- ==================== Upload Card ==================== -->
+        <div class="upload-card" id="uploadCard">
+            <div class="upload-area">
+                <button class="btn-upload" id="btnUpload" onclick="document.getElementById('fileInput').click()">
+                    📂 上传数据文件
+                </button>
+                <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none">
+                <button class="btn-reupload" id="btnReupload" onclick="reuploadFile()">
+                    🔄 重新上传
+                </button>
+                <div class="file-display no-file" id="fileDisplay">
+                    <span class="file-icon">📁</span>
+                    <span class="placeholder-text">未选择文件 · 支持 .xlsx / .xls 格式</span>
+                </div>
+            </div>
+            <div class="upload-tip-inline">
+                <strong>📌 数据格式要求：</strong>
+                第1行：表头描述 + 各题号（从B列开始）&nbsp;|&nbsp;
+                第2行：<code>满分值</code> + 各题满分值 &nbsp;|&nbsp;
+                第3行：<code>全校</code> + 各题平均分 &nbsp;|&nbsp;
+                第4行起：班级名称 + 各题平均分
+            </div>
+            <div id="statusMsg" class="status-msg"></div>
+        </div>
+
+        <!-- ==================== 难度区分阈值设置 ==================== -->
+        <div class="threshold-card" id="thresholdCard">
+            <span class="section-label">🔧 难度区分设定</span>
+            <div class="threshold-input-group">
+                <label>简单题得分率 ≥</label>
+                <input type="number" id="highThreshold" value="0.7" min="0" max="1" step="0.01" placeholder="0.7">
+                <span class="separator">，</span>
+                <label>难题得分率 &lt;</label>
+                <input type="number" id="lowThreshold" value="0.3" min="0" max="1" step="0.01" placeholder="0.3">
+                <span style="color:#6a7a8a;font-size:13px;margin-left:6px;">(中档题介于两者之间)</span>
+            </div>
+            <button class="btn-recalculate" id="btnRecalculate" onclick="recalculateWithThresholds()">
+                🔄 重新计算
+            </button>
+            <span id="thresholdMsg" style="font-size:13px;color:#a12222;display:none;"></span>
+        </div>
+
+        <!-- ==================== Results Area ==================== -->
+        <div id="resultArea"></div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  全局变量
+        // ============================================================
+        let currentParsedData = null;
+        let currentResults = null;
+
+        // ============================================================
+        //  工具函数
+        // ============================================================
+        function fmt(v, digits) {
+            if (v === undefined || v === null || !isFinite(v)) return '—';
+            const d = (digits !== undefined) ? digits : 2;
+            return Number(v.toFixed(d)).toString();
+        }
+
+        function fmtPct(v) {
+            if (v === undefined || v === null || !isFinite(v)) return '—';
+            return (v * 100).toFixed(2) + '%';
+        }
+
+        function safeLog(val, base) {
+            if (val <= 0 || base <= 0 || base === 1) return NaN;
+            return Math.log(val) / Math.log(base);
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ============================================================
+        //  重新上传功能
+        // ============================================================
+        function reuploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            fileInput.value = '';
+            const fileDisplay = document.getElementById('fileDisplay');
+            fileDisplay.className = 'file-display no-file';
+            fileDisplay.innerHTML = `
+                <span class="file-icon">📁</span>
+                <span class="placeholder-text">未选择文件 · 支持 .xlsx / .xls 格式</span>
+            `;
+            const btnReupload = document.getElementById('btnReupload');
+            btnReupload.classList.remove('visible');
+            const uploadCard = document.getElementById('uploadCard');
+            uploadCard.classList.remove('has-file');
+            const statusMsg = document.getElementById('statusMsg');
+            statusMsg.className = 'status-msg';
+            statusMsg.style.display = 'none';
+            statusMsg.textContent = '';
+            currentParsedData = null;
+            currentResults = null;
+            renderResults(null);
+            setTimeout(() => fileInput.click(), 150);
+        }
+
+        // ============================================================
+        //  主分析函数 (支持自定义阈值)
+        // ============================================================
+        function analyzeData(rawData, highThreshold = 0.7, lowThreshold = 0.3) {
+            if (highThreshold <= lowThreshold) {
+                const temp = highThreshold;
+                highThreshold = lowThreshold;
+                lowThreshold = temp;
+            }
+            const headers = rawData.headers;
+            const fullScores = rawData.fullScores;
+            const classData = rawData.classData;
+            const classNames = Object.keys(classData);
+            const numQuestions = headers.length;
+
+            const scoreRates = {};
+            for (const cls of classNames) {
+                const scores = classData[cls];
+                scoreRates[cls] = scores.map((avg, idx) => {
+                    const full = fullScores[idx] || 1;
+                    if (full === 0) return 0;
+                    return avg / full;
+                });
+            }
+            const schoolRates = scoreRates['全校'] || [];
+
+            const categories = schoolRates.map(rate => {
+                if (rate >= highThreshold) return 'simple';
+                if (rate < lowThreshold) return 'hard';
+                return 'medium';
+            });
+            const idxSimple = [],
+                idxMedium = [],
+                idxHard = [];
+            categories.forEach((cat, i) => {
+                if (cat === 'simple') idxSimple.push(i);
+                else if (cat === 'medium') idxMedium.push(i);
+                else idxHard.push(i);
+            });
+
+            const classAvgByCat = {};
+            for (const cls of classNames) {
+                const rates = scoreRates[cls];
+                const avgSimple = idxSimple.length ? idxSimple.reduce((s, i) => s + rates[i], 0) / idxSimple.length : 0;
+                const avgMedium = idxMedium.length ? idxMedium.reduce((s, i) => s + rates[i], 0) / idxMedium.length : 0;
+                const avgHard = idxHard.length ? idxHard.reduce((s, i) => s + rates[i], 0) / idxHard.length : 0;
+                classAvgByCat[cls] = { simple: avgSimple, medium: avgMedium, hard: avgHard };
+            }
+            const schoolAvg = classAvgByCat['全校'] || { simple: 0, medium: 0, hard: 0 };
+
+            const classAdjByCat = {};
+            for (const cls of classNames) {
+                const avg = classAvgByCat[cls];
+                const adj = {};
+                for (const cat of ['simple', 'medium', 'hard']) {
+                    const pSchool = schoolAvg[cat];
+                    const pClass = avg[cat];
+                    if (pSchool > 0 && pSchool < 1 && pClass > 0 && pClass < 1) {
+                        const exponent = Math.log(0.85) / Math.log(pSchool);
+                        adj[cat] = Math.pow(pClass, exponent);
+                    } else if (pSchool === pClass && pSchool > 0) {
+                        adj[cat] = 0.85;
+                    } else {
+                        adj[cat] = 0.85;
+                    }
+                    if (!isFinite(adj[cat]) || adj[cat] < 0) adj[cat] = 0.85;
+                    if (adj[cat] > 1) adj[cat] = 1;
+                }
+                classAdjByCat[cls] = adj;
+            }
+
+            const classAdjAvg = {};
+            for (const cls of classNames) {
+                const adj = classAdjByCat[cls];
+                let vals = [];
+                if (idxSimple.length) vals.push(adj.simple);
+                if (idxMedium.length) vals.push(adj.medium);
+                if (vals.length === 0) {
+                    classAdjAvg[cls] = 0.85;
+                } else {
+                    const sum = vals.reduce((s, v) => s + v, 0);
+                    classAdjAvg[cls] = sum / vals.length;
+                }
+                if (classAdjAvg[cls] <= 0 || classAdjAvg[cls] >= 1) classAdjAvg[cls] = 0.85;
+            }
+
+            const classDiffIndex = {};
+            for (const cls of classNames) {
+                const base = classAdjAvg[cls];
+                const rates = scoreRates[cls];
+                classDiffIndex[cls] = rates.map(rate => {
+                    if (rate <= 0) return NaN;
+                    if (base <= 0 || base === 1) return NaN;
+                    return safeLog(rate, base);
+                });
+            }
+
+            const schoolBase = classAdjAvg['全校'] || 0.85;
+            const schoolDiffIndex = (scoreRates['全校'] || []).map(rate => {
+                if (rate <= 0) return NaN;
+                if (schoolBase <= 0 || schoolBase === 1) return NaN;
+                return safeLog(rate, schoolBase);
+            });
+
+            const diffMatrix = {};
+            for (const cls of classNames) {
+                diffMatrix[cls] = classDiffIndex[cls].map((val, idx) => {
+                    const schoolVal = schoolDiffIndex[idx] || 0;
+                    if (!isFinite(val) || !isFinite(schoolVal)) return NaN;
+                    return schoolVal - val;
+                });
+            }
+
+            return {
+                headers,
+                fullScores,
+                classNames,
+                numQuestions,
+                scoreRates,
+                schoolRates,
+                categories,
+                idxSimple,
+                idxMedium,
+                idxHard,
+                classAvgByCat,
+                schoolAvg,
+                classAdjByCat,
+                classAdjAvg,
+                schoolBase,
+                classDiffIndex,
+                schoolDiffIndex,
+                diffMatrix,
+                classData,
+                highThreshold,
+                lowThreshold
+            };
+        }
+
+        // ============================================================
+        //  渲染函数
+        // ============================================================
+        function renderResults(results) {
+            const area = document.getElementById('resultArea');
+            if (!results) {
+                area.innerHTML = `
+                    <div class="card">
+                        <div class="empty-state">
+                            <div class="icon">📁</div>
+                            <p style="font-size:18px;font-weight:600;color:#4a5a6a;">请上传数据文件开始分析</p>
+                            <p style="color:#8a9aaa;font-size:14px;margin-top:8px;">支持 .xlsx 或 .xls 格式</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            html += renderCategoryTable(results);
+            html += renderDiffComparison(results);
+            html += renderSuggestions(results);
+            area.innerHTML = html;
+        }
+
+        function renderCategoryTable(results) {
+            const { headers, schoolRates, categories, idxSimple, idxMedium, idxHard, highThreshold, lowThreshold } = results;
+            let rows = '';
+            for (let i = 0; i < headers.length; i++) {
+                const cat = categories[i] || 'medium';
+                const rate = schoolRates[i] || 0;
+                const label = { simple: '简单题', medium: '中档题', hard: '难题' }[cat] || '—';
+                const tagClass = { simple: 'tag-simple', medium: 'tag-medium', hard: 'tag-hard' }[cat] || '';
+                rows += `<tr><td><strong>${headers[i]}</strong></td><td>${fmtPct(rate)}</td><td><span class="${tagClass}">${label}</span></td></tr>`;
+            }
+            const stats = `
+                <span class="badge-count" style="background:#28a745;color:#fff;">简单 ${idxSimple.length}</span>
+                <span class="badge-count" style="background:#ffc107;color:#333;">中档 ${idxMedium.length}</span>
+                <span class="badge-count" style="background:#dc3545;color:#fff;">难题 ${idxHard.length}</span>
+            `;
+            return `
+                <div class="card">
+                    <div class="card-title">
+                        🏷️ 题目分类（基于全校得分率）
+                        <span class="sub">— 简单 ≥${highThreshold} &nbsp;|&nbsp; 中档 ${lowThreshold}~${highThreshold} &nbsp;|&nbsp; 难题 <${lowThreshold}</span>
+                        ${stats}
+                    </div>
+                    <div class="table-wrap">
+                        <table><thead><tr><th>题号</th><th>全校得分率</th><th>分类</th></tr></thead><tbody>${rows}</tbody></table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderDiffComparison(results) {
+            const { headers, classNames, diffMatrix } = results;
+            if (classNames.length <= 1) {
+                return `
+                    <div class="card">
+                        <div class="card-title">📊 难度指数对比 <span class="sub">— 各班级 vs 全校</span></div>
+                        <div style="padding:20px;text-align:center;color:#8a9aaa;">⚠️ 只有全校数据，无法进行班级对比</div>
+                    </div>
+                `;
+            }
+
+            let rows = '';
+            for (const cls of classNames) {
+                if (cls === '全校') continue;
+                const diffs = diffMatrix[cls] || [];
+                rows += `<tr><td class="row-label">${cls}</td>`;
+                for (let i = 0; i < headers.length; i++) {
+                    const val = diffs[i];
+                    if (val === undefined || !isFinite(val)) {
+                        rows += `<td>—</td>`;
+                    } else {
+                        const clsName = val < 0 ? 'diff-negative' : (val > 0 ? 'diff-positive' : 'diff-zero');
+                        const arrow = val < 0 ? '▼' : (val > 0 ? '▲' : '—');
+                        rows += `<td class="${clsName}">${fmt(val)} ${arrow}</td>`;
+                    }
+                }
+                rows += `</tr>`;
+            }
+
+            return `
+                <div class="card">
+                    <div class="card-title">
+                        📊 难度指数对比（各班级 vs 全校）
+                        <span class="sub">— 差值 = 全校难度指数 − 班级难度指数</span>
+                        <span style="font-size:13px;font-weight:500;margin-left:8px;">
+                            <span class="diff-negative">🔴 ＜0（班级偏弱）</span>
+                            <span class="diff-positive" style="margin-left:8px;">🟢 ＞0（班级偏强）</span>
+                        </span>
+                        <button class="btn-download-table" onclick="downloadDiffTable()" style="margin-left:auto;">
+                            ⬇️ 下载对比表格
+                        </button>
+                    </div>
+                    <div class="table-wrap">
+                        <table><thead><tr><th style="min-width:70px;">班级</th>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table>
+                    </div>
+                    <div style="margin-top:12px;font-size:13px;color:#5a6a7a;background:#f5f8fc;padding:10px 18px;border-radius:10px;line-height:1.7;">
+                        💡 差值＜0（红色🔴）表示该班此题难度指数高于全校，即该班在此题上表现<strong>偏弱</strong>，是需要重点关注和改进的题目。<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;差值＞0（绿色🟢）表示该班此题难度指数低于全校，即该班在此题上表现<strong>偏强</strong>。
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSuggestions(results) {
+            const { headers, classNames, diffMatrix } = results;
+
+            if (classNames.length <= 1) {
+                return `
+                    <div class="card">
+                        <div class="card-title">📋 各班改进建议</div>
+                        <div style="padding:20px;text-align:center;color:#8a9aaa;">只有全校数据，无法生成班级建议</div>
+                    </div>
+                `;
+            }
+
+            let suggestions = {};
+            let totalIssues = 0;
+            for (const cls of classNames) {
+                if (cls === '全校') continue;
+                const diffs = diffMatrix[cls] || [];
+                const items = [];
+                for (let i = 0; i < headers.length; i++) {
+                    const val = diffs[i];
+                    if (isFinite(val) && val < 0) {
+                        items.push({ index: i, diff: val, absDiff: Math.abs(val) });
+                    }
+                }
+                items.sort((a, b) => b.absDiff - a.absDiff);
+                suggestions[cls] = items;
+                totalIssues += items.length;
+            }
+
+            if (totalIssues === 0) {
+                return `
+                    <div class="card">
+                        <div class="card-title">📋 各班改进建议</div>
+                        <div style="padding:20px;text-align:center;color:#28a745;">✅ 所有班级各题难度指数均不高于全校，无需特别改进。</div>
+                    </div>
+                `;
+            }
+
+            let displayHtml = '';
+            for (const cls of Object.keys(suggestions)) {
+                const items = suggestions[cls];
+                if (items.length === 0) continue;
+                const topics = items.map(item => `${headers[item.index]} (差值${fmt(item.diff)})`).join('、');
+                displayHtml += `
+                    <div class="suggestion-box">
+                        <div class="class-name">📌 ${cls}</div>
+                        <div class="topic-list">重点关注题目：${topics}</div>
+                    </div>
+                `;
+            }
+
+            const suggestionId = 'sug_' + Date.now();
+            window[suggestionId] = { suggestions, headers };
+            const downloadBtn = `
+                <button class="btn-download" onclick="downloadSuggestionsFromGlobal('${suggestionId}')">
+                    ⬇️ 下载改进建议
+                </button>
+            `;
+
+            return `
+                <div class="card">
+                    <div class="card-title">
+                        📋 各班需要注意的题目（差值＜0，班级偏弱）
+                        <span class="sub">— 按差值绝对值从大到小排列</span>
+                        ${downloadBtn}
+                    </div>
+                    ${displayHtml}
+                    <div style="margin-top:14px;font-size:13px;color:#5a6a7a;background:#fef9f0;padding:10px 18px;border-radius:10px;border-left:4px solid #e8a840;line-height:1.7;">
+                        ⚠️ 红色标记题目表示该班此题难度显著高于全校（班级偏弱），建议优先进行教学改进。
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================================
+        //  下载对比表格 (Excel)
+        // ============================================================
+        function downloadDiffTable() {
+            if (!currentResults || currentResults.classNames.length <= 1) {
+                alert('没有可下载的对比数据。');
+                return;
+            }
+            const { headers, classNames, diffMatrix } = currentResults;
+            const data = [['班级', ...headers]];
+            for (const cls of classNames) {
+                if (cls === '全校') continue;
+                const row = [cls];
+                const diffs = diffMatrix[cls] || [];
+                for (let i = 0; i < headers.length; i++) {
+                    const val = diffs[i];
+                    row.push(isFinite(val) ? Number(val.toFixed(4)) : '');
+                }
+                data.push(row);
+            }
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '难度指数对比');
+            XLSX.writeFile(wb, '难度指数对比.xlsx');
+        }
+
+        // ============================================================
+        //  下载建议为Word文档
+        // ============================================================
+        function downloadSuggestionsFromGlobal(suggestionId) {
+            const data = window[suggestionId];
+            if (!data) {
+                alert('数据已过期，请刷新页面后重试。');
+                return;
+            }
+            downloadSuggestionsDoc(data.suggestions, data.headers);
+        }
+
+        function downloadSuggestionsDoc(suggestions, headers) {
+            let bodyContent = '';
+            let hasContent = false;
+
+            for (const cls of Object.keys(suggestions)) {
+                const items = suggestions[cls];
+                if (items.length === 0) continue;
+                hasContent = true;
+                bodyContent += `<h2 style="color:#1a3a5c;margin-top:18px;margin-bottom:8px;">📌 ${cls}</h2>`;
+                bodyContent += `<p style="font-size:14px;line-height:1.8;color:#2a4a6a;margin:6px 0 14px 0;">`;
+                bodyContent += '<strong>重点关注题目：</strong>';
+                const topics = items.map(item => {
+                    const idx = item.index;
+                    const topicName = headers[idx] || `题${idx+1}`;
+                    return `${topicName} <span style="color:#b22234;">(差值 ${item.diff.toFixed(2)})</span>`;
+                }).join('、');
+                bodyContent += topics;
+                bodyContent += `</p>`;
+            }
+
+            if (!hasContent) {
+                bodyContent = '<p style="color:#28a745;font-size:15px;">✅ 所有班级各题难度指数均不高于全校，无需特别改进。</p>';
+            }
+
+            const now = new Date().toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+
+            const htmlContent = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office"
+                      xmlns:w="urn:schemas-microsoft-com:office:word"
+                      xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+                    <style>
+                        @page { margin: 2cm 2.5cm; }
+                        body { font-family: 'PingFang SC', 'Microsoft YaHei', 'SimSun', sans-serif; font-size: 14px; line-height: 1.8; color: #1e2a3a; }
+                        h1 { font-size: 22px; color: #1a3a5c; text-align: center; border-bottom: 2px solid #2a5f7a; padding-bottom: 12px; }
+                        h2 { font-size: 16px; color: #1a3a5c; margin-top: 16px; }
+                        p { margin: 6px 0; }
+                        .footer { margin-top: 24px; padding-top: 10px; border-top: 1px solid #ccc; font-size: 12px; color: #888; text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>试题难度分析改进建议</h1>
+    ${bodyContent}
+    <p class="footer">生成时间：${now} &nbsp;|&nbsp; 试题分析系统</p>
+</body>
+</html>
+`;
+
+const bom = '\ufeff';
+const blob = new Blob([bom + htmlContent], { type: 'application/msword;charset=UTF-8' });
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = '试题改进建议.doc';
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+URL.revokeObjectURL(url);
+}
+
+// ============================================================
+//  重新计算（使用用户输入的阈值）
+// ============================================================
+function recalculateWithThresholds() {
+if (!currentParsedData) {
+const msgEl = document.getElementById('thresholdMsg');
+msgEl.style.display = 'block';
+msgEl.textContent = '⚠️ 请先上传数据文件。';
+setTimeout(() => { msgEl.style.display = 'none'; }, 2500);
+return;
+}
+
+const highInput = document.getElementById('highThreshold');
+const lowInput = document.getElementById('lowThreshold');
+let high = parseFloat(highInput.value);
+let low = parseFloat(lowInput.value);
+
+if (isNaN(high) || isNaN(low) || high <= 0 || high > 1 || low < 0 || low >= 1) {
+const msgEl = document.getElementById('thresholdMsg');
+msgEl.style.display = 'block';
+msgEl.textContent = '⚠️ 请输入0到1之间的有效数值。';
+setTimeout(() => { msgEl.style.display = 'none'; }, 2500);
+return;
+}
+if (high <= low) {
+const msgEl = document.getElementById('thresholdMsg');
+msgEl.style.display = 'block';
+msgEl.textContent = '⚠️ 简单题阈值必须大于难题阈值。';
+setTimeout(() => { msgEl.style.display = 'none'; }, 2500);
+return;
+}
+
+highInput.value = high.toFixed(2);
+lowInput.value = low.toFixed(2);
+
+const results = analyzeData(currentParsedData, high, low);
+currentResults = results;
+renderResults(results);
+
+const statusMsg = document.getElementById('statusMsg');
+statusMsg.className = 'status-msg success';
+statusMsg.style.display = 'block';
+const classCount = results.classNames.filter(c => c !== '全校').length;
+statusMsg.textContent = `✅ 已按新阈值重新计算（简单≥${high}，中档${low}~${high}，难题<${low}）。`;
+document.getElementById('resultArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ============================================================
+//  文件上传与解析
+// ============================================================
+document.getElementById('fileInput').addEventListener('change', function(e) {
+const file = this.files[0];
+if (!file) return;
+
+const fileDisplay = document.getElementById('fileDisplay');
+fileDisplay.className = 'file-display has-file';
+fileDisplay.innerHTML = `
+<span class="file-icon">✅</span>
+<div class="file-details">
+    <span class="file-name">${escapeHtml(file.name)}</span>
+    <span class="file-size">${(file.size / 1024).toFixed(1)} KB</span>
+</div>
+`;
+
+const btnReupload = document.getElementById('btnReupload');
+btnReupload.classList.add('visible');
+const uploadCard = document.getElementById('uploadCard');
+uploadCard.classList.add('has-file');
+
+const statusMsg = document.getElementById('statusMsg');
+statusMsg.className = 'status-msg info';
+statusMsg.textContent = '⏳ 正在读取文件...';
+statusMsg.style.display = 'block';
+
+const reader = new FileReader();
+reader.onload = function(loadEvent) {
+try {
+const data = new Uint8Array(loadEvent.target.result);
+const workbook = XLSX.read(data, { type: 'array' });
+const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+const json = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '' });
+const parsed = parseExcelData(json);
+if (!parsed) {
+statusMsg.className = 'status-msg error';
+statusMsg.textContent = '❌ 数据格式解析失败，请检查是否符合要求。';
+currentParsedData = null;
+currentResults = null;
+return;
+}
+currentParsedData = parsed;
+const highInput = document.getElementById('highThreshold');
+const lowInput = document.getElementById('lowThreshold');
+let high = parseFloat(highInput.value) || 0.7;
+let low = parseFloat(lowInput.value) || 0.3;
+if (high <= low) { high = 0.7; low = 0.3; }
+highInput.value = high.toFixed(2);
+lowInput.value = low.toFixed(2);
+
+const results = analyzeData(parsed, high, low);
+currentResults = results;
+renderResults(results);
+
+const classCount = results.classNames.filter(c => c !== '全校').length;
+statusMsg.className = 'status-msg success';
+statusMsg.textContent = `✅ 分析完成！共 ${classCount} 个班级，${results.numQuestions} 道小题。`;
+document.getElementById('resultArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
+} catch (err) {
+console.error(err);
+statusMsg.className = 'status-msg error';
+statusMsg.textContent = '❌ 文件解析出错：' + err.message;
+currentParsedData = null;
+currentResults = null;
+}
+};
+reader.onerror = function() {
+statusMsg.className = 'status-msg error';
+statusMsg.textContent = '❌ 读取文件失败，请重试。';
+currentParsedData = null;
+currentResults = null;
+};
+reader.readAsArrayBuffer(file);
+});
+
+function parseExcelData(json) {
+if (!json || json.length < 3) return null;
+const headerRow = json[0] || [];
+const headers = [];
+for (let i = 1; i < headerRow.length; i++) {
+const val = String(headerRow[i] || '').trim();
+if (val) headers.push(val);
+else headers.push(`题${i}`);
+}
+if (headers.length === 0) return null;
+const scoreRow = json[1] || [];
+const fullScores = [];
+for (let i = 1; i <= headers.length; i++) {
+const val = parseFloat(scoreRow[i]) || 0;
+fullScores.push(val);
+}
+const classData = {};
+for (let r = 2; r < json.length; r++) {
+const row = json[r] || [];
+const className = String(row[0] || '').trim() || `班级${r-1}`;
+const scores = [];
+for (let i = 1; i <= headers.length; i++) {
+const val = parseFloat(row[i]);
+scores.push(isNaN(val) ? 0 : val);
+}
+const hasData = scores.some(v => v > 0);
+if (hasData || className === '全校') {
+classData[className] = scores;
+}
+}
+if (!classData['全校']) return null;
+return { headers, fullScores, classData };
+}
+
+// ============================================================
+//  初始化
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+renderResults(null);
+});
+
+// 拖拽上传
+const uploadCardEl = document.getElementById('uploadCard');
+uploadCardEl.addEventListener('dragover', function(e) {
+e.preventDefault();
+this.style.borderColor = '#2a5f7a';
+this.style.background = '#f8faff';
+});
+uploadCardEl.addEventListener('dragleave', function(e) {
+e.preventDefault();
+this.style.borderColor = this.classList.contains('has-file') ? '#b8dfc6' : '#dce3ed';
+this.style.background = this.classList.contains('has-file') ? '#fdfeff' : '#fff';
+});
+uploadCardEl.addEventListener('drop', function(e) {
+e.preventDefault();
+this.style.borderColor = this.classList.contains('has-file') ? '#b8dfc6' : '#dce3ed';
+this.style.background = this.classList.contains('has-file') ? '#fdfeff' : '#fff';
+const files = e.dataTransfer.files;
+if (files.length > 0) {
+const fileInput = document.getElementById('fileInput');
+fileInput.files = files;
+fileInput.dispatchEvent(new Event('change'));
+}
+});
+</script>
+</body>
+</html>
