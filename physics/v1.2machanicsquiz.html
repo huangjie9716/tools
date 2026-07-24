@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>初中物理力学双人答题游戏</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: "Microsoft YaHei", sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b, #0f3460);
+      min-height: 100vh;
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    .game-container {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .title-area {
+      text-align: center;
+      padding: 10px 0 6px;
+    }
+
+    .title-area h1 {
+      font-size: 2rem;
+      background: linear-gradient(90deg, #f7971e, #ffd200);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 3px;
+    }
+
+    .title-area .sub {
+      color: #a5b4fc;
+      font-size: 0.92rem;
+      margin-top: 6px;
+    }
+
+    .title-area .author {
+      color: #a5b4fc;
+      font-size: 0.85rem;
+      margin-top: 4px;
+      opacity: 0.8;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin: 12px 0 14px;
+    }
+
+    .timer-box, .question-progress, .topic-badge {
+      background: rgba(255,255,255,0.09);
+      border-radius: 12px;
+      padding: 10px 18px;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .timer-box {
+      background: linear-gradient(135deg, #e94560, #c0392b);
+      font-weight: bold;
+      font-size: 1.3rem;
+    }
+
+    .question-progress { color: #ffd200; }
+    .topic-badge { color: #cbd5e1; }
+
+    .main-area {
+      display: grid;
+      grid-template-columns: 320px 1fr 320px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .player-panel, .question-area {
+      background: rgba(255,255,255,0.08);
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(4px);
+    }
+
+    .player-panel {
+      padding: 18px 16px;
+      min-height: 650px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .player-panel.correct-flash { animation: correctFlash 0.5s ease; }
+    .player-panel.wrong-flash { animation: wrongFlash 0.5s ease; }
+
+    @keyframes correctFlash {
+      0%,100% { background: rgba(255,255,255,0.08); }
+      50% { background: rgba(46,213,115,0.28); }
+    }
+
+    @keyframes wrongFlash {
+      0%,100% { background: rgba(255,255,255,0.08); }
+      50% { background: rgba(233,69,96,0.28); }
+    }
+
+    .player-head {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      margin: 0 auto 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: bold;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    }
+
+    .player-a .avatar { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+    .player-b .avatar { background: linear-gradient(135deg, #f093fb, #f5576c); }
+
+    .player-name {
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .player-a .player-name { color: #4facfe; }
+    .player-b .player-name { color: #f093fb; }
+
+    .score-label {
+      color: #94a3b8;
+      font-size: 0.85rem;
+    }
+
+    .score-num {
+      font-size: 2.7rem;
+      font-weight: bold;
+      margin-top: 6px;
+    }
+
+    .player-a .score-num { color: #4facfe; }
+    .player-b .score-num { color: #f093fb; }
+
+    .player-status {
+      text-align: center;
+      margin: 12px 0;
+      min-height: 38px;
+      font-size: 0.95rem;
+      color: #ffd200;
+    }
+
+    .answer-area {
+      margin-top: 6px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .answer-btn {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 2px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      cursor: pointer;
+      text-align: left;
+      font-size: 0.93rem;
+      line-height: 1.5;
+      transition: all 0.2s;
+    }
+
+    .answer-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,0.14);
+      border-color: rgba(255,255,255,0.35);
+    }
+
+    .answer-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .answer-btn.correct {
+      background: rgba(46,213,115,0.23);
+      border-color: #2ed573;
+      color: #2ed573;
+    }
+
+    .answer-btn.wrong {
+      background: rgba(233,69,96,0.23);
+      border-color: #e94560;
+      color: #ff7b8a;
+    }
+
+    .record-wrap {
+      margin-top: 18px;
+    }
+
+    .record-title {
+      text-align: center;
+      color: #94a3b8;
+      font-size: 0.82rem;
+      margin-bottom: 8px;
+    }
+
+    .record-dots {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .record-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.14);
+    }
+
+    .record-dot.correct { background: #2ed573; }
+    .record-dot.wrong { background: #e94560; }
+
+    .question-area {
+      padding: 22px 20px;
+      min-height: 650px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .q-dots {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .q-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .q-dot.current {
+      background: #ffd200;
+      border-color: #ffd200;
+      animation: pulse 1s infinite;
+    }
+
+    .q-dot.done-correct { background: #2ed573; border-color: #2ed573; }
+    .q-dot.done-wrong { background: #e94560; border-color: #e94560; }
+
+    @keyframes pulse {
+      0%,100% { transform: scale(1); }
+      50% { transform: scale(1.25); }
+    }
+
+    .question-type {
+      background: linear-gradient(135deg, #f7971e, #ffd200);
+      color: #1e293b;
+      border-radius: 20px;
+      padding: 5px 16px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      margin-bottom: 14px;
+    }
+
+    .mid-hint {
+      color: #ffd200;
+      font-size: 0.96rem;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    .question-text {
+      font-size: 1.08rem;
+      line-height: 1.9;
+      text-align: center;
+      color: #f8fafc;
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+      padding: 0 8px;
+    }
+
+    .result-msg {
+      width: 100%;
+      min-height: 70px;
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.05);
+      color: #e2e8f0;
+      line-height: 1.75;
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    .next-btn {
+      margin-top: 18px;
+      padding: 12px 34px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #f7971e, #ffd200);
+      color: #1a1a2e;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      display: none;
+      transition: all 0.2s;
+    }
+
+    .next-btn.show { display: inline-block; }
+    .next-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255,210,0,0.35); }
+
+    .restart-wrap {
+      display: flex;
+      justify-content: center;
+      margin-top: 14px;
+    }
+
+    .restart-wrap button {
+      padding: 9px 28px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.08);
+      color: #cbd5e1;
+      cursor: pointer;
+    }
+
+    .restart-wrap button:hover {
+      background: rgba(255,255,255,0.14);
+      color: #fff;
+    }
+
+    .start-screen, .result-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(2,6,23,0.92);
+      padding: 20px;
+    }
+
+    .start-card, .result-card {
+      width: min(760px, 95vw);
+      background: linear-gradient(135deg, #111827, #1e293b);
+      border-radius: 24px;
+      padding: 36px 30px;
+      border: 1px solid rgba(255,255,255,0.12);
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    .start-card h1, .result-title {
+      font-size: 2rem;
+      background: linear-gradient(90deg, #f7971e, #ffd200);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .start-card p {
+      color: #cbd5e1;
+      line-height: 1.9;
+      margin-bottom: 8px;
+    }
+
+    .start-card .author {
+      color: #94a3b8;
+      font-size: 0.85rem;
+      margin-top: 8px;
+      opacity: 0.7;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin: 16px 0;
+    }
+
+    .tag {
+      background: rgba(255,210,0,0.14);
+      color: #ffd200;
+      border: 1px solid rgba(255,210,0,0.35);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.86rem;
+    }
+
+    .start-btn, .restart-btn {
+      margin-top: 20px;
+      padding: 14px 48px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1.08rem;
+      background: linear-gradient(135deg, #f7971e, #ffd200);
+      color: #1e293b;
+      transition: all 0.2s;
+    }
+
+    .start-btn:hover, .restart-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 26px rgba(255,210,0,0.35);
+    }
+
+    .result-screen { display: none; }
+    .result-screen.show { display: flex; }
+
+    .winner-emoji, .draw-emoji {
+      font-size: 4rem;
+      margin-bottom: 12px;
+    }
+
+    .winner-emoji { animation: jump 0.7s infinite alternate; }
+    @keyframes jump {
+      from { transform: translateY(0); }
+      to { transform: translateY(-12px); }
+    }
+
+    .score-summary {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 34px;
+      margin: 22px 0;
+      flex-wrap: wrap;
+    }
+
+    .score-item .name {
+      color: #94a3b8;
+      margin-bottom: 6px;
+    }
+
+    .score-item .num {
+      font-size: 2.6rem;
+      font-weight: bold;
+    }
+
+    .confetti-container {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      display: none;
+      z-index: 99;
+      overflow: hidden;
+    }
+
+    .confetti-container.show { display: block; }
+
+    .confetti {
+      position: absolute;
+      animation: fall linear forwards;
+    }
+
+    @keyframes fall {
+      0% { transform: translateY(-30px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    @media (max-width: 1100px) {
+      .main-area { grid-template-columns: 1fr; }
+      .player-panel, .question-area { min-height: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="start-screen" id="startScreen">
+    <div class="start-card">
+      <h1>⚡ 初中物理力学双人答题赛</h1>
+      <p>双人同时作答 · 每轮8题 · 判断题+单选题</p>
+      <p>题目范围：人教版初中物理力学基础知识</p>
+      <div class="tag-list">
+        <span class="tag">力</span>
+        <span class="tag">运动和力</span>
+        <span class="tag">压强</span>
+        <span class="tag">浮力</span>
+        <span class="tag">功和机械能</span>
+        <span class="tag">简单机械</span>
+      </div>
+      <p>规则：每题 A、B 双方都可作答一次，答对 +10 分，答错 -10 分。</p>
+      <p>共 8 题，3 道判断题，5 道单选题，结束后自动比较总分。</p>
+      <div class="author">设计制作：珠海市第十一中学 李郁权</div>
+      <button class="start-btn" onclick="startGame()">开始游戏</button>
+    </div>
+  </div>
+
+  <div class="game-container">
+    <div class="title-area">
+      <h1>⚡ 初中物理力学双人答题赛</h1>
+      <div class="sub">覆盖人教版初中物理力学核心基础知识</div>
+      <div class="author">设计制作：珠海市第十一中学 李郁权</div>
+    </div>
+
+    <div class="top-bar">
+      <div class="timer-box">⏱ <span id="timerDisplay">00:00</span></div>
+      <div class="question-progress" id="questionProgress">第 1 / 8 题</div>
+      <div class="topic-badge" id="topicBadge">知识点：—</div>
+    </div>
+
+    <div class="main-area">
+      <!-- A -->
+      <div class="player-panel player-a" id="panelA">
+        <div class="player-head">
+          <div class="avatar">A</div>
+          <div class="player-name">参赛者 A</div>
+          <div class="score-label">当前得分</div>
+          <div class="score-num" id="scoreA">0</div>
+        </div>
+        <div class="player-status" id="statusA">等待本题作答</div>
+        <div class="answer-area" id="answerAreaA"></div>
+
+        <div class="record-wrap">
+          <div class="record-title">答题记录</div>
+          <div class="record-dots" id="recordA"></div>
+        </div>
+      </div>
+
+      <!-- 中间 -->
+      <div class="question-area">
+        <div class="q-dots" id="qDots"></div>
+        <div class="question-type" id="questionType">判断题</div>
+        <div class="mid-hint" id="midHint">题目出现后，双方可同时答题</div>
+        <div class="question-text" id="questionText">点击“开始游戏”后显示题目</div>
+        <div class="result-msg" id="resultMsg">本题结果会在双方都答完后显示。</div>
+        <button class="next-btn" id="nextBtn" onclick="nextQuestion()">下一题 ▶</button>
+      </div>
+
+      <!-- B -->
+      <div class="player-panel player-b" id="panelB">
+        <div class="player-head">
+          <div class="avatar">B</div>
+          <div class="player-name">参赛者 B</div>
+          <div class="score-label">当前得分</div>
+          <div class="score-num" id="scoreB">0</div>
+        </div>
+        <div class="player-status" id="statusB">等待本题作答</div>
+        <div class="answer-area" id="answerAreaB"></div>
+
+        <div class="record-wrap">
+          <div class="record-title">答题记录</div>
+          <div class="record-dots" id="recordB"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="restart-wrap">
+      <button onclick="restartGame()">🔄 重新开始</button>
+    </div>
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <div class="result-card">
+      <div id="resultEmoji"></div>
+      <div class="result-title" id="resultTitle"></div>
+      <div class="score-summary" id="scoreSummary"></div>
+      <button class="restart-btn" onclick="restartGame()">再来一局</button>
+    </div>
+  </div>
+
+  <div class="confetti-container" id="confettiContainer"></div>
+
+  <script>
+    // =========================
+    // 题库：力学范围，基础题偏多，100+题
+    // =========================
+    const questionBank = [
+      // ---------- 力：判断 ----------
+      {type:'judgment', topic:'力', text:'力不能离开物体而单独存在。', answer:'正确'},
+      {type:'judgment', topic:'力', text:'只有接触的物体之间才一定有力的作用。', answer:'错误'},
+      {type:'judgment', topic:'力', text:'力可以改变物体的运动状态，也可以改变物体的形状。', answer:'正确'},
+      {type:'judgment', topic:'力', text:'一个力只有大小，没有方向。', answer:'错误'},
+      {type:'judgment', topic:'力', text:'物体间力的作用是相互的。', answer:'正确'},
+      {type:'judgment', topic:'力', text:'弹力一定要在两个物体接触并发生形变时才会产生。', answer:'正确'},
+      {type:'judgment', topic:'力', text:'重力的方向总是竖直向下。', answer:'正确'},
+      {type:'judgment', topic:'力', text:'物体质量越大，受到的重力一定越大。', answer:'正确'},
+      {type:'judgment', topic:'力', text:'用力踢球后，球继续向前运动说明球一直受到脚的作用力。', answer:'错误'},
+      {type:'judgment', topic:'力', text:'摩擦力总是阻碍物体运动。', answer:'错误'},
+
+      // ---------- 力：单选 ----------
+      {type:'choice', topic:'力', text:'下列关于力的说法正确的是（　　）', options:{A:'只有一个物体也能产生力',B:'力不能改变物体形状',C:'力的作用是相互的',D:'力只有大小没有方向'}, answer:'C'},
+      {type:'choice', topic:'力', text:'下列现象中，主要说明力能改变物体形状的是（　　）', options:{A:'足球被踢飞',B:'拉弓时弓弯了',C:'火车进站减速',D:'苹果落向地面'}, answer:'B'},
+      {type:'choice', topic:'力', text:'重力的施力物体是（　　）', options:{A:'地球',B:'物体本身',C:'空气',D:'手'}, answer:'A'},
+      {type:'choice', topic:'力', text:'一个质量为2kg的物体，g取10N/kg，则它受到的重力为（　　）', options:{A:'2N',B:'5N',C:'20N',D:'200N'}, answer:'C'},
+      {type:'choice', topic:'力', text:'下列关于弹力的说法正确的是（　　）', options:{A:'只要接触就一定有弹力',B:'相互接触并挤压的物体间可能产生弹力',C:'弹力方向总是竖直向上',D:'弹力大小总等于重力'}, answer:'B'},
+      {type:'choice', topic:'力', text:'坐在椅子上的人，椅子对人产生支持力，这个力属于（　　）', options:{A:'重力',B:'弹力',C:'摩擦力',D:'磁力'}, answer:'B'},
+      {type:'choice', topic:'力', text:'下列哪个实例中，物体间有力的作用但没有直接接触（　　）', options:{A:'手推桌子',B:'人提书包',C:'地球吸引苹果下落',D:'脚踢足球'}, answer:'C'},
+      {type:'choice', topic:'力', text:'用绳子提水桶时，绳子对水桶的拉力方向一般是（　　）', options:{A:'竖直向下',B:'竖直向上',C:'水平向前',D:'水平向后'}, answer:'B'},
+      {type:'choice', topic:'力', text:'下列关于摩擦力的说法正确的是（　　）', options:{A:'摩擦力一定有害',B:'两个不接触的物体之间也有摩擦力',C:'摩擦力可能是有益的',D:'静止物体不可能受摩擦力'}, answer:'C'},
+      {type:'choice', topic:'力', text:'自行车刹车时会停下来，主要是因为（　　）', options:{A:'重力增大',B:'摩擦力改变了运动状态',C:'惯性消失',D:'没有受到力'}, answer:'B'},
+
+      // ---------- 运动和力：判断 ----------
+      {type:'judgment', topic:'运动和力', text:'物体不受力时，一定处于静止状态。', answer:'错误'},
+      {type:'judgment', topic:'运动和力', text:'物体保持静止或匀速直线运动状态时，说明它受平衡力或不受力。', answer:'正确'},
+      {type:'judgment', topic:'运动和力', text:'惯性是物体的一种属性，任何物体都具有惯性。', answer:'正确'},
+      {type:'judgment', topic:'运动和力', text:'惯性大小只与物体的质量有关。', answer:'正确'},
+      {type:'judgment', topic:'运动和力', text:'正在运动的物体突然不受力，它会立即停下来。', answer:'错误'},
+      {type:'judgment', topic:'运动和力', text:'平衡力是作用在同一个物体上的两个力。', answer:'正确'},
+      {type:'judgment', topic:'运动和力', text:'一对相互作用力可以相互平衡。', answer:'错误'},
+      {type:'judgment', topic:'运动和力', text:'汽车启动时，人向后仰是因为人具有惯性。', answer:'正确'},
+      {type:'judgment', topic:'运动和力', text:'物体受非平衡力作用时，运动状态一定改变。', answer:'正确'},
+      {type:'judgment', topic:'运动和力', text:'匀速转弯的汽车处于平衡状态。', answer:'错误'},
+
+      // ---------- 运动和力：单选 ----------
+      {type:'choice', topic:'运动和力', text:'下列关于惯性的说法正确的是（　　）', options:{A:'静止物体没有惯性',B:'运动越快惯性越大',C:'质量越大惯性越大',D:'惯性是力'}, answer:'C'},
+      {type:'choice', topic:'运动和力', text:'下列现象中，属于利用惯性的是（　　）', options:{A:'汽车驾驶员系安全带',B:'拍打衣服上的灰尘',C:'刹车时人向前倾',D:'路面结冰容易滑倒'}, answer:'B'},
+      {type:'choice', topic:'运动和力', text:'一个物体在两个平衡力作用下，它一定（　　）', options:{A:'做匀速圆周运动',B:'保持静止',C:'保持静止或匀速直线运动',D:'速度越来越快'}, answer:'C'},
+      {type:'choice', topic:'运动和力', text:'天花板上悬挂着一盏静止的灯，灯受到的平衡力是（　　）', options:{A:'灯的重力和灯对绳子的拉力',B:'绳子对灯的拉力和灯的重力',C:'绳子对天花板的拉力和灯的重力',D:'灯对地球的吸引力和地球对灯的吸引力'}, answer:'B'},
+      {type:'choice', topic:'运动和力', text:'下列情况中，物体运动状态没有改变的是（　　）', options:{A:'汽车由静止开始运动',B:'足球绕弯飞行',C:'电梯匀速上升',D:'火车减速进站'}, answer:'C'},
+      {type:'choice', topic:'运动和力', text:'下列哪组力是平衡力（　　）', options:{A:'手推墙的力和墙推手的力',B:'书对桌面的压力和桌面对书的支持力',C:'静止在桌面上的书受到的重力和桌面对书的支持力',D:'地球吸引苹果的力和苹果吸引地球的力'}, answer:'C'},
+      {type:'choice', topic:'运动和力', text:'下列关于牛顿第一定律的理解正确的是（　　）', options:{A:'力是维持物体运动的原因',B:'不受力的物体一定静止',C:'物体具有保持原来运动状态不变的性质',D:'只有运动物体才有惯性'}, answer:'C'},
+      {type:'choice', topic:'运动和力', text:'汽车急刹车时，人会向前倾，这是因为人（　　）', options:{A:'受到向前的推力',B:'具有惯性，要保持原来的运动状态',C:'受到的重力变大',D:'失去了平衡力'}, answer:'B'},
+      {type:'choice', topic:'运动和力', text:'在平直公路上匀速行驶的汽车，若受到的牵引力突然消失，则汽车将（　　）', options:{A:'立刻停止',B:'继续匀速前进',C:'速度逐渐减小',D:'速度逐渐增大'}, answer:'C'},
+      {type:'choice', topic:'运动和力', text:'小车在水平面上做匀速直线运动，若所受外力全部消失，则小车将（　　）', options:{A:'立即停止',B:'仍做匀速直线运动',C:'开始减速',D:'改变方向'}, answer:'B'},
+
+      // ---------- 压强：判断 ----------
+      {type:'judgment', topic:'压强', text:'压力作用效果不仅与压力大小有关，还与受力面积有关。', answer:'正确'},
+      {type:'judgment', topic:'压强', text:'同一人站着和单脚站着，对地面的压力不同。', answer:'错误'},
+      {type:'judgment', topic:'压强', text:'液体内部同一深度向各个方向都有压强。', answer:'正确'},
+      {type:'judgment', topic:'压强', text:'潜水员潜得越深，受到液体压强越大。', answer:'正确'},
+      {type:'judgment', topic:'压强', text:'标准大气压约等于1.01×10^5Pa。', answer:'正确'},
+      {type:'judgment', topic:'压强', text:'高山上大气压比平原上更大。', answer:'错误'},
+      {type:'judgment', topic:'压强', text:'流体流速越大的位置，压强越小。', answer:'正确'},
+      {type:'judgment', topic:'压强', text:'坦克安装履带是为了增大压强。', answer:'错误'},
+      {type:'judgment', topic:'压强', text:'连通器中装同种液体静止时，各容器中的液面相平。', answer:'正确'},
+      {type:'judgment', topic:'压强', text:'吸管吸饮料时，是嘴把饮料直接“吸”上来的。', answer:'错误'},
+
+      // ---------- 压强：单选 ----------
+      {type:'choice', topic:'压强', text:'下列做法中，属于增大压强的是（　　）', options:{A:'书包带做宽',B:'滑雪板做大',C:'菜刀磨锋利',D:'坦克装履带'}, answer:'C'},
+      {type:'choice', topic:'压强', text:'下列实例中，属于减小压强的是（　　）', options:{A:'图钉尖很细',B:'针头很尖',C:'啄木鸟嘴很尖',D:'铁轨下铺枕木'}, answer:'D'},
+      {type:'choice', topic:'压强', text:'下列关于液体压强的说法正确的是（　　）', options:{A:'液体只对容器底有压强',B:'液体压强只与容器形状有关',C:'液体内部向各个方向都有压强',D:'液体越轻压强越大'}, answer:'C'},
+      {type:'choice', topic:'压强', text:'水坝下部总是修得比上部宽厚，这是因为（　　）', options:{A:'下部水更多',B:'下部液体压强更大',C:'下部重力更小',D:'下部更美观'}, answer:'B'},
+      {type:'choice', topic:'压强', text:'下列现象中，利用大气压的是（　　）', options:{A:'船漂在水上',B:'吸管吸饮料',C:'石头落地',D:'杠杆撬石头'}, answer:'B'},
+      {type:'choice', topic:'压强', text:'托里拆利实验测得标准大气压相当于约多少高水银柱产生的压强（　　）', options:{A:'7.6cm',B:'76cm',C:'760cm',D:'76m'}, answer:'B'},
+      {type:'choice', topic:'压强', text:'下列关于流体压强与流速关系的说法正确的是（　　）', options:{A:'流速越大压强越大',B:'流速越大压强越小',C:'流速越小压强越小',D:'二者无关'}, answer:'B'},
+      {type:'choice', topic:'压强', text:'飞机机翼获得升力，主要是因为（　　）', options:{A:'上方空气流速大压强小',B:'下方空气流速大压强小',C:'上方空气压强大',D:'下方空气流速小压强小'}, answer:'A'},
+      {type:'choice', topic:'压强', text:'一个物体对桌面的压强增大，可能的原因是（　　）', options:{A:'压力增大，受力面积不变',B:'压力不变，受力面积增大',C:'压力减小，受力面积不变',D:'压力和面积都减小但压强一定减小'}, answer:'A'},
+      {type:'choice', topic:'压强', text:'同一液体中，深度越大，液体压强（　　）', options:{A:'越小',B:'不变',C:'越大',D:'先变大后变小'}, answer:'C'},
+
+      // ---------- 浮力：判断 ----------
+      {type:'judgment', topic:'浮力', text:'浸在液体中的物体都受到浮力。', answer:'正确'},
+      {type:'judgment', topic:'浮力', text:'漂浮的物体受到的浮力等于它受到的重力。', answer:'正确'},
+      {type:'judgment', topic:'浮力', text:'物体浸没在液体中越深，受到的浮力越大。', answer:'错误'},
+      {type:'judgment', topic:'浮力', text:'浮力的方向总是竖直向上的。', answer:'正确'},
+      {type:'judgment', topic:'浮力', text:'阿基米德原理说明浮力大小等于物体排开液体所受的重力。', answer:'正确'},
+      {type:'judgment', topic:'浮力', text:'轮船能够漂浮，是因为它空心后平均密度减小。', answer:'正确'},
+      {type:'judgment', topic:'浮力', text:'同一物体在水中和盐水中受到的浮力一定相等。', answer:'错误'},
+      {type:'judgment', topic:'浮力', text:'潜水艇靠改变自身重力与浮力的关系实现上浮和下沉。', answer:'正确'},
+      {type:'judgment', topic:'浮力', text:'只有液体才能产生浮力，气体不能产生浮力。', answer:'错误'},
+      {type:'judgment', topic:'浮力', text:'密度计漂浮在液体中时，所受浮力等于它的重力。', answer:'正确'},
+
+      // ---------- 浮力：单选 ----------
+      {type:'choice', topic:'浮力', text:'下列关于浮力的说法正确的是（　　）', options:{A:'静止在水中的物体不受浮力',B:'浮力方向竖直向下',C:'浸在液体中的物体一般都受浮力',D:'浮力大小只与物体质量有关'}, answer:'C'},
+      {type:'choice', topic:'浮力', text:'漂浮在水面的木块受到的浮力和重力大小关系是（　　）', options:{A:'浮力大于重力',B:'浮力小于重力',C:'浮力等于重力',D:'无法确定'}, answer:'C'},
+      {type:'choice', topic:'浮力', text:'根据阿基米德原理，浮力大小等于（　　）', options:{A:'物体重力',B:'液体重力',C:'排开液体受到的重力',D:'物体体积'}, answer:'C'},
+      {type:'choice', topic:'浮力', text:'潜水艇上浮时，通常采取的方法是（　　）', options:{A:'增大自身重力',B:'减小自身重力',C:'增大体积',D:'减小浮力'}, answer:'B'},
+      {type:'choice', topic:'浮力', text:'将同一块石头分别浸没在水和盐水中，受到的浮力大小（　　）', options:{A:'在盐水中更大',B:'在水中更大',C:'一样大',D:'无法确定'}, answer:'A'},
+      {type:'choice', topic:'浮力', text:'轮船从河里驶入海里后，将会（　　）', options:{A:'下沉一些',B:'上浮一些',C:'保持不变',D:'无法判断'}, answer:'B'},
+      {type:'choice', topic:'浮力', text:'把一个乒乓球压入水中后放手，球会上浮，原因是（　　）', options:{A:'球受到的浮力大于重力',B:'球没有重力',C:'球受到向下的力',D:'水推着球跑'}, answer:'A'},
+      {type:'choice', topic:'浮力', text:'下列设备中，主要利用浮力工作的是（　　）', options:{A:'订书机',B:'船',C:'剪刀',D:'扳手'}, answer:'B'},
+      {type:'choice', topic:'浮力', text:'密度计放入不同液体中都能漂浮，是因为（　　）', options:{A:'浮力始终等于重力',B:'浮力始终大于重力',C:'重力始终变小',D:'液体都一样'}, answer:'A'},
+      {type:'choice', topic:'浮力', text:'一个物体悬浮在液体中时，它受到的浮力与重力关系是（　　）', options:{A:'浮力大于重力',B:'浮力小于重力',C:'浮力等于重力',D:'无法判断'}, answer:'C'},
+
+      // ---------- 功和机械能：判断 ----------
+      {type:'judgment', topic:'功和机械能', text:'有力作用在物体上，且物体在力的方向上移动了一段距离，这个力才对物体做功。', answer:'正确'},
+      {type:'judgment', topic:'功和机械能', text:'举着重物静止不动时，人对重物做了功。', answer:'错误'},
+      {type:'judgment', topic:'功和机械能', text:'物体运动得越快，动能一般越大。', answer:'正确'},
+      {type:'judgment', topic:'功和机械能', text:'物体被举得越高，重力势能越大。', answer:'正确'},
+      {type:'judgment', topic:'功和机械能', text:'机械能等于动能和势能之和。', answer:'正确'},
+      {type:'judgment', topic:'功和机械能', text:'滚摆上升时，动能转化为重力势能。', answer:'正确'},
+      {type:'judgment', topic:'功和机械能', text:'速度大的物体，机械能一定大。', answer:'错误'},
+      {type:'judgment', topic:'功和机械能', text:'弹簧被压缩时具有弹性势能。', answer:'正确'},
+      {type:'judgment', topic:'功和机械能', text:'功率表示做功快慢。', answer:'正确'},
+      {type:'judgment', topic:'功和机械能', text:'功的单位和功率的单位相同。', answer:'错误'},
+
+      // ---------- 功和机械能：单选 ----------
+      {type:'choice', topic:'功和机械能', text:'下列情况中，对物体做了功的是（　　）', options:{A:'提着水桶站着不动',B:'搬石头但没搬动',C:'推箱子使它前进',D:'举着杠铃保持静止'}, answer:'C'},
+      {type:'choice', topic:'功和机械能', text:'下列关于动能的说法正确的是（　　）', options:{A:'静止物体也有动能',B:'物体质量越大动能一定越大',C:'物体速度越大动能一般越大',D:'动能与质量无关'}, answer:'C'},
+      {type:'choice', topic:'功和机械能', text:'下列物体中，具有重力势能的是（　　）', options:{A:'放在地上的石头',B:'空中飞行的足球',C:'静止在高处的书',D:'以上都有'}, answer:'D'},
+      {type:'choice', topic:'功和机械能', text:'苹果从树上落下过程中，主要发生的能量转化是（　　）', options:{A:'动能转化为重力势能',B:'重力势能转化为动能',C:'机械能转化为内能',D:'弹性势能转化为动能'}, answer:'B'},
+      {type:'choice', topic:'功和机械能', text:'功率表示（　　）', options:{A:'做功多少',B:'机械效率高低',C:'做功快慢',D:'力的大小'}, answer:'C'},
+      {type:'choice', topic:'功和机械能', text:'将一本书从地面拿到桌面上，人对书做的功（　　）', options:{A:'一定大于0',B:'一定等于0',C:'一定小于0',D:'无法判断'}, answer:'A'},
+      {type:'choice', topic:'功和机械能', text:'下列单位中，属于功的单位是（　　）', options:{A:'牛顿',B:'焦耳',C:'帕斯卡',D:'瓦特'}, answer:'B'},
+      {type:'choice', topic:'功和机械能', text:'下列单位中，属于功率单位的是（　　）', options:{A:'J',B:'N',C:'W',D:'Pa'}, answer:'C'},
+      {type:'choice', topic:'功和机械能', text:'拉开的弓具有的能量是（　　）', options:{A:'动能',B:'重力势能',C:'弹性势能',D:'电能'}, answer:'C'},
+      {type:'choice', topic:'功和机械能', text:'同一物体从同一高度自由下落，忽略空气阻力，落地前机械能（　　）', options:{A:'增大',B:'减小',C:'不变',D:'先增大后减小'}, answer:'C'},
+
+      // ---------- 简单机械：判断 ----------
+      {type:'judgment', topic:'简单机械', text:'使用杠杆不一定省力，但可以省距离或改变用力方向。', answer:'正确'},
+      {type:'judgment', topic:'简单机械', text:'杠杆平衡时，动力×动力臂=阻力×阻力臂。', answer:'正确'},
+      {type:'judgment', topic:'简单机械', text:'定滑轮既能省力，也能改变力的方向。', answer:'错误'},
+      {type:'judgment', topic:'简单机械', text:'动滑轮可以省力，但不能改变力的方向。', answer:'正确'},
+      {type:'judgment', topic:'简单机械', text:'斜面越长越省力。', answer:'正确'},
+      {type:'judgment', topic:'简单机械', text:'使用机械做功一定省功。', answer:'错误'},
+      {type:'judgment', topic:'简单机械', text:'筷子、镊子、钓鱼竿都属于杠杆。', answer:'正确'},
+      {type:'judgment', topic:'简单机械', text:'剪刀一定是省力杠杆。', answer:'错误'},
+      {type:'judgment', topic:'简单机械', text:'机械效率一定小于100%。', answer:'正确'},
+      {type:'judgment', topic:'简单机械', text:'螺丝刀、瓶盖起子都与杠杆知识有关。', answer:'正确'},
+
+      // ---------- 简单机械：单选 ----------
+      {type:'choice', topic:'简单机械', text:'下列工具中，属于省力杠杆的是（　　）', options:{A:'钓鱼竿',B:'筷子',C:'瓶盖起子',D:'镊子'}, answer:'C'},
+      {type:'choice', topic:'简单机械', text:'下列工具中，属于费力杠杆的是（　　）', options:{A:'羊角锤',B:'镊子',C:'钢丝钳',D:'铡刀'}, answer:'B'},
+      {type:'choice', topic:'简单机械', text:'使用定滑轮的好处是（　　）', options:{A:'省一半力',B:'改变力的方向',C:'既省力又省距离',D:'增加机械效率'}, answer:'B'},
+      {type:'choice', topic:'简单机械', text:'使用动滑轮提升重物，不计摩擦时，动力约为物重的（　　）', options:{A:'2倍',B:'1倍',C:'1/2',D:'1/3'}, answer:'C'},
+      {type:'choice', topic:'简单机械', text:'杠杆平衡的条件是（　　）', options:{A:'动力=阻力',B:'动力臂=阻力臂',C:'动力×动力臂=阻力×阻力臂',D:'动力+动力臂=阻力+阻力臂'}, answer:'C'},
+      {type:'choice', topic:'简单机械', text:'斜面可以省力，是因为它把（　　）', options:{A:'较大的力作用在较短距离上',B:'较小的力作用在较长距离上',C:'较小的力作用在较短距离上',D:'不做功'}, answer:'B'},
+      {type:'choice', topic:'简单机械', text:'机械效率表示有用功在总功中所占的（　　）', options:{A:'数量',B:'比例',C:'速度',D:'时间'}, answer:'B'},
+      {type:'choice', topic:'简单机械', text:'下列说法正确的是（　　）', options:{A:'机械效率高的机械一定省力',B:'机械效率高的机械做功一定快',C:'使用任何机械都不能省功',D:'机械效率可以达到100%以上'}, answer:'C'},
+      {type:'choice', topic:'简单机械', text:'用撬棒撬石头时，撬棒属于（　　）', options:{A:'杠杆',B:'滑轮',C:'轮轴',D:'斜面'}, answer:'A'},
+      {type:'choice', topic:'简单机械', text:'下列实例中，利用斜面的是（　　）', options:{A:'楼梯',B:'跷跷板',C:'吊车',D:'天平'}, answer:'A'},
+
+      // ---------- 综合补充 ----------
+      {type:'judgment', topic:'综合力学', text:'地面附近的物体都受到重力作用。', answer:'正确'},
+      {type:'judgment', topic:'综合力学', text:'汽车在水平公路上匀速直线行驶时，一定不受摩擦力。', answer:'错误'},
+      {type:'judgment', topic:'综合力学', text:'把铁块放入水中后变轻了，是因为它所受重力变小了。', answer:'错误'},
+      {type:'judgment', topic:'综合力学', text:'机械做功越多，功率不一定越大。', answer:'正确'},
+      {type:'choice', topic:'综合力学', text:'下列现象中，既涉及力又涉及机械能转化的是（　　）', options:{A:'苹果落地',B:'吸管吸水',C:'轮船漂浮',D:'杠杆平衡'}, answer:'A'},
+      {type:'choice', topic:'综合力学', text:'下列关于初中力学知识的说法正确的是（　　）', options:{A:'运动的物体一定受力',B:'漂浮的物体所受浮力等于重力',C:'机械效率可达100%',D:'流速越大压强越大'}, answer:'B'},
+      {type:'choice', topic:'综合力学', text:'小明背书包上楼，书包的重力势能将（　　）', options:{A:'增大',B:'减小',C:'不变',D:'先增大后减小'}, answer:'A'},
+      {type:'choice', topic:'综合力学', text:'把一块木块压入水中后放手，木块上浮直至漂浮，整个过程中最终一定成立的是（　　）', options:{A:'木块一直做匀速运动',B:'漂浮时浮力等于重力',C:'木块受到的重力消失',D:'木块漂浮后浮力大于重力'}, answer:'B'}
+    ];
+
+    // =========================
+    // 游戏状态
+    // =========================
+    let gameState = {
+      scoreA: 0,
+      scoreB: 0,
+      currentIndex: 0,
+      questions: [],
+      seconds: 0,
+      timer: null,
+      answerA: null,
+      answerB: null,
+      recordA: [],
+      recordB: []
+    };
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function generateRoundQuestions() {
+      const judgments = shuffle(questionBank.filter(q => q.type === 'judgment'));
+      const choices = shuffle(questionBank.filter(q => q.type === 'choice'));
+
+      const selectedJudgments = judgments.slice(0, 3);
+      const selectedChoices = choices.slice(0, 5);
+
+      return shuffle([...selectedJudgments, ...selectedChoices]);
+    }
+
+    function startGame() {
+      document.getElementById('startScreen').style.display = 'none';
+      initGame();
+    }
+
+    function initGame() {
+      gameState.scoreA = 0;
+      gameState.scoreB = 0;
+      gameState.currentIndex = 0;
+      gameState.questions = generateRoundQuestions();
+      gameState.seconds = 0;
+      gameState.answerA = null;
+      gameState.answerB = null;
+      gameState.recordA = [];
+      gameState.recordB = [];
+
+      clearInterval(gameState.timer);
+      startTimer();
+      updateScores();
+      buildDots();
+      updateRecords();
+      loadQuestion(0);
+
+      document.getElementById('resultScreen').classList.remove('show');
+      document.getElementById('confettiContainer').classList.remove('show');
+      document.getElementById('confettiContainer').innerHTML = '';
+    }
+
+    function restartGame() {
+      initGame();
+    }
+
+    function startTimer() {
+      document.getElementById('timerDisplay').textContent = '00:00';
+      gameState.timer = setInterval(() => {
+        gameState.seconds++;
+        const m = String(Math.floor(gameState.seconds / 60)).padStart(2, '0');
+        const s = String(gameState.seconds % 60).padStart(2, '0');
+        document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+      }, 1000);
+    }
+
+    function updateScores() {
+      document.getElementById('scoreA').textContent = gameState.scoreA;
+      document.getElementById('scoreB').textContent = gameState.scoreB;
+    }
+
+    function buildDots() {
+      const box = document.getElementById('qDots');
+      box.innerHTML = '';
+      for (let i = 0; i < 8; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'q-dot' + (i === 0 ? ' current' : '');
+        dot.id = 'qdot-' + i;
+        box.appendChild(dot);
+      }
+    }
+
+    function updateDot(index, result) {
+      const dot = document.getElementById('qdot-' + index);
+      if (dot) {
+        dot.classList.remove('current');
+        dot.classList.add(result === 'correct' ? 'done-correct' : 'done-wrong');
+      }
+      const next = document.getElementById('qdot-' + (index + 1));
+      if (next) next.classList.add('current');
+    }
+
+    function updateRecords() {
+      ['A','B'].forEach(player => {
+        const list = player === 'A' ? gameState.recordA : gameState.recordB;
+        const el = document.getElementById('record' + player);
+        el.innerHTML = '';
+        for (let i = 0; i < 8; i++) {
+          const dot = document.createElement('div');
+          dot.className = 'record-dot';
+          if (list[i]) dot.classList.add(list[i]);
+          el.appendChild(dot);
+        }
+      });
+    }
+
+    function loadQuestion(index) {
+      const q = gameState.questions[index];
+      gameState.answerA = null;
+      gameState.answerB = null;
+
+      document.getElementById('questionProgress').textContent = `第 ${index + 1} / 8 题`;
+      document.getElementById('topicBadge').textContent = `知识点：${q.topic}`;
+      document.getElementById('questionType').textContent = q.type === 'judgment' ? '⚖️ 判断题' : '📝 单选题';
+      document.getElementById('questionText').textContent = q.text;
+      document.getElementById('resultMsg').textContent = '本题结果会在双方都答完后显示。';
+      document.getElementById('midHint').textContent = '双方同时答题，每人本题只能作答一次';
+      document.getElementById('nextBtn').classList.remove('show');
+
+      document.getElementById('statusA').textContent = '等待本题作答';
+      document.getElementById('statusB').textContent = '等待本题作答';
+
+      document.getElementById('panelA').classList.remove('correct-flash', 'wrong-flash');
+      document.getElementById('panelB').classList.remove('correct-flash', 'wrong-flash');
+
+      renderAnswerArea('A', q);
+      renderAnswerArea('B', q);
+    }
+
+    function renderAnswerArea(player, question) {
+      const area = document.getElementById('answerArea' + player);
+      area.innerHTML = '';
+
+      if (question.type === 'judgment') {
+        ['正确', '错误'].forEach(ans => {
+          const btn = document.createElement('button');
+          btn.className = 'answer-btn';
+          btn.textContent = ans === '正确' ? '✅ 正确' : '❌ 错误';
+          btn.onclick = () => submitAnswer(player, ans);
+          area.appendChild(btn);
+        });
+      } else {
+        ['A','B','C','D'].forEach(key => {
+          const btn = document.createElement('button');
+          btn.className = 'answer-btn';
+          btn.textContent = `${key}. ${question.options[key]}`;
+          btn.onclick = () => submitAnswer(player, key);
+          area.appendChild(btn);
+        });
+      }
+    }
+
+    function disablePlayerButtons(player) {
+      document.querySelectorAll(`#answerArea${player} .answer-btn`).forEach(btn => btn.disabled = true);
+    }
+
+    function submitAnswer(player, answer) {
+      const q = gameState.questions[gameState.currentIndex];
+      const currentAnswer = player === 'A' ? gameState.answerA : gameState.answerB;
+      if (currentAnswer !== null) return;
+
+      const isCorrect = answer === q.answer;
+
+      if (player === 'A') {
+        gameState.answerA = answer;
+        gameState.scoreA += isCorrect ? 10 : -10;
+        gameState.recordA.push(isCorrect ? 'correct' : 'wrong');
+        document.getElementById('statusA').textContent = isCorrect ? '✅ 回答正确，+10分' : '❌ 回答错误，-10分';
+        document.getElementById('panelA').classList.add(isCorrect ? 'correct-flash' : 'wrong-flash');
+      } else {
+        gameState.answerB = answer;
+        gameState.scoreB += isCorrect ? 10 : -10;
+        gameState.recordB.push(isCorrect ? 'correct' : 'wrong');
+        document.getElementById('statusB').textContent = isCorrect ? '✅ 回答正确，+10分' : '❌ 回答错误，-10分';
+        document.getElementById('panelB').classList.add(isCorrect ? 'correct-flash' : 'wrong-flash');
+      }
+
+      updateScores();
+      updateRecords();
+      markPlayerButtons(player, answer, q.answer);
+      disablePlayerButtons(player);
+
+      setTimeout(() => {
+        document.getElementById('panelA').classList.remove('correct-flash', 'wrong-flash');
+        document.getElementById('panelB').classList.remove('correct-flash', 'wrong-flash');
+      }, 500);
+
+      checkBothAnswered();
+    }
+
+    function markPlayerButtons(player, userAnswer, correctAnswer) {
+      const buttons = document.querySelectorAll(`#answerArea${player} .answer-btn`);
+      buttons.forEach(btn => {
+        const text = btn.textContent;
+        if (
+          (correctAnswer === '正确' && text.includes('正确')) ||
+          (correctAnswer === '错误' && text.includes('错误')) ||
+          text.startsWith(correctAnswer + '.')
+        ) {
+          btn.classList.add('correct');
+        } else if (
+          (userAnswer === '正确' && text.includes('正确') && userAnswer !== correctAnswer) ||
+          (userAnswer === '错误' && text.includes('错误') && userAnswer !== correctAnswer) ||
+          (text.startsWith(userAnswer + '.') && userAnswer !== correctAnswer)
+        ) {
+          btn.classList.add('wrong');
+        }
+      });
+    }
+
+    function checkBothAnswered() {
+      const answeredA = gameState.answerA !== null;
+      const answeredB = gameState.answerB !== null;
+
+      if (!answeredA || !answeredB) return;
+
+      const q = gameState.questions[gameState.currentIndex];
+      const isCorrectA = gameState.answerA === q.answer;
+      const isCorrectB = gameState.answerB === q.answer;
+
+      const anyCorrect = isCorrectA || isCorrectB;
+      updateDot(gameState.currentIndex, anyCorrect ? 'correct' : 'wrong');
+
+      document.getElementById('midHint').textContent = '本题已完成';
+      document.getElementById('resultMsg').innerHTML = `
+        <div><b>正确答案：</b>${q.answer}</div>
+        <div style="margin-top:6px;">
+          参赛者A：${isCorrectA ? '✅ 正确，+10分' : '❌ 错误，-10分'}　
+          ｜　
+          参赛者B：${isCorrectB ? '✅ 正确，+10分' : '❌ 错误，-10分'}
+        </div>
+      `;
+
+      const btn = document.getElementById('nextBtn');
+      btn.textContent = gameState.currentIndex < 7 ? '下一题 ▶' : '查看结果 🏆';
+      btn.classList.add('show');
+    }
+
+    function nextQuestion() {
+      if (gameState.currentIndex < 7) {
+        gameState.currentIndex++;
+        loadQuestion(gameState.currentIndex);
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult() {
+      clearInterval(gameState.timer);
+
+      const a = gameState.scoreA;
+      const b = gameState.scoreB;
+      let title = '';
+      let emoji = '';
+
+      if (a > b) {
+        title = '参赛者 A 获胜！';
+        emoji = '<div class="winner-emoji">🏆</div>';
+        launchConfetti();
+      } else if (b > a) {
+        title = '参赛者 B 获胜！';
+        emoji = '<div class="winner-emoji">🎉</div>';
+        launchConfetti();
+      } else {
+        title = '平局！旗鼓相当！';
+        emoji = '<div class="draw-emoji">🤝</div>';
+      }
+
+      document.getElementById('resultEmoji').innerHTML = emoji;
+      document.getElementById('resultTitle').textContent = title;
+      document.getElementById('scoreSummary').innerHTML = `
+        <div class="score-item">
+          <div class="name">参赛者 A</div>
+          <div class="num" style="color:${a >= b ? '#ffd200' : '#4facfe'}">${a}</div>
+        </div>
+        <div style="font-size:1.8rem;color:#64748b;">VS</div>
+        <div class="score-item">
+          <div class="name">参赛者 B</div>
+          <div class="num" style="color:${b >= a ? '#ffd200' : '#f093fb'}">${b}</div>
+        </div>
+      `;
+      document.getElementById('resultScreen').classList.add('show');
+    }
+
+    function launchConfetti() {
+      const container = document.getElementById('confettiContainer');
+      container.innerHTML = '';
+      container.classList.add('show');
+
+      const colors = ['#ffd200','#f7971e','#4facfe','#f093fb','#2ed573','#e94560','#48dbfb','#ff9ff3'];
+      for (let i = 0; i < 140; i++) {
+        const el = document.createElement('div');
+        const size = Math.random() * 10 + 6;
+        el.className = 'confetti';
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.top = '-20px';
+        el.style.width = size + 'px';
+        el.style.height = size + 'px';
+        el.style.background = colors[Math.floor(Math.random() * colors.length)];
+        el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        el.style.animationDuration = (Math.random() * 2 + 2.2) + 's';
+        el.style.animationDelay = (Math.random() * 1.5) + 's';
+        container.appendChild(el);
+      }
+
+      setTimeout(() => {
+        container.classList.remove('show');
+      }, 5000);
+    }
+  </script>
+</body>
+</html>
