@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中学教师数字工具箱</title> 
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>中学教师数字工具箱</title>
     <style>
         :root {
             --primary: #4f6ef6;
@@ -16,13 +16,17 @@
             --bg: #f5f7fd;
             --card-bg: #ffffff;
             --border: #e9edf4;
-            --shadow-sm: 0 2px 8px rgba(0,0,0,0.03);
-            --shadow-md: 0 6px 16px rgba(0,0,0,0.05);
-            --shadow-hover: 0 12px 28px rgba(0,0,0,0.08);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.03);
+            --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.05);
+            --shadow-hover: 0 12px 28px rgba(0, 0, 0, 0.08);
             --radius: 18px;
             --radius-sm: 12px;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             font-family: "Inter", "Microsoft YaHei", "苹方", "PingFang SC", "Helvetica Neue", sans-serif;
             background-color: var(--bg);
@@ -30,12 +34,15 @@
             line-height: 1.5;
             -webkit-font-smoothing: antialiased;
         }
-        a { text-decoration: none; color: inherit; }
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
 
         .navbar {
-            background: rgba(255,255,255,0.95);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(12px);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
             padding: 1.5rem 2rem 1.2rem;
             position: sticky;
             top: 0;
@@ -58,7 +65,8 @@
             align-items: center;
             gap: 0.5rem;
         }
-        .update-badge, .contact-badge {
+        .update-badge,
+        .contact-badge {
             background: #f0f3ff;
             padding: 0.35rem 1.4rem;
             border-radius: 25px;
@@ -82,24 +90,30 @@
         .hero::before {
             content: "";
             position: absolute;
-            top: -15%; right: -5%;
-            width: 260px; height: 260px;
-            background: radial-gradient(circle, rgba(79,110,246,0.08) 0%, transparent 70%);
+            top: -15%;
+            right: -5%;
+            width: 260px;
+            height: 260px;
+            background: radial-gradient(circle, rgba(79, 110, 246, 0.08) 0%, transparent 70%);
             border-radius: 50%;
         }
         .hero::after {
             content: "";
             position: absolute;
-            bottom: -20%; left: -8%;
-            width: 240px; height: 240px;
-            background: radial-gradient(circle, rgba(124,92,231,0.06) 0%, transparent 70%);
+            bottom: -20%;
+            left: -8%;
+            width: 240px;
+            height: 240px;
+            background: radial-gradient(circle, rgba(124, 92, 231, 0.06) 0%, transparent 70%);
             border-radius: 50%;
         }
         .hero-pattern {
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-image: radial-gradient(rgba(79,110,246,0.1) 1px, transparent 1px);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(rgba(79, 110, 246, 0.1) 1px, transparent 1px);
             background-size: 24px 24px;
             pointer-events: none;
         }
@@ -184,10 +198,14 @@
             background: var(--primary);
             color: white;
             border-color: var(--primary);
-            box-shadow: 0 3px 8px rgba(79,110,246,0.2);
+            box-shadow: 0 3px 8px rgba(79, 110, 246, 0.2);
         }
-        .subject-panel { display: none; }
-        .subject-panel.active { display: block; }
+        .subject-panel {
+            display: none;
+        }
+        .subject-panel.active {
+            display: block;
+        }
 
         .tool-grid {
             display: grid;
@@ -255,11 +273,11 @@
         .btn-primary {
             background: var(--primary);
             color: white;
-            box-shadow: 0 3px 8px rgba(79,110,246,0.2);
+            box-shadow: 0 3px 8px rgba(79, 110, 246, 0.2);
         }
         .btn-primary:hover {
             background: var(--primary-dark);
-            box-shadow: 0 6px 14px rgba(59,86,212,0.3);
+            box-shadow: 0 6px 14px rgba(59, 86, 212, 0.3);
             transform: translateY(-1px);
         }
         .btn-outline {
@@ -277,7 +295,8 @@
             font-size: 0.8rem;
             border-radius: 20px;
         }
-        .tool-templates, .tool-guide {
+        .tool-templates,
+        .tool-guide {
             margin-top: 0.8rem;
             font-size: 0.85rem;
             display: flex;
@@ -285,7 +304,8 @@
             gap: 6px;
             flex-wrap: wrap;
         }
-        .tool-templates span, .tool-guide span {
+        .tool-templates span,
+        .tool-guide span {
             color: #5b6e8c;
             font-weight: 500;
             white-space: nowrap;
@@ -322,27 +342,37 @@
             display: none;
             position: fixed;
             z-index: 1000;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(15,23,42,0.4);
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.4);
             backdrop-filter: blur(4px);
             justify-content: center;
             align-items: center;
         }
-        .modal.show { display: flex; }
+        .modal.show {
+            display: flex;
+        }
         .modal-content {
             background: white;
             border-radius: 24px;
             padding: 2.2rem;
             width: 90%;
             max-width: 680px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
             position: relative;
             animation: modalIn 0.3s ease;
         }
         @keyframes modalIn {
-            from { opacity: 0; transform: scale(0.9) translateY(20px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
         .modal-close {
             position: absolute;
@@ -352,7 +382,9 @@
             color: #b9c2d4;
             cursor: pointer;
         }
-        .modal-close:hover { color: #1e293b; }
+        .modal-close:hover {
+            color: #1e293b;
+        }
         .modal-content h2 {
             margin-bottom: 0.3rem;
             font-size: 1.8rem;
@@ -379,12 +411,24 @@
             gap: 1rem;
             border: 1px solid #eef1f7;
         }
-        .version-info h4 { font-size: 1.1rem; margin-bottom: 0.2rem; }
-        .version-info p { font-size: 0.85rem; color: #5b6e8c; margin: 0; }
+        .version-info h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.2rem;
+        }
+        .version-info p {
+            font-size: 0.85rem;
+            color: #5b6e8c;
+            margin: 0;
+        }
         .version-actions {
             display: flex;
             gap: 0.4rem;
             align-items: center;
+            flex-wrap: wrap;
+        }
+        .template-group {
+            display: flex;
+            gap: 0.3rem;
             flex-wrap: wrap;
         }
 
@@ -406,217 +450,275 @@
         }
 
         @media (max-width: 650px) {
-            .tool-grid { grid-template-columns: 1fr; }
-            .version-item { flex-direction: column; align-items: flex-start; }
+            .tool-grid {
+                grid-template-columns: 1fr;
+            }
+            .version-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
         }
     </style>
 </head>
 <body>
 
-<div class="navbar">
-    <div class="logo">中学教师数字工具箱</div>
-    <div class="navbar-meta">
-        <div class="update-badge">🔄 最近更新：2026.07.24</div>
-        <div class="contact-badge">📧 反馈与建议：请联系珠海市九洲中学黄结（vx：Phys_H）</div>
-    </div>
-</div>
-
-<div class="hero">
-    <div class="hero-pattern"></div>
-    <h1>让技术，温柔地支持每一堂课</h1>
-    <p>由一线教师开发，专为教学场景优化。这里汇集了学科教学、班级管理、成绩分析等实用小工具，打开浏览器就能用，无需安装。</p>
-</div>
-
-<div class="container">
-    <!-- 物理教学类 -->
-    <div class="category">
-        <div class="category-title"><span class="icon">⚡</span><h2>物理教学类</h2></div>
-        <div class="tool-grid">
-            <div class="tool-card">
-                <h3>🏋️ 初中物理力学双人答题赛</h3>
-                <p>两人对战模式，涵盖初中力学核心知识点，增强课堂互动与趣味性。</p>
-                <div class="tool-meta"><span>📅 更新：2026.07.24</span><span>🔖 v1.2</span></div>
-                <div class="tool-actions">
-                    <a href="physics/v1.2machanicsquiz.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-                </div>
-            </div>
+    <div class="navbar">
+        <div class="logo">中学教师数字工具箱</div>
+        <div class="navbar-meta">
+            <div class="update-badge">🔄 最近更新：2026.07.24</div>
+            <div class="contact-badge">📧 反馈与建议：请联系珠海市九洲中学黄结（vx：Phys_H）</div>
         </div>
     </div>
 
-    <!-- 其他学科教学类 -->
-    <div class="category">
-        <div class="category-title"><span class="icon">📚</span><h2>其他学科教学类</h2></div>
-        <div class="subject-tabs" id="subjectTabs">
-            <button class="subject-tab active" data-subject="chinese">语文</button>
-            <button class="subject-tab" data-subject="math">数学</button>
-            <button class="subject-tab" data-subject="english">英语</button>
-            <button class="subject-tab" data-subject="chemistry">化学</button>
-            <button class="subject-tab" data-subject="politics">道法</button>
-            <button class="subject-tab" data-subject="history">历史</button>
-        </div>
-        <!-- 语文面板 -->
-        <div class="subject-panel active" id="panel-chinese">
+    <div class="hero">
+        <div class="hero-pattern"></div>
+        <h1>让技术，温柔地支持每一堂课</h1>
+        <p>由一线教师开发，专为教学场景优化。这里汇集了学科教学、班级管理、成绩分析等实用小工具，打开浏览器就能用，无需安装。</p>
+    </div>
+
+    <div class="container">
+
+        <!-- 物理教学类 -->
+        <div class="category">
+            <div class="category-title"><span class="icon">⚡</span><h2>物理教学类</h2></div>
             <div class="tool-grid">
                 <div class="tool-card">
-                    <h3>📜 初中语文必背古诗文</h3>
-                    <p>收录初中阶段必背古诗文，支持朗读、释义、名句赏析，让经典背诵不再枯燥！</p>
-                    <div class="tool-meta"><span>📅 更新：2026.07.24</span><span>🔖 v1.0</span></div>
+                    <h3>🏋️ 初中物理力学双人答题赛</h3>
+                    <p>两人对战模式，涵盖初中力学核心知识点，增强课堂互动与趣味性。</p>
+                    <div class="tool-meta"><span>📅 更新：2026.07.24</span><span>🔖 v1.2</span></div>
                     <div class="tool-actions">
-                        <a href="others/chinese/ancientpoem.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                        <a href="physics/v1.2machanicsquiz.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- 数学面板 -->
-        <div class="subject-panel" id="panel-math">
+
+        <!-- 其他学科教学类 -->
+        <div class="category">
+            <div class="category-title"><span class="icon">📚</span><h2>其他学科教学类</h2></div>
+            <div class="subject-tabs" id="subjectTabs">
+                <button class="subject-tab active" data-subject="chinese">语文</button>
+                <button class="subject-tab" data-subject="math">数学</button>
+                <button class="subject-tab" data-subject="english">英语</button>
+                <button class="subject-tab" data-subject="chemistry">化学</button>
+                <button class="subject-tab" data-subject="politics">道法</button>
+                <button class="subject-tab" data-subject="history">历史</button>
+            </div>
+            <!-- 语文面板 -->
+            <div class="subject-panel active" id="panel-chinese">
+                <div class="tool-grid">
+                    <div class="tool-card">
+                        <h3>📜 初中语文必背古诗文</h3>
+                        <p>收录初中阶段必背古诗文，支持朗读、释义、名句赏析，让经典背诵不再枯燥！</p>
+                        <div class="tool-meta"><span>📅 更新：2026.07.24</span><span>🔖 v1.0</span></div>
+                        <div class="tool-actions">
+                            <a href="others/chinese/ancientpoem.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 数学面板 -->
+            <div class="subject-panel" id="panel-math">
+                <div class="tool-grid">
+                    <div class="tool-card">
+                        <h3>📐 初中数学公式可视化互动学习</h3>
+                        <p>动态演示代数与几何公式，支持参数调节，让抽象概念看得见。</p>
+                        <div class="tool-meta"><span>📅 更新：2026.07.24</span><span>🔖 v1.1</span></div>
+                        <div class="tool-actions">
+                            <a href="others/math/v1.1mathformula.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 英语面板 -->
+            <div class="subject-panel" id="panel-english">
+                <div class="tool-grid"><div class="placeholder-card"><div class="big-icon">🇬🇧</div><p>功能开发中，敬请期待</p></div></div>
+            </div>
+            <!-- 化学面板 -->
+            <div class="subject-panel" id="panel-chemistry">
+                <div class="tool-grid"><div class="placeholder-card"><div class="big-icon">🧪</div><p>功能开发中，敬请期待</p></div></div>
+            </div>
+            <!-- 道法面板 -->
+            <div class="subject-panel" id="panel-politics">
+                <div class="tool-grid"><div class="placeholder-card"><div class="big-icon">⚖️</div><p>功能开发中，敬请期待</p></div></div>
+            </div>
+            <!-- 历史面板 -->
+            <div class="subject-panel" id="panel-history">
+                <div class="tool-grid"><div class="placeholder-card"><div class="big-icon">🏛️</div><p>功能开发中，敬请期待</p></div></div>
+            </div>
+        </div>
+
+        <!-- 班级管理类 -->
+        <div class="category">
+            <div class="category-title"><span class="icon">🏫</span><h2>班级管理类</h2></div>
             <div class="tool-grid">
+                <div class="placeholder-card"><div class="big-icon">📋</div><p>功能开发中，敬请期待</p></div>
+            </div>
+        </div>
+
+        <!-- 成绩分析系统 -->
+        <div class="category">
+            <div class="category-title"><span class="icon">📊</span><h2>成绩分析系统</h2></div>
+            <div class="tool-grid">
+
+                <!-- 增值评价分析系统 -->
                 <div class="tool-card">
-                    <h3>📐 初中数学公式可视化互动学习</h3>
-                    <p>动态演示代数与几何公式，支持参数调节，让抽象概念看得见。</p>
-                    <div class="tool-meta"><span>📅 更新：2026.07.24</span><span>🔖 v1.1</span></div>
+                    <h3>🎯 增值评价分析系统</h3>
+                    <p>基于学生成长数据，科学衡量教学增值效果。提供年级、班级、学科三种分析视角。</p>
+                    <div class="tool-meta"><span>📅 更新：2026.07.22</span><span>🔖 v1.4 / v1.2</span></div>
                     <div class="tool-actions">
-                        <a href="others/math/v1.1mathformula.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                        <button class="btn btn-primary" onclick="openModal()">🚀 选择版本进入</button>
+                    </div>
+                    <div class="tool-guide">
+                        <span>📘 操作指南下载：</span>
+                        <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/addguide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
                     </div>
                 </div>
+
+                <!-- 结果评价分析系统 -->
+                <div class="tool-card">
+                    <h3>📈 结果评价分析系统</h3>
+                    <p>对考试成绩进行横向与纵向对比，生成多维度统计报表，辅助终结性评价。</p>
+                    <div class="tool-meta"><span>📅 更新：2026.07.22</span><span>🔖 v1.2</span></div>
+                    <div class="tool-actions">
+                        <a href="analysis/v1.2result.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                    </div>
+                    <div class="tool-templates">
+                        <span>📥 数据模板下载：</span>
+                        <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/Resulttemplate.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a>
+                    </div>
+                    <div class="tool-guide">
+                        <span>📘 操作指南下载：</span>
+                        <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/resultguide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
+                    </div>
+                </div>
+
+                <!-- 上线达标预测及增量分析系统 -->
+                <div class="tool-card">
+                    <h3>📊 上线达标预测及增量分析系统</h3>
+                    <p>预测学生学科上线概率，分析增量变化，为临界生辅导提供精准数据支撑。</p>
+                    <div class="tool-meta"><span>📅 更新：2026.07.22</span><span>🔖 v1.3</span></div>
+                    <div class="tool-actions">
+                        <a href="analysis/v1.3predict.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                    </div>
+                    <div class="tool-templates">
+                        <span>📥 数据模板下载：</span>
+                        <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/Predicttemplate1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
+                        <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/Predicttemplate2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
+                    </div>
+                    <div class="tool-guide">
+                        <span>📘 操作指南下载：</span>
+                        <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/predictguide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
+                    </div>
+                </div>
+
+                <!-- 试题分析系统 -->
+                <div class="tool-card">
+                    <h3>📝 试题分析系统</h3>
+                    <p>计算试题难度、区分度，分析试卷信效度，帮助优化命题质量。</p>
+                    <div class="tool-meta"><span>📅 更新：2026.07.22</span><span>🔖 v1.4</span></div>
+                    <div class="tool-actions">
+                        <a href="analysis/v1.4tesst.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                    </div>
+                    <div class="tool-templates">
+                        <span>📥 数据模板下载：</span>
+                        <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/Testtemplate.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a>
+                    </div>
+                    <div class="tool-guide">
+                        <span>📘 操作指南下载：</span>
+                        <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/testguide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
+                    </div>
+                </div>
+
             </div>
-        </div>
-        <!-- 英语面板 -->
-        <div class="subject-panel" id="panel-english">
-            <div class="tool-grid"><div class="placeholder-card"><div class="big-icon">🇬🇧</div><p>功能开发中，敬请期待</p></div></div>
-        </div>
-        <!-- 化学面板 -->
-        <div class="subject-panel" id="panel-chemistry">
-            <div class="tool-grid"><div class="placeholder-card"><div class="big-icon">🧪</div><p>功能开发中，敬请期待</p></div></div>
-        </div>
-        <!-- 道法面板 -->
-        <div class="subject-panel" id="panel-politics">
-            <div class="tool-grid"><div class="placeholder-card"><div class="big-icon">⚖️</div><p>功能开发中，敬请期待</p></div></div>
-        </div>
-        <!-- 历史面板 -->
-        <div class="subject-panel" id="panel-history">
-            <div class="tool-grid"><div class="placeholder-card"><div class="big-icon">🏛️</div><p>功能开发中，敬请期待</p></div></div>
         </div>
     </div>
 
-    <!-- 班级管理类 -->
-    <div class="category">
-        <div class="category-title"><span class="icon">🏫</span><h2>班级管理类</h2></div>
-        <div class="tool-grid">
-            <div class="placeholder-card"><div class="big-icon">📋</div><p>功能开发中，敬请期待</p></div>
+    <!-- ===== 增值评价分析系统 模态框 ===== -->
+    <div class="modal" id="versionModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <h2>🎯 增值评价分析系统</h2>
+            <p class="subtitle">请选择您的角色，进入对应的分析工具</p>
+            <div class="version-list">
+
+                <!-- 年级主任版 -->
+                <div class="version-item">
+                    <div class="version-info">
+                        <h4>👔 年级主任版 (v1.4)</h4>
+                        <p>全年级宏观数据，多班级对比，掌握整体增值趋势</p>
+                    </div>
+                    <div class="version-actions">
+                        <a href="analysis/v1.4gradedirector.html" target="_blank" class="btn btn-primary">进入工具</a>
+                        <div class="template-group">
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/GradedirectorTemple1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/GradedirectorTemple2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 班主任版 -->
+                <div class="version-item">
+                    <div class="version-info">
+                        <h4>🏫 班主任版 (v1.2)</h4>
+                        <p>班级整体及学生个体增值追踪，辅助班会与家长沟通</p>
+                    </div>
+                    <div class="version-actions">
+                        <a href="analysis/v1.2headteacher.html" target="_blank" class="btn btn-primary">进入工具</a>
+                        <div class="template-group">
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/HeadteacherTemplate1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/HeadteacherTemplate2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 科任老师版 -->
+                <div class="version-item">
+                    <div class="version-info">
+                        <h4>📘 科任老师版 (v1.2)</h4>
+                        <p>学科视角下的学生增值数据，支持分层教学与个别辅导</p>
+                    </div>
+                    <div class="version-actions">
+                        <a href="analysis/v1.2subjectteacher.html" target="_blank" class="btn btn-primary">进入工具</a>
+                        <div class="template-group">
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/SubjectteacherTemplate1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/SubjectteacherTemplate2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 
-    <!-- 成绩分析系统 -->
-    <div class="category">
-        <div class="category-title"><span class="icon">📊</span><h2>成绩分析系统</h2></div>
-        <div class="tool-grid">
-            <div class="tool-card">
-                <h3>🎯 增值评价分析系统</h3>
-                <p>基于学生成长数据，科学衡量教学增值效果。提供年级、班级、学科三种分析视角。</p>
-                <div class="tool-meta"><span>📅 更新：2026.07.22</span><span>🔖 v1.4/1.2</span></div>
-                <div class="tool-actions">
-                    <button class="btn btn-primary" onclick="openModal()">🚀 选择版本进入</button>
-                </div>
-                <div class="tool-guide"><span>📘 操作指南下载：</span><a href="guides/addguide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
-            </div>
-            <div class="tool-card">
-                <h3>📈 结果评价分析系统</h3>
-                <p>对考试成绩进行横向与纵向对比，生成多维度统计报表，辅助终结性评价。</p>
-                <div class="tool-meta"><span>📅 更新：2026.07.22</span><span>🔖 v1.2</span></div>
-                <div class="tool-actions">
-                    <a href="analysis/v1.2result.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-                </div>
-                <div class="tool-templates"><span>📥 数据模板下载：</span><a href="templates/Resulttemplate.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a></div>
-                <div class="tool-guide"><span>📘 操作指南下载：</span><a href="guides/resultguide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
-            </div>
-            <div class="tool-card">
-                <h3>📊 上线达标预测及增量分析系统</h3>
-                <p>预测学生学科上线概率，分析增量变化，为临界生辅导提供精准数据支撑。</p>
-                <div class="tool-meta"><span>📅 更新：2026.07.22</span><span>🔖 v1.3</span></div>
-                <div class="tool-actions">
-                    <a href="analysis/v1.3predict.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-                </div>
-                <div class="tool-templates"><span>📥 数据模板下载：</span><a href="templates/Predicttemplate1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a><a href="templates/Predicttemplate2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a></div>
-                <div class="tool-guide"><span>📘 操作指南下载：</span><a href="guides/predictguide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
-            </div>
-            <div class="tool-card">
-                <h3>📝 试题分析系统</h3>
-                <p>计算试题难度、区分度，分析试卷信效度，帮助优化命题质量。</p>
-                <div class="tool-meta"><span>📅 更新：2026.07.22</span><span>🔖 v1.4</span></div>
-                <div class="tool-actions">
-                    <a href="analysis/v1.4tesst.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-                </div>
-                <div class="tool-templates"><span>📥 数据模板下载：</span><a href="templates/Testtemplate.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a></div>
-                <div class="tool-guide"><span>📘 操作指南下载：</span><a href="guides/testguide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
-            </div>
-        </div>
+    <div class="footer">
+        <p>📧 反馈与建议：请联系珠海市九洲中学黄结（vx：Phys_H）</p>
     </div>
-</div>
 
-<!-- 模态框 -->
-<div class="modal" id="versionModal">
-    <div class="modal-content">
-        <span class="modal-close" onclick="closeModal()">&times;</span>
-        <h2>🎯 增值评价分析系统</h2>
-        <p class="subtitle">请选择您的角色，进入对应的分析工具</p>
-        <div class="version-list">
-            <div class="version-item">
-                <div class="version-info"><h4>👔 年级主任版 (v1.4)</h4><p>全年级宏观数据，多班级对比，掌握整体增值趋势</p></div>
-                <div class="version-actions">
-                    <a href="analysis/v1.4gradedirector.html" target="_blank" class="btn btn-primary">进入工具</a>
-                    <div class="template-group">
-                        <a href="templates/GradedirectorTemple1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
-                        <a href="templates/GradedirectorTemple2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
-                    </div>
-                </div>
-            </div>
-            <div class="version-item">
-                <div class="version-info"><h4>🏫 班主任版 (v1.2)</h4><p>班级整体及学生个体增值追踪，辅助班会与家长沟通</p></div>
-                <div class="version-actions">
-                    <a href="analysis/v1.2headteacher.html" target="_blank" class="btn btn-primary">进入工具</a>
-                    <div class="template-group">
-                        <a href="templates/HeadteacherTemplate1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
-                        <a href="templates/HeadteacherTemplate2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
-                    </div>
-                </div>
-            </div>
-            <div class="version-item">
-                <div class="version-info"><h4>📘 科任老师版 (v1.2)</h4><p>学科视角下的学生增值数据，支持分层教学与个别辅导</p></div>
-                <div class="version-actions">
-                    <a href="analysis/v1.2subjectteacher.html" target="_blank" class="btn btn-primary">进入工具</a>
-                    <div class="template-group">
-                        <a href="templates/SubjectteacherTemplate1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
-                        <a href="templates/SubjectteacherTemplate2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="footer">
-    <p>📧 反馈与建议：请联系珠海市九洲中学黄结（vx：Phys_H）</p>
-</div>
-
-<script>
-    const tabs = document.querySelectorAll('.subject-tab');
-    const panels = document.querySelectorAll('.subject-panel');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const subject = tab.getAttribute('data-subject');
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            panels.forEach(p => p.classList.remove('active'));
-            document.getElementById('panel-' + subject).classList.add('active');
+    <script>
+        // 学科切换
+        const tabs = document.querySelectorAll('.subject-tab');
+        const panels = document.querySelectorAll('.subject-panel');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const subject = tab.getAttribute('data-subject');
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                panels.forEach(p => p.classList.remove('active'));
+                document.getElementById('panel-' + subject).classList.add('active');
+            });
         });
-    });
 
-    function openModal() { document.getElementById('versionModal').classList.add('show'); }
-    function closeModal() { document.getElementById('versionModal').classList.remove('show'); }
-    window.onclick = function(event) {
-        var modal = document.getElementById('versionModal');
-        if (event.target === modal) closeModal();
-    }
-</script>
+        // 模态框
+        function openModal() { document.getElementById('versionModal').classList.add('show'); }
+
+        function closeModal() { document.getElementById('versionModal').classList.remove('show'); }
+
+        window.onclick = function(event) {
+            var modal = document.getElementById('versionModal');
+            if (event.target === modal) closeModal();
+        }
+    </script>
+
 </body>
 </html>
