@@ -23,10 +23,10 @@
             --primary-gradient-hover: linear-gradient(135deg, #1A56E8 0%, #0E45D0 50%, #0B38B0 100%);
 
             /* 四个分类独立指示色 */
-            --color-physics: #C8814A;      /* 物理 - 暖橙 */
-            --color-others: #8B5CF6;      /* 其他学科 - 紫罗兰 */
-            --color-class: #0EA5E9;       /* 班级管理 - 天蓝 */
-            --color-analysis: #4A9E6B;    /* 成绩分析 - 浅绿 */
+            --color-physics: #C8814A;
+            --color-others: #8B5CF6;
+            --color-class: #0EA5E9;
+            --color-analysis: #4A9E6B;
 
             --text-main: #1E293B;
             --text-secondary: #5B6E8C;
@@ -67,14 +67,12 @@
         }
         a { text-decoration: none; color: inherit; }
 
-        /* 动画 */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes underlineExpandSidebar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
         @keyframes underlineExpand { from { width: 0; } to { width: 100%; } }
         @keyframes modalIn { from { opacity: 0; transform: scale(0.92) translateY(24px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
-        /* ==================== 顶部导航栏（大标题左侧） ==================== */
         .navbar {
             background: rgba(255, 255, 255, 0.94);
             backdrop-filter: blur(12px);
@@ -104,30 +102,16 @@
             white-space: nowrap;
             flex-shrink: 0;
         }
-        .navbar-meta {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 0.5rem 1rem;
-        }
+        .navbar-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; }
         .update-badge, .contact-badge {
-            background: #EEF2FB;
-            padding: 0.25rem 1rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: #3B56C8;
-            white-space: nowrap;
+            background: #EEF2FB; padding: 0.25rem 1rem; border-radius: 20px;
+            font-size: 0.8rem; font-weight: 500; color: #3B56C8; white-space: nowrap;
         }
         .contact-badge { background: #F0F2F8; color: #4A5568; }
 
-        /* ==================== Hero引导区 ==================== */
         .hero {
             background: linear-gradient(160deg, #EEF3FC 0%, #E3EBF8 40%, #EDF1F9 100%);
-            text-align: center;
-            padding: 2.2rem 1.5rem 2rem;
-            position: relative;
-            overflow: hidden;
+            text-align: center; padding: 2.2rem 1.5rem 2rem; position: relative; overflow: hidden;
             animation: fadeIn 0.6s ease forwards;
         }
         .hero::before {
@@ -150,149 +134,70 @@
         .hero h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.4rem; position: relative; z-index: 1; }
         .hero p { font-size: 1rem; opacity: 0.85; max-width: 620px; margin: 0 auto; position: relative; z-index: 1; color: #3D4F6B; }
 
-        /* ==================== 主布局 ==================== */
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem 1.8rem 1rem;
-            display: flex;
-            gap: 2rem;
-            align-items: flex-start;
-            animation: fadeInUp 0.55s ease forwards;
-            animation-delay: 0.1s;
+            max-width: 1200px; margin: 0 auto; padding: 2rem 1.8rem 1rem;
+            display: flex; gap: 2rem; align-items: flex-start;
+            animation: fadeInUp 0.55s ease forwards; animation-delay: 0.1s;
             opacity: 0; animation-fill-mode: forwards;
         }
 
-        /* ==================== 左侧导航栏（高度提升1.5倍） ==================== */
         .sidebar {
-            width: var(--sidebar-width);
-            flex-shrink: 0;
-            background: #FFFFFF;
-            border-radius: var(--radius-xl);
-            box-shadow: var(--shadow-sm);
-            padding: 1.8rem 1rem;
-            position: sticky;
-            top: 100px;
-            border: 1px solid var(--border-light);
+            width: var(--sidebar-width); flex-shrink: 0; background: #FFFFFF;
+            border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); padding: 1.8rem 1rem;
+            position: sticky; top: 100px; border: 1px solid var(--border-light);
             transition: box-shadow var(--transition-normal);
         }
         .sidebar-nav { list-style: none; display: flex; flex-direction: column; gap: 0.35rem; }
         .sidebar-nav li { position: relative; }
-
         .sidebar-nav .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            padding: 1.1rem 1.2rem;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            font-weight: 550;
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-            transition: all var(--transition-normal);
-            position: relative;
-            border: 1.5px solid transparent;
-            user-select: none;
-            letter-spacing: 0.3px;
+            display: flex; align-items: center; gap: 0.8rem; padding: 1.1rem 1.2rem;
+            border-radius: var(--radius-md); cursor: pointer; font-weight: 550; font-size: 0.95rem;
+            color: var(--text-secondary); transition: all var(--transition-normal); position: relative;
+            border: 1.5px solid transparent; user-select: none; letter-spacing: 0.3px;
         }
-        .sidebar-nav .nav-item:hover {
-            color: var(--primary);
-            background: #F8FAFD;
-            border-color: #E5EBF8;
-        }
-        /* 选中态：无背景色，仅指示条与下划线 */
-        .sidebar-nav .nav-item.active {
-            background: transparent;
-            border-color: transparent;
-            font-weight: 650;
-            box-shadow: none;
-        }
-        /* 左侧彩色指示条 */
+        .sidebar-nav .nav-item:hover { color: var(--primary); background: #F8FAFD; border-color: #E5EBF8; }
+        .sidebar-nav .nav-item.active { background: transparent; border-color: transparent; font-weight: 650; box-shadow: none; }
         .sidebar-nav .nav-item.active::before {
-            content: "";
-            position: absolute;
-            left: -0.6rem;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 4px;
-            height: 24px;
-            border-radius: 0 4px 4px 0;
+            content: ""; position: absolute; left: -0.6rem; top: 50%; transform: translateY(-50%);
+            width: 4px; height: 24px; border-radius: 0 4px 4px 0;
         }
-        /* 底部横线（使用 scaleX 动画，宽度固定为内容宽度，避免溢出） */
         .sidebar-nav .nav-item.active::after {
-            content: "";
-            position: absolute;
-            left: 1.2rem;
-            bottom: 8px;
-            height: 2.5px;
-            width: calc(100% - 2.4rem);
-            border-radius: 2px;
-            transform: scaleX(0);
+            content: ""; position: absolute; left: 1.2rem; bottom: 8px; height: 2.5px;
+            width: calc(100% - 2.4rem); border-radius: 2px; transform: scaleX(0);
             transform-origin: left center;
             animation: underlineExpandSidebar 0.4s cubic-bezier(0.25, 0.8, 0.25, 1.2) forwards;
             opacity: 0.8;
         }
-
-        /* ---- 四个类别独立颜色 ---- */
-        .nav-item.category-physics.active::before,
-        .nav-item.category-physics.active::after { background: var(--color-physics); }
+        .nav-item.category-physics.active::before, .nav-item.category-physics.active::after { background: var(--color-physics); }
         .nav-item.category-physics.active { color: var(--color-physics); }
-
-        .nav-item.category-others.active::before,
-        .nav-item.category-others.active::after { background: var(--color-others); }
+        .nav-item.category-others.active::before, .nav-item.category-others.active::after { background: var(--color-others); }
         .nav-item.category-others.active { color: var(--color-others); }
-
-        .nav-item.category-class.active::before,
-        .nav-item.category-class.active::after { background: var(--color-class); }
+        .nav-item.category-class.active::before, .nav-item.category-class.active::after { background: var(--color-class); }
         .nav-item.category-class.active { color: var(--color-class); }
-
-        .nav-item.category-analysis.active::before,
-        .nav-item.category-analysis.active::after { background: var(--color-analysis); }
+        .nav-item.category-analysis.active::before, .nav-item.category-analysis.active::after { background: var(--color-analysis); }
         .nav-item.category-analysis.active { color: var(--color-analysis); }
-
         .nav-icon { font-size: 1.3rem; flex-shrink: 0; transition: transform var(--transition-fast); }
         .nav-item:hover .nav-icon { transform: scale(1.1); }
         .nav-label { white-space: nowrap; }
 
-        /* ==================== 右侧内容区 ==================== */
         .content-area { flex: 1; min-width: 0; }
         .content-panel { display: none; animation: fadeInUp 0.4s ease forwards; }
         .content-panel.active { display: block; }
-
         .panel-header {
-            display: flex; align-items: center; gap: 0.5rem;
-            margin-bottom: 1.4rem; padding-bottom: 0.5rem;
-            border-bottom: 2px solid #EEF2F8; position: relative;
+            display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.4rem;
+            padding-bottom: 0.5rem; border-bottom: 2px solid #EEF2F8; position: relative;
         }
         .panel-header .panel-icon { font-size: 1.5rem; flex-shrink: 0; }
-        .panel-header h2 {
-            font-size: 1.4rem; font-weight: 680; color: var(--text-main);
-            letter-spacing: 0.4px; position: relative;
-        }
+        .panel-header h2 { font-size: 1.4rem; font-weight: 680; color: var(--text-main); letter-spacing: 0.4px; position: relative; }
         .panel-header h2::after {
-            content: ""; position: absolute; left: 0; bottom: -0.6rem;
-            width: 0; height: 3px; border-radius: 3px;
-            animation: underlineExpand 0.55s cubic-bezier(0.25, 0.8, 0.25, 1.2) forwards;
-            animation-delay: 0.15s;
+            content: ""; position: absolute; left: 0; bottom: -0.6rem; width: 0; height: 3px; border-radius: 3px;
+            animation: underlineExpand 0.55s cubic-bezier(0.25, 0.8, 0.25, 1.2) forwards; animation-delay: 0.15s;
         }
+        .content-panel#panel-physics .panel-header h2::after, .content-panel.panel-physics .panel-header h2::after { background: var(--color-physics); }
+        .content-panel#panel-other-subjects .panel-header h2::after { background: var(--color-others); }
+        .content-panel#panel-class-mgmt .panel-header h2::after { background: var(--color-class); }
+        .content-panel#panel-analysis .panel-header h2::after, .content-panel.panel-analysis .panel-header h2::after { background: var(--color-analysis); }
 
-        /* 右侧面板标题下划线颜色与左侧导航类别一致 */
-        .content-panel#panel-physics .panel-header h2::after,
-        .content-panel.panel-physics .panel-header h2::after {
-            background: var(--color-physics);
-        }
-        .content-panel#panel-other-subjects .panel-header h2::after {
-            background: var(--color-others);
-        }
-        .content-panel#panel-class-mgmt .panel-header h2::after {
-            background: var(--color-class);
-        }
-        .content-panel#panel-analysis .panel-header h2::after,
-        .content-panel.panel-analysis .panel-header h2::after {
-            background: var(--color-analysis);
-        }
-
-        /* 学科切换标签 */
         .subject-tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.4rem; }
         .subject-tab {
             padding: 0.4rem 1.1rem; border-radius: 20px; font-size: 0.82rem; font-weight: 530;
@@ -307,12 +212,9 @@
         .subject-panel { display: none; }
         .subject-panel.active { display: block; animation: fadeInUp 0.35s ease forwards; }
 
-        /* 卡片网格 */
         .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1.4rem; }
-
         .tool-card {
-            background: var(--card-bg-gradient);
-            border-radius: var(--radius-xl); padding: 1.4rem 1.4rem 1.2rem;
+            background: var(--card-bg-gradient); border-radius: var(--radius-xl); padding: 1.4rem 1.4rem 1.2rem;
             box-shadow: var(--shadow-sm); transition: all var(--transition-normal);
             display: flex; flex-direction: column; border: 1px solid var(--border-light);
             position: relative; overflow: hidden;
@@ -323,7 +225,6 @@
         .tool-card:nth-child(3) { animation-delay: 0.19s; }
         .tool-card:nth-child(4) { animation-delay: 0.26s; }
         .tool-card:nth-child(5) { animation-delay: 0.33s; }
-
         .tool-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: #D0D9EE; }
         .tool-card h3 { font-size: 1.15rem; margin-bottom: 0.4rem; color: var(--text-main); font-weight: 660; }
         .tool-card p { color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 0.9rem; flex-grow: 1; }
@@ -334,7 +235,6 @@
         }
         .tool-actions { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; }
 
-        /* 按钮 */
         .btn {
             display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.45rem 1.1rem;
             border-radius: var(--radius-pill); font-size: 0.82rem; font-weight: 550;
@@ -349,7 +249,6 @@
         .tool-templates, .tool-guide { margin-top: 0.65rem; font-size: 0.8rem; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
         .tool-templates span, .tool-guide span { color: #6B7E9B; font-weight: 500; white-space: nowrap; }
 
-        /* 占位卡片 */
         .placeholder-card {
             background: #FAFBFD; border: 2px dashed #DEE4F0; border-radius: var(--radius-xl);
             padding: 2rem 1.5rem; text-align: center; color: #9AA9C1; transition: all var(--transition-normal);
@@ -360,7 +259,6 @@
         .placeholder-card .big-icon { font-size: 2.4rem; opacity: 0.55; }
         .placeholder-card p { font-size: 0.9rem; font-weight: 500; color: #8B9BB8; }
 
-        /* 模态框 */
         .modal {
             display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
             background-color: rgba(15, 23, 42, 0.35); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
@@ -379,23 +277,24 @@
         .version-list { display: flex; flex-direction: column; gap: 0.8rem; }
         .version-item {
             background: #F9FAFD; border-radius: var(--radius-lg); padding: 1rem 1.2rem;
-            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.7rem;
-            border: 1px solid #EEF1F7; transition: all var(--transition-fast);
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: nowrap;           /* 防止换行，确保并排 */
+            gap: 0.8rem; border: 1px solid #EEF1F7; transition: all var(--transition-fast);
+            overflow-x: auto;           /* 若内容过宽则滚动 */
         }
         .version-item:hover { background: #F5F8FC; border-color: #DDE3F0; }
-        .version-info h4 { font-size: 1rem; margin-bottom: 0.1rem; font-weight: 620; }
-        .version-info p { font-size: 0.8rem; color: #5B6E8C; margin: 0; }
-        .version-actions { display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap; }
-        .template-group { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+        .version-info { flex: 1; min-width: 0; }
+        .version-info h4 { font-size: 1rem; margin-bottom: 0.1rem; font-weight: 620; white-space: nowrap; }
+        .version-info p { font-size: 0.8rem; color: #5B6E8C; margin: 0; white-space: nowrap; }
+        .version-actions { display: flex; gap: 0.35rem; align-items: center; flex-wrap: nowrap; white-space: nowrap; }
+        .template-group { display: flex; gap: 0.25rem; flex-wrap: nowrap; }
 
-        /* Footer */
         .footer {
             background: #FFFFFF; text-align: center; padding: 1.5rem; font-size: 0.95rem;
             border-top: 1px solid #EDF2F9; margin-top: 2rem; color: #4A5568;
         }
         .footer p { display: inline-block; background: #EEF2FB; padding: 0.3rem 1.2rem; border-radius: 22px; font-weight: 500; }
 
-        /* 响应式 */
         @media (max-width: 900px) {
             .container { flex-direction: column; gap: 1rem; padding: 1.2rem 1rem; }
             .sidebar { width: 100%; position: static; padding: 1rem 0.8rem; }
@@ -409,7 +308,6 @@
     </style>
 </head>
 <body>
-    <!-- ==================== 顶部导航栏（标题在左侧） ==================== -->
     <div class="navbar" id="navbar">
         <div class="navbar-logo">中学教师数字工具箱</div>
         <div class="navbar-meta">
@@ -418,42 +316,22 @@
         </div>
     </div>
 
-    <!-- Hero -->
     <div class="hero">
         <div class="hero-pattern"></div>
         <h1>让技术，温柔地支持每一堂课</h1>
         <p>由一线教师开发，专为教学场景优化。这里汇集了学科教学、班级管理、成绩分析等实用小工具，打开浏览器就能用，无需安装。</p>
     </div>
 
-    <!-- 主布局 -->
     <div class="container">
-        <!-- 左侧导航栏 -->
         <aside class="sidebar" id="sidebar">
             <ul class="sidebar-nav">
-                <li>
-                    <div class="nav-item active category-physics" data-panel="panel-physics">
-                        <span class="nav-icon">⚡</span><span class="nav-label">物理教学类</span>
-                    </div>
-                </li>
-                <li>
-                    <div class="nav-item category-others" data-panel="panel-other-subjects">
-                        <span class="nav-icon">📚</span><span class="nav-label">其他学科教学类</span>
-                    </div>
-                </li>
-                <li>
-                    <div class="nav-item category-class" data-panel="panel-class-mgmt">
-                        <span class="nav-icon">🏫</span><span class="nav-label">班级管理类</span>
-                    </div>
-                </li>
-                <li>
-                    <div class="nav-item category-analysis" data-panel="panel-analysis">
-                        <span class="nav-icon">📊</span><span class="nav-label">成绩分析系统</span>
-                    </div>
-                </li>
+                <li><div class="nav-item active category-physics" data-panel="panel-physics"><span class="nav-icon">⚡</span><span class="nav-label">物理教学类</span></div></li>
+                <li><div class="nav-item category-others" data-panel="panel-other-subjects"><span class="nav-icon">📚</span><span class="nav-label">其他学科教学类</span></div></li>
+                <li><div class="nav-item category-class" data-panel="panel-class-mgmt"><span class="nav-icon">🏫</span><span class="nav-label">班级管理类</span></div></li>
+                <li><div class="nav-item category-analysis" data-panel="panel-analysis"><span class="nav-icon">📊</span><span class="nav-label">成绩分析系统</span></div></li>
             </ul>
         </aside>
 
-        <!-- 右侧内容 -->
         <main class="content-area">
             <!-- 物理教学类 -->
             <div class="content-panel panel-physics active" id="panel-physics">
@@ -512,7 +390,7 @@
                     <!-- 背诵消消乐系统 -->
                     <div class="tool-card">
                         <h3>📖 背诵消消乐系统</h3>
-                        <p>通过趣味配对游戏，帮助学生高效完成背诵任务。支持自定义题库、图片与音乐素材，让课堂检查更轻松。</p>
+                        <p>通过趣味消消乐游戏，帮助学生高效完成背诵任务。支持自定义图片与音乐素材，让背诵过关更轻松！</p>
                         <div class="tool-meta"><span>📅 更新：2026.07.25</span><span>🔖 v3.3</span></div>
                         <div class="tool-actions"><a href="class/v3.3recite.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
                         <div class="tool-templates">
@@ -525,14 +403,25 @@
                     <!-- 智能座位调换系统 -->
                     <div class="tool-card">
                         <h3>💺 智能座位调换系统</h3>
-                        <p>基于学生身高、视力、成绩等多维度智能排座，支持手动微调，轻松生成最优座位表。</p>
+                        <p>基于学生身高、活跃程度、成绩等多维度智能排座，支持手动微调，轻松生成最优座位表。</p>
                         <div class="tool-meta"><span>📅 更新：2026.07.26</span><span>🔖 v1.5</span></div>
-                        <div class="tool-actions">
-                            <a href="class/v1.5seatchange.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-                        </div>
+                        <div class="tool-actions"><a href="class/v1.5seatchange.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
                         <div class="tool-templates">
                             <span>📥 数据模板下载：</span>
                             <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/seatchange.xlsx" download class="btn btn-outline btn-sm">学生数据模板</a>
+                        </div>
+                    </div>
+                    <!-- 班主任通用版成绩分析系统 -->
+                    <div class="tool-card">
+                        <h3>📋 班主任通用版成绩分析系统</h3>
+                        <p>专为班主任设计的一站式成绩分析工具，快速生成班级成绩报告、学生进退步追踪等数据。</p>
+                        <div class="tool-meta"><span>📅 更新：2026.07.26</span><span>🔖 v1.5</span></div>
+                        <div class="tool-actions"><a href="class/v1.5generalanalysis.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
+                        <div class="tool-templates">
+                            <span>📥 数据模板下载：</span>
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/generalanalysis1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/generalanalysis2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/generalanalysis3.xlsx" download class="btn btn-outline btn-sm">数据模板3</a>
                         </div>
                     </div>
                 </div>
@@ -551,7 +440,7 @@
                     </div>
                     <div class="tool-card">
                         <h3>📈 结果评价分析系统</h3>
-                        <p>对考试成绩进行横向与纵向对比，生成多维度统计报表，辅助终结性评价。</p>
+                        <p>对考试成绩进行累计比率分析对比，生成多维度统计报表，辅助结果评价。</p>
                         <div class="tool-meta"><span>📅 更新：2026.07.22</span><span>🔖 v1.2</span></div>
                         <div class="tool-actions"><a href="analysis/v1.2result.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
                         <div class="tool-templates"><span>📥 数据模板下载：</span><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/Resulttemplate.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a></div>
@@ -559,7 +448,7 @@
                     </div>
                     <div class="tool-card">
                         <h3>📊 上线达标预测及增量分析系统</h3>
-                        <p>预测学生学科上线概率，分析增量变化，为临界生辅导提供精准数据支撑。</p>
+                        <p>预测学生上线达标概率，分析增量变化，为临界生辅导提供精准数据支撑，划定考试上线目标。</p>
                         <div class="tool-meta"><span>📅 更新：2026.07.22</span><span>🔖 v1.3</span></div>
                         <div class="tool-actions"><a href="analysis/v1.3predict.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
                         <div class="tool-templates"><span>📥 数据模板下载：</span><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/Predicttemplate1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/Predicttemplate2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a></div>
@@ -567,7 +456,7 @@
                     </div>
                     <div class="tool-card">
                         <h3>📝 试题分析系统</h3>
-                        <p>计算试题难度、区分度，分析试卷信效度，帮助优化命题质量。</p>
+                        <p>计算试卷小题难度，得到班级弱项，帮助优化命题质量、调整班级教学方向。</p>
                         <div class="tool-meta"><span>📅 更新：2026.07.22</span><span>🔖 v1.4</span></div>
                         <div class="tool-actions"><a href="analysis/v1.4tesst.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
                         <div class="tool-templates"><span>📥 数据模板下载：</span><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/Testtemplate.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a></div>
