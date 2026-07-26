@@ -70,8 +70,8 @@
         /* 动画 */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes underlineExpand { from { width: 0; } to { width: 100%; } }
         @keyframes underlineExpandSidebar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+        @keyframes underlineExpand { from { width: 0; } to { width: 100%; } }
         @keyframes modalIn { from { opacity: 0; transform: scale(0.92) translateY(24px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
         /* ==================== 顶部导航栏（大标题左侧） ==================== */
@@ -225,7 +225,7 @@
             left: 1.2rem;
             bottom: 8px;
             height: 2.5px;
-            width: calc(100% - 2.4rem);   /* 左右各留1.2rem，与内边距对齐 */
+            width: calc(100% - 2.4rem);
             border-radius: 2px;
             transform: scaleX(0);
             transform-origin: left center;
@@ -509,6 +509,7 @@
             <div class="content-panel" id="panel-class-mgmt">
                 <div class="panel-header"><span class="panel-icon">🏫</span><h2>班级管理类</h2></div>
                 <div class="tool-grid">
+                    <!-- 背诵消消乐系统 -->
                     <div class="tool-card">
                         <h3>📖 背诵消消乐系统</h3>
                         <p>通过趣味配对游戏，帮助学生高效完成背诵任务。支持自定义题库、图片与音乐素材，让课堂检查更轻松。</p>
@@ -519,6 +520,19 @@
                             <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/pic.zip" download class="btn btn-outline btn-sm">图片库</a>
                             <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/music.zip" download class="btn btn-outline btn-sm">音乐库</a>
                             <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/studentinfo.xlsx" download class="btn btn-outline btn-sm">学生数据模板</a>
+                        </div>
+                    </div>
+                    <!-- 智能座位调换系统 -->
+                    <div class="tool-card">
+                        <h3>💺 智能座位调换系统</h3>
+                        <p>基于学生身高、视力、成绩等多维度智能排座，支持手动微调，轻松生成最优座位表。</p>
+                        <div class="tool-meta"><span>📅 更新：2026.07.26</span><span>🔖 v1.5</span></div>
+                        <div class="tool-actions">
+                            <a href="class/v1.5seatchange.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                        </div>
+                        <div class="tool-templates">
+                            <span>📥 数据模板下载：</span>
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/seatchange.xlsx" download class="btn btn-outline btn-sm">学生数据模板</a>
                         </div>
                     </div>
                 </div>
