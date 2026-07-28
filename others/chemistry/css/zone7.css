@@ -1,0 +1,167 @@
+/* ZONE 06 · 化学方程式的配平（闯关游戏）——全部类名以 .z6- 前缀隔离 */
+
+.z6-root { display: flex; flex-direction: column; gap: 20px; }
+
+/* ---------- 顶部进度 ---------- */
+.z6-progress-panel { padding: 16px 20px; }
+.z6-progress-top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.z6-dots { display: flex; gap: 8px; flex: 1; justify-content: center; }
+.z6-dot {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-family: var(--mono);
+  border: 1px solid var(--border); color: var(--text-faint);
+  transition: all .3s;
+}
+.z6-dot.cur { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 10px rgba(34,211,238,.4); }
+.z6-dot.done { background: rgba(52,211,153,.15); border-color: rgba(52,211,153,.5); color: var(--green); }
+.z6-dot.peek { background: rgba(251,191,36,.12); border-color: rgba(251,191,36,.5); color: var(--amber); }
+.z6-progress-num { font-size: 12px; color: var(--text-faint); font-family: var(--mono); }
+.z6-bar {
+  height: 6px; border-radius: 3px; overflow: hidden;
+  background: rgba(148,163,184,.15);
+}
+.z6-bar-fill {
+  height: 100%; width: 0; border-radius: 3px;
+  background: linear-gradient(90deg, var(--cyan), var(--magenta));
+  box-shadow: 0 0 12px rgba(34,211,238,.5);
+  transition: width .5s ease;
+}
+
+/* ---------- 舞台区 ---------- */
+.z6-stage-panel { position: relative; overflow: hidden; }
+.z6-method-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+
+.z6-eq-area { padding: 10px 0 4px; }
+.z6-eq-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px; flex-wrap: wrap; padding: 18px 6px;
+}
+.z6-species {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.z6-stepper {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg-panel-2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 4px 6px;
+}
+.z6-step-btn {
+  width: 26px; height: 26px; border-radius: 7px; cursor: pointer;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--cyan); font-size: 15px; line-height: 1;
+  font-family: var(--mono); transition: all .15s;
+}
+.z6-step-btn:hover { border-color: var(--cyan); background: var(--cyan-dim); box-shadow: 0 0 8px rgba(34,211,238,.35); }
+.z6-step-btn:active { transform: scale(.92); }
+.z6-coef {
+  min-width: 24px; text-align: center;
+  font-family: var(--mono); font-size: 17px; font-weight: 700; color: var(--cyan);
+}
+.z6-formula { font-family: var(--mono); font-size: 20px; color: var(--text); }
+.z6-plus { font-size: 20px; color: var(--text-faint); font-family: var(--mono); }
+
+.z6-arrow {
+  position: relative; display: inline-flex; flex-direction: column;
+  align-items: center; min-width: 64px; padding-top: 14px;
+  margin: 0 4px;
+}
+.z6-arrow-cond {
+  position: absolute; top: -4px; font-size: 11px; color: var(--amber); white-space: nowrap;
+}
+.z6-arrow-line { color: var(--cyan); letter-spacing: 3px; font-family: var(--mono); font-size: 17px; }
+
+.z6-rule {
+  text-align: center; font-size: 12.5px; color: var(--text-faint);
+  padding: 10px 0 4px;
+}
+.z6-rule b { color: var(--cyan); }
+
+/* ---------- 成功横幅 ---------- */
+.z6-success {
+  margin-top: 14px; padding: 16px 18px; text-align: center;
+  border: 1px solid rgba(52,211,153,.45); border-radius: var(--radius);
+  background: linear-gradient(90deg, rgba(52,211,153,.12), rgba(34,211,238,.08));
+  animation: z6SuccessIn .5s ease;
+}
+@keyframes z6SuccessIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+.z6-success-title { font-size: 18px; font-weight: 800; color: var(--green); margin-bottom: 10px; letter-spacing: 1px; }
+.z6-success-eq { font-size: 18px; }
+
+/* ---------- 庆祝画布 ---------- */
+.z6-confetti {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 5;
+}
+
+.z6-btn-row { margin-top: 16px; justify-content: center; }
+
+/* ---------- 原子天平 ---------- */
+.z6-atom-head, .z6-atom-row {
+  display: grid; grid-template-columns: 1fr 1fr 1fr 24px;
+  align-items: center; gap: 6px;
+}
+.z6-atom-head {
+  font-size: 11px; color: var(--text-faint); letter-spacing: 1px;
+  padding: 0 10px 6px;
+}
+.z6-atom-row {
+  padding: 8px 10px; border-radius: 9px; margin-bottom: 6px;
+  border: 1px solid var(--border-soft);
+  background: rgba(0,0,0,.18);
+  font-family: var(--mono); font-size: 15px;
+  transition: border-color .3s, color .3s;
+}
+.z6-atom-row .z6-atom-el { font-weight: 700; }
+.z6-atom-row.ok { border-color: rgba(52,211,153,.4); color: var(--green); }
+.z6-atom-row.bad {
+  border-color: rgba(251,191,36,.5); color: var(--amber);
+  animation: z6Pulse 1.5s ease-in-out infinite;
+}
+.z6-atom-mark { text-align: center; font-size: 13px; }
+@keyframes z6Pulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(251,191,36,0); }
+  50% { box-shadow: 0 0 14px rgba(251,191,36,.35); }
+}
+
+/* ---------- 方法提示折叠卡 ---------- */
+.z6-hint-toggle {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  background: transparent; border: none; cursor: pointer; padding: 0;
+  color: inherit; font-family: inherit; text-align: left;
+}
+.z6-hint-arrow { color: var(--amber); font-size: 14px; transition: transform .2s; }
+.z6-hint-body {
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px dashed var(--border);
+  font-size: 13.5px; line-height: 1.9; color: var(--text-dim);
+}
+
+/* ---------- 查看答案 ---------- */
+.z6-answer-eq { margin: 6px 0 8px; }
+.z6-answer-tip { font-size: 12.5px; color: var(--text-faint); line-height: 1.8; }
+
+/* ---------- 通关卡 ---------- */
+.z6-final { border-color: rgba(52,211,153,.4); }
+.z6-final-title {
+  font-size: 24px; font-weight: 800; letter-spacing: 1px;
+  background: linear-gradient(90deg, var(--cyan), var(--magenta));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  margin-bottom: 8px;
+}
+.z6-final-sub { font-size: 13.5px; color: var(--text-dim); margin-bottom: 18px; }
+.z6-methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+@media (max-width: 900px) { .z6-methods { grid-template-columns: 1fr; } }
+.z6-method-card {
+  background: var(--bg-panel-2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px;
+}
+.z6-method-name { font-size: 15px; font-weight: 700; color: var(--cyan); margin-bottom: 8px; }
+.z6-method-desc { font-size: 13px; line-height: 1.9; color: var(--text-dim); }
+.z6-method-desc b { color: var(--amber); }
+.z6-final-echo {
+  margin-top: 16px; padding: 14px 18px;
+  border-left: 3px solid var(--magenta); border-radius: 0 var(--radius) var(--radius) 0;
+  background: linear-gradient(90deg, rgba(244,114,182,.1), transparent 70%);
+  font-size: 14px; line-height: 1.9; color: var(--text-dim);
+}
+.z6-final-echo b { color: var(--magenta); }

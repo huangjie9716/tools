@@ -1,0 +1,144 @@
+/* ============================================================
+   ZONE 07 · 碳和碳的氧化物（所有类均以 .z7- 前缀隔离）
+   ============================================================ */
+
+/* ---------- 二级 Tab 导航（仿 .nav-pill 缩小版） ---------- */
+.z7-tabs {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 22px; padding: 6px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  width: fit-content; max-width: 100%;
+}
+.z7-tab {
+  padding: 7px 18px; border-radius: 999px;
+  background: transparent; border: 1px solid transparent;
+  color: var(--text-dim); font-size: 13.5px; cursor: pointer;
+  font-family: inherit; transition: all .25s; white-space: nowrap;
+}
+.z7-tab:hover { color: var(--cyan); border-color: rgba(34,211,238,.3); }
+.z7-tab.active {
+  background: var(--cyan); color: #06202a; font-weight: 700;
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.5);
+}
+
+.z7-hidden { display: none !important; }
+.z7-pane { animation: zoneIn .35s ease; }
+
+.z7-stage { margin-top: 4px; }
+
+/* ---------- Tab1 三单质卡片 ---------- */
+.z7-card3 {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px;
+}
+@media (max-width: 1080px) { .z7-card3 { grid-template-columns: 1fr; } }
+.z7-mineral { display: flex; flex-direction: column; }
+.z7-mineral .z7-stage { margin-bottom: 12px; }
+.z7-mbody p {
+  line-height: 1.9; font-size: 14px; color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.z7-mbody b { color: var(--text); }
+.z7-mbody .tag { margin-right: 6px; }
+
+/* ---------- Tab2 选择题式选项卡 ---------- */
+.z7-hint {
+  font-size: 14px; color: var(--text-dim); line-height: 1.9; margin-bottom: 14px;
+}
+.z7-hint b { color: var(--cyan); }
+.z7-optrow { display: flex; flex-direction: column; gap: 10px; }
+.z7-opt {
+  display: flex; align-items: center; gap: 14px; text-align: left;
+  padding: 12px 16px; border-radius: 12px; cursor: pointer;
+  background: var(--bg-panel-2); border: 1px solid var(--border);
+  color: var(--text); font-family: inherit; font-size: 14px;
+  transition: all .2s;
+}
+.z7-opt:hover { border-color: rgba(34,211,238,.5); }
+.z7-optkey {
+  flex: 0 0 auto; width: 30px; height: 30px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-weight: 700; font-size: 15px;
+  background: rgba(148,163,184,.12); color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+.z7-optname { font-weight: 700; white-space: nowrap; }
+.z7-optdesc { color: var(--text-faint); font-size: 13px; line-height: 1.6; }
+.z7-opt.ok {
+  border-color: rgba(52,211,153,.6); background: rgba(52,211,153,.08);
+  box-shadow: 0 0 14px rgba(52,211,153,.25);
+}
+.z7-opt.ok .z7-optkey { background: var(--green); color: #06251a; border-color: transparent; }
+.z7-opt.bad {
+  border-color: rgba(248,113,113,.6); background: rgba(248,113,113,.07);
+  animation: z7-shake .3s ease;
+}
+.z7-opt.bad .z7-optkey { background: var(--red); color: #2b0a0a; border-color: transparent; }
+@keyframes z7-shake {
+  0%, 100% { transform: translateX(0); }
+  30% { transform: translateX(-5px); }
+  60% { transform: translateX(5px); }
+}
+.z7-feedback {
+  margin-top: 12px; padding: 12px 16px; border-radius: 10px;
+  font-size: 13.5px; line-height: 1.9; color: var(--text-dim);
+  border-left: 3px solid var(--border); background: var(--bg-panel);
+  min-height: 0;
+}
+.z7-feedback:empty { display: none; }
+.z7-feedback.good { border-left-color: var(--green); background: rgba(52,211,153,.07); }
+.z7-feedback.oops { border-left-color: var(--red); background: rgba(248,113,113,.06); }
+
+/* ---------- Tab3/4 实验说明 ---------- */
+.z7-exp {
+  margin-top: 14px; display: flex; flex-direction: column; gap: 8px;
+  font-size: 14px; line-height: 1.9; color: var(--text-dim);
+}
+.z7-exp b { color: var(--text); }
+.z7-exp .tag { margin-right: 6px; }
+.z7-eqline {
+  margin-top: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.z7-note { font-size: 13px; color: var(--text-faint); }
+
+/* ---------- Tab5 转化关系图 ---------- */
+.z7-svg { width: 100%; height: auto; display: block; }
+.z7-node circle {
+  fill: rgba(34,211,238,.08);
+  stroke: rgba(34,211,238,.55); stroke-width: 1.6;
+  transition: all .2s;
+}
+.z7-node text {
+  fill: var(--text); font-size: 17px; font-weight: 700;
+  font-family: var(--mono); text-anchor: middle;
+  pointer-events: none;
+}
+.z7-node:hover circle {
+  fill: rgba(34,211,238,.2);
+  stroke: var(--cyan-bright);
+  filter: drop-shadow(0 0 8px rgba(34,211,238,.7));
+}
+.z7-line {
+  fill: none; stroke: rgba(148,163,184,.55); stroke-width: 1.8;
+  transition: all .2s; pointer-events: none;
+}
+.z7-edge.dash .z7-line { stroke-dasharray: 6 5; }
+.z7-hit {
+  fill: none; stroke: transparent; stroke-width: 18; cursor: pointer;
+}
+.z7-elabel {
+  fill: var(--text-faint); font-size: 11.5px; text-anchor: middle;
+  pointer-events: none; transition: all .2s;
+}
+.z7-edge:hover .z7-line, .z7-edge.sel .z7-line {
+  stroke: var(--cyan); stroke-width: 2.6;
+  filter: drop-shadow(0 0 6px rgba(34,211,238,.8));
+}
+.z7-edge:hover .z7-elabel, .z7-edge.sel .z7-elabel { fill: var(--cyan); }
+.z7-eqcard {
+  margin-top: 14px; padding: 16px 18px; min-height: 84px;
+  background: var(--bg-panel); border: 1px solid var(--border);
+  border-left: 3px solid var(--cyan); border-radius: var(--radius);
+  display: flex; flex-direction: column; justify-content: center;
+}

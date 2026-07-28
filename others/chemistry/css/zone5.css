@@ -1,0 +1,116 @@
+/* ============================================================
+   ZONE 05 · 水（第四单元 自然界的水，所有类均以 .z5- 前缀隔离）
+   ============================================================ */
+
+/* ---------- 二级 Tab 导航（仿 .nav-pill 缩小版） ---------- */
+.z5-tabs {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 22px; padding: 6px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  width: fit-content; max-width: 100%;
+}
+.z5-tab {
+  padding: 7px 18px; border-radius: 999px;
+  background: transparent; border: 1px solid transparent;
+  color: var(--text-dim); font-size: 13.5px; cursor: pointer;
+  font-family: inherit; transition: all .25s; white-space: nowrap;
+}
+.z5-tab:hover { color: var(--cyan); border-color: rgba(34,211,238,.3); }
+.z5-tab.active {
+  background: var(--cyan); color: #06202a; font-weight: 700;
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.5);
+}
+
+.z5-hidden { display: none !important; }
+.z5-pane { animation: zoneIn .35s ease; }
+
+.z5-stage { margin-top: 4px; }
+
+/* ---------- 通用说明块 ---------- */
+.z5-hint {
+  font-size: 14px; color: var(--text-dim); line-height: 1.9; margin-bottom: 14px;
+}
+.z5-hint b { color: var(--cyan); }
+.z5-exp {
+  margin-top: 14px; display: flex; flex-direction: column; gap: 8px;
+  font-size: 14px; line-height: 1.9; color: var(--text-dim);
+}
+.z5-exp b { color: var(--text); }
+.z5-exp .tag { margin-right: 6px; }
+.z5-eqline {
+  margin-top: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.z5-note { font-size: 13px; color: var(--text-faint); }
+
+/* ---------- Tab1 步骤说明卡 ---------- */
+.z5-stepcard {
+  background: var(--bg-panel); border: 1px solid var(--border);
+  border-left: 3px solid var(--cyan); border-radius: var(--radius);
+  padding: 16px 18px; min-height: 150px;
+}
+.z5-stephead {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;
+}
+.z5-stepnum {
+  font-family: var(--mono); font-weight: 700; font-size: 13px;
+  color: #06202a; background: var(--cyan); border-radius: 8px;
+  padding: 3px 10px; box-shadow: 0 0 12px rgba(34,211,238,.5);
+}
+.z5-stepname { font-weight: 700; font-size: 16px; }
+.z5-stepdesc { font-size: 14px; line-height: 1.95; color: var(--text-dim); }
+.z5-stepdesc b { color: var(--cyan); font-weight: 600; }
+
+/* ---------- Tab1 硬水软水猜测按钮 ---------- */
+.z5-guessrow { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.z5-feedback {
+  margin-top: 12px; padding: 12px 16px; border-radius: 10px;
+  font-size: 13.5px; line-height: 1.9; color: var(--text-dim);
+  border-left: 3px solid var(--border); background: var(--bg-panel);
+}
+.z5-feedback:empty { display: none; }
+.z5-feedback.good { border-left-color: var(--green); background: rgba(52,211,153,.07); }
+.z5-feedback.oops { border-left-color: var(--red); background: rgba(248,113,113,.06); }
+.z5-feedback b { color: var(--text); }
+
+/* ---------- Tab2 水循环环节说明卡 ---------- */
+.z5-cycleinfo {
+  margin-top: 14px; padding: 14px 18px; min-height: 64px;
+  background: var(--bg-panel); border: 1px solid var(--border);
+  border-left: 3px solid var(--cyan); border-radius: var(--radius);
+  font-size: 14px; line-height: 1.9; color: var(--text-dim);
+  display: flex; flex-direction: column; justify-content: center;
+}
+.z5-cycleinfo b { color: var(--cyan); font-weight: 600; }
+
+/* ---------- Tab3 微观示意 ---------- */
+.z5-micro {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin: 10px 0; padding: 12px 14px;
+  background: rgba(0,0,0,.22); border: 1px solid var(--border-soft);
+  border-radius: 10px;
+}
+.z5-mol { display: inline-flex; align-items: center; gap: 2px; margin: 0 2px; }
+.z5-atom { display: inline-block; border-radius: 50%; }
+.z5-atom.o {
+  width: 15px; height: 15px; background: #f87171;
+  box-shadow: 0 0 8px rgba(248,113,113,.6);
+}
+.z5-atom.h {
+  width: 10px; height: 10px; background: #e2e8f0;
+  box-shadow: 0 0 6px rgba(226,232,240,.5);
+}
+.z5-marrow { color: var(--cyan); font-weight: 700; font-family: var(--mono); }
+
+/* ---------- Tab4 太空卡组 ---------- */
+.z5-card2 {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px;
+}
+@media (max-width: 1080px) { .z5-card2 { grid-template-columns: 1fr; } }
+.z5-mbody p {
+  line-height: 1.9; font-size: 14px; color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.z5-mbody b { color: var(--text); }
+.z5-mbody .tag { margin-right: 6px; }

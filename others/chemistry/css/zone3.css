@@ -1,0 +1,244 @@
+/* ============================================================
+   ZONE 03 · 化合价与化学式 — 板块自定义样式（.z3- 前缀）
+   ============================================================ */
+
+/* ---------- 通用翻转卡 ---------- */
+.z3-flip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 14px;
+}
+.z3-flip-grid-sm {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+.z3-flip {
+  perspective: 900px;
+  height: 150px;
+  cursor: pointer;
+  outline: none;
+}
+.z3-flip-b { height: 160px; }
+.z3-flip-inner {
+  position: relative;
+  width: 100%; height: 100%;
+  transform-style: preserve-3d;
+  transition: transform .55s cubic-bezier(.2, .7, .3, 1.1);
+}
+.z3-flip.flipped .z3-flip-inner { transform: rotateY(180deg); }
+.z3-face {
+  position: absolute; inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-panel-2);
+  padding: 12px 14px;
+  display: flex; flex-direction: column; justify-content: center; gap: 6px;
+  transition: border-color .25s, box-shadow .25s;
+}
+.z3-flip:hover .z3-face, .z3-flip:focus-visible .z3-face {
+  border-color: rgba(34, 211, 238, 0.45);
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.18);
+}
+.z3-back {
+  transform: rotateY(180deg);
+  border-color: rgba(244, 114, 182, 0.35);
+  background: rgba(244, 114, 182, 0.05);
+}
+.z3-card-tag {
+  font-size: 11px; color: var(--cyan); letter-spacing: 1.5px;
+  font-family: var(--mono);
+}
+.z3-back .z3-card-tag { color: var(--magenta); }
+.z3-card-slogan { font-size: 16px; font-weight: 700; letter-spacing: 1px; }
+.z3-card-formula {
+  font-family: var(--mono); font-size: 17px; color: var(--cyan); font-weight: 700;
+}
+.z3-card-en {
+  font-family: var(--mono); font-size: 15px; color: var(--magenta); font-weight: 700;
+  word-break: break-word;
+}
+.z3-card-root { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+.z3-card-hint { font-size: 11px; color: var(--text-faint); margin-top: auto; }
+.z3-val-table { width: 100%; border-collapse: collapse; font-family: var(--mono); }
+.z3-val-table td {
+  padding: 2px 4px; font-size: 14px;
+  border-bottom: 1px dashed var(--border-soft);
+}
+.z3-val-table td:last-child { text-align: right; color: var(--magenta); font-weight: 700; }
+.z3-val-table tr:last-child td { border-bottom: none; }
+
+.z3-note {
+  margin-top: 14px; font-size: 13px; color: var(--text-dim); line-height: 1.8;
+}
+.z3-note b { color: var(--cyan); }
+.z3-naming-note { margin-top: 16px; }
+.z3-note-list { padding-left: 18px; line-height: 2; font-size: 13.5px; color: var(--text-dim); }
+.z3-note-list b { color: var(--cyan); }
+
+.z3-pa, .z3-pb { margin-bottom: 22px; }
+
+/* ---------- 拼配台：槽位 ---------- */
+.z3-slots {
+  display: flex; align-items: stretch; gap: 14px; flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.z3-slot {
+  flex: 1; min-width: 180px;
+  border: 1.5px dashed var(--border); border-radius: var(--radius);
+  padding: 12px 16px; cursor: pointer;
+  transition: border-color .2s, background .2s;
+  background: rgba(0, 0, 0, 0.2);
+}
+.z3-slot:hover { border-color: rgba(34, 211, 238, 0.5); }
+.z3-slot.filled { border-style: solid; }
+.z3-slot-pos.filled { border-color: rgba(34, 211, 238, 0.6); background: var(--cyan-dim); }
+.z3-slot-neg.filled { border-color: rgba(244, 114, 182, 0.55); background: rgba(244, 114, 182, 0.08); }
+.z3-slot-label { font-size: 11px; color: var(--text-faint); letter-spacing: 1px; margin-bottom: 6px; }
+.z3-slot-body {
+  min-height: 40px; display: flex; align-items: center; gap: 10px;
+  color: var(--text-faint); font-size: 13px;
+}
+.z3-slot.filled .z3-slot-body { color: var(--text); }
+.z3-slot-sym { font-family: var(--mono); font-size: 24px; font-weight: 700; }
+.z3-slot-pos .z3-slot-sym { color: var(--cyan); }
+.z3-slot-neg .z3-slot-sym { color: var(--magenta); }
+.z3-slot-val {
+  font-size: 12px; color: var(--amber); font-family: var(--mono);
+  border: 1px solid rgba(251, 191, 36, 0.35); border-radius: 6px; padding: 2px 8px;
+}
+.z3-slot-plus {
+  align-self: center; font-size: 26px; color: var(--text-faint); font-family: var(--mono);
+}
+.z3-combine { align-self: center; min-width: 120px; min-height: 44px; }
+.z3-msg { min-height: 24px; font-size: 13.5px; color: var(--amber); margin: 4px 0 10px; }
+
+/* 无效组合抖动 */
+.z3-shake { animation: z3-shake .45s ease; border-color: var(--red) !important; }
+@keyframes z3-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(4px); }
+}
+
+/* ---------- 拼配台：微粒圆片 ---------- */
+.z3-chips-label { font-size: 12px; color: var(--text-faint); margin-bottom: 10px; letter-spacing: 1px; }
+.z3-chips { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+.z3-chip {
+  width: 62px; height: 62px; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--bg-panel-2); cursor: pointer; font-family: inherit;
+  transition: transform .15s, box-shadow .2s, border-color .2s;
+}
+.z3-chip:hover { transform: translateY(-3px) scale(1.05); }
+.z3-chip:active { transform: scale(0.96); }
+.z3-chip-pos {
+  border: 1.5px solid rgba(34, 211, 238, 0.5); color: var(--cyan);
+}
+.z3-chip-pos:hover { box-shadow: 0 0 16px rgba(34, 211, 238, 0.4); }
+.z3-chip-neg {
+  border: 1.5px solid rgba(244, 114, 182, 0.5); color: var(--magenta);
+}
+.z3-chip-neg:hover { box-shadow: 0 0 16px rgba(244, 114, 182, 0.4); }
+.z3-chip-sym { font-family: var(--mono); font-size: 17px; font-weight: 700; line-height: 1.1; }
+.z3-chip-val { font-size: 10px; color: var(--text-faint); font-family: var(--mono); }
+
+/* ---------- 物质卡 ---------- */
+.z3-result { display: flex; flex-direction: column; gap: 14px; }
+.z3-sub-card {
+  border: 1px solid rgba(34, 211, 238, 0.3); border-radius: var(--radius);
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.06), transparent 60%);
+  padding: 16px 18px;
+  animation: z3-pop .4s ease;
+}
+@keyframes z3-pop {
+  from { opacity: 0; transform: translateY(10px) scale(.98); }
+  to { opacity: 1; transform: none; }
+}
+.z3-sub-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.z3-sub-emoji { font-size: 34px; }
+.z3-sub-formula {
+  font-family: var(--mono); font-size: 24px; font-weight: 800; color: var(--cyan);
+  text-shadow: 0 0 14px rgba(34, 211, 238, 0.4);
+}
+.z3-sub-name { font-size: 14px; color: var(--text-dim); margin-top: 2px; }
+.z3-sub-head .z3-collect { margin-left: auto; }
+.z3-sub-use {
+  margin: 10px 0 12px; font-size: 13.5px; color: var(--text-dim); line-height: 1.8;
+  border-left: 3px solid var(--amber); padding-left: 10px;
+}
+.z3-derive {
+  border-top: 1px dashed var(--border); padding-top: 10px;
+}
+.z3-derive-list {
+  padding-left: 20px; font-size: 13.5px; color: var(--text-dim); line-height: 2;
+  font-family: var(--mono);
+}
+
+/* ---------- 图鉴 ---------- */
+.z3-progress {
+  height: 10px; border-radius: 5px; overflow: hidden;
+  background: rgba(148, 163, 184, 0.15);
+  border: 1px solid var(--border-soft);
+  margin-bottom: 8px;
+}
+.z3-progress-bar {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--cyan), var(--magenta));
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.5);
+  border-radius: 5px;
+  transition: width .5s ease;
+}
+.z3-progress-text { margin-bottom: 4px; }
+.z3-easter { display: none; margin-top: 10px; font-size: 13.5px; color: var(--amber); line-height: 1.8; }
+.z3-easter.show { display: block; animation: z3-pop .5s ease; }
+.z3-easter b { color: var(--magenta); }
+
+.z3-gallery {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px;
+}
+.z3-gitem {
+  border: 1px solid var(--border-soft); border-radius: 10px;
+  padding: 8px 6px; text-align: center;
+  background: rgba(0, 0, 0, 0.2);
+  transition: border-color .3s, box-shadow .3s;
+}
+.z3-gformula {
+  font-family: var(--mono); font-size: 12.5px; color: var(--text-faint); font-weight: 700;
+}
+.z3-gname { font-size: 11px; color: var(--text-faint); margin-top: 3px; }
+.z3-gitem.got {
+  border-color: rgba(34, 211, 238, 0.45);
+  background: var(--cyan-dim);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.2);
+}
+.z3-gitem.got .z3-gformula { color: var(--cyan); }
+.z3-gitem.got .z3-gname { color: var(--text-dim); }
+
+.z3-tip-text { font-size: 13px; color: var(--text-dim); line-height: 1.9; }
+
+/* ---------- B 档拓展卡（琥珀色 · 高中及以后） ---------- */
+.z3-sub-card-b {
+  border-color: rgba(251, 191, 36, 0.45);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.08), transparent 60%);
+}
+.z3-sub-card-b .z3-sub-formula {
+  color: var(--amber);
+  text-shadow: 0 0 14px rgba(251, 191, 36, 0.4);
+}
+.z3-sub-tier {
+  display: inline-block; margin-left: 8px;
+  font-size: 11px; color: var(--amber); font-family: var(--mono);
+  border: 1px solid rgba(251, 191, 36, 0.45); border-radius: 6px;
+  padding: 1px 7px; vertical-align: middle;
+}
+.z3-gitem.got.tier-b {
+  border-color: rgba(251, 191, 36, 0.5);
+  background: rgba(251, 191, 36, 0.08);
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.18);
+}
+.z3-gitem.got.tier-b .z3-gformula { color: var(--amber); }
+.z3-progress-sub { font-size: 11.5px; color: var(--text-faint); margin-top: 2px; }
+.z3-progress-sub b { color: var(--amber); }

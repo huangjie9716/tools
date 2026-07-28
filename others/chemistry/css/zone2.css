@@ -1,0 +1,153 @@
+/* ZONE 02 · 元素周期表的规律 */
+
+.z2-toolbar-panel { margin-bottom: 22px; }
+
+/* ---------- 图例 ---------- */
+.z2-legend { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+.z2-lg { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-dim); }
+.z2-chip { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.z2-lg-note { color: var(--text-faint); font-size: 11.5px; margin-left: auto; }
+
+/* ---------- 周期表网格 ---------- */
+.z2-scroll { overflow-x: auto; padding-bottom: 6px; }
+.z2-grid {
+  display: grid;
+  grid-template-columns: repeat(18, minmax(46px, 1fr));
+  gap: 3px;
+  min-width: 900px;
+}
+.z2-fwrap { margin-top: 10px; }
+.z2-fgrid { margin-top: 0; }
+
+.z2-cell {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 4px 2px 3px;
+  border-radius: 6px;
+  border: 1px solid var(--border-soft);
+  background: var(--bg-panel);
+  cursor: pointer;
+  transition: opacity .25s, box-shadow .2s, transform .15s, border-color .2s;
+  user-select: none;
+}
+.z2-cell:hover { transform: translateY(-2px); }
+.z2-z { font-size: 9px; color: var(--text-faint); align-self: flex-start; margin-left: 3px; line-height: 1; font-family: var(--mono); }
+.z2-sym { font-size: 15px; font-weight: 700; font-family: var(--mono); line-height: 1.25; }
+.z2-cn { font-size: 10px; color: var(--text-dim); line-height: 1.3; white-space: nowrap; }
+
+/* 类别配色 */
+.z2-cat-m { background: rgba(34, 211, 238, .09); border-color: rgba(34, 211, 238, .30); }
+.z2-cat-m .z2-sym { color: var(--cyan); }
+.z2-cat-n { background: rgba(244, 114, 182, .09); border-color: rgba(244, 114, 182, .32); }
+.z2-cat-n .z2-sym { color: var(--magenta); }
+.z2-cat-d { background: rgba(251, 191, 36, .09); border-color: rgba(251, 191, 36, .30); }
+.z2-cat-d .z2-sym { color: var(--amber); }
+.z2-cat-g { background: rgba(52, 211, 153, .10); border-color: rgba(52, 211, 153, .32); }
+.z2-cat-g .z2-sym { color: var(--green); }
+
+.z2-chip.z2-cat-m, .z2-cat-m-t { color: var(--cyan); }
+.z2-chip.z2-cat-n, .z2-cat-n-t { color: var(--magenta); }
+.z2-chip.z2-cat-d, .z2-cat-d-t { color: var(--amber); }
+.z2-chip.z2-cat-g, .z2-cat-g-t { color: var(--green); }
+.z2-chip.z2-cat-m { background: rgba(34, 211, 238, .5); }
+.z2-chip.z2-cat-n { background: rgba(244, 114, 182, .5); }
+.z2-chip.z2-cat-d { background: rgba(251, 191, 36, .5); }
+.z2-chip.z2-cat-g { background: rgba(52, 211, 153, .5); }
+
+/* 占位格（57-71 / 89-103） */
+.z2-ph { border-style: dashed; border-color: rgba(148, 163, 184, .3); background: transparent; cursor: default; }
+.z2-ph:hover { transform: none; }
+.z2-ph-t { font-size: 10px; font-family: var(--mono); color: var(--text-faint); line-height: 1.4; }
+
+/* 镧系/锕系行标签 */
+.z2-flabel {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--text-faint); letter-spacing: 2px;
+  border: 1px dashed rgba(148, 163, 184, .25); border-radius: 6px;
+}
+
+/* ---------- 高亮 / 变暗 ---------- */
+.z2-dimming .z2-cell:not(.z2-on):not(.z2-sel) { opacity: .18; }
+.z2-cell.z2-on {
+  opacity: 1;
+  border-color: var(--cyan);
+  box-shadow: 0 0 10px rgba(34, 211, 238, .35), inset 0 0 8px rgba(34, 211, 238, .12);
+}
+.z2-cell.z2-sel {
+  border-color: var(--amber);
+  box-shadow: 0 0 12px rgba(251, 191, 36, .45);
+}
+
+/* ---------- 生活模式：呼吸闪烁 ---------- */
+.z2-life .z2-cell:not(.z2-life-el) { opacity: .12; }
+.z2-life .z2-life-el {
+  opacity: 1;
+  animation: z2-breathe 1.8s ease-in-out infinite;
+}
+.z2-life .z2-life-el:nth-child(3n) { animation-delay: .4s; }
+.z2-life .z2-life-el:nth-child(4n) { animation-delay: .8s; }
+.z2-life .z2-life-el:nth-child(5n) { animation-delay: 1.2s; }
+@keyframes z2-breathe {
+  0%, 100% { box-shadow: 0 0 4px rgba(251, 191, 36, .25); border-color: rgba(251, 191, 36, .35); }
+  50% { box-shadow: 0 0 16px rgba(251, 191, 36, .65); border-color: var(--amber); }
+}
+
+/* ---------- 跟随鼠标浮层卡 ---------- */
+.z2-tip {
+  position: fixed; z-index: 200;
+  min-width: 210px; max-width: 280px;
+  padding: 12px 14px;
+  background: rgba(13, 18, 26, .96);
+  border: 1px solid rgba(34, 211, 238, .4);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .5), 0 0 18px rgba(34, 211, 238, .18);
+  font-size: 12.5px; line-height: 1.8; color: var(--text-dim);
+  pointer-events: none;
+  opacity: 0; transform: translateY(4px);
+  transition: opacity .12s, transform .12s;
+}
+.z2-tip.on { opacity: 1; transform: none; }
+.z2-tip-head { font-size: 15px; color: var(--text); margin-bottom: 4px; }
+.z2-tip-head b { font-family: var(--mono); font-size: 18px; margin-right: 4px; }
+.z2-tip-cat {
+  float: right; font-size: 11px; color: var(--text-faint);
+  border: 1px solid var(--border); border-radius: 5px; padding: 1px 7px; margin-top: 3px;
+}
+.z2-tip-row b { color: var(--cyan); font-family: var(--mono); font-weight: 600; }
+.z2-tip-app { margin-top: 5px; color: var(--amber); font-size: 12px; }
+
+/* ---------- 详情卡 ---------- */
+.z2-card-body { font-size: 13.5px; line-height: 1.95; color: var(--text-dim); }
+.z2-card-body b { color: var(--cyan); font-weight: 600; }
+.z2-dim { color: var(--text-faint); }
+
+.z2-detail-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.z2-big {
+  position: relative;
+  width: 74px; height: 74px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px; font-weight: 800; font-family: var(--mono);
+  border-width: 1px; border-style: solid;
+}
+.z2-big-z {
+  position: absolute; top: 5px; left: 7px;
+  font-size: 11px; font-weight: 400; color: var(--text-dim);
+}
+.z2-detail-name { font-size: 22px; font-weight: 700; }
+.z2-detail-sub { font-size: 12.5px; color: var(--text-faint); margin-top: 3px; font-family: var(--mono); }
+
+/* 电子层示意（小圆点） */
+.z2-shells { margin-top: 14px; }
+.z2-shell-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.z2-shell-name {
+  width: 16px; font-size: 11px; color: var(--text-faint);
+  font-family: var(--mono); text-align: center;
+}
+.z2-dots { display: flex; flex-wrap: wrap; gap: 3px; flex: 1; }
+.z2-dots i {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--cyan); box-shadow: 0 0 4px rgba(34, 211, 238, .6);
+}
+.z2-shell-n { font-size: 11px; color: var(--cyan); font-family: var(--mono); min-width: 18px; text-align: right; }
+
+.z2-app-line { margin-top: 14px; font-size: 13px; color: var(--text-dim); line-height: 1.9; }

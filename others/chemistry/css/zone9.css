@@ -1,0 +1,134 @@
+/* ============================================================
+   ZONE 08 · 金属和合金（所有类均以 .z8- 前缀隔离）
+   ============================================================ */
+
+/* ---------- 通用卡片网格 ---------- */
+.z8-grid2 {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;
+}
+.z8-grid3 {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px;
+}
+@media (max-width: 1080px) {
+  .z8-grid2, .z8-grid3 { grid-template-columns: 1fr; }
+}
+
+/* ---------- 正文/提示 ---------- */
+.z8-hint {
+  font-size: 14px; color: var(--text-dim); line-height: 1.9; margin-bottom: 12px;
+}
+.z8-hint b { color: var(--cyan); }
+.z8-cbody p {
+  line-height: 1.9; font-size: 14px; color: var(--text-dim);
+}
+.z8-cbody b { color: var(--text); }
+.z8-cbody .tag { margin-right: 6px; }
+.z8-exp {
+  margin-top: 12px; display: flex; flex-direction: column; gap: 8px;
+  font-size: 13.5px; line-height: 1.9; color: var(--text-dim);
+}
+.z8-exp b { color: var(--text); }
+.z8-exp .tag { margin-right: 6px; }
+.z8-eqline {
+  margin-top: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.z8-warn {
+  margin-top: 8px; font-size: 13px; line-height: 1.8; color: var(--text-dim);
+  border-left: 3px solid var(--amber); padding-left: 10px;
+}
+.z8-warn b { color: var(--amber); }
+
+/* ---------- Panel A · 含碳量标尺 ---------- */
+.z8-scalewrap { margin: 30px 6px 4px; }
+.z8-scale {
+  position: relative; height: 14px; border-radius: 7px;
+  background: rgba(148,163,184,0.12); border: 1px solid var(--border);
+}
+.z8-band { position: absolute; top: 0; bottom: 0; }
+.z8-band.steel {
+  background: linear-gradient(90deg, rgba(34,211,238,0.55), rgba(34,211,238,0.3));
+  border-radius: 7px 0 0 7px;
+}
+.z8-band.iron {
+  background: linear-gradient(90deg, rgba(244,114,182,0.3), rgba(244,114,182,0.55));
+  border-radius: 0 7px 7px 0;
+}
+.z8-mark {
+  position: absolute; top: -24px; transform: translateX(-50%);
+  font-size: 12px; color: var(--text-faint); font-family: var(--mono);
+  white-space: nowrap;
+}
+.z8-mark::after {
+  content: ""; position: absolute; left: 50%; top: 17px;
+  width: 1px; height: 8px; background: var(--text-faint);
+}
+.z8-scalelegend {
+  display: flex; gap: 22px; flex-wrap: wrap; margin-top: 12px;
+  font-size: 13px; color: var(--text-dim);
+}
+.z8-scalelegend b { color: var(--text); }
+.z8-dot {
+  display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+  margin-right: 6px; vertical-align: middle;
+}
+
+/* ---------- Panel B · 金属活动性芯片 ---------- */
+.z8-chips {
+  display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 14px;
+}
+.z8-chip {
+  padding: 8px 13px; border-radius: 10px; cursor: pointer;
+  background: var(--bg-panel-2); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--mono); font-size: 15px; font-weight: 700;
+  transition: all .2s;
+}
+.z8-chip:hover {
+  border-color: rgba(34,211,238,.6); color: var(--cyan);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(34,211,238,.18);
+}
+.z8-chip.active {
+  background: var(--cyan); color: #06202a; border-color: transparent;
+  box-shadow: 0 0 16px rgba(34,211,238,.55);
+}
+.z8-chip.h {
+  border-style: dashed; border-color: rgba(251,191,36,.55);
+  color: var(--amber);
+}
+.z8-chip.h:hover { border-color: var(--amber); color: var(--amber); }
+.z8-chip.h.active {
+  background: var(--amber); color: #2b1d02;
+  box-shadow: 0 0 16px rgba(251,191,36,.5);
+}
+.z8-eqshow { min-height: 34px; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+.z8-eqshow .eq { font-size: 16px; }
+
+/* ---------- Panel E · 生锈试管 ---------- */
+.z8-rustrow {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px;
+}
+@media (max-width: 1080px) { .z8-rustrow { grid-template-columns: 1fr; } }
+.z8-tube { cursor: pointer; transition: border-color .25s, box-shadow .25s; }
+.z8-tube:hover { border-color: rgba(34,211,238,.5); }
+.z8-tube.revealed { border-color: rgba(251,191,36,.45); box-shadow: 0 0 14px rgba(251,191,36,.12); }
+.z8-verdict {
+  margin-top: 10px; text-align: center; font-weight: 700;
+  font-size: 14.5px; min-height: 24px; letter-spacing: .5px;
+}
+.z8-verdict.rust { color: var(--red); }
+.z8-verdict.safe { color: var(--green); }
+
+/* ---------- 学霸加餐表格 ---------- */
+.z8-table {
+  width: 100%; border-collapse: collapse; margin: 10px 0 4px;
+  font-size: 13px; line-height: 1.7;
+}
+.z8-table th, .z8-table td {
+  border: 1px solid var(--border-soft); padding: 7px 10px; text-align: left;
+  vertical-align: top;
+}
+.z8-table th {
+  color: var(--amber); background: rgba(251,191,36,.07);
+  font-weight: 700; white-space: nowrap;
+}
+.z8-table td { color: var(--text-dim); }

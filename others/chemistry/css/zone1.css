@@ -1,0 +1,41 @@
+/* ============================================================
+   ZONE 01 · 元素的由来 —— 板块自定义样式（全部 .z1- 前缀）
+   ============================================================ */
+
+.z1-panel { margin-bottom: 22px; }
+
+.z1-stage-val { min-width: 96px; }
+
+.z1-stage-desc {
+  margin-top: 10px;
+  line-height: 1.9;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+.z1-hl { color: var(--cyan); font-weight: 600; }
+
+.z1-exam-text {
+  line-height: 1.9;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+.z1-exam-text b { color: var(--amber); }
+
+.z1-counters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+@media (max-width: 520px) {
+  .z1-counters { grid-template-columns: 1fr; }
+}
+.z1-counters .card-value { font-size: 17px; }
+
+.z1-note {
+  font-size: 12.5px;
+  color: var(--text-faint);
+  line-height: 1.8;
+  border-top: 1px dashed var(--border-soft);
+  padding-top: 10px;
+}

@@ -1,0 +1,218 @@
+/* ============================================================
+   ZONE 10 · 酸和碱（仅本板块自定义样式，全部 z10- 前缀）
+   ============================================================ */
+
+/* 方程式展示条 */
+.z10-eq-wrap {
+  margin-top: 10px;
+  padding: 10px 16px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* 通性条目 */
+.z10-prop {
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-top: 12px;
+  background: rgba(0, 0, 0, 0.18);
+}
+.z10-prop-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text);
+  flex-wrap: wrap;
+}
+.z10-prop-body {
+  margin-top: 8px;
+  font-size: 13.5px;
+  color: var(--text-dim);
+  line-height: 1.9;
+}
+.z10-prop-body b { color: var(--cyan); }
+.z10-phen {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.8;
+}
+.z10-phen b { color: var(--amber); }
+
+/* 列表 */
+.z10-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--text-dim);
+  line-height: 1.8;
+}
+.z10-list li::before { content: "✦ "; color: var(--cyan); }
+.z10-list b { color: var(--text); }
+
+/* 结论/说明正文 */
+.z10-concl {
+  font-size: 13.5px;
+  line-height: 1.9;
+  color: var(--text-dim);
+}
+.z10-concl b { color: var(--cyan); }
+
+/* 状态条（琥珀虚线框） */
+.z10-status {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px dashed rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.05);
+  font-size: 13.5px;
+  color: var(--text-dim);
+  line-height: 1.9;
+  min-height: 52px;
+}
+.z10-status b { color: var(--amber); }
+.z10-status .ok { color: var(--green); font-weight: 700; }
+.z10-status .bad { color: var(--red); font-weight: 700; }
+
+/* ---------- Panel A · 指示剂试管 ---------- */
+.z10-group-label {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin: 12px 0 8px;
+  letter-spacing: 1px;
+}
+.z10-tube-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  padding: 20px 0 8px;
+  flex-wrap: wrap;
+}
+.z10-tube {
+  width: 66px;
+  height: 196px;
+  border: 2.5px solid rgba(226, 232, 240, 0.65);
+  border-top: none;
+  border-radius: 0 0 32px 32px;
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+}
+.z10-tube::before {
+  content: "";
+  position: absolute;
+  left: 8px; top: 6px; bottom: 14px;
+  width: 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.10);
+  z-index: 2;
+}
+.z10-liquid {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 62%;
+  transition: background-color 0.55s ease, box-shadow 0.55s ease;
+}
+.z10-tube-info { max-width: 300px; }
+.z10-tube-mix {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.z10-tube-result {
+  font-size: 13.5px;
+  color: var(--text-dim);
+  line-height: 1.9;
+}
+.z10-tube-result b { color: var(--cyan); }
+
+/* ---------- Panel A · pH 彩虹条 ---------- */
+.z10-ph-bar {
+  position: relative;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid var(--border-soft);
+  background: linear-gradient(90deg,
+    #dc2626 0%, #f97316 16%, #fbbf24 32%, #a3e635 44%,
+    #22c55e 50%, #14b8a6 60%, #3b82f6 74%, #6366f1 87%, #7c3aed 100%);
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.12);
+}
+.z10-ph-marker {
+  position: absolute;
+  top: -7px;
+  width: 0; height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 9px solid #fff;
+  transform: translateX(-50%);
+  transition: left 0.15s ease;
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
+}
+.z10-ph-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  margin: 5px 2px 12px;
+}
+.z10-verdict {
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 10px;
+}
+.z10-verdict.acid { color: var(--red); }
+.z10-verdict.base { color: #60a5fa; }
+.z10-verdict.neutral { color: var(--green); }
+.z10-ph-match {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.9;
+  min-height: 26px;
+}
+.z10-ph-match b { color: var(--cyan); }
+.z10-ph-match .warn { color: var(--amber); font-weight: 600; }
+
+/* ---------- Panel D · 应用卡网格 ---------- */
+.z10-app-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+@media (max-width: 900px) {
+  .z10-app-grid { grid-template-columns: 1fr; }
+}
+.z10-app {
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.18);
+  font-size: 13.5px;
+  color: var(--text-dim);
+  line-height: 1.9;
+}
+.z10-app b { color: var(--cyan); }
+.z10-app .eq { font-size: 15px; margin-top: 6px; }
+
+/* 小节分隔标题 */
+.z10-sub {
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--text-faint);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.z10-sub::before { content: "▸ "; color: var(--magenta); }

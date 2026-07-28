@@ -1,0 +1,276 @@
+/* ============================================================
+   ZONE 09 · 溶液与溶解度（仅本板块自定义样式，全部 z9- 前缀）
+   ============================================================ */
+
+/* 通用小列表 */
+.z9-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--text-dim);
+  line-height: 1.8;
+}
+.z9-list li::before { content: "✦ "; color: var(--cyan); }
+.z9-list b { color: var(--text); }
+
+/* 正文说明 */
+.z9-note {
+  margin-top: 12px;
+  font-size: 13.5px;
+  color: var(--text-dim);
+  line-height: 1.9;
+}
+.z9-note b { color: var(--cyan); }
+
+/* 概念卡中的限定词高亮 */
+.z9-law {
+  font-size: 15px;
+  line-height: 2.1;
+  color: var(--text);
+}
+.z9-law .kw {
+  color: var(--magenta);
+  font-weight: 700;
+  border-bottom: 1px dashed rgba(244, 114, 182, 0.6);
+  padding-bottom: 1px;
+}
+.z9-law .kw2 {
+  color: var(--cyan);
+  font-weight: 700;
+  border-bottom: 1px dashed rgba(34, 211, 238, 0.6);
+  padding-bottom: 1px;
+}
+
+/* 卡片正文 */
+.z9-concl {
+  font-size: 13.5px;
+  line-height: 1.9;
+  color: var(--text-dim);
+}
+.z9-concl b { color: var(--cyan); }
+.z9-concl .hlm { color: var(--magenta); font-weight: 600; }
+.z9-concl .hla { color: var(--amber); font-weight: 600; }
+
+/* 阶段提示 */
+.z9-phase {
+  font-size: 13px;
+  color: var(--amber);
+  font-family: var(--mono);
+}
+
+/* ---------- Panel B 转化关系图 ---------- */
+.z9-diag {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.z9-dnode {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel-2);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-dim);
+  transition: all .3s;
+}
+.z9-dnode.on.unsat { border-color: rgba(34,211,238,.6); color: var(--cyan); box-shadow: 0 0 14px rgba(34,211,238,.25); }
+.z9-dnode.on.sat { border-color: rgba(251,191,36,.6); color: var(--amber); box-shadow: 0 0 14px rgba(251,191,36,.25); }
+.z9-dmid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+}
+.z9-dbtn {
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px dashed rgba(148, 163, 184, 0.35);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 12.5px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all .2s;
+  text-align: center;
+}
+.z9-dbtn:hover { border-color: rgba(34,211,238,.55); color: var(--cyan); }
+
+/* 判定条（饱和/不饱和/读图判定通用） */
+.z9-verdict {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px dashed rgba(34, 211, 238, 0.35);
+  background: rgba(34, 211, 238, 0.05);
+  font-size: 13.5px;
+  color: var(--text-dim);
+  line-height: 1.9;
+  min-height: 52px;
+}
+.z9-verdict b { color: var(--cyan); }
+.z9-verdict.sat { border-color: rgba(251,191,36,.4); background: rgba(251,191,36,.06); }
+.z9-verdict.sat b { color: var(--amber); }
+.z9-verdict.ok { border-color: rgba(52,211,153,.4); background: rgba(52,211,153,.06); }
+.z9-verdict.ok b { color: var(--green); }
+.z9-verdict.bad { border-color: rgba(248,113,113,.4); background: rgba(248,113,113,.06); }
+.z9-verdict.bad b { color: var(--red); }
+
+/* ---------- Panel C 读数面板 ---------- */
+.z9-readouts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+@media (max-width: 720px) { .z9-readouts { grid-template-columns: 1fr; } }
+.z9-read {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: var(--bg-panel-2);
+  cursor: pointer;
+  transition: all .2s;
+}
+.z9-read .rn { font-size: 12.5px; color: var(--text-dim); }
+.z9-read .rv { font-family: var(--mono); font-size: 18px; font-weight: 700; margin-top: 2px; }
+.z9-read .rt { font-size: 11.5px; color: var(--text-faint); margin-top: 2px; }
+.z9-read.sel { border-color: rgba(34,211,238,.55); box-shadow: 0 0 12px rgba(34,211,238,.18); }
+
+.z9-hint {
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: var(--text-faint);
+  line-height: 1.8;
+}
+
+/* ---------- 问答题（Panel D / E 通用） ---------- */
+.z9-quiz {
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.18);
+}
+.z9-quiz + .z9-quiz { margin-top: 12px; }
+.z9-quiz .qq {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.8;
+  margin-bottom: 10px;
+}
+.z9-quiz .qq b { color: var(--cyan); }
+.z9-opt.right {
+  border-color: rgba(52,211,153,.7) !important;
+  color: var(--green) !important;
+  background: rgba(52,211,153,.1);
+}
+.z9-opt.wrong {
+  border-color: rgba(248,113,113,.7) !important;
+  color: var(--red) !important;
+  background: rgba(248,113,113,.08);
+}
+.z9-fb {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: var(--text-dim);
+  min-height: 22px;
+}
+.z9-fb b { color: var(--cyan); }
+.z9-fb .good { color: var(--green); font-weight: 700; }
+.z9-fb .oops { color: var(--red); font-weight: 700; }
+
+/* ---------- Panel E 计算器 ---------- */
+.z9-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.z9-input-row label { font-size: 13px; color: var(--text-dim); white-space: nowrap; }
+.z9-input {
+  width: 96px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--cyan);
+  font-family: var(--mono);
+  font-size: 14px;
+  outline: none;
+}
+.z9-input:focus { border-color: rgba(34,211,238,.55); box-shadow: 0 0 10px rgba(34,211,238,.2); }
+
+.z9-calc-out {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 720px) { .z9-calc-out { grid-template-columns: 1fr; } }
+
+/* 大公式展示 */
+.z9-formula {
+  font-family: var(--mono);
+  font-size: 16.5px;
+  color: var(--text);
+  line-height: 2;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border-soft);
+  text-align: center;
+}
+.z9-formula b { color: var(--cyan); }
+.z9-formula .frac { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 6px; }
+.z9-formula .frac .up { border-bottom: 1.5px solid var(--cyan); padding: 0 8px; }
+
+/* 五步流程 */
+.z9-steps {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.z9-step {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel-2);
+  color: var(--text-dim);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .2s;
+}
+.z9-step:hover { border-color: rgba(34,211,238,.5); color: var(--cyan); }
+.z9-step.on {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: var(--cyan-dim);
+  box-shadow: 0 0 12px rgba(34,211,238,.2);
+}
+.z9-step-detail {
+  font-size: 13.5px;
+  line-height: 1.9;
+  color: var(--text-dim);
+  min-height: 48px;
+}
+.z9-step-detail b { color: var(--cyan); }
+
+/* 稀释例题 */
+.z9-dil-sol {
+  margin-top: 10px;
+  font-size: 13.5px;
+  line-height: 2;
+  color: var(--text-dim);
+}
+.z9-dil-sol b { color: var(--amber); }
