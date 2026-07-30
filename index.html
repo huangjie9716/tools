@@ -13,6 +13,7 @@
          *    下划线动画使用 scaleX 避免宽度溢出，与背景区域对齐。
          * 3. 右侧面板标题下划线颜色与左侧导航对应类别颜色一致。
          * 4. 卡片、按钮、动效等保持商务教育简约风格。
+         * 5. 新增：通过 data-file 属性实现各工具卡片更新时间的自动获取与显示。
         =================================================== */
 
         :root {
@@ -300,6 +301,9 @@
         }
         .footer p { display: inline-block; background: #EEF2FB; padding: 0.3rem 1.2rem; border-radius: 22px; font-weight: 500; }
 
+        /* 加载中的日期占位 */
+        .meta-date.loading { opacity: 0.6; }
+
         @media (max-width: 900px) {
             .container { flex-direction: column; gap: 1rem; padding: 1.2rem 1rem; }
             .sidebar { width: 100%; position: static; padding: 1rem 0.8rem; }
@@ -343,10 +347,13 @@
             <div class="content-panel panel-physics active" id="panel-physics">
                 <div class="panel-header"><span class="panel-icon">⚡</span><h2>物理教学</h2></div>
                 <div class="tool-grid">
-                    <div class="tool-card">
+                    <div class="tool-card" data-file="physics/v1.2MachanicsQuiz.html">
                         <h3>🏋️ 初中物理力学双人答题赛</h3>
                         <p>两人对战模式，涵盖初中力学核心知识点，增强课堂互动与趣味性。</p>
-                        <div class="tool-meta"><span>📅 更新：2026.07.24</span><span>🔖 v1.2</span></div>
+                        <div class="tool-meta">
+                            <span class="meta-date" data-default="2026.07.24">📅 更新：2026.07.24</span>
+                            <span>🔖 v1.2</span>
+                        </div>
                         <div class="tool-actions"><a href="physics/v1.2MachanicsQuiz.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
                     </div>
                 </div>
@@ -365,20 +372,26 @@
                 </div>
                 <div class="subject-panel active" id="panel-chinese">
                     <div class="tool-grid">
-                        <div class="tool-card">
+                        <div class="tool-card" data-file="others/chinese/v1.1AncientPoem.html">
                             <h3>📜 初中语文必背古诗文</h3>
                             <p>收录初中阶段必背古诗文，支持朗读、释义、名句赏析，让经典背诵不再枯燥！</p>
-                            <div class="tool-meta"><span>📅 更新：2026.07.24</span><span>🔖 v1.0</span></div>
+                            <div class="tool-meta">
+                                <span class="meta-date" data-default="2026.07.24">📅 更新：2026.07.24</span>
+                                <span>🔖 v1.0</span>
+                            </div>
                             <div class="tool-actions"><a href="others/chinese/v1.1AncientPoem.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
                         </div>
                     </div>
                 </div>
                 <div class="subject-panel" id="panel-math">
                     <div class="tool-grid">
-                        <div class="tool-card">
+                        <div class="tool-card" data-file="others/math/v1.1MathFormula.html">
                             <h3>📐 初中数学公式可视化互动学习</h3>
                             <p>动态演示代数与几何公式，支持参数调节，让抽象概念看得见。</p>
-                            <div class="tool-meta"><span>📅 更新：2026.07.24</span><span>🔖 v1.1</span></div>
+                            <div class="tool-meta">
+                                <span class="meta-date" data-default="2026.07.24">📅 更新：2026.07.24</span>
+                                <span>🔖 v1.1</span>
+                            </div>
                             <div class="tool-actions"><a href="others/math/v1.1MathFormula.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
                         </div>
                     </div>
@@ -386,10 +399,13 @@
                 <div class="subject-panel" id="panel-english"><div class="tool-grid"><div class="placeholder-card"><div class="big-icon">🇬🇧</div><p>功能开发中，敬请期待</p></div></div></div>
                 <div class="subject-panel" id="panel-chemistry">
                     <div class="tool-grid">
-                        <div class="tool-card">
+                        <div class="tool-card" data-file="others/chemistry/v2.0ChemistryLab.html">
                             <h3>🧪 初中化学实验室</h3>
                             <p>虚拟化学实验平台，安全模拟初中常见化学反应与操作，提升实验教学效率与趣味性。</p>
-                            <div class="tool-meta"><span>📅 更新：2026.07.28</span><span>🔖 v2.0</span></div>
+                            <div class="tool-meta">
+                                <span class="meta-date" data-default="2026.07.28">📅 更新：2026.07.28</span>
+                                <span>🔖 v2.0</span>
+                            </div>
                             <div class="tool-actions"><a href="others/chemistry/v2.0ChemistryLab.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
                         </div>
                     </div>
@@ -410,10 +426,13 @@
             <div class="content-panel" id="panel-class-mgmt">
                 <div class="panel-header"><span class="panel-icon">🏫</span><h2>班级管理</h2></div>
                 <div class="tool-grid">
-                    <div class="tool-card">
+                    <div class="tool-card" data-file="class/v3.3ReciteGame.html">
                         <h3>📖 背诵消消乐系统</h3>
                         <p>通过趣味消消乐游戏，帮助学生高效完成背诵任务。支持自定义图片与音乐素材，让背诵过关更轻松！</p>
-                        <div class="tool-meta"><span>📅 更新：2026.07.25</span><span>🔖 v3.3</span></div>
+                        <div class="tool-meta">
+                            <span class="meta-date" data-default="2026.07.25">📅 更新：2026.07.25</span>
+                            <span>🔖 v3.3</span>
+                        </div>
                         <div class="tool-actions"><a href="class/v3.3ReciteGame.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
                         <div class="tool-templates">
                             <span>📥 资源下载：</span>
@@ -422,20 +441,26 @@
                             <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/ReciteStudentInfo.xlsx" download class="btn btn-outline btn-sm">学生数据模板</a>
                         </div>
                     </div>
-                    <div class="tool-card">
+                    <div class="tool-card" data-file="class/v1.5SeatChange.html">
                         <h3>💺 智能座位调换系统</h3>
                         <p>基于学生身高、活跃程度、成绩等多维度智能排座，支持手动微调，轻松生成最优座位表。</p>
-                        <div class="tool-meta"><span>📅 更新：2026.07.26</span><span>🔖 v1.5</span></div>
+                        <div class="tool-meta">
+                            <span class="meta-date" data-default="2026.07.26">📅 更新：2026.07.26</span>
+                            <span>🔖 v1.5</span>
+                        </div>
                         <div class="tool-actions"><a href="class/v1.5SeatChange.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
                         <div class="tool-templates">
                             <span>📥 数据模板下载：</span>
                             <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/SeatChangeData.xlsx" download class="btn btn-outline btn-sm">学生数据模板</a>
                         </div>
                     </div>
-                    <div class="tool-card">
+                    <div class="tool-card" data-file="class/v1.5GeneralAnalysis.html">
                         <h3>📋 班主任通用版成绩分析系统</h3>
                         <p>专为班主任设计的一站式成绩分析工具，快速生成班级成绩报告、学生进退步追踪等数据。</p>
-                        <div class="tool-meta"><span>📅 更新：2026.07.26</span><span>🔖 v1.5</span></div>
+                        <div class="tool-meta">
+                            <span class="meta-date" data-default="2026.07.26">📅 更新：2026.07.26</span>
+                            <span>🔖 v1.5</span>
+                        </div>
                         <div class="tool-actions"><a href="class/v1.5GeneralAnalysis.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
                         <div class="tool-templates">
                             <span>📥 数据模板下载：</span>
@@ -451,33 +476,45 @@
             <div class="content-panel panel-analysis" id="panel-analysis">
                 <div class="panel-header"><span class="panel-icon">📊</span><h2>成绩分析系统</h2></div>
                 <div class="tool-grid">
-                    <div class="tool-card">
+                    <div class="tool-card" data-file="analysis/v1.4AddGradeDirector.html">
                         <h3>🎯 增值评价分析系统</h3>
                         <p>基于学生成长数据，科学衡量教学增值效果。提供年级、班级、学科三种分析视角。</p>
-                        <div class="tool-meta"><span>📅 更新：2026.07.22</span><span>🔖 v1.4 / v1.2</span></div>
+                        <div class="tool-meta">
+                            <span class="meta-date" data-default="2026.07.22">📅 更新：2026.07.22</span>
+                            <span>🔖 v1.4 / v1.2</span>
+                        </div>
                         <div class="tool-actions"><button class="btn btn-primary" onclick="openModal()">🚀 选择版本进入</button></div>
                         <div class="tool-guide"><span>📘 操作指南下载：</span><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/AddGuide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
                     </div>
-                    <div class="tool-card">
+                    <div class="tool-card" data-file="analysis/v1.2ResultAnalysis.html">
                         <h3>📈 结果评价分析系统</h3>
                         <p>对考试成绩进行累计比率分析对比，生成多维度统计报表，辅助结果评价。</p>
-                        <div class="tool-meta"><span>📅 更新：2026.07.22</span><span>🔖 v1.2</span></div>
+                        <div class="tool-meta">
+                            <span class="meta-date" data-default="2026.07.22">📅 更新：2026.07.22</span>
+                            <span>🔖 v1.2</span>
+                        </div>
                         <div class="tool-actions"><a href="analysis/v1.2ResultAnalysis.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
                         <div class="tool-templates"><span>📥 数据模板下载：</span><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/ResultData.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a></div>
                         <div class="tool-guide"><span>📘 操作指南下载：</span><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/ResultGuide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
                     </div>
-                    <div class="tool-card">
+                    <div class="tool-card" data-file="analysis/v1.3PredictAnalysis.html">
                         <h3>📊 上线达标预测及增量分析系统</h3>
                         <p>预测学生上线达标概率，分析增量变化，为临界生辅导提供精准数据支撑，划定考试上线目标。</p>
-                        <div class="tool-meta"><span>📅 更新：2026.07.22</span><span>🔖 v1.3</span></div>
+                        <div class="tool-meta">
+                            <span class="meta-date" data-default="2026.07.22">📅 更新：2026.07.22</span>
+                            <span>🔖 v1.3</span>
+                        </div>
                         <div class="tool-actions"><a href="analysis/v1.3PredictAnalysis.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
                         <div class="tool-templates"><span>📥 数据模板下载：</span><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/PredictData1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/PredictData2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a></div>
                         <div class="tool-guide"><span>📘 操作指南下载：</span><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/PredictGuide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
                     </div>
-                    <div class="tool-card">
+                    <div class="tool-card" data-file="analysis/v1.4TestAnalysis.html">
                         <h3>📝 试题分析系统</h3>
                         <p>计算试卷小题难度，得到班级弱项，帮助优化命题质量、调整班级教学方向。</p>
-                        <div class="tool-meta"><span>📅 更新：2026.07.22</span><span>🔖 v1.4</span></div>
+                        <div class="tool-meta">
+                            <span class="meta-date" data-default="2026.07.22">📅 更新：2026.07.22</span>
+                            <span>🔖 v1.4</span>
+                        </div>
                         <div class="tool-actions"><a href="analysis/v1.4TestAnalysis.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
                         <div class="tool-templates"><span>📥 数据模板下载：</span><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/TestData.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a></div>
                         <div class="tool-guide"><span>📘 操作指南下载：</span><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/TestGuide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
@@ -523,55 +560,144 @@
 
     <script>
         (function() {
-            const now = new Date();
-            document.getElementById('updateBadge').textContent =
-                `🔄 最近更新：${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
-        })();
+            // 格式化日期为 YYYY.MM.DD
+            function formatDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}.${month}.${day}`;
+            }
 
-        const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
-        const contentPanels = document.querySelectorAll('.content-panel');
-        navItems.forEach(item => {
-            item.addEventListener('click', () => {
-                navItems.forEach(n => n.classList.remove('active'));
-                item.classList.add('active');
-                contentPanels.forEach(p => p.classList.remove('active'));
-                const target = document.getElementById(item.dataset.panel);
-                if (target) {
-                    target.classList.add('active');
-                    target.querySelectorAll('.tool-card, .placeholder-card').forEach((card,i) => {
-                        card.style.animation = 'none'; card.offsetHeight;
-                        card.style.animation = 'fadeInUp 0.4s ease forwards';
-                        card.style.animationDelay = (0.05 + i*0.07) + 's';
+            // 从 Last-Modified 头解析日期
+            function parseLastModified(lastModified) {
+                if (!lastModified) return null;
+                try {
+                    const date = new Date(lastModified);
+                    if (isNaN(date.getTime())) return null;
+                    return date;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            // 使用 HEAD 请求获取文件的最后修改时间
+            async function fetchFileDate(filePath) {
+                try {
+                    const response = await fetch(filePath, { method: 'HEAD', cache: 'no-cache' });
+                    if (response.ok) {
+                        const lastModified = response.headers.get('Last-Modified');
+                        if (lastModified) {
+                            const date = parseLastModified(lastModified);
+                            if (date) return formatDate(date);
+                        }
+                    }
+                } catch (error) {
+                    // 请求失败（如本地文件、跨域等），返回 null
+                }
+                return null;
+            }
+
+            // 更新顶部全局更新时间为 index.html 自身的最后修改时间
+            async function updateGlobalTime() {
+                const badge = document.getElementById('updateBadge');
+                if (!badge) return;
+                try {
+                    const response = await fetch('index.html', { method: 'HEAD', cache: 'no-cache' });
+                    if (response.ok) {
+                        const lastModified = response.headers.get('Last-Modified');
+                        if (lastModified) {
+                            const date = parseLastModified(lastModified);
+                            if (date) {
+                                badge.textContent = `🔄 最近更新：${formatDate(date)}`;
+                                return;
+                            }
+                        }
+                    }
+                } catch (e) {}
+                // 失败则保持原有文字（已预填加载中，可改为固定值）
+                badge.textContent = '🔄 最近更新：获取失败';
+            }
+
+            // 更新所有带有 data-file 属性的卡片日期
+            async function updateCardDates() {
+                const cards = document.querySelectorAll('.tool-card[data-file]');
+                const promises = Array.from(cards).map(async (card) => {
+                    const filePath = card.getAttribute('data-file');
+                    const dateSpan = card.querySelector('.meta-date');
+                    if (!dateSpan || !filePath) return;
+
+                    // 显示加载状态（可选）
+                    dateSpan.textContent = '📅 更新：加载中...';
+                    dateSpan.classList.add('loading');
+
+                    const dateStr = await fetchFileDate(filePath);
+                    if (dateStr) {
+                        dateSpan.textContent = `📅 更新：${dateStr}`;
+                    } else {
+                        // 回退到预设的默认日期
+                        const defaultDate = dateSpan.getAttribute('data-default');
+                        dateSpan.textContent = `📅 更新：${defaultDate || '未知'}`;
+                    }
+                    dateSpan.classList.remove('loading');
+                });
+                await Promise.allSettled(promises);
+            }
+
+            // 页面加载后执行
+            window.addEventListener('DOMContentLoaded', () => {
+                updateGlobalTime();
+                updateCardDates();
+            });
+
+            // 保留原有的导航切换逻辑
+            const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+            const contentPanels = document.querySelectorAll('.content-panel');
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    navItems.forEach(n => n.classList.remove('active'));
+                    item.classList.add('active');
+                    contentPanels.forEach(p => p.classList.remove('active'));
+                    const target = document.getElementById(item.dataset.panel);
+                    if (target) {
+                        target.classList.add('active');
+                        target.querySelectorAll('.tool-card, .placeholder-card').forEach((card,i) => {
+                            card.style.animation = 'none';
+                            card.offsetHeight;
+                            card.style.animation = 'fadeInUp 0.4s ease forwards';
+                            card.style.animationDelay = (0.05 + i*0.07) + 's';
+                        });
+                    }
+                });
+            });
+
+            const tabs = document.querySelectorAll('.subject-tab');
+            const panels = document.querySelectorAll('.subject-panel');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    panels.forEach(p => p.classList.remove('active'));
+                    document.getElementById('panel-' + tab.dataset.subject).classList.add('active');
+                });
+            });
+
+            window.openModal = function() { document.getElementById('versionModal').classList.add('show'); };
+            window.closeModal = function() { document.getElementById('versionModal').classList.remove('show'); };
+            window.onclick = function(e) { if (e.target === document.getElementById('versionModal')) closeModal(); };
+            document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+
+            const navbar = document.getElementById('navbar');
+            let ticking = false;
+            window.addEventListener('scroll', () => {
+                if (!ticking) {
+                    requestAnimationFrame(() => {
+                        navbar.classList.toggle('scrolled', window.scrollY > 10);
+                        ticking = false;
                     });
+                    ticking = true;
                 }
             });
-        });
-
-        document.querySelectorAll('.subject-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.subject-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                document.querySelectorAll('.subject-panel').forEach(p => p.classList.remove('active'));
-                document.getElementById('panel-' + tab.dataset.subject).classList.add('active');
-            });
-        });
-
-        function openModal() { document.getElementById('versionModal').classList.add('show'); }
-        function closeModal() { document.getElementById('versionModal').classList.remove('show'); }
-        window.onclick = e => { if (e.target === document.getElementById('versionModal')) closeModal(); };
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-
-        const navbar = document.getElementById('navbar');
-        let ticking = false;
-        window.addEventListener('scroll', () => {
-            if (!ticking) {
-                requestAnimationFrame(() => {
-                    navbar.classList.toggle('scrolled', window.scrollY > 10);
-                    ticking = false;
-                });
-                ticking = true;
-            }
-        });
+        })();
     </script>
 </body>
 </html>
