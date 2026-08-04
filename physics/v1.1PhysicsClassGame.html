@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>初中物理课堂知识PK赛</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", sans-serif; background: linear-gradient(135deg, #0f172a, #1e293b, #0f3460); min-height: 100vh; color: #fff; overflow-x: hidden; }
+    .game-container { max-width: 1500px; margin: 0 auto; padding: 18px; }
+    .title-area { text-align: center; padding: 10px 0 6px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+    .title-area .left { display: flex; flex-direction: column; align-items: flex-start; }
+    .title-area .left h1 { font-size: 2rem; background: linear-gradient(90deg, #f7971e, #ffd200); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: 3px; }
+    .title-area .left .sub { color: #a5b4fc; font-size: 1.2rem; margin-top: 4px; }
+    .title-area .right { display: flex; gap: 12px; align-items: center; }
+    .title-area .right button { padding: 12px 28px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer; font-size: 1.2rem; transition: all 0.2s; }
+    .title-area .right button:hover { background: rgba(255,255,255,0.18); color: #fff; }
+    .top-bar { display: flex; justify-content: center; align-items: center; gap: 18px; flex-wrap: wrap; margin: 12px 0 14px; }
+    .timer-box, .question-progress, .topic-badge { background: rgba(255,255,255,0.09); border-radius: 12px; padding: 10px 18px; border: 1px solid rgba(255,255,255,0.12); }
+    .timer-box { background: linear-gradient(135deg, #e94560, #c0392b); font-weight: bold; font-size: 1.5rem; }
+    .question-progress { color: #ffd200; font-size: 1.2rem; }
+    .topic-badge { color: #cbd5e1; font-size: 1.1rem; }
+    .main-area { display: grid; grid-template-columns: 480px 1fr 480px; gap: 16px; align-items: start; }
+    .player-panel, .question-area { background: rgba(255,255,255,0.08); border-radius: 18px; border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(4px); }
+    .player-panel { padding: 18px 16px; min-height: 650px; display: flex; flex-direction: column; }
+    .player-panel.correct-flash { animation: correctFlash 0.5s ease; }
+    .player-panel.wrong-flash { animation: wrongFlash 0.5s ease; }
+    @keyframes correctFlash { 0%,100% { background: rgba(255,255,255,0.08); } 50% { background: rgba(46,213,115,0.28); } }
+    @keyframes wrongFlash { 0%,100% { background: rgba(255,255,255,0.08); } 50% { background: rgba(233,69,96,0.28); } }
+    .player-head { text-align: center; margin-bottom: 14px; }
+    .avatar { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
+    .player-a .avatar { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+    .player-b .avatar { background: linear-gradient(135deg, #f093fb, #f5576c); }
+    .player-name { font-size: 1.5rem; font-weight: bold; margin-bottom: 6px; }
+    .player-a .player-name { color: #4facfe; }
+    .player-b .player-name { color: #f093fb; }
+    .score-label { color: #94a3b8; font-size: 1rem; }
+    .score-num { font-size: 3.2rem; font-weight: bold; margin-top: 6px; }
+    .player-a .score-num { color: #4facfe; }
+    .player-b .score-num { color: #f093fb; }
+    .player-status { text-align: center; margin: 12px 0; min-height: 38px; font-size: 1.2rem; color: #ffd200; }
+    .answer-area { margin-top: 6px; display: grid; gap: 12px; }
+    .answer-btn { width: 100%; padding: 16px 18px; border-radius: 14px; border: 2px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; cursor: pointer; text-align: left; font-size: 1.6rem; line-height: 1.5; transition: all 0.2s; }
+    .answer-btn:hover:not(:disabled) { transform: translateY(-2px); background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.35); }
+    .answer-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .answer-btn.correct { background: rgba(46,213,115,0.23); border-color: #2ed573; color: #2ed573; }
+    .answer-btn.wrong { background: rgba(233,69,96,0.23); border-color: #e94560; color: #ff7b8a; }
+    .record-wrap { margin-top: 18px; }
+    .record-title { text-align: center; color: #94a3b8; font-size: 1rem; margin-bottom: 8px; }
+    .record-dots { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .record-dot { width: 18px; height: 18px; border-radius: 50%; background: rgba(255,255,255,0.14); }
+    .record-dot.correct { background: #2ed573; }
+    .record-dot.wrong { background: #e94560; }
+    .question-area { padding: 22px 20px; min-height: 650px; display: flex; flex-direction: column; align-items: center; }
+    .q-dots { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; justify-content: center; }
+    .q-dot { width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); }
+    .q-dot.current { background: #ffd200; border-color: #ffd200; animation: pulse 1s infinite; }
+    .q-dot.done-correct { background: #2ed573; border-color: #2ed573; }
+    .q-dot.done-wrong { background: #e94560; border-color: #e94560; }
+    @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+    .question-type { background: linear-gradient(135deg, #f7971e, #ffd200); color: #1e293b; border-radius: 20px; padding: 8px 22px; font-size: 1.2rem; font-weight: bold; margin-bottom: 14px; }
+    .mid-hint { display: none; }
+    .question-text { font-size: 2.2rem; line-height: 1.9; text-align: center; color: #f8fafc; min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 18px; padding: 0 8px; width: 100%; transition: font-size 0.2s ease; }
+    .question-text img { max-width: 100%; height: auto; margin: 10px 0; border-radius: 8px; }
+    .question-text sup { font-size: 0.7em; vertical-align: super; }
+    .question-text sub { font-size: 0.7em; vertical-align: sub; }
+    .result-msg { width: 100%; min-height: 80px; border-radius: 12px; padding: 14px 18px; background: rgba(255,255,255,0.05); color: #e2e8f0; line-height: 1.75; margin-top: 8px; text-align: center; font-size: 1.2rem; }
+    .next-btn { margin-top: 18px; padding: 16px 48px; border: none; border-radius: 14px; background: linear-gradient(135deg, #f7971e, #ffd200); color: #1a1a2e; font-weight: bold; font-size: 1.4rem; cursor: pointer; display: none; transition: all 0.2s; }
+    .next-btn.show { display: inline-block; }
+    .next-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255,210,0,0.35); }
+    .restart-wrap { display: flex; justify-content: center; gap: 16px; margin-top: 14px; }
+    .restart-wrap button { padding: 12px 32px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer; font-size: 1.1rem; transition: all 0.2s; }
+    .restart-wrap button:hover { background: rgba(255,255,255,0.14); color: #fff; }
+    .start-screen, .result-screen { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: rgba(2,6,23,0.92); padding: 20px; }
+    .start-card, .result-card { width: min(1000px, 96vw); background: linear-gradient(135deg, #111827, #1e293b); border-radius: 40px; padding: 60px 50px; border: 1px solid rgba(255,255,255,0.12); text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+    .start-card h1, .result-title { font-size: 3.2rem; background: linear-gradient(90deg, #f7971e, #ffd200); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 20px; letter-spacing: 2px; }
+    .start-card p { color: #cbd5e1; line-height: 2.2; font-size: 1.3rem; margin-bottom: 8px; }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 18px 0; }
+    .tag { background: rgba(255,210,0,0.14); color: #ffd200; border: 1px solid rgba(255,210,0,0.35); border-radius: 24px; padding: 8px 22px; font-size: 1.1rem; }
+    .chapter-select-area { margin: 25px 0 15px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 16px 20px; }
+    .chapter-select-area .select-group { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+    .chapter-select-area label { color: #94a3b8; font-size: 1.1rem; letter-spacing: 1px; }
+    .chapter-select-area select { padding: 12px 18px; border-radius: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #f1f5f9; font-size: 1.1rem; cursor: pointer; outline: none; appearance: none; min-width: 160px; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 12px center; background-size: 18px; }
+    .chapter-select-area select:focus { border-color: #ffd200; }
+    .chapter-select-area select option { background: #1e293b; color: #f1f5f9; }
+    #questionCountHint { color: #94a3b8; font-size: 1.1rem; margin-top: 8px; width: 100%; text-align: center; }
+    .start-btn, .restart-btn { margin-top: 25px; padding: 18px 64px; border-radius: 999px; border: none; cursor: pointer; font-weight: bold; font-size: 1.4rem; background: linear-gradient(135deg, #f7971e, #ffd200); color: #1e293b; transition: all 0.2s; }
+    .start-btn:hover, .restart-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(255,210,0,0.35); }
+    .start-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+    .result-screen { display: none; }
+    .result-screen.show { display: flex; }
+    .winner-emoji, .draw-emoji { font-size: 5rem; margin-bottom: 12px; }
+    .winner-emoji { animation: jump 0.7s infinite alternate; }
+    @keyframes jump { from { transform: translateY(0); } to { transform: translateY(-12px); } }
+    .score-summary { display: flex; justify-content: center; align-items: center; gap: 40px; margin: 22px 0; flex-wrap: wrap; }
+    .score-item .name { color: #94a3b8; margin-bottom: 6px; font-size: 1.2rem; }
+    .score-item .num { font-size: 3.2rem; font-weight: bold; }
+    .confetti-container { position: fixed; inset: 0; pointer-events: none; display: none; z-index: 99; overflow: hidden; }
+    .confetti-container.show { display: block; }
+    .confetti { position: absolute; animation: fall linear forwards; }
+    @keyframes fall { 0% { transform: translateY(-30px) rotate(0deg); opacity: 1; } 100% { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+    @media (max-width: 1200px) { .main-area { grid-template-columns: 1fr; } .player-panel, .question-area { min-height: auto; } .chapter-select-area { flex-direction: column; align-items: stretch; } .chapter-select-area .select-group { width: 100%; } .title-area { flex-direction: column; align-items: center; } .title-area .right { margin-top: 10px; } }
+    @media (max-width: 600px) { .start-card { padding: 30px 20px; } .start-card h1 { font-size: 2.2rem; } .question-text { font-size: 1.6rem; } .answer-btn { font-size: 1.2rem; } }
+  </style>
+</head>
+<body>
+
+  <!-- ============ 开始界面 ============ -->
+  <div class="start-screen" id="startScreen">
+    <div class="start-card">
+      <h1>🎮 初中物理课堂知识PK赛</h1>
+      <p>双人同时作答 · 每题各答一次，答对 +10 分，答错 -10 分</p>
+      <p>选择年级、章、节后，系统自动加载对应题库，题量动态适配</p>
+      <div class="chapter-select-area">
+        <div class="select-group">
+          <label for="gradeSelect">📚 年级</label>
+          <select id="gradeSelect"></select>
+        </div>
+        <div class="select-group">
+          <label for="chapterSelect">📖 章</label>
+          <select id="chapterSelect"></select>
+        </div>
+        <div class="select-group">
+          <label for="sectionSelect">📝 节</label>
+          <select id="sectionSelect"></select>
+        </div>
+      </div>
+      <div id="questionCountHint">当前题库共 0 题</div>
+      <div class="tag-list" id="tagList">
+        <span class="tag">长度测量</span>
+        <span class="tag">单位换算</span>
+        <span class="tag">刻度尺读数</span>
+        <span class="tag">停表读数</span>
+      </div>
+      <button class="start-btn" id="startBtn" onclick="startGame()">开始 PK</button>
+    </div>
+  </div>
+
+  <!-- ============ 游戏主界面 ============ -->
+  <div class="game-container" id="gameContainer">
+    <div class="title-area">
+      <div class="left">
+        <h1>🎮 初中物理课堂知识PK赛</h1>
+        <div class="sub" id="currentChapterDisplay">章节：1.1 长度和时间的测量</div>
+      </div>
+      <div class="right">
+        <button onclick="goHome()">🏠 返回主界面</button>
+      </div>
+    </div>
+    <div class="top-bar">
+      <div class="timer-box">⏱ <span id="timerDisplay">00:00</span></div>
+      <div class="question-progress" id="questionProgress">第 1 / 0 题</div>
+      <div class="topic-badge" id="topicBadge">知识点：—</div>
+    </div>
+    <div class="main-area">
+      <div class="player-panel player-a" id="panelA">
+        <div class="player-head">
+          <div class="avatar">A</div>
+          <div class="player-name">参赛者 A</div>
+          <div class="score-label">当前得分</div>
+          <div class="score-num" id="scoreA">0</div>
+        </div>
+        <div class="player-status" id="statusA">等待本题作答</div>
+        <div class="answer-area" id="answerAreaA"></div>
+        <div class="record-wrap">
+          <div class="record-title">答题记录</div>
+          <div class="record-dots" id="recordA"></div>
+        </div>
+      </div>
+      <div class="question-area">
+        <div class="q-dots" id="qDots"></div>
+        <div class="question-type" id="questionType">📝 单选题</div>
+        <div class="mid-hint" id="midHint"></div>
+        <div class="question-text" id="questionText">点击“开始 PK”后显示题目</div>
+        <div class="result-msg" id="resultMsg"></div>
+        <button class="next-btn" id="nextBtn" onclick="nextQuestion()">下一题 ▶</button>
+      </div>
+      <div class="player-panel player-b" id="panelB">
+        <div class="player-head">
+          <div class="avatar">B</div>
+          <div class="player-name">参赛者 B</div>
+          <div class="score-label">当前得分</div>
+          <div class="score-num" id="scoreB">0</div>
+        </div>
+        <div class="player-status" id="statusB">等待本题作答</div>
+        <div class="answer-area" id="answerAreaB"></div>
+        <div class="record-wrap">
+          <div class="record-title">答题记录</div>
+          <div class="record-dots" id="recordB"></div>
+        </div>
+      </div>
+    </div>
+    <div class="restart-wrap">
+      <button onclick="restartGame()">🔄 重新开始</button>
+    </div>
+  </div>
+
+  <!-- ============ 结果界面 ============ -->
+  <div class="result-screen" id="resultScreen">
+    <div class="result-card">
+      <div id="resultEmoji"></div>
+      <div class="result-title" id="resultTitle"></div>
+      <div class="score-summary" id="scoreSummary"></div>
+      <button class="restart-btn" onclick="restartGame()">再来一局</button>
+    </div>
+  </div>
+
+  <!-- 彩带容器 -->
+  <div class="confetti-container" id="confettiContainer"></div>
+
+  <script>
+    // ===================================================================
+    //  ★★★ 题库定义（包含 1.1~6.4 全部章节） ★★★
+    // ===================================================================
+    const chapterQuestions = {
+      // ----- 1.1 长度和时间的测量 -----
+      '1.1': [
+        { type: 'choice', topic: '长度估测', text: '一元硬币的直径约为（　　）', options: { A: '2.5 cm', B: '2.5 mm', C: '2.5 dm', D: '2.5 m' }, answer: 'A' },
+        { type: 'choice', topic: '长度估测', text: '一张纸的厚度约为（　　）', options: { A: '0.1 mm', B: '0.1 cm', C: '0.1 dm', D: '0.1 m' }, answer: 'A' },
+        { type: 'choice', topic: '长度估测', text: '地球的半径约为（　　）', options: { A: '6400 km', B: '6400 m', C: '6400 cm', D: '6400 mm' }, answer: 'A' },
+        { type: 'choice', topic: '单位换算', text: '700 mm 最接近下列哪个长度（　　）', options: { A: '教室黑板的长度', B: '物理课本的长度', C: '中学生步行一步的长度', D: '一个篮球场的长度' }, answer: 'C' },
+        { type: 'choice', topic: '刻度尺读数', text: '如图所示，用刻度尺测量木块的长度，读数正确的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image1_1/1-1-5.webp" style="max-width:100%;">', options: { A: '3.90 cm', B: '3.9 cm', C: '3.0 cm', D: '4.00 cm' }, answer: 'A' },
+        { type: 'choice', topic: '停表读数', text: '如图所示，停表的示数为（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image1_1/1-1-6.webp" style="max-width:100%;">', options: { A: '229.7 s', B: '229.0 s', C: '230.0 s', D: '228.7 s' }, answer: 'A' },
+        { type: 'choice', topic: '刻度尺读数', text: '如图所示，展板上标签的长度为（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image1_1/1-1-7.webp" style="max-width:100%;">', options: { A: '4.00 cm', B: '4.0 cm', C: '4 cm', D: '5.00 cm' }, answer: 'A' }
+      ],
+      // ----- 1.2 运动的描述 -----
+      '1.2': [
+        { type: 'choice', topic: '参照物', text: '《吕氏春秋·察今》记录了"刻舟求剑"的典故。其中有文字记载："船已行矣，而剑不行......"从物理学角度看，"剑不行"所选的参照物是（　　）', options: { A: '船', B: '剑', C: '岸边的山', D: '江水' }, answer: 'C' },
+        { type: 'choice', topic: '参照物', text: '"不疑行船动，唯看远树来"这句诗，生动体现了运动和静止的相对性。诗人觉得树在运动，是因为选择的参照物是（　　）', options: { A: '乘坐的船', B: '远处的树木', C: '岸边的山石', D: '天上的太阳' }, answer: 'A' },
+        { type: 'choice', topic: '参照物', text: '2026年5月，神舟二十三号载人飞船发射取得圆满成功。在飞船升空过程中，相对飞船静止的是（　　）', options: { A: '地面上的发射架', B: '地面上行驶的高铁', C: '机场降落的飞机', D: '飞船内固定的设备' }, answer: 'D' },
+        { type: 'choice', topic: '参照物', text: '如图所示，加油机正在给两架受油机加油，与加油机相对静止的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image1_2/1-2-4.webp" style="max-width:100%;">', options: { A: '地面', B: '云', C: '受油机', D: '太阳' }, answer: 'C' },
+        { type: 'choice', topic: '运动和静止的相对性', text: '如图所示是赛龙舟时的激烈情景，摇桨队员们动作完全相同、整齐划一。下列说法正确的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image1_2/1-2-5.webp" style="max-width:100%;">', options: { A: '以龙舟为参照物，龙舟上的鼓是运动的', B: '以岸边的树木为参照物，龙舟是静止的', C: '划桨的队友之间保持相对静止', D: '以鼓为参照物，击鼓的鼓槌是静止的' }, answer: 'C' }
+      ],
+      // ----- 1.3 运动的快慢 -----
+      '1.3': [
+        { type: 'choice', topic: '匀速直线运动', text: '下列物体的运动属于匀速直线运动的是（　　）', options: { A: '正在进站的火车', B: '抛出的铅球', C: '在平直轨道上匀速行驶的列车', D: '绕地球匀速转动的卫星' }, answer: 'C' },
+        { type: 'choice', topic: '速度估测', text: '李白在《早发白帝城》中描述："朝辞白帝彩云间，千里江陵一日还。"1里为500 m，1日为24 h，则诗人所描述的船速最接近（　　）', options: { A: '5 km/h', B: '5 m/s', C: '20 m/s', D: '40 km/h' }, answer: 'B' },
+        { type: 'choice', topic: '速度估测', text: '下列几种估测最符合实际情况的是（　　）', options: { A: '1 s内人的心跳大约为75次', B: '课桌的高度约为1.5 m', C: '人步行的速度约为1 m/s', D: '某同学50 m短跑成绩3 s' }, answer: 'C' },
+        { type: 'choice', topic: 's-t图像', text: '如图所示是某物体在40 s内沿直线运动的s-t图像。0~20 s内物体通过的路程为（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image1-3/1-3-4.webp" style="max-width:100%;">', options: { A: '50 m', B: '100 m', C: '150 m', D: '200 m' }, answer: 'B', group: 'q4' },
+        { type: 'choice', topic: 's-t图像', text: '如图所示是某物体在40 s内沿直线运动的s-t图像。20~40 s内物体的速度为（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image1-3/1-3-4.webp" style="max-width:100%;">', options: { A: '2.5 m/s', B: '5 m/s', C: '10 m/s', D: '20 m/s' }, answer: 'B', group: 'q4' },
+        { type: 'choice', topic: 's-t图像', text: '如图所示是某物体在40 s内沿直线运动的s-t图像。在这40 s内，该物体在做（　　）运动。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image1-3/1-3-4.webp" style="max-width:100%;">', options: { A: '匀速直线运动', B: '变速运动', C: '先加速后减速', D: '先减速后加速' }, answer: 'B', group: 'q4' },
+        { type: 'choice', topic: '单位换算', text: '360 cm = （　　）m', options: { A: '3.6', B: '36', C: '0.36', D: '3600' }, answer: 'A', group: 'q5' },
+        { type: 'choice', topic: '单位换算', text: '72 km/h = （　　）m/s', options: { A: '20', B: '200', C: '72', D: '7.2' }, answer: 'A', group: 'q5' },
+        { type: 'choice', topic: '单位换算', text: '6 min = （　　）h', options: { A: '0.1', B: '0.6', C: '1', D: '0.01' }, answer: 'A', group: 'q5' }
+      ],
+      // ----- 1.4 速度的测量 -----
+      '1.4': [
+        { type: 'choice', topic: '测量平均速度', text: '如图所示为"测量小车运动的平均速度"的实验装置。该实验的原理是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image1_4/1-4-1.webp" style="max-width:100%;">', options: { A: 'v = s/t', B: 's = vt' }, answer: 'A', group: 'q1' },
+        { type: 'choice', topic: '测量工具', text: '如图所示为"测量小车运动的平均速度"的实验装置。除了刻度尺，实验中还需要用到的测量工具是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image1_4/1-4-1.webp" style="max-width:100%;">', options: { A: '秒表', B: '温度计' }, answer: 'A', group: 'q1' },
+        { type: 'choice', topic: '平均速度计算', text: '如图所示为"测量小车运动的平均速度"的实验装置。测得t_AB=1.7s，t_AC=2.5s，则小车在BC段的平均速度和AC段的平均速度分别为（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image1_4/1-4-1.webp" style="max-width:100%;">', options: { A: '0.5 m/s 和 0.32 m/s', B: '0.32 m/s 和 0.5 m/s' }, answer: 'A', group: 'q1' },
+        { type: 'choice', topic: '实验操作', text: '如图所示为"测量小车运动的平均速度"的实验装置。实验时小车运动得太快，不便于测量时间，可采取的操作是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image1_4/1-4-1.webp" style="max-width:100%;">', options: { A: '减小斜面的倾斜程度', B: '增大斜面的倾斜程度' }, answer: 'A', group: 'q1' },
+        { type: 'choice', topic: '误差分析', text: '如图所示为"测量小车运动的平均速度"的实验装置。若将斜面上端的车头位置到斜面下端的车尾位置的距离记为全程距离，时间测量准确，则测得的AC段平均速度会（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image1_4/1-4-1.webp" style="max-width:100%;">', options: { A: '偏大', B: '偏小' }, answer: 'B', group: 'q1' }
+      ],
+      // ----- 2.1 声音的产生与传播 -----
+      '2.1': [
+        { type: 'choice', topic: '声音的产生', text: '声音是物体的（　　）发生的。', options: { A: '振动', B: '静止' }, answer: 'A', group: '2_1_1' },
+        { type: 'choice', topic: '声音的传播', text: '声音的传播需要依靠（　　）。', options: { A: '介质', B: '真空' }, answer: 'A', group: '2_1_1' },
+        { type: 'choice', topic: '声音的传播形式', text: '声音以（　　）的形式传到人的耳朵里。', options: { A: '波', B: '能量' }, answer: 'A', group: '2_1_1' },
+        { type: 'choice', topic: '声音的产生', text: '龙舟比赛的鼓声是由于鼓面（　　）发声。', options: { A: '振动', B: '静止' }, answer: 'A', group: '2_1_2' },
+        { type: 'choice', topic: '声音的传播', text: '鼓声通过（　　）传播到观众耳朵。', options: { A: '空气', B: '水' }, answer: 'A', group: '2_1_2' },
+        { type: 'choice', topic: '声速', text: '声音从空气传到水中，传播速度将（　　）。', options: { A: '变快', B: '变慢' }, answer: 'A', group: '2_1_2' },
+        { type: 'choice', topic: '真空不能传声', text: '如图所示，把正在响铃的闹钟放在玻璃罩内，逐渐抽出其中的空气，关于该实验下列说法中错误的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image2-1/2-1-3.webp" style="max-width:100%;">', options: { A: '听到的声音没有变化', B: '当玻璃罩内空气逐渐抽出，铃声减弱', C: '该探究通过"实验+推理"的方式证明声音不能在真空中传播', D: '在几乎听不到铃声时，使空气逐渐进入玻璃罩内，铃声又逐渐加强' }, answer: 'A' },
+        { type: 'choice', topic: '回声测距', text: '如图所示，科学工作者为了探测海底某处的深度，从海面向海底垂直发射超声波，经过4s后接收到回波信号，已知声波在海水中的传播速度为1500m/s，则该处海底的深度是（　　）m。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image2-1/2-1-4.webp" style="max-width:100%;">', options: { A: '3000', B: '1500', C: '6000', D: '12000' }, answer: 'A', group: '2_1_4' },
+        { type: 'choice', topic: '回声测距', text: '如图所示，利用上述方法（　　）测量地球到月球的距离。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image2-1/2-1-4.webp" style="max-width:100%;">', options: { A: '能', B: '不能' }, answer: 'B', group: '2_1_4' },
+        { type: 'choice', topic: '声速', text: '声音在空气中传播的速度（15℃）是（　　）m/s。', options: { A: '340', B: '1500', C: '3400', D: '300' }, answer: 'A', group: '2_1_5' },
+        { type: 'choice', topic: '回声测距', text: '在峡谷中呼喊会听到回声，假如你从呼喊到听到回声用了3s，则反射声音的高山离你（　　）m。', options: { A: '510', B: '255', C: '1020', D: '340' }, answer: 'A', group: '2_1_5' }
+      ],
+      // ----- 2.2 声音的特性 -----
+      '2.2': [
+        { type: 'choice', topic: '音调', text: '吹奏竹笛时按压竹笛上间距不同的小孔，主要是为了改变竹笛发声时的（　　）', options: { A: '响度', B: '音调', C: '音色', D: '声速' }, answer: 'B' },
+        { type: 'choice', topic: '响度', text: 'C919客机使用复合材料将舱内噪声降至60 dB，这是改变了舱内噪声的（　　）', options: { A: '频率', B: '响度', C: '音调', D: '速度' }, answer: 'B' },
+        { type: 'choice', topic: '响度', text: '小明在讲台上用敲击锤先后两次以不同力度敲击同一个音叉，座位上的小芳听到这两次声音的（　　）', options: { A: '响度不相同', B: '音调不相同', C: '音色不相同', D: '响度、音调和音色都不相同' }, answer: 'A' },
+        { type: 'choice', topic: '音色', text: '自潮汕英歌舞登上春晚舞台后，世界看到中华文化"燃"到骨子里的生命力。观看表演过程中，小明分辨出"鼓声"和"英歌槌击打声"原因是（　　）', options: { A: '音调', B: '音色', C: '频率', D: '响度' }, answer: 'B' },
+        { type: 'choice', topic: '声音的产生', text: '琴声是由琴弦（　　）产生的。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image2-2/2-2-5.webp" style="max-width:100%;">', options: { A: '振动', B: '静止' }, answer: 'A', group: '2_2_5' },
+        { type: 'choice', topic: '声音的传播', text: '琴声通过（　　）传至人耳。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image2-2/2-2-5.webp" style="max-width:100%;">', options: { A: '空气', B: '水' }, answer: 'A', group: '2_2_5' },
+        { type: 'choice', topic: '音调', text: '乐师调整琴弦的松紧，主要是为了改变乐音的（　　）。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image2-2/2-2-5.webp" style="max-width:100%;">', options: { A: '音调', B: '响度', C: '音色' }, answer: 'A', group: '2_2_5' },
+        { type: 'choice', topic: '超声波与次声波', text: '蝴蝶的翅膀每秒振动五六次，它所发出的声音频率低于20Hz，为（　　）声波。', options: { A: '次', B: '超' }, answer: 'A', group: '2_2_6' },
+        { type: 'choice', topic: '超声波与次声波', text: '海豚能发出振动频率高于20000Hz的声音，为（　　）声波。', options: { A: '超', B: '次' }, answer: 'A', group: '2_2_6' },
+        { type: 'choice', topic: '人耳听觉范围', text: '上述两种频率的声音，人耳都（　　）听见。', options: { A: '能', B: '不能' }, answer: 'B', group: '2_2_6' },
+        { type: 'choice', topic: '音调和响度', text: '市场上有一种变声器，它可以将男声变成女声。某段声音变化前后的波形图如图所示，其中变声前是A段，变声后是B段，则该变声器的原理是使声音的（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image2-2/2-2-7.webp" style="max-width:100%;">', options: { A: '音调变低，响度变小', B: '音调变高，响度变小', C: '音调变低，响度变大', D: '音调变高，响度变大' }, answer: 'D' }
+      ],
+      // ----- 2.3 声的利用 -----
+      '2.3': [
+        { type: 'choice', topic: '声与信息', text: 'DeepSeek的AI功能主要体现在车载语音助手的智能化水平上。中国某汽车制造商正将DeepSeek的AI（人工智能）功能引入旗下车型，实现"人与车"全场景自然交互，下列说法正确的是（　　）', options: { A: 'AI语音助手发出的声音不是振动产生的', B: 'AI语音助手发出"减小声音音量"的指令实质是降低声音的音调', C: '人们能听到的音乐声频率低于20 Hz', D: 'AI语音助手能根据用户语音指令完成指定操作，说明声音可以传递信息' }, answer: 'D' },
+        { type: 'choice', topic: '声与能量/信息', text: '关于声的利用，下列说法中正确的是（　　）', options: { A: '轮船的"声呐"系统利用了超声波在水中能传递能量', B: '医生通过B超查看胎儿的发育情况，主要是利用声传递能量', C: '超声波不仅可以清洗眼镜，还能粉碎人体内的结石，说明声可以传递信息', D: '"柴门闻犬吠，风雪夜归人"说明声音可以传递信息' }, answer: 'D' }
+      ],
+      // ----- 2.4 噪声的危害与控制 -----
+      '2.4': [
+        { type: 'choice', topic: '噪声控制', text: '生活中常常用到声的知识，下列说法正确的是（　　）', options: { A: '超声波能粉碎人体内的结石，说明声可以传递信息', B: '调节电视机的音量，是为了改变声音的音调', C: '中考期间考场附近禁止鸣笛，是在声源处减弱噪声', D: '我们能区分二胡和小提琴的声音，是因为它们的响度不同' }, answer: 'C' },
+        { type: 'choice', topic: '声音的特性', text: '小红家里有个智能门锁，能分辨出是主人的声音，主要是依据声音的（　　）不同。', options: { A: '音调', B: '音色', C: '响度' }, answer: 'B', group: '2_4_2' },
+        { type: 'choice', topic: '声与信息', text: '用户只要说出语音指令即可实现解锁，这主要利用声音可以传递（　　）。', options: { A: '信息', B: '能量' }, answer: 'A', group: '2_4_2' },
+        { type: 'choice', topic: '噪声控制', text: '家门的门轴使用时间久了，开关门时常会发出刺耳的杂音。为减弱这种杂音，可以在门轴处滴加润滑油，这是在（　　）处减弱噪声。', options: { A: '声源', B: '传播过程', C: '人耳' }, answer: 'A', group: '2_4_2' },
+        { type: 'choice', topic: '声现象综合', text: '下列关于声现象的说法中，正确的是（　　）', options: { A: '市区内安装噪声监测仪，可以减弱噪声', B: '我们能区分不同同学的说话声，是因为声音的响度不同', C: '用力拨动吉他琴弦，是为了改变声音的音调', D: '超声波的频率高于20000Hz，人耳无法听到' }, answer: 'D' }
+      ],
+      // ----- 2.5 跨学科实践：制作隔音房间 -----
+      '2.5': [
+        { type: 'choice', topic: '隔音材料', text: '在制作隔音房间模型时，小明用鞋盒充当"房间"。把闹钟作为噪声源放置在鞋盒中，分别用海绵、石膏板、窗帘布、棉花四种材料，铺满四个相同鞋盒的内侧表面，进行测试选出最佳的隔音材料。以下说法错误的是（　　）', options: { A: '闹钟发声时在振动', B: '铺在鞋盒内的四种隔音材料的厚度要相同', C: '测试时，可以让测量声音强弱的设备与鞋盒的距离相同', D: '铺设隔音材料，是从"防止噪声产生"方面着手控制噪声' }, answer: 'D' },
+        { type: 'choice', topic: '研究方法', text: '在"制作隔音房间模型"实践活动中，小明将手机放置在球形盒子中央，先后用不同的隔音材料将盒子塞满进行实验。他通过刚听不到声音时人与声源的距离来反映材料的隔音性能，这种研究方法叫（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image2-5/2-5-2.webp" style="max-width:100%;">', options: { A: '转换法', B: '控制变量法' }, answer: 'A', group: '2_5_2' },
+        { type: 'choice', topic: '实验操作', text: '小明在空间较小的房间里开展探究，他应将手机铃声的响度（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image2-5/2-5-2.webp" style="max-width:100%;">', options: { A: '调大', B: '调小' }, answer: 'B', group: '2_5_2' },
+        { type: 'choice', topic: '控制变量', text: '在比较不同材料的隔音性能时，实验中材料的厚度应（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image2-5/2-5-2.webp" style="max-width:100%;">', options: { A: '相同', B: '不相同' }, answer: 'A', group: '2_5_2' },
+        { type: 'choice', topic: '控制变量', text: '在比较不同材料的隔音性能时，手机铃声的响度应（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image2-5/2-5-2.webp" style="max-width:100%;">', options: { A: '相同', B: '不相同' }, answer: 'A', group: '2_5_2' },
+        { type: 'choice', topic: '隔音性能比较', text: '实验数据如下表，以上3种材料中隔音性能最好的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image2-5/2-5-2.webp" style="max-width:100%;">', options: { A: '棉布', B: '纸', C: '塑料' }, answer: 'A', group: '2_5_2' },
+        { type: 'choice', topic: '隔音方法', text: '生活中用纸代替棉布做隔音材料，要达到相同的隔音效果，可采取的办法是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image2-5/2-5-2.webp" style="max-width:100%;">', options: { A: '增加纸的厚度', B: '减少纸的厚度', C: '改变纸的颜色' }, answer: 'A', group: '2_5_2' }
+      ],
+      // ----- 3.1 温度 -----
+      '3.1': [
+        { type: 'choice', topic: '温度计原理', text: '如图所示是同学们自制的温度计，该温度计的工作原理是液体的（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-1-1.webp" style="max-width:100%;">', options: { A: '热胀冷缩', B: '热缩冷涨' }, answer: 'A', group: '3_1_1' },
+        { type: 'choice', topic: '温度计使用', text: '把自制温度计放入温度较高的水中，玻璃管中的液柱将（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-1-1.webp" style="max-width:100%;">', options: { A: '上升', B: '下降' }, answer: 'A', group: '3_1_1' },
+        { type: 'choice', topic: '温度计灵敏度', text: '若要使该自制温度计更灵敏，则应该换用较（　　）的玻璃管。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-1-1.webp" style="max-width:100%;">', options: { A: '粗', B: '细' }, answer: 'B', group: '3_1_1' },
+        { type: 'choice', topic: '体温计读数', text: '如图所示，图乙体温计的示数是（　　）℃<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-1-2.webp" style="max-width:100%;">', options: { A: '36.5', B: '37.0', C: '38.5', D: '39.0' }, answer: 'C' },
+        { type: 'choice', topic: '温度计读数', text: '如图所示，图3温度计的读数是（　　）℃<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-1-3.webp" style="max-width:100%;">', options: { A: '-9', B: '9', C: '11', D: '19' }, answer: 'A' }
+      ],
+      // ----- 3.2 熔化与凝固 -----
+      '3.2': [
+        { type: 'choice', topic: '熔点', text: '某种合金魔术道具，久握在37℃的手中不熔化，放在55℃的温水中会熔化。则该合金的熔点可能是（　　）', options: { A: '25℃', B: '32℃', C: '48℃', D: '60℃' }, answer: 'C' },
+        { type: 'choice', topic: '熔化概念', text: '关于熔化，下列说法中正确的是（　　）', options: { A: '同一晶体的熔点和凝固点不相同', B: '晶体的温度达到熔点、不一定熔化', C: '固体在熔化时都要吸热，同时温度一定升高', D: '固体都有一定的熔点' }, answer: 'B' },
+        { type: 'choice', topic: '物态变化', text: '3D打印机将PLA塑料被加热后从喷嘴挤出，冷却后固化成醒狮模型。PLA材料经历的物态变化为（　　）', options: { A: '先凝固后熔化', B: '先升华后凝华', C: '先熔化后凝固', D: '先液化后汽化' }, answer: 'C' },
+        { type: 'choice', topic: '晶体熔化图像', text: '图是甲、乙两种物质熔化时温度随时间变化的图像。由图像可知，（　　）物质是晶体。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-2-4.webp" style="max-width:100%;">', options: { A: '甲', B: '乙' }, answer: 'A', group: '3_2_4' },
+        { type: 'choice', topic: '晶体熔点', text: '图是甲、乙两种物质熔化时温度随时间变化的图像。该晶体的熔点是（　　）℃。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-2-4.webp" style="max-width:100%;">', options: { A: '50', B: '48' }, answer: 'A', group: '3_2_4' },
+        { type: 'choice', topic: '晶体状态', text: '图是甲、乙两种物质熔化时温度随时间变化的图像。在第4min时，它的状态是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-2-4.webp" style="max-width:100%;">', options: { A: '固态', B: '液态', C: '固液共存态' }, answer: 'C', group: '3_2_4' },
+        { type: 'choice', topic: '凝固', text: '如图是深圳3D打印公园摆放的勒杜鹃雕塑。在雕像的打印过程中，混凝土从流动的液态浆料逐渐（　　）为坚硬的固态雕塑。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-2-5.webp" style="max-width:100%;">', options: { A: '凝固', B: '凝华' }, answer: 'A', group: '3_2_5' },
+        { type: 'choice', topic: '凝固放热', text: '在雕像的打印过程中，这一过程需要（　　）热量。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-2-5.webp" style="max-width:100%;">', options: { A: '吸收', B: '放出' }, answer: 'B', group: '3_2_5' },
+        { type: 'choice', topic: '实验装置安装', text: '在研究海波熔化时温度的变化规律实验中。安装图甲装置时，应按（　　）的顺序组装。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-2-6.webp" style="max-width:100%;">', options: { A: '自下而上', B: '自上而下' }, answer: 'A', group: '3_2_6' },
+        { type: 'choice', topic: '实验器材', text: '除了图甲中的器材外，还需要的测量工具是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-2-6.webp" style="max-width:100%;">', options: { A: '秒表', B: '天平' }, answer: 'A', group: '3_2_6' },
+        { type: 'choice', topic: '温度计读数', text: '如图乙所示，此时海波的温度为（　　）℃。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-2-6.webp" style="max-width:100%;">', options: { A: '42', B: '48', C: '50' }, answer: 'A', group: '3_2_6' },
+        { type: 'choice', topic: '熔点', text: '图丙为海波的温度随时间变化关系图像，海波的熔点为（　　）℃。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-2-6.webp" style="max-width:100%;">', options: { A: '48', B: '50' }, answer: 'A', group: '3_2_6' },
+        { type: 'choice', topic: '熔化特点', text: '海波在熔化过程中温度（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-2-6.webp" style="max-width:100%;">', options: { A: '保持不变', B: '持续升高' }, answer: 'A', group: '3_2_6' },
+        { type: 'choice', topic: '水浴法目的', text: '采用"水浴法"加热的目的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-2-6.webp" style="max-width:100%;">', options: { A: '受热均匀', B: '加速实验时间' }, answer: 'A', group: '3_2_6' },
+        { type: 'choice', topic: '熔化吸热', text: '夏天，饮料中加入适量冰块是因为冰块的温度更低，且熔化过程（　　）热，从而使饮料的温度下降得更多更快。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-2-6.webp" style="max-width:100%;">', options: { A: '吸', B: '放' }, answer: 'A', group: '3_2_6' }
+      ],
+      // ----- 3.3 汽化与液化 -----
+      '3.3': [
+        { type: 'choice', topic: '熔化吸热', text: '汕尾素有中国"海鲜美食之都"的美誉，渔民捕捞海鲜后，常会在海鲜四周铺上碎冰块保鲜降温。该做法主要利用了冰块（　　）', options: { A: '凝固放热', B: '熔化吸热', C: '汽化吸热', D: '液化放热' }, answer: 'B' },
+        { type: 'choice', topic: '液化', text: '小海将柠檬茶从冰箱的冷藏室取出，一段时间后，发现茶杯外壁出现小水珠。此过程发生的物态变化是（　　）', options: { A: '熔化', B: '液化', C: '汽化', D: '凝华' }, answer: 'B' },
+        { type: 'choice', topic: '沸腾实验', text: '图甲是探究"水在沸腾前后温度变化特点"的实验装置，图乙是根据实验测得的数据作出的水的温度随时间变化的图像，下列说法中正确的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-3-3.webp" style="max-width:100%;">', options: { A: '由图乙可得水在沸腾过程中，温度保持不变', B: '由图乙可得当地大气压为1标准大气压', C: '图甲中应自上而下组装器材', D: '为了缩短加热至沸腾的时间，可以适当增加水的质量' }, answer: 'A' },
+        { type: 'choice', topic: '蒸发吸热', text: '炎热干燥的夏季，在通风处放一盆水，水中垫两块高出水面的砖，砖上搁一篮子，将剩菜置于篮内，再用湿毛巾罩住篮子，边缘浸入水中，如图所示，这样可防止食物因气温过高而很快变质，其原理是利用水（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-3-4.webp" style="max-width:100%;">', options: { A: '熔化吸热', B: '凝固放热', C: '汽化吸热', D: '液化放热' }, answer: 'C' },
+        { type: 'choice', topic: '沸腾实验', text: '图中甲是"探究水在沸腾前后温度变化的特点"的实验装置，图乙是水的温度与时间关系的图像。下列说法正确的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-3-5.webp" style="max-width:100%;">', options: { A: '组装器材时，应按自上而下的顺序', B: '5~10min内水吸收热量，温度保持不变', C: '2min时水中产生了气泡，上升过程中逐渐变大', D: '实验是在标准大气压下进行的' }, answer: 'B' },
+        { type: 'choice', topic: '沸腾实验', text: '如图是"探究水沸腾时温度变化的特点"实验。关于此实验，下列说法正确的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-3-6.webp" style="max-width:100%;">', options: { A: '图甲的实验装置安装时应先安装A', B: '除图甲的器材之外，还需要天平', C: '加热过程中若出现图乙情形，此时水吸热但温度不变', D: '加热过程中若出现图丙情形，表明此时水已沸腾' }, answer: 'C' }
+      ],
+      // ----- 3.4 升华与凝华 -----
+      '3.4': [
+        { type: 'choice', topic: '物态变化', text: '诗经中"蒹葭苍苍，白露为霜"向我们展现了一幅朦胧淡雅的水彩画。露水结成霜的过程，发生的物态变化是（　　）', options: { A: '凝华', B: '液化', C: '凝固', D: '汽化' }, answer: 'C' },
+        { type: 'choice', topic: '汽化吸热', text: '岭南地区夏日"竹帘隔温"习俗中，清晨在窗边洒水降温，水很快变干，这个过程（　　）', options: { A: '升华现象，吸热', B: '汽化现象，吸热', C: '液化现象，放热', D: '熔化现象，吸热' }, answer: 'B' },
+        { type: 'choice', topic: '物态变化辨析', text: '"赏中华诗词、寻文化基因、品生活之美"的《中国诗词大会》，深受观众的青睐，下列对古诗文中涉及的物态变化解释正确的是（　　）', options: { A: '"雾凇沆砀，天与云与山与水，上下一白"，雾凇的形成是凝华现象，需要吸热', B: '"月落乌啼霜满天，江枫渔火对愁眠"，霜的形成是凝固现象，需要放热', C: '"青青园中葵，朝露待日晞"，露的形成是汽化现象，需要吸热', D: '"腾蛇乘雾，终为土灰"，雾的形成是液化现象，需要放热' }, answer: 'D' },
+        { type: 'choice', topic: '汽化', text: '如图所示，利用坎儿井暗渠输水，主要为了减缓的物态变化是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-4-4.webp" style="max-width:100%;">', options: { A: '熔化', B: '升华', C: '液化', D: '汽化' }, answer: 'D' },
+        { type: 'choice', topic: '汽化与液化', text: '如图所示，青藏铁路两旁插有很多热棒，热棒里的液态氨吸热，发生物态变化后上升到热棒上端，在热棒上端放热变回液态氨流回到下端，则该物质在热棒下端和上端发生的物态变化依次是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-4-5.webp" style="max-width:100%;">', options: { A: '汽化；液化', B: '熔化；凝固', C: '升华；液化', D: '汽化；凝华' }, answer: 'A' },
+        { type: 'choice', topic: '人工降雨', text: '实施人工降水的一种方法是通过飞机在高空云层中播撒干冰（固态二氧化碳），使云层中的水蒸气变成小冰晶或小水滴，小冰晶、小水滴增多形成降水。下列说法不正确的是（　　）', options: { A: '干冰在云层中要吸收大量热量', B: '干冰在云层中升华成气态二氧化碳', C: '云层中的水蒸气凝固成小冰晶', D: '云层中的水蒸气液化成小水滴' }, answer: 'C' }
+      ],
+      // ----- 3.5 跨学科实践：探究厨房中的物态变化 -----
+      '3.5': [
+        { type: 'choice', topic: '物态变化应用', text: '在"探索厨房中的物态变化问题"跨学科实践活动中，下列说法不正确的是（　　）', options: { A: '热水壶里的水烧开后，壶嘴会冒"白气"，这种"白气"是小液滴而不是水蒸气', B: '打开冰箱，用湿手去拿冷冻室的肉块时，手往往会被肉"粘"住', C: '拿刚出笼的馒头前，先将手沾点水，这样手不会被烫伤', D: '煮饺子时，当水沸腾后仍然用大火加热，这样饺子不仅熟得快且节省水和燃料' }, answer: 'D' },
+        { type: 'choice', topic: '物态变化辨析', text: '厨房不仅是加工食材的场所，也是日常生活中充满物态变化的"实验室"，其中涉及各种物态变化，如图所示，下列对厨房中的热现象描述不正确的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image3/3-5-2.webp" style="max-width:100%;">', options: { A: '如图甲，拿刚出锅的热馒头时要在手上沾点凉水，利用了水蒸发吸热', B: '如图乙，为了让冻肉尽快解冻，可以在肉上撒盐，这样能有效降低冰的熔点', C: '如图丙，冰箱冷冻室的"白霜"，是空气中的水蒸气遇冷后凝固形成的', D: '如图丁，用油炸油条，是因为油的沸点要高于水，可以形成焦酥的外壳' }, answer: 'C' },
+        { type: 'choice', topic: '物态变化应用', text: '某校开展了"探索厨房中的物态变化问题"的跨学科实践活动。下列梳理出的说法正确的是（　　）', options: { A: '新鲜的蔬菜放入保鲜盒内可以减缓水分的蒸发', B: '从冰箱中拿出的冻肉上有白霜，这是凝固现象', C: '在蒸食物时打开蒸锅，看到了"白气"，这是汽化现象', D: '将湿抹布挂起一段时间后变干了，这是升华现象' }, answer: 'A' }
+      ],
+      // ----- 4.1 光的直线传播 -----
+      '4.1': [
+        { type: 'choice', topic: '光的直线传播', text: '2026年元宵节，夜空出现"红月亮"，月食形成的原因是（　　）', options: { A: '光的色散', B: '光的反射', C: '光的折射', D: '光的直线传播' }, answer: 'D' },
+        { type: 'choice', topic: '声与光对比', text: '下列关于声和光的说法中，正确的是（　　）', options: { A: '光在真空中的传播速度是3×10^8 km/s', B: '光速和声速一样大', C: '声和光传播都需要介质', D: '月亮不是光源' }, answer: 'D' },
+        { type: 'choice', topic: '小孔成像', text: '两千多年前，我国学者墨子和他的学生完成了世界上第一个小孔成像实验，小孔成像的原理是由于光的（　　）形成的。', options: { A: '直线传播', B: '反射' }, answer: 'A', group: '4_1_3' },
+        { type: 'choice', topic: '小孔成像', text: '两千多年前，我国学者墨子和他的学生完成了世界上第一个小孔成像实验，所成的像是（　　）像。', options: { A: '实', B: '虚' }, answer: 'A', group: '4_1_3' },
+        { type: 'choice', topic: '小孔成像', text: '若将小孔的形状由圆形改为三角形，则所成像的形状（　　）', options: { A: '改变', B: '不变' }, answer: 'B', group: '4_1_3' }
+      ],
+      // ----- 4.2 光的反射 -----
+      '4.2': [
+        { type: 'choice', topic: '光的反射现象', text: '如图的四种表述中，属于反射现象的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-2-1.webp" style="max-width:100%;">', options: { A: '日环食', B: '水中的倒影', C: '激光准直', D: '变幻的手影' }, answer: 'B' },
+        { type: 'choice', topic: '光的反射实验', text: '如图所示，在探究光的反射规律的实验中，首先让光束沿NO射到平面镜上，此时入射角为（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-2-2.webp" style="max-width:100%;">', options: { A: '0°', B: '90°' }, answer: 'A', group: '4_2_2' },
+        { type: 'choice', topic: '光的反射实验', text: '如图所示，在探究光的反射规律的实验中，然后将光束逆时针转动40°，则反射角为（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-2-2.webp" style="max-width:100%;">', options: { A: '40°', B: '50°' }, answer: 'A', group: '4_2_2' },
+        { type: 'choice', topic: '光的反射实验', text: '将纸板NOF沿ON向后翻折，在纸板上（　　）看到反射光线。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-2-2.webp" style="max-width:100%;">', options: { A: '能', B: '不能' }, answer: 'B', group: '4_2_2' },
+        { type: 'choice', topic: '光的直线传播', text: '2025年9月3日，纪念中国人民抗日战争暨反法西斯战争胜利80周年，我国进行了盛大的阅兵仪式。由于队伍匀速整齐，战士们动作整齐划一，一横排战士经过摄像机时，只能看到第一个战士，其他战士都被挡住，这说明光（　　）传播。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-2-3.webp" style="max-width:100%;">', options: { A: '沿直线', B: '曲线' }, answer: 'A', group: '4_2_3' },
+        { type: 'choice', topic: '镜面反射', text: '战士们手中的刺刀明晃晃，因为刺刀表面非常光滑，发生（　　）反射。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-2-3.webp" style="max-width:100%;">', options: { A: '镜面', B: '漫' }, answer: 'A', group: '4_2_3' },
+        { type: 'choice', topic: '漫反射', text: '我们能从不同角度看到阅兵战士们，是因为他们全身表面发生了（　　）反射。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-2-3.webp" style="max-width:100%;">', options: { A: '镜面', B: '漫' }, answer: 'B', group: '4_2_3' }
+      ],
+      // ----- 4.3 平面镜成像 -----
+      '4.3': [
+        { type: 'choice', topic: '平面镜成像', text: '如图甲所示，烛焰a在竖直放置的平面镜MN中所成像为a′。现只将该平面镜竖直向上移动一段距离至图乙所示位置，则烛焰a在平面镜中（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-3-1.webp" style="max-width:100%;">', options: { A: '不成像', B: '仍成像，像在原来位置', C: '仍成像，像会向上移动', D: '仍成像，像的位置不能确定' }, answer: 'B' },
+        { type: 'choice', topic: '平面镜成像应用', text: '如题图甲所示为汽车抬头显示系统（简称HUD），如图乙所示，显示器上行车数据通过挡风玻璃成像在驾驶员正前方，让驾驶员尽量做到不低头就能看到重要的驾驶信息。它利用了下列哪种光学原理（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-3-2.webp" style="max-width:100%;">', options: { A: '光的直线传播', B: '光的反射', C: '光的折射', D: '光的色散' }, answer: 'B' },
+        { type: 'choice', topic: '平面镜成像', text: '从平面镜里看到背后墙上电子钟示数如图所示，这时的实际时间应是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-3-3.webp" style="max-width:100%;">', options: { A: '10:21', B: '10:51', C: '12:01', D: '15:01' }, answer: 'A' },
+        { type: 'choice', topic: '平面镜成像计算', text: '检查视力的时候，视力表放在被测者头部的后上方，被测者识别对面墙上镜子里的像（如图所示），视力表在镜中的像与被测者相距（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-3-4.webp" style="max-width:100%;">', options: { A: '2.9m', B: '2.5m', C: '4.6m', D: '5m' }, answer: 'C' },
+        { type: 'choice', topic: '平面镜成像特点', text: '一只小鸟在海阳湖平静的水面上空飞翔，当小鸟距水面5 m时，该小鸟在水中的像距小鸟的距离为（　　）m。', options: { A: '5', B: '10' }, answer: 'B', group: '4_3_5' },
+        { type: 'choice', topic: '平面镜成像特点', text: '若小鸟往高处飞，则小鸟像的大小将（　　）', options: { A: '变大', B: '变小', C: '不变' }, answer: 'C', group: '4_3_5' },
+        { type: 'choice', topic: '平面镜成像特点', text: '小鸟的像是（　　）像。', options: { A: '虚', B: '实' }, answer: 'A', group: '4_3_5' }
+      ],
+      // ----- 4.4 光的折射 -----
+      '4.4': [
+        { type: 'choice', topic: '声光综合', text: '小明参加了南海中学诗词游园大会，很多诗词中蕴含着物理知识，下列说法正确的是（　　）', options: { A: '"潭清疑水浅"，"水浅"是光的直线传播现象', B: '"池水映明月"，"映明月"是光的折射现象', C: '"不敢高声语"，描述的是声音的响度', D: '"大弦嘈嘈如急雨"，能辨认出琴弦的声音是由于音调' }, answer: 'C' },
+        { type: 'choice', topic: '光现象辨析', text: '龙舟赛时，观众能看到各种各样的影像，下列说法正确的是（　　）', options: { A: '龙舟在水中的倒影是由于光的反射形成的实像', B: '观众从各个角度都能看到选手，因为光照到选手的身上发生了镜面反射', C: '水面下看似折断的船桨是光的折射形成的实像', D: '选手在船上的影子是由于光的直线传播形成的阴影' }, answer: 'D' },
+        { type: 'choice', topic: '光的折射', text: '在防溺水教育中，老师告诉同学们河水看起来浅实际却很深，能正确解释该现象的光路图是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-4-3.webp" style="max-width:100%;">', options: { A: ' ', B: ' ', C: ' ', D: ' ' }, answer: 'B' },
+        { type: 'choice', topic: '光现象对应', text: '下列现象与原理对应正确的是（　　）', options: { A: '小孔成像——光沿直线传播', B: '日食月食——光的折射', C: '水中筷子弯折——光的反射', D: '镜中成像——光的折射' }, answer: 'A' },
+        { type: 'choice', topic: '光的折射', text: '如图所示，用鱼叉插鱼时要朝着所看到的"鱼"更（　　）一些的位置插去才能插到鱼。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-4-5.webp" style="max-width:100%;">', options: { A: '深', B: '浅' }, answer: 'A', group: '4_4_5' },
+        { type: 'choice', topic: '光的折射', text: '这属于光的（　　）现象。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-4-5.webp" style="max-width:100%;">', options: { A: '反射', B: '折射' }, answer: 'B', group: '4_4_5' },
+        { type: 'choice', topic: '光的折射', text: '看到的"鱼"是（　　）像。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-4-5.webp" style="max-width:100%;">', options: { A: '虚', B: '实' }, answer: 'A', group: '4_4_5' }
+      ],
+      // ----- 4.5 光的色散 -----
+      '4.5': [
+        { type: 'choice', topic: '光的反射', text: '如图所示，甘肃敦煌熔盐塔式光热电站装配数万面可调方向的定日镜，可随时将射向镜面的太阳光聚集到吸热塔顶进行发电。下列光现象中与定日镜工作原理相同的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-5-1.webp" style="max-width:100%;">', options: { A: '日晷计时', B: '水中倒影', C: '海市蜃楼', D: '雨后彩虹' }, answer: 'B' },
+        { type: 'choice', topic: '红外线', text: '如图所示，电视遥控器是利用了（　　）来进行控制的。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-5-2.webp" style="max-width:100%;">', options: { A: '红外线', B: '紫外线' }, answer: 'A', group: '4_5_2' },
+        { type: 'choice', topic: '红外线', text: '电视遥控器不对准电视机的接收窗口，对着电视机前的墙壁（　　）实现对电视的遥控。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-5-2.webp" style="max-width:100%;">', options: { A: '能', B: '不能' }, answer: 'A', group: '4_5_2' },
+        { type: 'choice', topic: '镜面反射', text: '上课看黑板时常发生"反光"现象，是由于黑板表面较光滑，光线射在上面时发生了（　　）。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-5-2.webp" style="max-width:100%;">', options: { A: '镜面反射', B: '漫反射' }, answer: 'A', group: '4_5_2' },
+        { type: 'choice', topic: '光的色散', text: '为了茂名的空气更加干净，环卫处经常向空中喷洒水雾，如图所示是环卫喷雾车作业后空中出现的彩虹。彩虹的出现是由于水雾相当于（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-5-3.webp" style="max-width:100%;">', options: { A: '平面镜', B: '三棱镜' }, answer: 'B', group: '4_5_3' },
+        { type: 'choice', topic: '光的色散', text: '太阳光透过水雾发生光的（　　）现象。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-5-3.webp" style="max-width:100%;">', options: { A: '反射', B: '色散' }, answer: 'B', group: '4_5_3' },
+        { type: 'choice', topic: '光的色散', text: '该现象说明太阳光是（　　）色光。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image4/4-5-3.webp" style="max-width:100%;">', options: { A: '单', B: '复' }, answer: 'B', group: '4_5_3' },
+        { type: 'choice', topic: '光的直线传播', text: '由于（　　），在开凿隧道时，工人利用激光束可以引导掘进机直线前进。', options: { A: '光的直线传播', B: '光的反射', C: '光的折射', D: '光的色散' }, answer: 'A', group: '4_5_4' },
+        { type: 'choice', topic: '光的三原色', text: '电子白板色带由红、绿、（　　）三种颜色组成。', options: { A: '蓝', B: '黄' }, answer: 'A', group: '4_5_4' },
+        { type: 'choice', topic: '紫外线', text: '饭堂消毒灯发出紫色的光（　　）紫外线。', options: { A: '是', B: '不是' }, answer: 'B', group: '4_5_4' }
+      ],
+      // ----- 5.1 透镜 -----
+      '5.1': [
+        { type: 'choice', topic: '透镜判断', text: '光经过透镜折射前后的光路如图所示，则下列对虚线框内的透镜类型判断正确的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-1-1.webp" style="max-width:100%;">', options: { A: '两个都是凹透镜', B: '两个都是凸透镜', C: '甲是凹透镜，乙是凸透镜', D: '甲是凸透镜，乙是凹透镜' }, answer: 'C' },
+        { type: 'choice', topic: '凸透镜应用', text: '在炎热的夏季，把装满水的矿泉水瓶置于露天停车场的汽车内部，极有可能引发火灾。这是因为光线透过瓶子会发生折射现象，从而将所有热量聚焦于一点，此时矿泉水瓶相当于（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-1-2.webp" style="max-width:100%;">', options: { A: '凸透镜', B: '凹透镜', C: '平面镜', D: '三棱镜' }, answer: 'A' },
+        { type: 'choice', topic: '透镜光路', text: '如图所示，关于凸透镜或凹透镜的几幅光路图中，错误的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-1-3.webp" style="max-width:100%;">', options: { A: ' ', B: ' ', C: ' ', D: ' ' }, answer: 'C' },
+        { type: 'choice', topic: '光学现象辨析', text: '如图所示光学现象及其解释正确的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-1-4.webp" style="max-width:100%;">', options: { A: '图甲中，凹透镜对光具有发散作用', B: '图乙中，平面镜成像时进入眼睛的光是由像发出的', C: '图丙中，人们看到的"鱼"是实像', D: '图丁中，漫反射的光线杂乱无章不遵循光的反射定律' }, answer: 'A' },
+        { type: 'choice', topic: '透镜光路', text: '一束光通过透镜的光路，下列哪幅图是正确的（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-1-5.webp" style="max-width:100%;">', options: { A: ' ', B: ' ', C: ' ', D: ' ' }, answer: 'A' }
+      ],
+      // ----- 5.2 生活中的透镜 -----
+      '5.2': [
+        { type: 'choice', topic: '摄像头成像', text: '汽车进入智慧停车场时，车辆面对摄像头，经系统自动拍照、扫码等信息确认后，允许进入；出场时扫码支付后放行，下列有关说法错误的是（　　）', options: { A: '摄像头对光有会聚作用', B: '扫码支付时，二维码经摄像头成倒立、缩小的实像', C: '摄像头成像特点与投影仪相同', D: '入场时，车牌等重要信息应位于摄像头二倍焦距之外' }, answer: 'C' },
+        { type: 'choice', topic: '摄像头成像', text: '2022年10月31日15时37分，梦天实验舱搭乘长征五号B遥四运载火箭，在中国文昌航天发射场发射升空，约8分钟后准确进入预定轨道如图所示是梦天实验舱上的摄像头实时传回的画面，摄像头的镜头相当于一个凸透镜，所成的像是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-2-2.webp" style="max-width:100%;">', options: { A: '放大', B: '缩小', C: '等大' }, answer: 'B', group: '5_2_2' },
+        { type: 'choice', topic: '摄像头成像', text: '2022年10月31日15时37分，梦天实验舱搭乘长征五号B遥四运载火箭，在中国文昌航天发射场发射升空，约8分钟后准确进入预定轨道如图所示是梦天实验舱上的摄像头实时传回的画面，摄像头的镜头相当于一个凸透镜，所成的像是______的（　　）像。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-2-2.webp" style="max-width:100%;">', options: { A: '实', B: '虚' }, answer: 'A', group: '5_2_2' },
+        { type: 'choice', topic: '放大镜', text: '许多博物馆会在较为精巧的文物前放置一块放大镜，如下图所示。放大镜属于（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-2-3.webp" style="max-width:100%;">', options: { A: '凸透镜', B: '凹透镜', C: '凹面镜' }, answer: 'A', group: '5_2_3' },
+        { type: 'choice', topic: '放大镜', text: '许多博物馆会在较为精巧的文物前放置一块放大镜，如下图所示。通过放大镜看到的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-2-3.webp" style="max-width:100%;">', options: { A: '正立', B: '倒立' }, answer: 'A', group: '5_2_3' },
+        { type: 'choice', topic: '放大镜', text: '许多博物馆会在较为精巧的文物前放置一块放大镜，如下图所示。通过放大镜看到的是______的（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-2-3.webp" style="max-width:100%;">', options: { A: '虚像', B: '实像' }, answer: 'A', group: '5_2_3' },
+        { type: 'choice', topic: '投影仪', text: '春晚《喜雨》水幕投影节目中，投影仪的镜头属于（　　）透镜。', options: { A: '凸', B: '凹' }, answer: 'A', group: '5_2_4' },
+        { type: 'choice', topic: '投影仪', text: '春晚《喜雨》水幕投影节目中，水幕上的画面是透镜成的（　　）像。', options: { A: '实', B: '虚' }, answer: 'A', group: '5_2_4' },
+        { type: 'choice', topic: '投影仪', text: '春晚《喜雨》水幕投影节目中，为使画面更清晰，需调节镜头到水幕的距离，使距离（　　）2倍焦距。', options: { A: '大于', B: '小于', C: '等于' }, answer: 'A', group: '5_2_4' }
+      ],
+      // ----- 5.3 凸透镜成像的规律 -----
+      '5.3': [
+        { type: 'choice', topic: '凸透镜成像', text: '某博物馆在精巧的文物前放置一个凸透镜，如图所示，文物距透镜的距离为10 cm，该透镜的焦距可能是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-3-1.webp" style="max-width:100%;">', options: { A: '8cm', B: '10cm', C: '15cm', D: '4cm' }, answer: 'C' },
+        { type: 'choice', topic: '凸透镜成像规律', text: '在"探究凸透镜成像的规律"实验中，蜡烛、凸透镜和光屏处于如图所示的位置时，光屏上恰好成烛焰等大的像，下列说法正确的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-3-2.webp" style="max-width:100%;">', options: { A: '该凸透镜的焦距是30 cm', B: '蜡烛在a点时，物距小于2倍焦距', C: '蜡烛在b点时，烛焰通过凸透镜成虚像', D: '蜡烛在c点时，无论如何移动光屏，光屏上都没有像' }, answer: 'D' },
+        { type: 'choice', topic: '放大镜成像', text: '小明同学拿焦距为15cm的放大镜观察物理课本。他观察到的图像如图所示，则该放大镜离物理教材的距离可能为（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-3-3.webp" style="max-width:100%;">', options: { A: '5cm', B: '15cm', C: '25cm', D: '35cm' }, answer: 'D' },
+        { type: 'choice', topic: '凸透镜成像实验', text: '小红利用凸透镜、蜡烛、光屏、光具座等器材探究凸透镜成像的规律，实验装置如图所示。实验应该在较（　　）的环境中进行。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-3-4.webp" style="max-width:100%;">', options: { A: '亮', B: '暗' }, answer: 'B', group: '5_3_4' },
+        { type: 'choice', topic: '凸透镜成像实验', text: '小红利用凸透镜、蜡烛、光屏、光具座等器材探究凸透镜成像的规律，实验装置如图所示。为了使像成在光屏中央，需将烛焰、凸透镜和光屏三者中心调到（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-3-4.webp" style="max-width:100%;">', options: { A: '同一直线', B: '同一高度' }, answer: 'B', group: '5_3_4' },
+        { type: 'choice', topic: '凸透镜成像实验', text: '小红利用凸透镜、蜡烛、光屏、光具座等器材探究凸透镜成像的规律，实验装置如图所示。调节时（　　）点燃蜡烛。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-3-4.webp" style="max-width:100%;">', options: { A: '需要', B: '不需要' }, answer: 'A', group: '5_3_4' },
+        { type: 'choice', topic: '凸透镜成像实验', text: '小红利用凸透镜、蜡烛、光屏、光具座等器材探究凸透镜成像的规律，实验装置如图所示。由于不知道凸透镜的焦距，小红将实验器材安装之后。调节蜡烛凸透镜和光屏的位置（如图甲所示），发现光屏上的像与蜡烛等大。则凸透镜的焦距为（　　）cm。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-3-4.webp" style="max-width:100%;">', options: { A: '10.0', B: '20.0' }, answer: 'A', group: '5_3_4' },
+        { type: 'choice', topic: '凸透镜成像实验', text: '小红利用凸透镜、蜡烛、光屏、光具座等器材探究凸透镜成像的规律，实验装置如图所示。继续调节蜡烛的位置（如图乙所示），此时光屏上面成（　　）、倒立的实像。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-3-4.webp" style="max-width:100%;">', options: { A: '缩小', B: '放大', C: '等大' }, answer: 'A', group: '5_3_4' },
+        { type: 'choice', topic: '凸透镜成像实验', text: '小红利用凸透镜、蜡烛、光屏、光具座等器材探究凸透镜成像的规律，实验装置如图所示。生活中的（　　）就是应用了这一原理。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-3-4.webp" style="max-width:100%;">', options: { A: '照相机', B: '投影仪', C: '放大镜' }, answer: 'A', group: '5_3_4' }
+      ],
+      // ----- 5.4 眼睛与眼镜 -----
+      '5.4': [
+        { type: 'choice', topic: '近视眼矫正', text: '保护视力，人人有责。题图正确表示近视眼及其矫正的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-4-1.webp" style="max-width:100%;">', options: { A: ' ', B: ' ', C: ' ', D: ' ' }, answer: 'D' },
+        { type: 'choice', topic: '近视眼', text: '小琪在封开县杏花镇观看田园风光时，看不清远处的文字，戴上眼镜后能看清。她眼睛的问题和佩戴的眼镜分别是（　　）', options: { A: '近视眼 凹透镜', B: '远视眼 凸透镜', C: '近视眼 凸透镜', D: '远视眼 凹透镜' }, answer: 'A' },
+        { type: 'choice', topic: '凸透镜成像应用', text: '学校科技社团为了测试机器人摄像头（相当于凸透镜）的成像效果，他们模拟了凸透镜成像实验。如图所示，烛焰在光屏上恰好形成一个清晰的像（未画出）。下列分析正确的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-4-3.webp" style="max-width:100%;">', options: { A: '图中成像原理与投影仪成像原理相同', B: '保持透镜不动，将蜡烛和光屏都向右移动15cm，光屏上不能再次成清晰的像', C: '在蜡烛与凸透镜之间放一个眼镜，向右移动光屏能在光屏上再次成清晰的像，则该眼镜是近视镜', D: '用f=15cm的凸透镜替换图中凸透镜，将光屏向左移动适当距离，可在光屏上成清晰的像' }, answer: 'C' },
+        { type: 'choice', topic: '近视激光手术', text: '如图所示、近视眼激光矫正手术是在电脑控制下，依据近视度数、指挥激光器发出一系列的激光脉冲照射到角膜上，在角膜中心削除部分角膜。下列关于手术后晶状体和角膜构成的结构说法正确的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-4-4.webp" style="max-width:100%;">', options: { A: '相当于一块凹透镜、对光有发散作用', B: '相当于一块凸透镜、对光有发散作用', C: '相当于一块凸透镜，对光的会聚能力变强', D: '相当于一块凸透镜，对光的会聚能力变弱' }, answer: 'D' }
+      ],
+      // ----- 5.5 跨学科实践：制作望远镜 -----
+      '5.5': [
+        { type: 'choice', topic: '望远镜', text: '如图所示，小明在制作望远镜的过程中，取两个焦距不同的放大镜，一只手握住一个，调整两个放大镜间的距离，可以看清远处的景物，以下说法正确的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-5-1.webp" style="max-width:100%;">', options: { A: 'a透镜的成像原理相当于照相机', B: 'a透镜可以成倒立放大实像', C: 'b透镜对光线有发散作用', D: 'b透镜的焦距比a透镜的焦距大' }, answer: 'D' },
+        { type: 'choice', topic: '显微镜和望远镜', text: '如图所示是显微镜和望远镜原理示意图，下面是关于它们的二次成像的说法正确的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-5-2.webp" style="max-width:100%;">', options: { A: '显微镜先成放大的虚像，再成放大的虚像', B: '显微镜先成缩小的实像，再成放大的虚像', C: '望远镜先成放大的实像，再成放大的虚像', D: '望远镜先成缩小的实像，再成放大的虚像' }, answer: 'D' },
+        { type: 'choice', topic: '光学仪器原理', text: '对下列四幅图阐述正确的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image5/5-5-3.webp" style="max-width:100%;">', options: { A: '甲图：近视眼成像在视网膜前，用凹透镜矫正', B: '乙图：远视眼成像在视网膜后，用凹透镜矫正', C: '丙图：显微镜的物镜相当于放大镜，目镜相当于投影仪的镜头', D: '丁图：天文望远镜的物镜相当于投影仪的镜头，目镜相当于放大镜' }, answer: 'A' }
+      ],
+      // =================================================================
+      // 第六章 质量与密度
+      // =================================================================
+      // ----- 6.1 质量 -----
+      '6.1': [
+        { type: 'choice', topic: '天平使用', text: '小华用托盘天平测量苹果质量，所用的一个砝码不小心粘上了杂质。他在不知情的情况下完成测量，砝码和标尺的情况如图所示，则该苹果的真实质量应该（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image6/6-1-1.webp" style="max-width:100%;">', options: { A: '大于162g', B: '小于162g', C: '等于162g', D: '无法确定' }, answer: 'A' },
+        { type: 'choice', topic: '质量估测', text: '小明拿起一个大小为1寸（约为3.3cm）的荔枝，如图所示，它的质量大约为（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image6/6-1-2.webp" style="max-width:100%;">', options: { A: '0.3g', B: '3.0g', C: '30g', D: '30kg' }, answer: 'C' },
+        { type: 'choice', topic: '质量不变性', text: '我国天舟九号货运飞船于2025年7月15日成功发射进入太空，为太空中的空间站送去一大批物资，这些物资到达空间站后质量将（　　）', options: { A: '变为原来的一半', B: '保持不变', C: '变为原来的2倍', D: '变为原来的4倍' }, answer: 'B' },
+        { type: 'choice', topic: '估测', text: '根据生活经验，以下估测最接近实际的是（　　）', options: { A: '课桌的高度大约是10cm', B: '一个鸡蛋的质量约为50g', C: '中学生步行速度约为10m/s', D: '珠海市一月份平均气温约为30℃' }, answer: 'B' },
+        // 第5题拆2小题，group '6_1_5'
+        { type: 'choice', topic: '天平使用', text: '将天平放在水平桌面上，将游码拨到标尺左端零刻线处，此时指针指在如图乙所示位置，接下来应向（　　）调平衡螺母。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image6/6-1-5.webp" style="max-width:100%;">', options: { A: '左', B: '右' }, answer: 'A', group: '6_1_5' },
+        { type: 'choice', topic: '天平使用', text: '天平正确使用称量物体平衡后砝码和游码如图丙，物体质量为（　　）g。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image6/6-1-5.webp" style="max-width:100%;">', options: { A: '62.0', B: '62.4' }, answer: 'A', group: '6_1_5' }
+      ],
+      // ----- 6.2 密度 -----
+      '6.2': [
+        { type: 'choice', topic: '密度应用', text: '某仿生机器人骨架采用新材料，使其更加坚韧轻巧，这是因为该材料（　　）', options: { A: '强度高，密度小', B: '强度高，密度大', C: '强度低，密度小', D: '强度低，密度大' }, answer: 'A' },
+        { type: 'choice', topic: '质量与密度概念', text: '关于质量和密度，下列说法正确的是（　　）', options: { A: '从地球带到太空的航天员，其质量和密度都变小了', B: '将一张纸对折，其质量减半，密度不变', C: '一块冰熔化成水后，质量不变，密度变大', D: '氧气瓶中的氧气用去一半后，瓶内氧气的质量减半，密度不变' }, answer: 'C' },
+        { type: 'choice', topic: '密度属性', text: '2023年11月，我国研发出世界上最薄的不锈钢箔材，可以用手轻易撕开。将一片这种箔材撕掉一半，剩下一半箔材的密度（　　）', options: { A: '变为原来的一半', B: '保持不变', C: '变为原来的2倍', D: '变为原来的4倍' }, answer: 'B' },
+        { type: 'choice', topic: '密度图像', text: '甲、乙两种物质的质量m与体积V的关系图像如图所示。下列关于甲、乙物质的说法错误的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image6/6-2-4.webp" style="max-width:100%;">', options: { A: '体积相等时，甲的质量小', B: '质量相等时，乙的体积小', C: '甲的密度比乙的密度小', D: '甲的密度为5×10<sup>3</sup> kg/m<sup>3</sup>' }, answer: 'D' },
+        // 第5题拆3小题，group '6_2_5'
+        { type: 'choice', topic: '密度计算', text: '一个质量为100g的酒精，其体积为125 cm<sup>3</sup>，则酒精的密度为（　　）g/cm<sup>3</sup>。', options: { A: '0.8', B: '1.0' }, answer: 'A', group: '6_2_5' },
+        { type: 'choice', topic: '密度计算', text: '若倒掉一半酒精，剩余酒精的质量为（　　）g。', options: { A: '50', B: '100' }, answer: 'A', group: '6_2_5' },
+        { type: 'choice', topic: '密度不变性', text: '剩余酒精的密度为（　　）kg/m<sup>3</sup>。', options: { A: '0.8×10<sup>3</sup>', B: '1.6×10<sup>3</sup>' }, answer: 'A', group: '6_2_5' }
+      ],
+      // ----- 6.3 测量液体和固体的密度 -----
+      '6.3': [
+        { type: 'choice', topic: '测量固体密度', text: '如题图所示，是某学习小组在用天平、量筒和水测量小石块的密度时的部分场景，下列选项正确的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image6/6-3-1.webp" style="max-width:100%;">', options: { A: '调节天平平衡后，测质量时若分度盘指针向右偏，应向左调平衡螺母', B: '实验时，添加砝码的合理顺序是20g、10g、5g', C: '石块放右盘，天平平衡时砝码示数如图，测出石块的质量为39g', D: '应该先测小石块的体积，再测它的质量' }, answer: 'B' },
+        { type: 'choice', topic: '测量液体密度', text: '学习密度知识后，小明用实验测量某品牌酸奶的密度，其操作步骤及流程如题图所示。则下列说法错误的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image6/6-3-2.webp" style="max-width:100%;">', options: { A: '调节天平平衡时，若发现指针偏左，则需将平衡螺母向右调节', B: '由甲、乙两图可知，酸奶的质量为60g', C: '将烧杯中的酸奶全部倒入量筒中，如图丙所示，读数为50mL', D: '按照甲、乙、丙的顺序测得的酸奶密度偏小' }, answer: 'D' },
+        { type: 'choice', topic: '测量固体密度', text: '小明在那琴半岛地质公园进行研学活动时，捡到一块形状不规则的小矿石，想测量它的密度。如图甲是调节天平时的情形，图乙和图丙分别是测量石块质量和体积时的情形，下列说法正确的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image6/6-3-3.webp" style="max-width:100%;">', options: { A: '甲图中应将平衡螺母向左调，使横梁平衡', B: '乙图中天平的读数是63.2g', C: '由丙图测出石块体积是40cm<sup>3</sup>', D: '计算出石块的密度是3.17g/cm<sup>3</sup>' }, answer: 'D' }
+      ],
+      // ----- 6.4 密度的应用 -----
+      '6.4': [
+        { type: 'choice', topic: '密度变化', text: '把一个变瘪的乒乓球（未破损）放入热水中，如图所示，乒乓球慢慢恢复了原状。在乒乓球恢复原状的过程中，球内的空气（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image6/6-4-1.webp" style="max-width:100%;">', options: { A: '质量变小，密度变小', B: '质量变大，密度不变', C: '质量不变，密度变小', D: '质量变大，密度变大' }, answer: 'C' },
+        { type: 'choice', topic: '密度应用', text: '小深与同学们交流生活中关于"密度"知识的看法。以下观点正确的是（　　）', options: { A: '白纸揉成团后，其密度比展开时更大', B: '要准确地鉴别物质，只需测量其密度即可', C: '农民为了选出饱满的种子颗粒，配制的盐水密度越小越好', D: '为保证安全，拍摄电影时的石头道具应采用密度很小的材料制成' }, answer: 'D' },
+        { type: 'choice', topic: '材料选择', text: '"石墨烯量子点"是一种新型纳米材料，它密度小，硬度高，导电、导热性能好，光电转换效率高，易于折叠与卷曲。这种材料适合用来制造（　　）', options: { A: '起重机配重', B: '太阳能电池', C: '绝缘手套', D: '新型消防服' }, answer: 'B' },
+        { type: 'choice', topic: '质量与密度', text: '关于质量和密度的说法，正确的是（　　）', options: { A: '把一块橡皮泥捏成各种不同的形状，质量不变，密度改变', B: '地球上的物体被宇航员带到太空后，质量改变，密度不变', C: '把一块冰放在杯子里，冰熔化成水，质量不变，密度改变', D: '我国制造大型客机C919用了密度大的复合材料，以减轻其质量' }, answer: 'C' },
+        { type: 'choice', topic: '密度与温度', text: '如图所示，是水从0℃被加热到10℃过程中，密度随温度变化的图像，下列分析正确的是（　　）<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image6/6-4-5.webp" style="max-width:100%;">', options: { A: '水遵从热胀冷缩的规律', B: '水质量先变大后变小', C: '密度保持不变', D: '水体积先变小后变大' }, answer: 'D' }
+      ],
+      // 其他章节留空
+      '7.1': [], '7.2': [], '7.3': [],
+      '8.1': [], '8.2': [], '8.3': [], '8.4': [],
+      '9.1': [], '9.2': [], '9.3': [], '9.4': [], '9.5': [],
+      '10.1': [], '10.2': [], '10.3': [], '10.4': [],
+      '11.1': [], '11.2': [], '11.3': [], '11.4': [],
+      '12.1': [], '12.2': [], '12.3': [], '12.4': [],
+      '13.1': [], '13.2': [], '13.3': [],
+      '14.1': [], '14.2': [], '14.3': [], '14.4': [],
+      '15.1': [], '15.2': [], '15.3': [], '15.4': [], '15.5': [],
+      '16.1': [], '16.2': [], '16.3': [], '16.4': [], '16.5': [],
+      '17.1': [], '17.2': [], '17.3': [], '17.4': [],
+      '18.1': [], '18.2': [], '18.3': [], '18.4': [],
+      '19.1': [], '19.2': [], '19.3': [],
+      '20.1': [], '20.2': [], '20.3': [], '20.4': [], '20.5': [], '20.6': [],
+      '21.1': [], '21.2': [], '21.3': [],
+      '22.1': [], '22.2': [], '22.3': [], '22.4': [], '22.5': []
+    };
+
+    // ===================================================================
+    //  章节显示名称映射（包含第六章）
+    // ===================================================================
+    const chapterDisplayNames = {
+      '1.1': '1.1 长度和时间的测量',
+      '1.2': '1.2 运动的描述',
+      '1.3': '1.3 运动的快慢',
+      '1.4': '1.4 速度的测量',
+      '2.1': '2.1 声音的产生与传播',
+      '2.2': '2.2 声音的特性',
+      '2.3': '2.3 声的利用',
+      '2.4': '2.4 噪声的危害和控制',
+      '2.5': '2.5 跨学科实践：制作隔音房间模型',
+      '3.1': '3.1 温度',
+      '3.2': '3.2 熔化和凝固',
+      '3.3': '3.3 汽化和液化',
+      '3.4': '3.4 升华和凝华',
+      '3.5': '3.5 跨学科实践：探究厨房中的物态变化',
+      '4.1': '4.1 光的直线传播',
+      '4.2': '4.2 光的反射',
+      '4.3': '4.3 平面镜成像',
+      '4.4': '4.4 光的折射',
+      '4.5': '4.5 光的色散',
+      '5.1': '5.1 透镜',
+      '5.2': '5.2 生活中的透镜',
+      '5.3': '5.3 凸透镜成像的规律',
+      '5.4': '5.4 眼睛和眼镜',
+      '5.5': '5.5 跨学科实践：制作望远镜',
+      '6.1': '6.1 质量',
+      '6.2': '6.2 密度',
+      '6.3': '6.3 测量液体和固体的密度',
+      '6.4': '6.4 密度的应用',
+      '7.1': '7.1 力',
+      '7.2': '7.2 弹力',
+      '7.3': '7.3 重力',
+      '8.1': '8.1 牛顿第一定律',
+      '8.2': '8.2 二力平衡',
+      '8.3': '8.3 摩擦力',
+      '8.4': '8.4 同一直线上二力的合成',
+      '9.1': '9.1 压强',
+      '9.2': '9.2 液体的压强',
+      '9.3': '9.3 大气压强',
+      '9.4': '9.4 流体压强与流速的关系',
+      '9.5': '9.5 跨学科实践：制作简易活塞式抽水机',
+      '10.1': '10.1 浮力',
+      '10.2': '10.2 阿基米德原理',
+      '10.3': '10.3 物体的浮沉条件及应用',
+      '10.4': '10.4 跨学科实践：制作微型密度计',
+      '11.1': '11.1 功',
+      '11.2': '11.2 功率',
+      '11.3': '11.3 动能和势能',
+      '11.4': '11.4 机械能及其转化',
+      '12.1': '12.1 杠杆',
+      '12.2': '12.2 跨学科实践：制作简易杆秤',
+      '12.3': '12.3 滑轮',
+      '12.4': '12.4 机械效率',
+      '13.1': '13.1 热量 比热容',
+      '13.2': '13.2 分子动理论的初步知识',
+      '13.3': '13.3 内能',
+      '14.1': '14.1 能量的转化与守恒',
+      '14.2': '14.2 热机',
+      '14.3': '14.3 热机的效率',
+      '14.4': '14.4 跨学科实践：制作简易热机模型',
+      '15.1': '15.1 两种电荷',
+      '15.2': '15.2 电流和电路',
+      '15.3': '15.3 串联电路和并联电路',
+      '15.4': '15.4 电流的测量',
+      '15.5': '15.5 串、并联电路中电流的规律',
+      '16.1': '16.1 电压',
+      '16.2': '16.2 串、并联电路中电压的规律',
+      '16.3': '16.3 电阻',
+      '16.4': '16.4 变阻器',
+      '16.5': '16.5 跨学科实践：制作简易调光台灯',
+      '17.1': '17.1 电流与电压、电阻的关系',
+      '17.2': '17.2 欧姆定律',
+      '17.3': '17.3 电阻的测量',
+      '17.4': '17.4 欧姆定律在串、并联电路中的应用',
+      '18.1': '18.1 电能 电功',
+      '18.2': '18.2 电功率',
+      '18.3': '18.3 跨学科实践：为家庭节约用电提出建议',
+      '18.4': '18.4 焦耳定律',
+      '19.1': '19.1 安全用电',
+      '19.2': '19.2 家庭电路的基本组成',
+      '19.3': '19.3 跨学科实践：家庭电路方案设计',
+      '20.1': '20.1 磁现象 磁场',
+      '20.2': '20.2 电生磁',
+      '20.3': '20.3 电磁铁 电磁继电器',
+      '20.4': '20.4 电动机',
+      '20.5': '20.5 跨学科实践：制作简易直流电动机',
+      '20.6': '20.6 磁生电',
+      '21.1': '21.1 电磁波的海洋',
+      '21.2': '21.2 广播、电视和移动通信',
+      '21.3': '21.3 信息之路',
+      '22.1': '22.1 能源',
+      '22.2': '22.2 核能',
+      '22.3': '22.3 太阳能',
+      '22.4': '22.4 能源与可持续发展',
+      '22.5': '22.5 跨学科实践：为节约能源设计方案'
+    };
+
+    // ===================================================================
+    //  年级结构（包含第六章）
+    // ===================================================================
+    const gradeStructure = {
+      '八年级上册': {
+        chapters: ['第一章 机械运动', '第二章 声现象', '第三章 物态变化', '第四章 光现象', '第五章 透镜及其应用', '第六章 质量与密度'],
+        sections: {
+          '第一章 机械运动': ['1.1', '1.2', '1.3', '1.4'],
+          '第二章 声现象': ['2.1', '2.2', '2.3', '2.4', '2.5'],
+          '第三章 物态变化': ['3.1', '3.2', '3.3', '3.4', '3.5'],
+          '第四章 光现象': ['4.1', '4.2', '4.3', '4.4', '4.5'],
+          '第五章 透镜及其应用': ['5.1', '5.2', '5.3', '5.4', '5.5'],
+          '第六章 质量与密度': ['6.1', '6.2', '6.3', '6.4']
+        }
+      },
+      '八年级下册': {
+        chapters: ['第七章 力', '第八章 运动和力', '第九章 压强', '第十章 浮力', '第十一章 功和机械能', '第十二章 简单机械'],
+        sections: {
+          '第七章 力': ['7.1', '7.2', '7.3'],
+          '第八章 运动和力': ['8.1', '8.2', '8.3', '8.4'],
+          '第九章 压强': ['9.1', '9.2', '9.3', '9.4', '9.5'],
+          '第十章 浮力': ['10.1', '10.2', '10.3', '10.4'],
+          '第十一章 功和机械能': ['11.1', '11.2', '11.3', '11.4'],
+          '第十二章 简单机械': ['12.1', '12.2', '12.3', '12.4']
+        }
+      },
+      '九年级全一册': {
+        chapters: ['第十三章 内能', '第十四章 内能的利用', '第十五章 电流和电路', '第十六章 电压 电阻', '第十七章 欧姆定律', '第十八章 电功率', '第十九章 生活用电', '第二十章 电与磁', '第二十一章 电磁波及其应用', '第二十二章 能源与可持续发展'],
+        sections: {
+          '第十三章 内能': ['13.1', '13.2', '13.3'],
+          '第十四章 内能的利用': ['14.1', '14.2', '14.3', '14.4'],
+          '第十五章 电流和电路': ['15.1', '15.2', '15.3', '15.4', '15.5'],
+          '第十六章 电压 电阻': ['16.1', '16.2', '16.3', '16.4', '16.5'],
+          '第十七章 欧姆定律': ['17.1', '17.2', '17.3', '17.4'],
+          '第十八章 电功率': ['18.1', '18.2', '18.3', '18.4'],
+          '第十九章 生活用电': ['19.1', '19.2', '19.3'],
+          '第二十章 电与磁': ['20.1', '20.2', '20.3', '20.4', '20.5', '20.6'],
+          '第二十一章 电磁波及其应用': ['21.1', '21.2', '21.3'],
+          '第二十二章 能源与可持续发展': ['22.1', '22.2', '22.3', '22.4', '22.5']
+        }
+      }
+    };
+
+    // ===================================================================
+    //  初始化下拉菜单
+    // ===================================================================
+    function populateSelects() {
+      const gradeSelect = document.getElementById('gradeSelect');
+      const chapterSelect = document.getElementById('chapterSelect');
+      const sectionSelect = document.getElementById('sectionSelect');
+
+      Object.keys(gradeStructure).forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g;
+        opt.textContent = g;
+        gradeSelect.appendChild(opt);
+      });
+
+      gradeSelect.addEventListener('change', function() {
+        const grade = this.value;
+        const data = gradeStructure[grade];
+        if (!data) return;
+        chapterSelect.innerHTML = '<option value="">-- 请选择章 --</option>';
+        sectionSelect.innerHTML = '<option value="">-- 请选择节 --</option>';
+        data.chapters.forEach(ch => {
+          const opt = document.createElement('option');
+          opt.value = ch;
+          opt.textContent = ch;
+          chapterSelect.appendChild(opt);
+        });
+        chapterSelect.dispatchEvent(new Event('change'));
+      });
+
+      chapterSelect.addEventListener('change', function() {
+        const grade = gradeSelect.value;
+        const chapter = this.value;
+        if (!grade || !chapter) {
+          sectionSelect.innerHTML = '<option value="">-- 请选择节 --</option>';
+          updateQuestionCountHint();
+          return;
+        }
+        const sections = gradeStructure[grade].sections[chapter] || [];
+        sectionSelect.innerHTML = '<option value="">-- 请选择节 --</option>';
+        sections.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s;
+          opt.textContent = chapterDisplayNames[s] || s;
+          sectionSelect.appendChild(opt);
+        });
+        if (sections.length > 0) {
+          sectionSelect.value = sections[0];
+        }
+        updateQuestionCountHint();
+        updateTagList(sectionSelect.value);
+      });
+
+      sectionSelect.addEventListener('change', function() {
+        updateQuestionCountHint();
+        updateTagList(this.value);
+        const key = this.value;
+        const qs = chapterQuestions[key] || [];
+        document.getElementById('startBtn').disabled = (qs.length === 0);
+      });
+
+      // 默认加载 八年级上册 -> 第一章 -> 1.1
+      gradeSelect.value = '八年级上册';
+      gradeSelect.dispatchEvent(new Event('change'));
+      setTimeout(() => {
+        const firstChapter = gradeStructure['八年级上册'].chapters[0];
+        if (firstChapter) {
+          chapterSelect.value = firstChapter;
+          chapterSelect.dispatchEvent(new Event('change'));
+          setTimeout(() => {
+            const sections = gradeStructure['八年级上册'].sections[firstChapter] || [];
+            if (sections.length > 0) {
+              sectionSelect.value = sections[0];
+              sectionSelect.dispatchEvent(new Event('change'));
+            }
+          }, 50);
+        }
+      }, 50);
+    }
+
+    function updateQuestionCountHint() {
+      const key = document.getElementById('sectionSelect').value;
+      const qs = chapterQuestions[key] || [];
+      document.getElementById('questionCountHint').textContent = `当前题库共 ${qs.length} 题`;
+    }
+
+    function updateTagList(chapterKey) {
+      const tagMap = {
+        '1.1': ['长度测量', '单位换算', '刻度尺读数', '停表读数'],
+        '1.2': ['参照物', '运动描述', '相对性'],
+        '1.3': ['匀速直线运动', '速度估测', 's-t图像', '单位换算'],
+        '1.4': ['平均速度', '实验测量', '误差分析'],
+        '2.1': ['声音的产生', '传播', '声速', '回声'],
+        '2.2': ['音调', '响度', '音色', '超声波', '次声波'],
+        '2.3': ['声与信息', '声与能量'],
+        '2.4': ['噪声', '控制'],
+        '2.5': ['隔音', '实验方法'],
+        '3.1': ['温度', '温度计', '读数'],
+        '3.2': ['熔化', '凝固', '晶体', '图像'],
+        '3.3': ['汽化', '液化', '沸腾', '蒸发'],
+        '3.4': ['升华', '凝华', '物态变化'],
+        '3.5': ['物态变化', '厨房', '实践'],
+        '4.1': ['光的直线传播', '小孔成像'],
+        '4.2': ['光的反射', '镜面反射', '漫反射'],
+        '4.3': ['平面镜成像', '虚实像'],
+        '4.4': ['光的折射', '折射现象'],
+        '4.5': ['光的色散', '红外线', '紫外线'],
+        '5.1': ['透镜', '凸透镜', '凹透镜'],
+        '5.2': ['摄像头', '放大镜', '投影仪'],
+        '5.3': ['凸透镜成像', '规律'],
+        '5.4': ['眼睛', '眼镜', '近视'],
+        '5.5': ['望远镜', '显微镜'],
+        '6.1': ['质量', '天平'],
+        '6.2': ['密度', '计算'],
+        '6.3': ['测量密度', '实验'],
+        '6.4': ['密度应用', '变化']
+      };
+      const tags = tagMap[chapterKey] || ['物理知识', '双人PK'];
+      document.getElementById('tagList').innerHTML = tags.map(t => `<span class="tag">${t}</span>`).join('');
+    }
+
+    // ===================================================================
+    //  游戏核心函数（不变）
+    // ===================================================================
+    let gameState = {
+      scoreA: 0,
+      scoreB: 0,
+      currentIndex: 0,
+      questions: [],
+      totalQuestions: 0,
+      seconds: 0,
+      timer: null,
+      answerA: null,
+      answerB: null,
+      recordA: [],
+      recordB: [],
+      chapterKey: '1.1'
+    };
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function shuffleGroups(questionList) {
+      const groups = {};
+      const noGroup = [];
+      questionList.forEach(q => {
+        if (q.group) {
+          if (!groups[q.group]) groups[q.group] = [];
+          groups[q.group].push(q);
+        } else {
+          noGroup.push(q);
+        }
+      });
+      const groupArray = [];
+      for (const key in groups) {
+        groupArray.push(groups[key]);
+      }
+      noGroup.forEach(q => groupArray.push([q]));
+      const shuffledGroups = shuffle(groupArray);
+      return shuffledGroups.flat();
+    }
+
+    function goHome() {
+      clearInterval(gameState.timer);
+      document.getElementById('scoreA').textContent = '0';
+      document.getElementById('scoreB').textContent = '0';
+      document.getElementById('startScreen').style.display = 'flex';
+      document.getElementById('resultScreen').classList.remove('show');
+      gameState.questions = [];
+      gameState.totalQuestions = 0;
+      gameState.currentIndex = 0;
+      gameState.recordA = [];
+      gameState.recordB = [];
+      document.getElementById('startBtn').disabled = false;
+    }
+
+    function startGame() {
+      const key = document.getElementById('sectionSelect').value;
+      if (!key) {
+        alert('请先选择一个小节。');
+        return;
+      }
+      const qs = chapterQuestions[key] || [];
+      if (qs.length === 0) {
+        alert('该章节暂无题目，请选择其他章节。');
+        return;
+      }
+      gameState.chapterKey = key;
+      document.getElementById('startScreen').style.display = 'none';
+      document.getElementById('currentChapterDisplay').textContent = `章节：${chapterDisplayNames[key]}`;
+      initGame(qs);
+    }
+
+    function initGame(questionList) {
+      gameState.scoreA = 0;
+      gameState.scoreB = 0;
+      gameState.currentIndex = 0;
+      gameState.questions = shuffleGroups(questionList);
+      gameState.totalQuestions = gameState.questions.length;
+      gameState.seconds = 0;
+      gameState.answerA = null;
+      gameState.answerB = null;
+      gameState.recordA = [];
+      gameState.recordB = [];
+
+      clearInterval(gameState.timer);
+      startTimer();
+      updateScores();
+      buildDots();
+      updateRecords();
+      loadQuestion(0);
+
+      document.getElementById('resultScreen').classList.remove('show');
+      document.getElementById('confettiContainer').classList.remove('show');
+      document.getElementById('confettiContainer').innerHTML = '';
+    }
+
+    function restartGame() {
+      const key = gameState.chapterKey || '1.1';
+      const qs = chapterQuestions[key] || [];
+      if (qs.length === 0) {
+        alert('该章节无题目，请返回重新选择。');
+        document.getElementById('startScreen').style.display = 'flex';
+        return;
+      }
+      initGame(qs);
+    }
+
+    function startTimer() {
+      document.getElementById('timerDisplay').textContent = '00:00';
+      gameState.timer = setInterval(() => {
+        gameState.seconds++;
+        const m = String(Math.floor(gameState.seconds / 60)).padStart(2, '0');
+        const s = String(gameState.seconds % 60).padStart(2, '0');
+        document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+      }, 1000);
+    }
+
+    function updateScores() {
+      document.getElementById('scoreA').textContent = gameState.scoreA;
+      document.getElementById('scoreB').textContent = gameState.scoreB;
+    }
+
+    function buildDots() {
+      const box = document.getElementById('qDots');
+      box.innerHTML = '';
+      for (let i = 0; i < gameState.totalQuestions; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'q-dot' + (i === 0 ? ' current' : '');
+        dot.id = 'qdot-' + i;
+        box.appendChild(dot);
+      }
+    }
+
+    function updateDot(index, result) {
+      const dot = document.getElementById('qdot-' + index);
+      if (dot) {
+        dot.classList.remove('current');
+        dot.classList.add(result === 'correct' ? 'done-correct' : 'done-wrong');
+      }
+      const next = document.getElementById('qdot-' + (index + 1));
+      if (next) next.classList.add('current');
+    }
+
+    function updateRecords() {
+      ['A', 'B'].forEach(player => {
+        const list = player === 'A' ? gameState.recordA : gameState.recordB;
+        const el = document.getElementById('record' + player);
+        el.innerHTML = '';
+        for (let i = 0; i < gameState.totalQuestions; i++) {
+          const dot = document.createElement('div');
+          dot.className = 'record-dot';
+          if (list[i]) dot.classList.add(list[i]);
+          el.appendChild(dot);
+        }
+      });
+    }
+
+    function loadQuestion(index) {
+      const q = gameState.questions[index];
+      gameState.answerA = null;
+      gameState.answerB = null;
+
+      document.getElementById('questionProgress').textContent = `第 ${index + 1} / ${gameState.totalQuestions} 题`;
+      document.getElementById('topicBadge').textContent = `知识点：${q.topic}`;
+      document.getElementById('questionType').textContent = '📝 单选题';
+      const textEl = document.getElementById('questionText');
+      textEl.innerHTML = q.text;
+
+      // 自适应字体
+      const plainText = textEl.textContent || '';
+      const len = plainText.length;
+      let fontSize = 2.2;
+      if (len > 80) fontSize = 1.8;
+      if (len > 120) fontSize = 1.5;
+      if (len > 160) fontSize = 1.3;
+      if (len > 200) fontSize = 1.2;
+      textEl.style.fontSize = fontSize + 'rem';
+
+      document.getElementById('resultMsg').innerHTML = '';
+      document.getElementById('nextBtn').classList.remove('show');
+
+      document.getElementById('statusA').textContent = '请作答';
+      document.getElementById('statusB').textContent = '请作答';
+
+      document.getElementById('panelA').classList.remove('correct-flash', 'wrong-flash');
+      document.getElementById('panelB').classList.remove('correct-flash', 'wrong-flash');
+
+      const keys = Object.keys(q.options);
+      renderAnswerArea('A', q, keys);
+      const shuffledKeys = shuffle([...keys]);
+      renderAnswerArea('B', q, shuffledKeys);
+    }
+
+    function renderAnswerArea(player, question, keyOrder) {
+      const area = document.getElementById('answerArea' + player);
+      area.innerHTML = '';
+      keyOrder.forEach(key => {
+        const btn = document.createElement('button');
+        btn.className = 'answer-btn';
+        btn.textContent = `${key}. ${question.options[key]}`;
+        btn.dataset.key = key;
+        btn.onclick = (e) => submitAnswer(player, e.target.dataset.key);
+        area.appendChild(btn);
+      });
+    }
+
+    function disablePlayerButtons(player) {
+      document.querySelectorAll(`#answerArea${player} .answer-btn`).forEach(btn => btn.disabled = true);
+    }
+
+    function submitAnswer(player, answerKey) {
+      const q = gameState.questions[gameState.currentIndex];
+      const currentAnswer = player === 'A' ? gameState.answerA : gameState.answerB;
+      if (currentAnswer !== null) return;
+
+      const isCorrect = (answerKey === q.answer);
+
+      if (player === 'A') {
+        gameState.answerA = answerKey;
+        gameState.scoreA += isCorrect ? 10 : -10;
+        gameState.recordA.push(isCorrect ? 'correct' : 'wrong');
+        document.getElementById('statusA').textContent = isCorrect ? '✅ 正确，+10分' : '❌ 错误，-10分';
+        document.getElementById('panelA').classList.add(isCorrect ? 'correct-flash' : 'wrong-flash');
+      } else {
+        gameState.answerB = answerKey;
+        gameState.scoreB += isCorrect ? 10 : -10;
+        gameState.recordB.push(isCorrect ? 'correct' : 'wrong');
+        document.getElementById('statusB').textContent = isCorrect ? '✅ 正确，+10分' : '❌ 错误，-10分';
+        document.getElementById('panelB').classList.add(isCorrect ? 'correct-flash' : 'wrong-flash');
+      }
+
+      updateScores();
+      updateRecords();
+      markPlayerButtons(player, answerKey, q.answer);
+      disablePlayerButtons(player);
+
+      setTimeout(() => {
+        document.getElementById('panelA').classList.remove('correct-flash', 'wrong-flash');
+        document.getElementById('panelB').classList.remove('correct-flash', 'wrong-flash');
+      }, 500);
+
+      checkBothAnswered();
+    }
+
+    function markPlayerButtons(player, userKey, correctKey) {
+      const buttons = document.querySelectorAll(`#answerArea${player} .answer-btn`);
+      buttons.forEach(btn => {
+        const key = btn.dataset.key;
+        if (key === correctKey) {
+          btn.classList.add('correct');
+        } else if (key === userKey && key !== correctKey) {
+          btn.classList.add('wrong');
+        }
+      });
+    }
+
+    function checkBothAnswered() {
+      const answeredA = gameState.answerA !== null;
+      const answeredB = gameState.answerB !== null;
+
+      if (!answeredA || !answeredB) return;
+
+      const q = gameState.questions[gameState.currentIndex];
+      const isCorrectA = gameState.answerA === q.answer;
+      const isCorrectB = gameState.answerB === q.answer;
+
+      const anyCorrect = isCorrectA || isCorrectB;
+      updateDot(gameState.currentIndex, anyCorrect ? 'correct' : 'wrong');
+
+      document.getElementById('resultMsg').innerHTML = `
+        <div><b>正确答案：</b>${q.answer}</div>
+        <div style="margin-top:6px;">
+          参赛者A：${isCorrectA ? '✅ 正确，+10分' : '❌ 错误，-10分'}　
+          ｜　
+          参赛者B：${isCorrectB ? '✅ 正确，+10分' : '❌ 错误，-10分'}
+        </div>
+      `;
+
+      const btn = document.getElementById('nextBtn');
+      btn.textContent = gameState.currentIndex < gameState.totalQuestions - 1 ? '下一题 ▶' : '查看结果 🏆';
+      btn.classList.add('show');
+    }
+
+    function nextQuestion() {
+      if (gameState.currentIndex < gameState.totalQuestions - 1) {
+        gameState.currentIndex++;
+        loadQuestion(gameState.currentIndex);
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult() {
+      clearInterval(gameState.timer);
+
+      const a = gameState.scoreA;
+      const b = gameState.scoreB;
+      let title = '';
+      let emoji = '';
+
+      if (a > b) {
+        title = '参赛者 A 获胜！';
+        emoji = '<div class="winner-emoji">🏆</div>';
+        launchConfetti();
+      } else if (b > a) {
+        title = '参赛者 B 获胜！';
+        emoji = '<div class="winner-emoji">🎉</div>';
+        launchConfetti();
+      } else {
+        title = '平局！旗鼓相当！';
+        emoji = '<div class="draw-emoji">🤝</div>';
+      }
+
+      document.getElementById('resultEmoji').innerHTML = emoji;
+      document.getElementById('resultTitle').textContent = title;
+      document.getElementById('scoreSummary').innerHTML = `
+        <div class="score-item">
+          <div class="name">参赛者 A</div>
+          <div class="num" style="color:${a >= b ? '#ffd200' : '#4facfe'}">${a}</div>
+        </div>
+        <div style="font-size:1.8rem;color:#64748b;">VS</div>
+        <div class="score-item">
+          <div class="name">参赛者 B</div>
+          <div class="num" style="color:${b >= a ? '#ffd200' : '#f093fb'}">${b}</div>
+        </div>
+      `;
+      document.getElementById('resultScreen').classList.add('show');
+    }
+
+    function launchConfetti() {
+      const container = document.getElementById('confettiContainer');
+      container.innerHTML = '';
+      container.classList.add('show');
+
+      const colors = ['#ffd200', '#f7971e', '#4facfe', '#f093fb', '#2ed573', '#e94560', '#48dbfb', '#ff9ff3'];
+      for (let i = 0; i < 140; i++) {
+        const el = document.createElement('div');
+        const size = Math.random() * 10 + 6;
+        el.className = 'confetti';
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.top = '-20px';
+        el.style.width = size + 'px';
+        el.style.height = size + 'px';
+        el.style.background = colors[Math.floor(Math.random() * colors.length)];
+        el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        el.style.animationDuration = (Math.random() * 2 + 2.2) + 's';
+        el.style.animationDelay = (Math.random() * 1.5) + 's';
+        container.appendChild(el);
+      }
+
+      setTimeout(() => {
+        container.classList.remove('show');
+      }, 5000);
+    }
+
+    // ===================================================================
+    //  页面加载完成后初始化
+    // ===================================================================
+    window.onload = function() {
+      populateSelects();
+    };
+  </script>
+</body>
+</html>
