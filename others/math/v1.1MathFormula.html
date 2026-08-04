@@ -81,7 +81,31 @@ button{font-family:inherit;}
   padding:22px 20px;display:flex;align-items:flex-start;justify-content:space-between;gap:18px;
 }
 .app-header h1{font-size:var(--fs-2xl);font-weight:800;letter-spacing:0;}
-.app-header .subtitle{font-size:var(--fs-sm);color:var(--muted);margin-top:6px;max-width:620px;}
+
+/* ==== 修改：副标题改为 flex 布局，允许换行，署名自动靠右 ==== */
+.app-header .subtitle{
+  font-size:var(--fs-sm);
+  color:var(--muted);
+  margin-top:6px;
+  max-width:620px;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:baseline;
+  gap:4px 12px;               /* 行内间距，换行后上下间距 */
+  white-space:normal;          /* 允许换行，不再强制一行 */
+  overflow:visible;
+}
+.subtitle .main-text{
+  flex:1 1 auto;              /* 文字部分占满剩余空间，可换行 */
+  min-width:0;                /* 防止溢出 */
+}
+.subtitle .credit{
+  flex:0 1 auto;           /* 靠右对齐，若换行则位于下一行右侧 */
+  color:inherit;              /* 与主文字颜色一致（var(--muted)） */
+  font-weight:400;            /* 常规字重，与主文字风格统一 */
+}
+/* 取消之前对 .credit 的蓝色设置 */
+/* 原 .credit 的 color:var(--blue-text) 已移除 */
 
 /* ==================== 年级分段控件（初一 / 初二 / 初三） ==================== */
 .grade-bar{position:sticky;top:0;z-index:8;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:rgba(246,244,240,.9);backdrop-filter:blur(10px);}
@@ -336,7 +360,7 @@ button{font-family:inherit;}
   .nav-btn{width:auto;white-space:nowrap;padding:8px 13px;flex-shrink:0;font-size:.86rem;}
   .header-inner{padding:16px 14px;}
   .app-header h1{font-size:1.2rem;}
-  .app-header .subtitle{font-size:.84rem;}
+  .app-header .subtitle{font-size:.84rem;max-width:100%;}
   .grade-seg{padding:8px 14px;}
   .formula-bar{font-size:.98rem;gap:8px 16px;padding:10px 14px;}
   .card{padding:16px 14px;}
@@ -352,6 +376,7 @@ button{font-family:inherit;}
   .controls{gap:8px;}
   .btn{min-height:34px;padding:6px 13px;font-size:.84rem;}
   .chip{font-size:.82rem;padding:4px 11px;}
+  .app-header .subtitle{font-size:.78rem;}
 }
 
 /* ==================== 液态玻璃：只给公式工作区留层次 ==================== */
@@ -405,7 +430,11 @@ body{background:#eef5fc;}
   <div class="header-inner">
     <div class="header-text">
       <h1>初中数学公式可视化互动学习</h1>
-      <p class="subtitle">初一、初二、初三，先选年级再挑模块；拖动画布上的控制点、滑块和按钮，让抽象的公式“动”起来。</p>
+      <!-- 修改点：副标题拆分为两个 span，利用 flex 实现文字左对齐、署名右下对齐 -->
+      <p class="subtitle">
+        <span class="main-text">初一、初二、初三，先选年级再挑模块；拖动画布上的控制点、滑块和按钮，让抽象的公式“动”起来</span>
+        <span class="credit">设计制作：z905888415-beep</span>
+      </p>
     </div>
   </div>
 </header>
