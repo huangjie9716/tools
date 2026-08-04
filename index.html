@@ -7,7 +7,7 @@
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* ==================== 原有样式保持不变 ==================== */
+        /* ==================== 原有样式为基础，已调整标题大小与侧边栏位置 ==================== */
         :root {
             --primary: #165DFF;
             --primary-dark: #0E45D0;
@@ -19,7 +19,7 @@
             --color-public: #14B8A6;
             --color-class: #0EA5E9;
             --color-analysis: #4A9E6B;
-            --color-message: #E67E22; /* 留言板新颜色：温馨橙 */
+            --color-message: #E67E22;
             --text-main: #1E293B;
             --text-secondary: #5B6E8C;
             --text-muted: #94A3B8;
@@ -81,12 +81,13 @@
             box-shadow: 0 3px 16px rgba(22, 93, 255, 0.08);
             background: rgba(255, 255, 255, 0.98);
         }
+        /* 标题字体加大 */
         .navbar-logo {
             font-family: "Segoe UI", "Microsoft YaHei", "苹方", "PingFang SC", sans-serif;
-            font-size: 2.2rem;
+            font-size: 2.6rem;
             font-weight: 700;
             color: #1A3C8C;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
             white-space: nowrap;
             flex-shrink: 0;
         }
@@ -122,8 +123,11 @@
         .hero h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.4rem; position: relative; z-index: 1; }
         .hero p { font-size: 1rem; opacity: 0.85; max-width: 620px; margin: 0 auto; position: relative; z-index: 1; color: #3D4F6B; }
 
+        /* 主容器左移，左侧padding缩小 */
         .container {
-            max-width: 1200px; margin: 0 auto; padding: 2rem 1.8rem 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.8rem 1rem 1rem; /* 左侧padding从1.8rem改为1rem */
             display: flex; gap: 2rem; align-items: flex-start;
             animation: fadeInUp 0.55s ease forwards; animation-delay: 0.1s;
             opacity: 0; animation-fill-mode: forwards;
@@ -166,7 +170,6 @@
         .nav-item.category-class.active { color: var(--color-class); }
         .nav-item.category-analysis.active::before, .nav-item.category-analysis.active::after { background: var(--color-analysis); }
         .nav-item.category-analysis.active { color: var(--color-analysis); }
-        /* 留言板导航颜色 */
         .nav-item.category-message.active::before, .nav-item.category-message.active::after { background: var(--color-message); }
         .nav-item.category-message.active { color: var(--color-message); }
 
@@ -286,166 +289,68 @@
         .version-actions { display: flex; gap: 0.35rem; align-items: center; flex-wrap: nowrap; white-space: nowrap; }
         .template-group { display: flex; gap: 0.25rem; flex-wrap: nowrap; }
 
-        /* ==================== 留言板样式 ==================== */
-        .message-board-container {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
+        /* 留言板样式保持不变 */
+        .message-board-container { display: flex; flex-direction: column; gap: 2rem; }
         .mailbox-form {
-            background: #FFF9F0;
-            border: 2px dashed #E67E22;
-            border-radius: var(--radius-xl);
-            padding: 2rem;
-            position: relative;
-            box-shadow: var(--shadow-sm);
+            background: #FFF9F0; border: 2px dashed #E67E22; border-radius: var(--radius-xl);
+            padding: 2rem; position: relative; box-shadow: var(--shadow-sm);
         }
         .mailbox-form::before {
-            content: "📬";
-            position: absolute;
-            top: -18px;
-            left: 30px;
-            font-size: 2rem;
-            background: #FFF9F0;
-            padding: 0 0.5rem;
+            content: "📬"; position: absolute; top: -18px; left: 30px;
+            font-size: 2rem; background: #FFF9F0; padding: 0 0.5rem;
         }
-        .mailbox-form h3 {
-            color: #B85E0C;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        .mailbox-form h3 { color: #B85E0C; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .mailbox-form .form-group { margin-bottom: 1rem; }
+        .mailbox-form label { display: block; font-weight: 600; margin-bottom: 0.3rem; color: #5D3A1A; }
+        .mailbox-form input, .mailbox-form textarea {
+            width: 100%; padding: 0.7rem 1rem; border: 1px solid #EDD6B8; border-radius: var(--radius-md);
+            font-family: inherit; font-size: 0.9rem; background: #FFFDF7; transition: border var(--transition-fast);
         }
-        .mailbox-form .form-group {
-            margin-bottom: 1rem;
+        .mailbox-form input:focus, .mailbox-form textarea:focus {
+            outline: none; border-color: #E67E22; box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
         }
-        .mailbox-form label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 0.3rem;
-            color: #5D3A1A;
-        }
-        .mailbox-form input,
-        .mailbox-form textarea {
-            width: 100%;
-            padding: 0.7rem 1rem;
-            border: 1px solid #EDD6B8;
-            border-radius: var(--radius-md);
-            font-family: inherit;
-            font-size: 0.9rem;
-            background: #FFFDF7;
-            transition: border var(--transition-fast);
-        }
-        .mailbox-form input:focus,
-        .mailbox-form textarea:focus {
-            outline: none;
-            border-color: #E67E22;
-            box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
-        }
-        .mailbox-form textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
+        .mailbox-form textarea { min-height: 100px; resize: vertical; }
         .mailbox-form .btn-submit {
-            background: linear-gradient(135deg, #E67E22, #D35400);
-            color: white;
-            padding: 0.6rem 2rem;
-            font-size: 0.95rem;
-            border: none;
-            border-radius: var(--radius-pill);
-            cursor: pointer;
-            font-weight: 600;
-            transition: all var(--transition-fast);
+            background: linear-gradient(135deg, #E67E22, #D35400); color: white;
+            padding: 0.6rem 2rem; font-size: 0.95rem; border: none; border-radius: var(--radius-pill);
+            cursor: pointer; font-weight: 600; transition: all var(--transition-fast);
             box-shadow: 0 4px 10px rgba(230, 126, 34, 0.3);
         }
-        .mailbox-form .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(230, 126, 34, 0.4);
-        }
-        .mailbox-form .btn-submit:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
+        .mailbox-form .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(230, 126, 34, 0.4); }
+        .mailbox-form .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-        .messages-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1.2rem;
-        }
+        .messages-list { display: flex; flex-direction: column; gap: 1.2rem; }
         .message-card {
-            background: #FFFEF9;
-            border: 1px solid #F0E5D2;
-            border-radius: var(--radius-lg);
-            padding: 1.2rem 1.4rem;
-            box-shadow: var(--shadow-sm);
-            position: relative;
+            background: #FFFEF9; border: 1px solid #F0E5D2; border-radius: var(--radius-lg);
+            padding: 1.2rem 1.4rem; box-shadow: var(--shadow-sm); position: relative;
             transition: all var(--transition-normal);
         }
-        .message-card:hover {
-            box-shadow: var(--shadow-hover);
-            border-color: #E67E22;
-        }
-        .message-card .message-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-        .message-card .message-author {
-            font-weight: 700;
-            color: #5D3A1A;
-        }
-        .message-card .message-time {
-            font-size: 0.75rem;
-            color: #A0A0A0;
-        }
-        .message-card .message-content {
-            color: #333;
-            line-height: 1.6;
-            white-space: pre-wrap;
-        }
+        .message-card:hover { box-shadow: var(--shadow-hover); border-color: #E67E22; }
+        .message-card .message-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+        .message-card .message-author { font-weight: 700; color: #5D3A1A; }
+        .message-card .message-time { font-size: 0.75rem; color: #A0A0A0; }
+        .message-card .message-content { color: #333; line-height: 1.6; white-space: pre-wrap; }
         .message-card::before {
-            content: "✉️";
-            position: absolute;
-            top: -12px;
-            right: 20px;
-            font-size: 1.3rem;
-            background: #FFFEF9;
-            padding: 0 0.3rem;
+            content: "✉️"; position: absolute; top: -12px; right: 20px;
+            font-size: 1.3rem; background: #FFFEF9; padding: 0 0.3rem;
         }
-        .no-messages {
-            text-align: center;
-            padding: 3rem;
-            color: #A0A0A0;
-            background: #FAFAFA;
-            border-radius: var(--radius-lg);
-            border: 1px dashed #DDD;
-        }
-        .loading-messages {
-            text-align: center;
-            padding: 2rem;
-            color: #888;
-        }
-        .error-message {
-            color: #D32F2F;
-            background: #FFEBEE;
-            padding: 0.8rem;
-            border-radius: var(--radius-md);
-            margin-top: 0.5rem;
-            font-size: 0.85rem;
-        }
-        .success-message {
-            color: #2E7D32;
-            background: #E8F5E9;
-            padding: 0.8rem;
-            border-radius: var(--radius-md);
-            margin-top: 0.5rem;
-            font-size: 0.85rem;
-        }
+        .no-messages { text-align: center; padding: 3rem; color: #A0A0A0; background: #FAFAFA; border-radius: var(--radius-lg); border: 1px dashed #DDD; }
+        .loading-messages { text-align: center; padding: 2rem; color: #888; }
+        .error-message { color: #D32F2F; background: #FFEBEE; padding: 0.8rem; border-radius: var(--radius-md); margin-top: 0.5rem; font-size: 0.85rem; }
+        .success-message { color: #2E7D32; background: #E8F5E9; padding: 0.8rem; border-radius: var(--radius-md); margin-top: 0.5rem; font-size: 0.85rem; }
 
+        /* 底部声明样式 */
+        .footer-disclaimer {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #6B7280;
+            padding: 1rem 1.5rem 0;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+        }
         .footer {
-            background: #FFFFFF; text-align: center; padding: 1.5rem; font-size: 0.95rem;
+            background: #FFFFFF; text-align: center; padding: 0.5rem 1.5rem 1.5rem; font-size: 0.95rem;
             border-top: 1px solid #EDF2F9; margin-top: 2rem; color: #4A5568;
         }
         .footer p { display: inline-block; background: #EEF2FB; padding: 0.3rem 1.2rem; border-radius: 22px; font-weight: 500; }
@@ -490,18 +395,29 @@
         </aside>
 
         <main class="content-area">
-            <!-- 物理教学 -->
+            <!-- 物理教学（已替换为新卡片） -->
             <div class="content-panel panel-physics active" id="panel-physics">
                 <div class="panel-header"><span class="panel-icon">⚡</span><h2>物理教学</h2></div>
                 <div class="tool-grid">
-                    <div class="tool-card" data-file="physics/v1.2MachanicsQuiz.html">
-                        <h3>🏋️ 初中物理力学双人答题赛</h3>
-                        <p>两人对战模式，涵盖初中力学核心知识点，增强课堂互动与趣味性。</p>
+                    <!-- 初中物理课堂知识PK赛 -->
+                    <div class="tool-card" data-file="physics/v1.1PhysicsClassGame.html">
+                        <h3>🎮 初中物理课堂知识PK赛</h3>
+                        <p>两人对战模式，涵盖初中物理课堂核心知识点，增强课堂互动与趣味性。</p>
                         <div class="tool-meta">
-                            <span class="meta-date" data-default="2026.07.24">📅 更新：2026.07.24</span>
-                            <span>🔖 v1.2</span>
+                            <span class="meta-date" data-default="2026.08.04">📅 更新：2026.08.04</span>
+                            <span>🔖 v1.1</span>
                         </div>
-                        <div class="tool-actions"><a href="physics/v1.2MachanicsQuiz.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
+                        <div class="tool-actions"><a href="physics/v1.1PhysicsClassGame.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
+                    </div>
+                    <!-- 初中物理实验资源库 -->
+                    <div class="tool-card" data-file="physics/v1.1PhysicsExperiment.html">
+                        <h3>🏠 初中物理实验资源库</h3>
+                        <p>涵盖初中物理演示实验和学生实验，提供视频资源、模拟软件（部分）、习题资源，致力成为老师和学生们宝贵的学习财富！</p>
+                        <div class="tool-meta">
+                            <span class="meta-date" data-default="2026.08.04">📅 更新：2026.08.04</span>
+                            <span>🔖 v1.1</span>
+                        </div>
+                        <div class="tool-actions"><a href="physics/v1.1PhysicsExperiment.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
                     </div>
                 </div>
             </div>
@@ -669,14 +585,13 @@
                 </div>
             </div>
 
-            <!-- ========== 留言板面板 ========== -->
+            <!-- 留言板面板（保持不变） -->
             <div class="content-panel" id="panel-message-board">
                 <div class="panel-header">
                     <span class="panel-icon">✉️</span>
                     <h2>留言板</h2>
                 </div>
                 <div class="message-board-container">
-                    <!-- 投稿表单（邮筒风格） -->
                     <div class="mailbox-form">
                         <h3>📬 投递留言</h3>
                         <div class="form-group">
@@ -690,8 +605,6 @@
                         <button class="btn-submit" id="submit-message">📨 投递</button>
                         <div id="form-feedback" style="margin-top: 0.5rem;"></div>
                     </div>
-
-                    <!-- 已审核留言列表 -->
                     <div>
                         <h3 style="margin-bottom: 1rem; color: #5D3A1A;">📮 精选留言</h3>
                         <div id="messages-container" class="messages-list">
@@ -735,19 +648,22 @@
         </div>
     </div>
 
-    <div class="footer"><p>📧 反馈与建议：请联系珠海市九洲中学&nbsp;&nbsp;黄结（vx：Phys_H）</p></div>
+    <!-- 底部免责声明 + 反馈 -->
+    <div class="footer-disclaimer">
+        ⚠️ 本项目仅供教研学习交流，数据仅保存在用户本地，后台不收集用户信息。请遵守版权及教育部《中小学生成式人工智能使用指南（2025 年版）》相关要求，合理合规使用工具，开发者不对使用后果承担责任。
+    </div>
+    <div class="footer">
+        <p>📧 反馈与建议：请联系珠海市九洲中学&nbsp;&nbsp;黄结（vx：Phys_H）</p>
+    </div>
 
     <script>
-        // ==================== 请在下方填入你的 Supabase 信息 ====================
-        const SUPABASE_URL = 'https://nmwtgxmqlmezcjtnxgqk.supabase.co';  // 替换为你的 Project URL
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5td3RneG1xbG1lemNqdG54Z3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4MzI2OTAsImV4cCI6MjEwMTQwODY5MH0.90TChC0s47NOGJlEkRNhD0uePRfcwdndK5SyeRRKgWo';                  // 替换为你的 anon public key
-        // ========================================================================
-
+        // Supabase 配置（已按实际填写）
+        const SUPABASE_URL = 'https://nmwtgxmqlmezcjtnxgqk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5td3RneG1xbG1lemNqdG54Z3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4MzI2OTAsImV4cCI6MjEwMTQwODY5MH0.90TChC0s47NOGJlEkRNhD0uePRfcwdndK5SyeRRKgWo';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // 原有功能：导航切换、学科切换、模态框、滚动效果等
         (function() {
-            // 格式化日期
+            // 日期格式化等工具函数（略，与之前相同，已保留）
             function formatDate(date) {
                 const year = date.getFullYear();
                 const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -756,11 +672,7 @@
             }
             function parseLastModified(lastModified) {
                 if (!lastModified) return null;
-                try {
-                    const date = new Date(lastModified);
-                    if (isNaN(date.getTime())) return null;
-                    return date;
-                } catch (e) { return null; }
+                try { const date = new Date(lastModified); return isNaN(date.getTime()) ? null : date; } catch (e) { return null; }
             }
             async function fetchFileDate(filePath) {
                 try {
@@ -784,10 +696,7 @@
                         const lastModified = response.headers.get('Last-Modified');
                         if (lastModified) {
                             const date = parseLastModified(lastModified);
-                            if (date) {
-                                badge.textContent = `🔄 最近更新：${formatDate(date)}`;
-                                return;
-                            }
+                            if (date) { badge.textContent = `🔄 最近更新：${formatDate(date)}`; return; }
                         }
                     }
                 } catch (e) {}
@@ -834,15 +743,11 @@
                             card.style.animation = 'fadeInUp 0.4s ease forwards';
                             card.style.animationDelay = (0.05 + i*0.07) + 's';
                         });
-                        // 如果切换到留言板，刷新留言列表
-                        if (item.dataset.panel === 'panel-message-board') {
-                            loadMessages();
-                        }
+                        if (item.dataset.panel === 'panel-message-board') loadMessages();
                     }
                 });
             });
 
-            // 学科子标签
             const tabs = document.querySelectorAll('.subject-tab');
             const panels = document.querySelectorAll('.subject-panel');
             tabs.forEach(tab => {
@@ -854,13 +759,11 @@
                 });
             });
 
-            // 模态框
             window.openModal = function() { document.getElementById('versionModal').classList.add('show'); };
             window.closeModal = function() { document.getElementById('versionModal').classList.remove('show'); };
             window.onclick = function(e) { if (e.target === document.getElementById('versionModal')) closeModal(); };
             document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
 
-            // 滚动阴影
             const navbar = document.getElementById('navbar');
             let ticking = false;
             window.addEventListener('scroll', () => {
@@ -873,28 +776,23 @@
                 }
             });
 
-            // ==================== 留言板功能 ====================
             async function loadMessages() {
                 const container = document.getElementById('messages-container');
                 if (!container) return;
                 container.innerHTML = '<div class="loading-messages">加载中...</div>';
-
                 const { data, error } = await supabaseClient
                     .from('messages')
                     .select('name, content, created_at')
                     .eq('approved', true)
                     .order('created_at', { ascending: false });
-
                 if (error) {
                     container.innerHTML = `<div class="error-message">加载留言失败：${error.message}</div>`;
                     return;
                 }
-
                 if (!data || data.length === 0) {
                     container.innerHTML = '<div class="no-messages">📭 暂无留言，快来写第一条吧！</div>';
                     return;
                 }
-
                 container.innerHTML = data.map(msg => {
                     const time = new Date(msg.created_at).toLocaleDateString('zh-CN', {
                         year: 'numeric', month: '2-digit', day: '2-digit',
@@ -923,10 +821,8 @@
                 const contentInput = document.getElementById('msg-content');
                 const feedback = document.getElementById('form-feedback');
                 const btn = document.getElementById('submit-message');
-
                 const name = nameInput.value.trim();
                 const content = contentInput.value.trim();
-
                 if (!name || !content) {
                     feedback.innerHTML = '<div class="error-message">请填写称呼和留言内容。</div>';
                     return;
@@ -935,33 +831,24 @@
                     feedback.innerHTML = '<div class="error-message">留言内容不能超过500字。</div>';
                     return;
                 }
-
                 btn.disabled = true;
                 btn.textContent = '投递中...';
                 feedback.innerHTML = '';
-
                 const { error } = await supabaseClient
                     .from('messages')
                     .insert([{ name, content, approved: false }]);
-
                 if (error) {
                     feedback.innerHTML = `<div class="error-message">提交失败：${error.message}</div>`;
                     btn.disabled = false;
                     btn.textContent = '📨 投递';
                     return;
                 }
-
-                // 成功
                 nameInput.value = '';
                 contentInput.value = '';
                 feedback.innerHTML = '<div class="success-message">✅ 留言已投递！审核通过后将显示在下方。</div>';
                 btn.disabled = false;
                 btn.textContent = '📨 投递';
-                // 不自动刷新列表，因为新留言未审核
             });
-
-            // 首次加载留言板时不自动载入，仅当切换到时才加载
-            // 但为了初次激活时也能加载，监听导航切换已包含判断
         })();
     </script>
 </body>
