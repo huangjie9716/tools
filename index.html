@@ -4,32 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>中学教师数字工具箱</title>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* ==================== 设计思路说明 ====================
-         * 1. 布局：顶部导航栏左大标题 + 右信息条；
-         *    主区域左侧导航(五个分类) + 右侧内容卡片。
-         * 2. 左侧导航选中无背景，仅靠左侧指示条与底部横线区分，
-         *    各类别独立色彩：物理橙、其他学科紫、公开课青、班级管理蓝、成绩分析绿。
-         *    下划线动画使用 scaleX 避免宽度溢出，与背景区域对齐。
-         * 3. 右侧面板标题下划线颜色与左侧导航对应类别颜色一致。
-         * 4. 卡片、按钮、动效等保持商务教育简约风格。
-         * 5. 新增：通过 data-file 属性实现各工具卡片更新时间的自动获取与显示。
-        =================================================== */
-
+        /* ==================== 原有样式保持不变 ==================== */
         :root {
             --primary: #165DFF;
             --primary-dark: #0E45D0;
             --primary-light: #E8F0FF;
             --primary-gradient: linear-gradient(135deg, #165DFF 0%, #1A56E8 50%, #0E45D0 100%);
             --primary-gradient-hover: linear-gradient(135deg, #1A56E8 0%, #0E45D0 50%, #0B38B0 100%);
-
-            /* 五个分类独立指示色 */
             --color-physics: #C8814A;
             --color-others: #8B5CF6;
             --color-public: #14B8A6;
             --color-class: #0EA5E9;
             --color-analysis: #4A9E6B;
-
+            --color-message: #E67E22; /* 留言板新颜色：温馨橙 */
             --text-main: #1E293B;
             --text-secondary: #5B6E8C;
             --text-muted: #94A3B8;
@@ -38,22 +28,18 @@
             --card-bg-gradient: linear-gradient(180deg, #FFFFFF 0%, #FAFBFD 100%);
             --border: #E5E9F2;
             --border-light: #EEF1F7;
-
             --shadow-xs: 0 1px 4px rgba(22, 93, 255, 0.03);
             --shadow-sm: 0 2px 10px rgba(22, 93, 255, 0.04);
             --shadow-md: 0 4px 16px rgba(22, 93, 255, 0.06);
             --shadow-hover: 0 8px 28px rgba(22, 93, 255, 0.10);
             --shadow-lg: 0 16px 40px rgba(22, 93, 255, 0.12);
-
             --radius-xl: 20px;
             --radius-lg: 16px;
             --radius-md: 12px;
             --radius-pill: 50px;
-
             --transition-fast: 0.18s ease;
             --transition-normal: 0.25s ease;
             --transition-slow: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-
             --sidebar-width: 260px;
         }
 
@@ -180,6 +166,10 @@
         .nav-item.category-class.active { color: var(--color-class); }
         .nav-item.category-analysis.active::before, .nav-item.category-analysis.active::after { background: var(--color-analysis); }
         .nav-item.category-analysis.active { color: var(--color-analysis); }
+        /* 留言板导航颜色 */
+        .nav-item.category-message.active::before, .nav-item.category-message.active::after { background: var(--color-message); }
+        .nav-item.category-message.active { color: var(--color-message); }
+
         .nav-icon { font-size: 1.3rem; flex-shrink: 0; transition: transform var(--transition-fast); }
         .nav-item:hover .nav-icon { transform: scale(1.1); }
         .nav-label { white-space: nowrap; }
@@ -204,6 +194,7 @@
         .content-panel#panel-class-mgmt .panel-header h2::after { background: var(--color-class); }
         .content-panel#panel-analysis .panel-header h2::after,
         .content-panel.panel-analysis .panel-header h2::after { background: var(--color-analysis); }
+        .content-panel#panel-message-board .panel-header h2::after { background: var(--color-message); }
 
         .subject-tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.4rem; }
         .subject-tab {
@@ -295,14 +286,169 @@
         .version-actions { display: flex; gap: 0.35rem; align-items: center; flex-wrap: nowrap; white-space: nowrap; }
         .template-group { display: flex; gap: 0.25rem; flex-wrap: nowrap; }
 
+        /* ==================== 留言板样式 ==================== */
+        .message-board-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        .mailbox-form {
+            background: #FFF9F0;
+            border: 2px dashed #E67E22;
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            position: relative;
+            box-shadow: var(--shadow-sm);
+        }
+        .mailbox-form::before {
+            content: "📬";
+            position: absolute;
+            top: -18px;
+            left: 30px;
+            font-size: 2rem;
+            background: #FFF9F0;
+            padding: 0 0.5rem;
+        }
+        .mailbox-form h3 {
+            color: #B85E0C;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .mailbox-form .form-group {
+            margin-bottom: 1rem;
+        }
+        .mailbox-form label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            color: #5D3A1A;
+        }
+        .mailbox-form input,
+        .mailbox-form textarea {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1px solid #EDD6B8;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 0.9rem;
+            background: #FFFDF7;
+            transition: border var(--transition-fast);
+        }
+        .mailbox-form input:focus,
+        .mailbox-form textarea:focus {
+            outline: none;
+            border-color: #E67E22;
+            box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
+        }
+        .mailbox-form textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .mailbox-form .btn-submit {
+            background: linear-gradient(135deg, #E67E22, #D35400);
+            color: white;
+            padding: 0.6rem 2rem;
+            font-size: 0.95rem;
+            border: none;
+            border-radius: var(--radius-pill);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all var(--transition-fast);
+            box-shadow: 0 4px 10px rgba(230, 126, 34, 0.3);
+        }
+        .mailbox-form .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(230, 126, 34, 0.4);
+        }
+        .mailbox-form .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .messages-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+        .message-card {
+            background: #FFFEF9;
+            border: 1px solid #F0E5D2;
+            border-radius: var(--radius-lg);
+            padding: 1.2rem 1.4rem;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            transition: all var(--transition-normal);
+        }
+        .message-card:hover {
+            box-shadow: var(--shadow-hover);
+            border-color: #E67E22;
+        }
+        .message-card .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .message-card .message-author {
+            font-weight: 700;
+            color: #5D3A1A;
+        }
+        .message-card .message-time {
+            font-size: 0.75rem;
+            color: #A0A0A0;
+        }
+        .message-card .message-content {
+            color: #333;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        .message-card::before {
+            content: "✉️";
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            font-size: 1.3rem;
+            background: #FFFEF9;
+            padding: 0 0.3rem;
+        }
+        .no-messages {
+            text-align: center;
+            padding: 3rem;
+            color: #A0A0A0;
+            background: #FAFAFA;
+            border-radius: var(--radius-lg);
+            border: 1px dashed #DDD;
+        }
+        .loading-messages {
+            text-align: center;
+            padding: 2rem;
+            color: #888;
+        }
+        .error-message {
+            color: #D32F2F;
+            background: #FFEBEE;
+            padding: 0.8rem;
+            border-radius: var(--radius-md);
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+        }
+        .success-message {
+            color: #2E7D32;
+            background: #E8F5E9;
+            padding: 0.8rem;
+            border-radius: var(--radius-md);
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+        }
+
         .footer {
             background: #FFFFFF; text-align: center; padding: 1.5rem; font-size: 0.95rem;
             border-top: 1px solid #EDF2F9; margin-top: 2rem; color: #4A5568;
         }
         .footer p { display: inline-block; background: #EEF2FB; padding: 0.3rem 1.2rem; border-radius: 22px; font-weight: 500; }
-
-        /* 加载中的日期占位 */
-        .meta-date.loading { opacity: 0.6; }
 
         @media (max-width: 900px) {
             .container { flex-direction: column; gap: 1rem; padding: 1.2rem 1rem; }
@@ -339,6 +485,7 @@
                 <li><div class="nav-item category-public" data-panel="panel-public-lesson"><span class="nav-icon">🎤</span><span class="nav-label">公开课</span></div></li>
                 <li><div class="nav-item category-class" data-panel="panel-class-mgmt"><span class="nav-icon">🏫</span><span class="nav-label">班级管理</span></div></li>
                 <li><div class="nav-item category-analysis" data-panel="panel-analysis"><span class="nav-icon">📊</span><span class="nav-label">成绩分析系统</span></div></li>
+                <li><div class="nav-item category-message" data-panel="panel-message-board"><span class="nav-icon">✉️</span><span class="nav-label">留言板</span></div></li>
             </ul>
         </aside>
 
@@ -521,10 +668,42 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ========== 留言板面板 ========== -->
+            <div class="content-panel" id="panel-message-board">
+                <div class="panel-header">
+                    <span class="panel-icon">✉️</span>
+                    <h2>留言板</h2>
+                </div>
+                <div class="message-board-container">
+                    <!-- 投稿表单（邮筒风格） -->
+                    <div class="mailbox-form">
+                        <h3>📬 投递留言</h3>
+                        <div class="form-group">
+                            <label for="msg-name">您的称呼</label>
+                            <input type="text" id="msg-name" placeholder="例如：李老师" maxlength="20" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="msg-content">留言内容</label>
+                            <textarea id="msg-content" placeholder="分享您的使用体验、建议或问题..." maxlength="500" required></textarea>
+                        </div>
+                        <button class="btn-submit" id="submit-message">📨 投递</button>
+                        <div id="form-feedback" style="margin-top: 0.5rem;"></div>
+                    </div>
+
+                    <!-- 已审核留言列表 -->
+                    <div>
+                        <h3 style="margin-bottom: 1rem; color: #5D3A1A;">📮 精选留言</h3>
+                        <div id="messages-container" class="messages-list">
+                            <div class="loading-messages">加载中...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
-    <!-- 模态框 -->
+    <!-- 模态框（增值评价） -->
     <div class="modal" id="versionModal">
         <div class="modal-content">
             <span class="modal-close" onclick="closeModal()">&times;</span>
@@ -559,28 +738,30 @@
     <div class="footer"><p>📧 反馈与建议：请联系珠海市九洲中学&nbsp;&nbsp;黄结（vx：Phys_H）</p></div>
 
     <script>
+        // ==================== 请在下方填入你的 Supabase 信息 ====================
+        const SUPABASE_URL = 'https://nmwtgxmqlmezcjtnxgqk.supabase.co';  // 替换为你的 Project URL
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5td3RneG1xbG1lemNqdG54Z3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4MzI2OTAsImV4cCI6MjEwMTQwODY5MH0.90TChC0s47NOGJlEkRNhD0uePRfcwdndK5SyeRRKgWo';                  // 替换为你的 anon public key
+        // ========================================================================
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // 原有功能：导航切换、学科切换、模态框、滚动效果等
         (function() {
-            // 格式化日期为 YYYY.MM.DD
+            // 格式化日期
             function formatDate(date) {
                 const year = date.getFullYear();
                 const month = String(date.getMonth() + 1).padStart(2, '0');
                 const day = String(date.getDate()).padStart(2, '0');
                 return `${year}.${month}.${day}`;
             }
-
-            // 从 Last-Modified 头解析日期
             function parseLastModified(lastModified) {
                 if (!lastModified) return null;
                 try {
                     const date = new Date(lastModified);
                     if (isNaN(date.getTime())) return null;
                     return date;
-                } catch (e) {
-                    return null;
-                }
+                } catch (e) { return null; }
             }
-
-            // 使用 HEAD 请求获取文件的最后修改时间
             async function fetchFileDate(filePath) {
                 try {
                     const response = await fetch(filePath, { method: 'HEAD', cache: 'no-cache' });
@@ -591,13 +772,9 @@
                             if (date) return formatDate(date);
                         }
                     }
-                } catch (error) {
-                    // 请求失败（如本地文件、跨域等），返回 null
-                }
+                } catch (error) {}
                 return null;
             }
-
-            // 更新顶部全局更新时间为 index.html 自身的最后修改时间
             async function updateGlobalTime() {
                 const badge = document.getElementById('updateBadge');
                 if (!badge) return;
@@ -614,27 +791,20 @@
                         }
                     }
                 } catch (e) {}
-                // 失败则保持原有文字（已预填加载中，可改为固定值）
                 badge.textContent = '🔄 最近更新：获取失败';
             }
-
-            // 更新所有带有 data-file 属性的卡片日期
             async function updateCardDates() {
                 const cards = document.querySelectorAll('.tool-card[data-file]');
                 const promises = Array.from(cards).map(async (card) => {
                     const filePath = card.getAttribute('data-file');
                     const dateSpan = card.querySelector('.meta-date');
                     if (!dateSpan || !filePath) return;
-
-                    // 显示加载状态（可选）
                     dateSpan.textContent = '📅 更新：加载中...';
                     dateSpan.classList.add('loading');
-
                     const dateStr = await fetchFileDate(filePath);
                     if (dateStr) {
                         dateSpan.textContent = `📅 更新：${dateStr}`;
                     } else {
-                        // 回退到预设的默认日期
                         const defaultDate = dateSpan.getAttribute('data-default');
                         dateSpan.textContent = `📅 更新：${defaultDate || '未知'}`;
                     }
@@ -642,14 +812,12 @@
                 });
                 await Promise.allSettled(promises);
             }
-
-            // 页面加载后执行
             window.addEventListener('DOMContentLoaded', () => {
                 updateGlobalTime();
                 updateCardDates();
             });
 
-            // 保留原有的导航切换逻辑
+            // 导航切换
             const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
             const contentPanels = document.querySelectorAll('.content-panel');
             navItems.forEach(item => {
@@ -666,10 +834,15 @@
                             card.style.animation = 'fadeInUp 0.4s ease forwards';
                             card.style.animationDelay = (0.05 + i*0.07) + 's';
                         });
+                        // 如果切换到留言板，刷新留言列表
+                        if (item.dataset.panel === 'panel-message-board') {
+                            loadMessages();
+                        }
                     }
                 });
             });
 
+            // 学科子标签
             const tabs = document.querySelectorAll('.subject-tab');
             const panels = document.querySelectorAll('.subject-panel');
             tabs.forEach(tab => {
@@ -681,11 +854,13 @@
                 });
             });
 
+            // 模态框
             window.openModal = function() { document.getElementById('versionModal').classList.add('show'); };
             window.closeModal = function() { document.getElementById('versionModal').classList.remove('show'); };
             window.onclick = function(e) { if (e.target === document.getElementById('versionModal')) closeModal(); };
             document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
 
+            // 滚动阴影
             const navbar = document.getElementById('navbar');
             let ticking = false;
             window.addEventListener('scroll', () => {
@@ -697,6 +872,96 @@
                     ticking = true;
                 }
             });
+
+            // ==================== 留言板功能 ====================
+            async function loadMessages() {
+                const container = document.getElementById('messages-container');
+                if (!container) return;
+                container.innerHTML = '<div class="loading-messages">加载中...</div>';
+
+                const { data, error } = await supabaseClient
+                    .from('messages')
+                    .select('name, content, created_at')
+                    .eq('approved', true)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    container.innerHTML = `<div class="error-message">加载留言失败：${error.message}</div>`;
+                    return;
+                }
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<div class="no-messages">📭 暂无留言，快来写第一条吧！</div>';
+                    return;
+                }
+
+                container.innerHTML = data.map(msg => {
+                    const time = new Date(msg.created_at).toLocaleDateString('zh-CN', {
+                        year: 'numeric', month: '2-digit', day: '2-digit',
+                        hour: '2-digit', minute: '2-digit'
+                    });
+                    return `
+                        <div class="message-card">
+                            <div class="message-header">
+                                <span class="message-author">💬 ${escapeHtml(msg.name)}</span>
+                                <span class="message-time">${time}</span>
+                            </div>
+                            <div class="message-content">${escapeHtml(msg.content)}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            document.getElementById('submit-message').addEventListener('click', async () => {
+                const nameInput = document.getElementById('msg-name');
+                const contentInput = document.getElementById('msg-content');
+                const feedback = document.getElementById('form-feedback');
+                const btn = document.getElementById('submit-message');
+
+                const name = nameInput.value.trim();
+                const content = contentInput.value.trim();
+
+                if (!name || !content) {
+                    feedback.innerHTML = '<div class="error-message">请填写称呼和留言内容。</div>';
+                    return;
+                }
+                if (content.length > 500) {
+                    feedback.innerHTML = '<div class="error-message">留言内容不能超过500字。</div>';
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.textContent = '投递中...';
+                feedback.innerHTML = '';
+
+                const { error } = await supabaseClient
+                    .from('messages')
+                    .insert([{ name, content, approved: false }]);
+
+                if (error) {
+                    feedback.innerHTML = `<div class="error-message">提交失败：${error.message}</div>`;
+                    btn.disabled = false;
+                    btn.textContent = '📨 投递';
+                    return;
+                }
+
+                // 成功
+                nameInput.value = '';
+                contentInput.value = '';
+                feedback.innerHTML = '<div class="success-message">✅ 留言已投递！审核通过后将显示在下方。</div>';
+                btn.disabled = false;
+                btn.textContent = '📨 投递';
+                // 不自动刷新列表，因为新留言未审核
+            });
+
+            // 首次加载留言板时不自动载入，仅当切换到时才加载
+            // 但为了初次激活时也能加载，监听导航切换已包含判断
         })();
     </script>
 </body>
