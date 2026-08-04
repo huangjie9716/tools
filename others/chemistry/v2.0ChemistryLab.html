@@ -1,207 +1,239 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>初中化学实验室 · 九年级全册（人教版）</title>
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/zone1.css">
-<link rel="stylesheet" href="css/zone2.css">
-<link rel="stylesheet" href="css/zone3.css">
-<link rel="stylesheet" href="css/zone4.css">
-<link rel="stylesheet" href="css/zone5.css">
-<link rel="stylesheet" href="css/zone6.css">
-<link rel="stylesheet" href="css/zone7.css">
-<link rel="stylesheet" href="css/zone8.css">
-<link rel="stylesheet" href="css/zone9.css">
-<link rel="stylesheet" href="css/zone10.css">
-<link rel="stylesheet" href="css/zone11.css">
-<link rel="stylesheet" href="css/zone12.css">
-<link rel="stylesheet" href="css/zone13.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>初中化学实验室 · 九年级全册（人教版）</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/zone1.css" />
+    <link rel="stylesheet" href="css/zone2.css" />
+    <link rel="stylesheet" href="css/zone3.css" />
+    <link rel="stylesheet" href="css/zone4.css" />
+    <link rel="stylesheet" href="css/zone5.css" />
+    <link rel="stylesheet" href="css/zone6.css" />
+    <link rel="stylesheet" href="css/zone7.css" />
+    <link rel="stylesheet" href="css/zone8.css" />
+    <link rel="stylesheet" href="css/zone9.css" />
+    <link rel="stylesheet" href="css/zone10.css" />
+    <link rel="stylesheet" href="css/zone11.css" />
+    <link rel="stylesheet" href="css/zone12.css" />
+    <link rel="stylesheet" href="css/zone13.css" />
+    <!-- 内联样式：为“设计制作”署名提供基础样式，无需额外 CSS 文件 -->
+    <style>
+        /* 保证注释与主标题在同一行，且视觉上不喧宾夺主 */
+        .brand-sub {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px 12px;
+        }
+        .brand-sub .credit {
+            font-size: 0.7rem;
+            font-weight: 400;
+            color: #888;
+            letter-spacing: 0.3px;
+            background: rgba(0, 0, 0, 0.04);
+            padding: 2px 10px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        /* 小屏适配：避免换行时过于拥挤 */
+        @media (max-width: 600px) {
+            .brand-sub .credit {
+                font-size: 0.6rem;
+                padding: 1px 8px;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="bg-grid"></div>
+    <div class="bg-grid"></div>
 
-<header class="site-header">
-  <div class="brand-row">
-    <div class="brand">
-      <div class="brand-logo">⚛</div>
-      <div>
-        <div class="brand-title">初中化学实验室</div>
-        <div class="brand-sub">CHEMISTRY LAB · 九年级全册 · 人教版</div>
-      </div>
-    </div>
-    <div class="sem-tabs" id="semTabs">
-      <button class="sem-tab active" data-sem="1">九年级上册</button>
-      <button class="sem-tab" data-sem="2">九年级下册</button>
-    </div>
-  </div>
-  <nav class="top-nav" id="topNav">
-    <button class="nav-pill" data-zone="1" data-sem="1">01 元素的由来</button>
-    <button class="nav-pill" data-zone="2" data-sem="1">02 元素周期表</button>
-    <button class="nav-pill" data-zone="3" data-sem="1">03 化合价与化学式</button>
-    <button class="nav-pill" data-zone="4" data-sem="1">04 空气与氧气</button>
-    <button class="nav-pill" data-zone="5" data-sem="1">05 水</button>
-    <button class="nav-pill" data-zone="6" data-sem="1">06 质量守恒定律</button>
-    <button class="nav-pill" data-zone="7" data-sem="1">07 方程式配平</button>
-    <button class="nav-pill" data-zone="8" data-sem="1">08 碳和碳的氧化物</button>
-    <button class="nav-pill" data-zone="9" data-sem="2" hidden>09 金属和合金</button>
-    <button class="nav-pill" data-zone="10" data-sem="2" hidden>10 溶液与溶解度</button>
-    <button class="nav-pill" data-zone="11" data-sem="2" hidden>11 酸和碱</button>
-    <button class="nav-pill" data-zone="12" data-sem="2" hidden>12 盐和化肥</button>
-    <button class="nav-pill" data-zone="13" data-sem="2" hidden>13 化学与生活</button>
-  </nav>
-</header>
+    <header class="site-header">
+        <div class="brand-row">
+            <div class="brand">
+                <div class="brand-logo">⚛</div>
+                <div>
+                    <div class="brand-title">初中化学实验室</div>
+                    <div class="brand-sub">
+                        <span>CHEMISTRY LAB · 九年级全册 · 人教版</span>
+                        <!-- 在标题右侧添加设计署名 -->
+                        <span class="credit">设计制作：mrfayshenzhen66-bit</span>
+                    </div>
+                </div>
+            </div>
+            <div class="sem-tabs" id="semTabs">
+                <button class="sem-tab active" data-sem="1">九年级上册</button>
+                <button class="sem-tab" data-sem="2">九年级下册</button>
+            </div>
+        </div>
+        <nav class="top-nav" id="topNav">
+            <button class="nav-pill" data-zone="1" data-sem="1">01 元素的由来</button>
+            <button class="nav-pill" data-zone="2" data-sem="1">02 元素周期表</button>
+            <button class="nav-pill" data-zone="3" data-sem="1">03 化合价与化学式</button>
+            <button class="nav-pill" data-zone="4" data-sem="1">04 空气与氧气</button>
+            <button class="nav-pill" data-zone="5" data-sem="1">05 水</button>
+            <button class="nav-pill" data-zone="6" data-sem="1">06 质量守恒定律</button>
+            <button class="nav-pill" data-zone="7" data-sem="1">07 方程式配平</button>
+            <button class="nav-pill" data-zone="8" data-sem="1">08 碳和碳的氧化物</button>
+            <button class="nav-pill" data-zone="9" data-sem="2" hidden>09 金属和合金</button>
+            <button class="nav-pill" data-zone="10" data-sem="2" hidden>10 溶液与溶解度</button>
+            <button class="nav-pill" data-zone="11" data-sem="2" hidden>11 酸和碱</button>
+            <button class="nav-pill" data-zone="12" data-sem="2" hidden>12 盐和化肥</button>
+            <button class="nav-pill" data-zone="13" data-sem="2" hidden>13 化学与生活</button>
+        </nav>
+    </header>
 
-<main id="main">
-  <section class="zone" id="zone1">
-    <div class="zone-head">
-      <span class="zone-badge">ZONE 01</span>
-      <h1>元素是从哪里来的？</h1>
-      <span class="zone-ref">绪言 · 第三单元 物质构成的奥秘</span>
-    </div>
-    <p class="zone-desc"></p>
-    <div class="zone-body" data-zone="1"></div>
-  </section>
+    <main id="main">
+        <!-- 13 个 Zone 区块，结构与原来完全一致 -->
+        <section class="zone" id="zone1">
+            <div class="zone-head">
+                <span class="zone-badge">ZONE 01</span>
+                <h1>元素是从哪里来的？</h1>
+                <span class="zone-ref">绪言 · 第三单元 物质构成的奥秘</span>
+            </div>
+            <p class="zone-desc"></p>
+            <div class="zone-body" data-zone="1"></div>
+        </section>
 
-  <section class="zone" id="zone2">
-    <div class="zone-head">
-      <span class="zone-badge">ZONE 02</span>
-      <h1>元素周期表的规律</h1>
-      <span class="zone-ref">第三单元 课题3 元素</span>
-    </div>
-    <p class="zone-desc"></p>
-    <div class="zone-body" data-zone="2"></div>
-  </section>
+        <section class="zone" id="zone2">
+            <div class="zone-head">
+                <span class="zone-badge">ZONE 02</span>
+                <h1>元素周期表的规律</h1>
+                <span class="zone-ref">第三单元 课题3 元素</span>
+            </div>
+            <p class="zone-desc"></p>
+            <div class="zone-body" data-zone="2"></div>
+        </section>
 
-  <section class="zone" id="zone3">
-    <div class="zone-head">
-      <span class="zone-badge">ZONE 03</span>
-      <h1>化合价与化学式</h1>
-      <span class="zone-ref">第四单元 课题4 化学式与化合价</span>
-    </div>
-    <p class="zone-desc"></p>
-    <div class="zone-body" data-zone="3"></div>
-  </section>
+        <section class="zone" id="zone3">
+            <div class="zone-head">
+                <span class="zone-badge">ZONE 03</span>
+                <h1>化合价与化学式</h1>
+                <span class="zone-ref">第四单元 课题4 化学式与化合价</span>
+            </div>
+            <p class="zone-desc"></p>
+            <div class="zone-body" data-zone="3"></div>
+        </section>
 
-  <section class="zone" id="zone4">
-    <div class="zone-head">
-      <span class="zone-badge">ZONE 04</span>
-      <h1>空气与氧气</h1>
-      <span class="zone-ref">第二单元 我们周围的空气</span>
-    </div>
-    <p class="zone-desc"></p>
-    <div class="zone-body" data-zone="4"></div>
-  </section>
+        <section class="zone" id="zone4">
+            <div class="zone-head">
+                <span class="zone-badge">ZONE 04</span>
+                <h1>空气与氧气</h1>
+                <span class="zone-ref">第二单元 我们周围的空气</span>
+            </div>
+            <p class="zone-desc"></p>
+            <div class="zone-body" data-zone="4"></div>
+        </section>
 
-  <section class="zone" id="zone5">
-    <div class="zone-head">
-      <span class="zone-badge">ZONE 05</span>
-      <h1>水</h1>
-      <span class="zone-ref">第四单元 自然界的水</span>
-    </div>
-    <p class="zone-desc"></p>
-    <div class="zone-body" data-zone="5"></div>
-  </section>
+        <section class="zone" id="zone5">
+            <div class="zone-head">
+                <span class="zone-badge">ZONE 05</span>
+                <h1>水</h1>
+                <span class="zone-ref">第四单元 自然界的水</span>
+            </div>
+            <p class="zone-desc"></p>
+            <div class="zone-body" data-zone="5"></div>
+        </section>
 
-  <section class="zone" id="zone6">
-    <div class="zone-head">
-      <span class="zone-badge">ZONE 06</span>
-      <h1>质量守恒定律</h1>
-      <span class="zone-ref">第五单元 课题1</span>
-    </div>
-    <p class="zone-desc"></p>
-    <div class="zone-body" data-zone="6"></div>
-  </section>
+        <section class="zone" id="zone6">
+            <div class="zone-head">
+                <span class="zone-badge">ZONE 06</span>
+                <h1>质量守恒定律</h1>
+                <span class="zone-ref">第五单元 课题1</span>
+            </div>
+            <p class="zone-desc"></p>
+            <div class="zone-body" data-zone="6"></div>
+        </section>
 
-  <section class="zone" id="zone7">
-    <div class="zone-head">
-      <span class="zone-badge">ZONE 07</span>
-      <h1>化学方程式的配平</h1>
-      <span class="zone-ref">第五单元 课题2</span>
-    </div>
-    <p class="zone-desc"></p>
-    <div class="zone-body" data-zone="7"></div>
-  </section>
+        <section class="zone" id="zone7">
+            <div class="zone-head">
+                <span class="zone-badge">ZONE 07</span>
+                <h1>化学方程式的配平</h1>
+                <span class="zone-ref">第五单元 课题2</span>
+            </div>
+            <p class="zone-desc"></p>
+            <div class="zone-body" data-zone="7"></div>
+        </section>
 
-  <section class="zone" id="zone8">
-    <div class="zone-head">
-      <span class="zone-badge">ZONE 08</span>
-      <h1>碳和碳的氧化物</h1>
-      <span class="zone-ref">第六单元 碳和碳的氧化物</span>
-    </div>
-    <p class="zone-desc"></p>
-    <div class="zone-body" data-zone="8"></div>
-  </section>
+        <section class="zone" id="zone8">
+            <div class="zone-head">
+                <span class="zone-badge">ZONE 08</span>
+                <h1>碳和碳的氧化物</h1>
+                <span class="zone-ref">第六单元 碳和碳的氧化物</span>
+            </div>
+            <p class="zone-desc"></p>
+            <div class="zone-body" data-zone="8"></div>
+        </section>
 
-  <section class="zone" id="zone9">
-    <div class="zone-head">
-      <span class="zone-badge">ZONE 09</span>
-      <h1>金属和合金</h1>
-      <span class="zone-ref">第八单元 金属和金属材料</span>
-    </div>
-    <p class="zone-desc"></p>
-    <div class="zone-body" data-zone="9"></div>
-  </section>
+        <section class="zone" id="zone9">
+            <div class="zone-head">
+                <span class="zone-badge">ZONE 09</span>
+                <h1>金属和合金</h1>
+                <span class="zone-ref">第八单元 金属和金属材料</span>
+            </div>
+            <p class="zone-desc"></p>
+            <div class="zone-body" data-zone="9"></div>
+        </section>
 
-  <section class="zone" id="zone10">
-    <div class="zone-head">
-      <span class="zone-badge">ZONE 10</span>
-      <h1>溶液与溶解度</h1>
-      <span class="zone-ref">第九单元 溶液</span>
-    </div>
-    <p class="zone-desc"></p>
-    <div class="zone-body" data-zone="10"></div>
-  </section>
+        <section class="zone" id="zone10">
+            <div class="zone-head">
+                <span class="zone-badge">ZONE 10</span>
+                <h1>溶液与溶解度</h1>
+                <span class="zone-ref">第九单元 溶液</span>
+            </div>
+            <p class="zone-desc"></p>
+            <div class="zone-body" data-zone="10"></div>
+        </section>
 
-  <section class="zone" id="zone11">
-    <div class="zone-head">
-      <span class="zone-badge">ZONE 11</span>
-      <h1>酸和碱</h1>
-      <span class="zone-ref">第十单元 酸和碱</span>
-    </div>
-    <p class="zone-desc"></p>
-    <div class="zone-body" data-zone="11"></div>
-  </section>
+        <section class="zone" id="zone11">
+            <div class="zone-head">
+                <span class="zone-badge">ZONE 11</span>
+                <h1>酸和碱</h1>
+                <span class="zone-ref">第十单元 酸和碱</span>
+            </div>
+            <p class="zone-desc"></p>
+            <div class="zone-body" data-zone="11"></div>
+        </section>
 
-  <section class="zone" id="zone12">
-    <div class="zone-head">
-      <span class="zone-badge">ZONE 12</span>
-      <h1>盐和化肥</h1>
-      <span class="zone-ref">第十一单元 盐 化肥</span>
-    </div>
-    <p class="zone-desc"></p>
-    <div class="zone-body" data-zone="12"></div>
-  </section>
+        <section class="zone" id="zone12">
+            <div class="zone-head">
+                <span class="zone-badge">ZONE 12</span>
+                <h1>盐和化肥</h1>
+                <span class="zone-ref">第十一单元 盐 化肥</span>
+            </div>
+            <p class="zone-desc"></p>
+            <div class="zone-body" data-zone="12"></div>
+        </section>
 
-  <section class="zone" id="zone13">
-    <div class="zone-head">
-      <span class="zone-badge">ZONE 13</span>
-      <h1>化学与生活</h1>
-      <span class="zone-ref">第十二单元 化学与生活</span>
-    </div>
-    <p class="zone-desc"></p>
-    <div class="zone-body" data-zone="13"></div>
-  </section>
-</main>
+        <section class="zone" id="zone13">
+            <div class="zone-head">
+                <span class="zone-badge">ZONE 13</span>
+                <h1>化学与生活</h1>
+                <span class="zone-ref">第十二单元 化学与生活</span>
+            </div>
+            <p class="zone-desc"></p>
+            <div class="zone-body" data-zone="13"></div>
+        </section>
+    </main>
 
-<footer class="site-footer">
-  初中化学实验室 · 人教版九年级全册 · 现象描述与方程式书写均按教材规范表述
-</footer>
+    <footer class="site-footer">
+        初中化学实验室 · 人教版九年级全册 · 现象描述与方程式书写均按教材规范表述
+    </footer>
 
-<script src="js/main.js"></script>
-<script src="js/zone1.js"></script>
-<script src="js/zone2.js"></script>
-<script src="js/zone3.js"></script>
-<script src="js/zone4.js"></script>
-<script src="js/zone5.js"></script>
-<script src="js/zone6.js"></script>
-<script src="js/zone7.js"></script>
-<script src="js/zone8.js"></script>
-<script src="js/zone9.js"></script>
-<script src="js/zone10.js"></script>
-<script src="js/zone11.js"></script>
-<script src="js/zone12.js"></script>
-<script src="js/zone13.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/zone1.js"></script>
+    <script src="js/zone2.js"></script>
+    <script src="js/zone3.js"></script>
+    <script src="js/zone4.js"></script>
+    <script src="js/zone5.js"></script>
+    <script src="js/zone6.js"></script>
+    <script src="js/zone7.js"></script>
+    <script src="js/zone8.js"></script>
+    <script src="js/zone9.js"></script>
+    <script src="js/zone10.js"></script>
+    <script src="js/zone11.js"></script>
+    <script src="js/zone12.js"></script>
+    <script src="js/zone13.js"></script>
 </body>
 </html>
