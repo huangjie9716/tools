@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>道法研习社 - 初中道法学习平台</title>
+  <meta name="description" content="初中道德与法治学习平台，包含主观题答题技巧、答题模板、知识点梳理、思维导图、练习题、万能句积累本等">
+  <link rel="stylesheet" href="css/style.css?v=v3">
+</head>
+<body>
+
+  <!-- ========== 导航栏 ========== -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="#hero" class="navbar-logo">
+        <span>⚖️</span>
+        <span>道法研习社</span>
+        <span style="font-size:0.7rem; opacity:0.6; margin-left:8px;">设计制作：Eric-trip   </span>
+      </a>
+      <button class="theme-toggle" aria-label="切换主题" title="切换明暗模式">🌙</button>
+      <button class="navbar-toggle" aria-label="菜单">☰</button>
+      <ul class="navbar-menu">
+        <li><a href="#hero" class="active">首页</a></li>
+        <li><a href="#techniques">答题技巧</a></li>
+        <li><a href="#templates">答题模板</a></li>
+        <li><a href="#knowledge">知识梳理</a></li>
+        <li><a href="#mindmap">思维导图</a></li>
+        <li><a href="#exam">高频考点</a></li>
+        <li><a href="#exercise">练习专区</a></li>
+        <li><a href="#sentences">万能句本</a></li>
+        <li><a href="#affairs">时政热点</a></li>
+        <li><a href="#tips">学习贴士</a></li>
+        <li><a href="#checkin">进度打卡</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <!-- ========== Hero ========== -->
+    <section id="hero" class="section">
+      <div class="hero">
+        <div class="hero-content">
+          <h1>⚖️ 道法研习社</h1>
+          <p>系统化道法学习平台 · 掌握答题技巧 · 突破主观题瓶颈</p>
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <div class="num">6</div>
+              <div class="label">大答题技巧</div>
+            </div>
+            <div class="hero-stat">
+              <div class="num">5</div>
+              <div class="label">大题型模板</div>
+            </div>
+            <div class="hero-stat">
+              <div class="num">4</div>
+              <div class="label">单元知识梳理</div>
+            </div>
+            <div class="hero-stat">
+              <div class="num">18</div>
+              <div class="label">道模拟练习</div>
+            </div>
+            <div class="hero-stat">
+              <div class="num">66+</div>
+              <div class="label">万能金句</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 答题技巧 ========== -->
+    <section id="techniques" class="section">
+      <div class="section-title">
+        <span class="icon">🎯</span>
+        <span>主观题六大答题技巧</span>
+      </div>
+      <p class="section-desc">点击标题展开/收起，掌握这些套路，主观题不再丢分</p>
+      <div class="accordion" id="techniques-accordion"></div>
+    </section>
+
+    <!-- ========== 答题模板 ========== -->
+    <section id="templates" class="section">
+      <div class="section-title">
+        <span class="icon">📋</span>
+        <span>五大题型答题模板</span>
+      </div>
+      <p class="section-desc">认识理解类、原因意义类、做法建议类、辨析评价类、启示感悟类 —— 填空式答题，考试直接套</p>
+      <div class="template-grid" id="templates-container"></div>
+    </section>
+
+    <!-- ========== 知识点梳理 ========== -->
+    <section id="knowledge" class="section">
+      <div class="section-title">
+        <span class="icon">📚</span>
+        <span>七年级下册知识梳理</span>
+      </div>
+      <p class="section-desc">按单元整理核心知识点，考前复习一目了然</p>
+      <div class="knowledge-units" id="knowledge-container"></div>
+          </div>
+          <div class="knowledge-content" data-content="7A" style="display:none;">
+          <div class="knowledge-units" id="knowledge-units-7a"></div>
+          </div>
+
+    </section>
+
+    <!-- ========== 思维导图 ========== -->
+    <section id="mindmap" class="section">
+      <div class="section-title">
+        <span class="icon">🧩</span>
+        <span>思维导图</span>
+      </div>
+      <p class="section-desc">用结构化方式串联知识点，帮助记忆和理解</p>
+      <div class="mindmap-grid" id="mindmap-container"></div>
+    </section>
+
+    <!-- ========== 高频考点 ========== -->
+    <section id="exam" class="section">
+      <div class="section-title">
+        <span class="icon">⭐</span>
+        <span>高频考点与易错辨析</span>
+      </div>
+      <p class="section-desc">考前必看，避开常见陷阱</p>
+      <div class="exam-tabs">
+        <button class="exam-tab active" data-target="高频考点">高频考点</button>
+        <button class="exam-tab" data-target="易错辨析">易错辨析</button>
+      </div>
+      <div class="exam-list" data-category="高频考点" id="exam-high">
+        <ol style="padding-left: 0; list-style: none;"></ol>
+      </div>
+      <div class="exam-list" data-category="易错辨析" id="exam-wrong" style="display: none;">
+        <ol style="padding-left: 0; list-style: none;"></ol>
+      </div>
+    </section>
+
+    <!-- ========== 练习专区 ========== -->
+    <section id="exercise" class="section">
+      <div class="section-title">
+        <span class="icon">✏️</span>
+        <span>练习专区</span>
+      </div>
+      <p class="section-desc">先自己作答，再对比参考答案，找出差距。每道题标注了题型，方便针对性练习。</p>
+      <div class="exercise-filters">
+        <button class="exercise-filter active" data-unit="all">全部(40)</button>
+        <button class="exercise-filter" data-unit="favorites">⭐收藏</button>
+        <button class="exercise-filter" data-unit="第一单元">全部 (18)</button>
+        <button class="exercise-filter" data-unit="第一单元">第一单元 (5)</button>
+        <button class="exercise-filter" data-unit="第二单元">第二单元 (5)</button>
+        <button class="exercise-filter" data-unit="第三单元">第三单元 (4)</button>
+        <button class="exercise-filter" data-unit="第四单元">第四单元 (4)</button>
+      </div>
+      <div class="exercise-list" id="exercise-container"></div>
+    </section>
+
+    <!-- ========== 万能句积累本 ========== -->
+    <section id="sentences" class="section">
+      <div class="section-title">
+        <span class="icon">💡</span>
+        <span>万能句积累本</span>
+      </div>
+      <p class="section-desc">已预填66+条万能金句，按题型分类。点击可删除，也可自己添加。数据保存在本地浏览器中。</p>
+      <div class="sentence-input-area">
+        <select class="sentence-select" id="sentence-category">
+          <option value="意义类">意义类</option>
+          <option value="做法类">做法类</option>
+          <option value="认识类">认识类</option>
+          <option value="法律类">法律类</option>
+          <option value="辨析类">辨析类</option>
+          <option value="启示类">启示类</option>
+        </select>
+        <input type="text" class="sentence-input" id="sentence-input" placeholder="输入你想积累的万能句...">
+        <button class="btn btn-primary" id="btn-add-sentence">添加</button>
+        <button class="btn btn-secondary" id="btn-reset-sentences">重置默认</button>
+      </div>
+      <div class="sentence-groups" id="sentence-groups"></div>
+    </section>
+
+    <!-- ========== 时政热点 ========== -->
+    <section id="affairs" class="section">
+      <div class="section-title">
+        <span class="icon">🌐</span>
+        <span>时政热点关联解读</span>
+      </div>
+      <p class="section-desc">将时政热点与教材知识关联，考试遇到不怕没话说</p>
+      <div class="affairs-grid" id="affairs-container"></div>
+    </section>
+
+    <!-- ========== 学习贴士 ========== -->
+    <section id="tips" class="section">
+      <div class="section-title">
+        <span class="icon">🌱</span>
+        <span>学习方法贴士</span>
+      </div>
+      <p class="section-desc">高效学习方法 + 时间管理技巧，让学习事半功倍</p>
+      <div class="tips-grid" id="tips-container"></div>
+    </section>
+
+    <!-- ========== 进度打卡 ========== -->
+    <section id="checkin" class="section">
+      <div class="section-title">
+        <span class="icon">📅</span>
+        <span>学习进度打卡</span>
+      </div>
+      <p class="section-desc">每天记录学了什么，坚持打卡，见证成长。数据保存在本地浏览器中。</p>
+      <div class="checkin-area">
+        <div class="checkin-form">
+          <input type="text" class="checkin-input" id="checkin-input" placeholder="今天学了什么？比如：复习了第一单元，做了2道练习题...">
+          <button class="btn btn-primary" id="btn-checkin">打卡</button>
+        </div>
+        <div class="checkin-stats">
+          <div class="checkin-stat">
+            <div class="num" id="checkin-total">0</div>
+            <div class="label">累计打卡</div>
+          </div>
+          <div class="checkin-stat">
+            <div class="num" id="checkin-streak">0</div>
+            <div class="label">连续打卡（天）</div>
+          </div>
+          <div class="checkin-stat">
+            <div class="num" id="checkin-week">0</div>
+            <div class="label">本周打卡</div>
+          </div>
+        </div>
+        <div class="checkin-list" id="checkin-list">
+          <div class="checkin-empty">还没有打卡记录，开始你的第一次打卡吧！💪</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ========== 页脚 ========== -->
+  <footer>
+    <p>⚖️ 道法研习社 · 陪你一起突破道法主观题</p>
+    <p>提示：万能句和打卡数据保存在本地浏览器中，清除浏览器数据会丢失，请注意备份。</p>
+  </footer>
+
+  <script src="js/data.js?v=v3"></script>
+  <script src="js/app.js?v=v3"></script>
+  <script>
+    // ========== 渲染答题技巧 ==========
+    (function renderTechniques() {
+      const container = document.getElementById("techniques-accordion");
+      if (!container) return;
+      container.innerHTML = techniques.map(t => `
+        <div class="accordion-item">
+          <div class="accordion-header">
+            <span class="acc-icon">${t.icon}</span>
+            <span class="acc-title">${t.title}</span>
+            <span class="acc-summary">${t.summary}</span>
+            <span class="acc-arrow">▼</span>
+          </div>
+          <div class="accordion-body">
+            <div class="accordion-inner">
+              <ul>
+                ${t.points.map(p => `<li>${p}</li>`).join("")}
+              </ul>
+              <div class="accordion-example"><strong>📝 示例：</strong>\n${t.example}</div>
+            </div>
+          </div>
+        </div>
+      `).join("");
+      // 重新绑定手风琴事件
+      document.querySelectorAll(".accordion-header").forEach(header => {
+        header.addEventListener("click", function () {
+          this.parentElement.classList.toggle("open");
+        });
+      });
+    })();
+
+    // ========== 渲染答题模板 ==========
+    (function renderTemplates() {
+      const container = document.getElementById("templates-container");
+      if (!container) return;
+      container.innerHTML = answerTemplates.map(t => `
+        <div class="template-card">
+          <div class="template-header">
+            <span class="template-icon">${t.icon}</span>
+            <div>
+              <h4 class="template-type">${t.type}</h4>
+              <p class="template-trigger">题型关键词：${t.trigger}</p>
+            </div>
+          </div>
+          <div class="template-framework">
+            <span class="template-label">答题框架：</span>
+            <span class="template-framework-text">${t.framework}</span>
+          </div>
+          <div class="template-steps">
+            ${t.steps.map((s, i) => `<div class="template-step">${s}</div>`).join("")}
+          </div>
+          <div class="template-block">
+            <div class="template-label">📋 填空模板：</div>
+            <div class="template-text">${t.template}</div>
+          </div>
+          <div class="template-block template-example-block">
+            <div class="template-label">📝 范例：</div>
+            <div class="template-text">${t.example}</div>
+          </div>
+        </div>
+      `).join("");
+    })();
+
+    // ========== 渲染知识点梳理 ==========
+    (function renderKnowledge() {
+      const container = document.getElementById("knowledge-container");
+      if (!container) return;
+      container.innerHTML = knowledgePoints.map(unit => `
+        <div class="knowledge-unit">
+          <h3>${unit.unit}</h3>
+          <div class="knowledge-chapters">
+            ${unit.chapters.map(ch => `
+              <div class="knowledge-chapter">
+                <h4>${ch.name}</h4>
+                <ul>
+                  ${ch.points.map(p => `<li>${p}</li>`).join("")}
+                </ul>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `).join("");
+    })();
+
+    // ========== 渲染思维导图 ==========
+    (function renderMindMaps() {
+      const container = document.getElementById("mindmap-container");
+      if (!container) return;
+      container.innerHTML = mindMaps.map(map => `
+        <div class="mindmap-card">
+          <h4>${map.title}</h4>
+          <div style="text-align: center;">
+            <div class="mindmap-root">${map.root}</div>
+          </div>
+          <div class="mindmap-branches">
+            ${map.branches.map(b => `
+              <div class="mindmap-branch">
+                <div class="mindmap-branch-name">${b.name}</div>
+                <div class="mindmap-branch-children">
+                  ${b.children.map(c => `<span class="mindmap-child">${c}</span>`).join("")}
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `).join("");
+    })();
+
+    // ========== 渲染高频考点 ==========
+    (function renderExamPoints() {
+      const highList = document.querySelector("#exam-high ol");
+      const wrongList = document.querySelector("#exam-wrong ol");
+      if (!highList || !wrongList) return;
+
+      const highItems = examPoints.find(e => e.category === "高频考点");
+      const wrongItems = examPoints.find(e => e.category === "易错辨析");
+
+      if (highItems) {
+        highList.innerHTML = highItems.items.map((item, i) => `
+          <div class="exam-item">
+            <span class="num">${i + 1}</span>
+            <span>${item}</span>
+          </div>
+        `).join("");
+      }
+
+      if (wrongItems) {
+        wrongList.innerHTML = wrongItems.items.map((item, i) => `
+          <div class="exam-item wrong">
+            <span class="num">${i + 1}</span>
+            <span>${item}</span>
+          </div>
+        `).join("");
+      }
+    })();
+
+    
+    // ========== 渲染七年级上册知识点 ==========
+    (function renderKnowledge7A() {
+      var container = document.getElementById("knowledge-units-7a");
+      if (!container || typeof knowledgePoints7A === "undefined") return;
+      container.innerHTML = knowledgePoints7A.map(function(unit) {
+        return '<div class="knowledge-unit" style="border-left-color:' + unit.color + ';">' +
+          '<h3 class="knowledge-unit-title">' + unit.unit + '</h3>' +
+          unit.chapters.map(function(ch) {
+            return '<div class="knowledge-chapter"><h4 class="knowledge-chapter-title">' +
+              ch.name + '</h4><ul class="knowledge-points">' +
+              ch.points.map(function(p) { return '<li>' + p + '</li>'; }).join("") +
+              '</ul></div>';
+          }).join("") +
+          '</div>';
+      }).join("");
+    })();
+
+    // ========== 渲染练习题 ==========
+    (function renderExercises() {
+      const container = document.getElementById("exercise-container");
+      if (!container) return;
+      container.innerHTML = exercises.map(ex => {
+        const diffClass = ex.difficulty === "较难" ? "difficulty-hard" : "difficulty-medium";
+        return `
+        <div class="exercise-card" data-unit="${ex.unit}" data-id="${ex.id}">
+          <div class="exercise-meta">
+            <span class="exercise-tag unit">${ex.unit}</span>
+            <span class="exercise-tag ${diffClass}">${ex.difficulty}</span>
+            <span class="exercise-tag type-tag">${ex.type}</span>
+            <button class="btn-favorite" data-id="${ex.id}" title="收藏">☆</button>
+          </div>
+          <div class="exercise-question">${ex.question}</div>
+          <textarea class="exercise-input" data-id="${ex.id}" placeholder="在这里输入你的答案...&#10;&#10;💡 提示：这是一道【${ex.type}】，先判断题型，再套用对应答题框架，分点作答，结合材料。"></textarea>
+          <div class="exercise-actions">
+            <button class="btn btn-primary btn-toggle-answer">查看参考答案</button>
+            <button class="btn btn-secondary btn-clear-input">清空作答</button>
+          </div>
+          <div class="exercise-answer">
+            <div class="exercise-answer-label">✅ 参考答案</div>
+            <div class="exercise-answer-text">${ex.answer}</div>
+            <div class="exercise-scoring" data-id="${ex.id}">
+              <span class="scoring-label">自评打分：</span>
+              <span class="star" data-score="1">★</span>
+              <span class="star" data-score="2">★</span>
+              <span class="star" data-score="3">★</span>
+              <span class="star" data-score="4">★</span>
+              <span class="star" data-score="5">★</span>
+            </div>
+          </div>
+        </div>
+        `;
+      }).join("");
+
+      // 绑定按钮事件
+      // 事件绑定由 app.js 统一处理，此处不重复绑定
+    })();
+
+    // ========== 渲染时政热点 ==========
+    (function renderAffairs() {
+      const container = document.getElementById("affairs-container");
+      if (!container) return;
+      container.innerHTML = currentAffairs.map(a => `
+        <div class="affair-card">
+          <div class="affair-date">${a.date}</div>
+          <h3 class="affair-title">${a.title}</h3>
+          <p class="affair-summary">${a.summary}</p>
+          <ul class="affair-connections" style="list-style: none; padding: 0;">
+            ${a.connection.map(c => `<li>${c}</li>`).join("")}
+          </ul>
+        </div>
+      `).join("");
+    })();
+
+    // ========== 渲染学习贴士 ==========
+    (function renderTips() {
+      const container = document.getElementById("tips-container");
+      if (!container) return;
+      container.innerHTML = studyTips.map(t => `
+        <div class="tip-card">
+          <div class="tip-icon">${t.icon}</div>
+          <h4 class="tip-title">${t.title}</h4>
+          <p class="tip-content">${t.content}</p>
+        </div>
+      `).join("");
+    })();
+  </script>
+<button class="back-to-top" aria-label="返回顶部">↑</button>
+</body>
+</html>
