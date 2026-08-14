@@ -235,16 +235,26 @@
             background: #ffffff;
             border-radius: 16px;
             width: 100%;
-            max-width: 900px;
+            max-width: 1000px;
             padding: 28px;
             box-shadow: 0 30px 70px rgba(0, 0, 0, 0.25);
             animation: fadeUp 0.25s ease;
+        }
+        /* 习题弹窗全屏 */
+        .modal-content.exercise-fullscreen {
+            max-width: 98vw;
+            width: 98vw;
+            height: 94vh;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
         }
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            flex-shrink: 0;
         }
         .modal-header h3 {
             font-size: 22px;
@@ -283,45 +293,76 @@
             border: 0;
         }
 
-        .sim-wrapper {
-            min-height: 460px;
-            border-radius: 10px;
-            border:1px solid #e2e8f0;
-            overflow:hidden;
-        }
-        .sim-wrapper iframe {
-            width:100%;
-            height:460px;
-            border:0;
-        }
-
+        /* ====================== 习题弹窗样式 ====================== */
         .exercise-body {
-            max-height: 60vh;
+            flex: 1;
             overflow-y: auto;
             padding: 4px;
             font-size:17px;
         }
-        .answer-block {
-            margin-top: 20px;
+        .question-item {
+            background: #f9fafc;
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e8edf4;
+        }
+        .question-text {
+            font-weight: 500;
+            margin-bottom: 12px;
+            line-height: 1.8;
+        }
+        .question-images {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin: 12px 0;
+        }
+        .question-images img {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 1px solid #dce3ec;
+        }
+        .answer-section {
+            margin-top: 14px;
+            border-top: 1px dashed #d0d9e6;
+            padding-top: 14px;
             display: none;
         }
-        .answer-block.show {
-            display:block;
+        .answer-section.show {
+            display: block;
         }
-        .answer-block img {
-            max-width:100%;
-            border-radius:8px;
-            border:1px solid #e2e8f0;
+        .answer-section .answer-content {
+            background: #f0f4fe;
+            padding: 14px 18px;
+            border-radius: 8px;
+            border-left: 4px solid #2576D9;
+            color: #1e2a3a;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .answer-section img {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 1px solid #dce3ec;
+            display: block;
+            margin: 10px auto 0;
         }
         .toggle-answer-btn {
-            margin-top:18px;
-            padding:12px 24px;
-            border-radius:8px;
-            border:none;
-            background:#2576D9;
-            color:white;
-            cursor:pointer;
-            font-size:16px;
+            margin-top: 10px;
+            padding: 8px 20px;
+            border-radius: 6px;
+            border: none;
+            background: #2576D9;
+            color: white;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background 0.2s;
+        }
+        .toggle-answer-btn:hover {
+            background: #1a5fa8;
         }
 
         /* ====================== 空状态内部样式 ====================== */
@@ -361,6 +402,12 @@
             }
             .experiment-grid.empty-state-mode {
                 min-height: calc(100vh - 200px);
+            }
+            .modal-content.exercise-fullscreen {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+                padding: 16px;
             }
         }
         @media (max-width: 480px) {
@@ -416,636 +463,340 @@
         </div>
     </div>
 
-    <!-- ====================== 模拟软件弹窗 ====================== -->
-    <div class="modal" id="simModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="simModalTitle">🖥️ 实验模拟软件</h3>
-                <button class="modal-close" id="simModalClose">&times;</button>
-            </div>
-            <div class="sim-wrapper">
-                <iframe id="simIframe" src=""></iframe>
-            </div>
-        </div>
-    </div>
-
-    <!-- ====================== 习题弹窗 ====================== -->
+    <!-- ====================== 习题弹窗（全屏） ====================== -->
     <div class="modal" id="exerciseModal">
-        <div class="modal-content">
+        <div class="modal-content exercise-fullscreen">
             <div class="modal-header">
                 <h3 id="exerciseModalTitle">📝 习题资源</h3>
                 <button class="modal-close" id="exerciseModalClose">&times;</button>
             </div>
             <div class="exercise-body" id="exerciseContent">
-                习题内容加载区域
-            </div>
-            <button class="toggle-answer-btn" id="toggleAnswerBtn">显示答案</button>
-            <div class="answer-block" id="answerBox">
-                <img id="answerImg" src="" alt="参考答案">
+                习题加载中...
             </div>
         </div>
     </div>
 
-<script>
-    // ================================================================
-    // 1. 数据定义（包含全部三册）
-    // ================================================================
+    <!-- ====================== 加载外部资源 JS ====================== -->
+    <script src="cover.js"></script>
+    <script src="video.js"></script>
+    <script src="simulate.js"></script>
+    <script src="question.js"></script>
 
-    const bookData = [
-        {
-            id: 'grade8a',
-            name: '八年级上册',
-            chapters: [
-                { id: 'intro', name: '绪论', experiments: ['重新沸腾的水', '转动的线圈', '用放大镜观察物体', '向下吹乒乓球'] },
-                { id: 'ch1', name: '第一章・机械运动', experiments: ['测量小车运动的速度'] },
-                { id: 'ch2', name: '第二章・声现象', experiments: ['研究声音的传播', '钢尺振动', '观察声音的波形', '乒乓球被音叉弹起', '水瓶琴', '鸟哨', '跨学科实践：制作隔音房间模型'] },
-                { id: 'ch3', name: '第三章・物态变化', experiments: ['研究固体熔化时温度的变化规律', '塑料袋内的酒精', '探究水在沸腾前后温度变化的特点', '烧开水用的小纸锅', '电冰箱的工作原理', '观察碘的物态变化', '观察干冰的升华', '霜的形成实验', '跨学科实践：厨房中的物态变化问题'] },
-                { id: 'ch4', name: '第四章・光现象', experiments: ['光沿直线传播', '小孔成像', '甘肃敦煌的熔盐塔式光热电站', '探究光的反射定律', '探究平面镜成像的特点', '研究光的折射现象', '观察光的色散'] },
-                { id: 'ch5', name: '第五章・透镜及其应用', experiments: ['两种透镜对光的作用', '自制照相机模型', '观察投影仪的成像', '探究凸透镜成像的规律', '跨学科实践：制作望远镜'] },
-                { id: 'ch6', name: '第六章・质量与密度', experiments: ['用托盘天平测量物体的质量', '探究物质的质量与体积的关系', '测量盐水的密度', '测量小石块的密度'] }
-            ]
-        },
-        {
-            id: 'grade8b',
-            name: '八年级下册',
-            chapters: [
-                { id: 'ch7', name: '第七章・力', experiments: ['用弹簧测力计测量力', '探究重力的大小跟质量的关系'] },
-                { id: 'ch8', name: '第八章・运动和力', experiments: ['阻力对物体运动的影响', '探究二力平衡的条件', '探究滑动摩擦力的大小与哪些因素有关', '研究同一直线上二力的合成'] },
-                { id: 'ch9', name: '第九章・压强', experiments: ['压力和受力面积对海绵形变的影响', '观察液体压强的特点', '探究液体压强与哪些因素有关', '三峡船闸', '大气压的测量', '马德堡半球实验', '跨学科实践：制作简易活塞式抽水机', '用传感器研究气体压强与流速的关系'] },
-                { id: 'ch10', name: '第十章・浮力', experiments: ['观察浮力产生的原因', '测量浸没在水中的铝块所受的浮力', '探究浮力的大小与哪些因素有关', '探究浮力的大小与排开液体所受重力的关系', '潜水艇的工作原理', '跨学科实践：制作微型密度计'] },
-                { id: 'ch11', name: '第十一章・功和机械能', experiments: ['研究物体的动能跟哪些因素有关', '动能和势能的转化', '魔瓶实验'] },
-                { id: 'ch12', name: '第十二章・简单机械', experiments: ['探究杠杆的平衡条件', '跨学科实践：制作简易杆秤', '研究定滑轮和动滑轮的特点', '测量滑轮组的机械效率'] }
-            ]
-        },
-        {
-            id: 'grade9',
-            name: '九年级全一册',
-            chapters: [
-                // 第十三章：移除“能量的转化与守恒”
-                { id: 'ch13', name: '第十三章・内能', experiments: ['比较不同物质吸收热量的情况', '气体扩散实验', '墨水扩散快慢与温度的关系', '铅柱间的作用力', '做功改变空气的内能'] },
-                // 第十四章：在首位插入“能量的转化与守恒”
-                { id: 'ch14', name: '第十四章・内能的利用', experiments: ['能量的转化与守恒', '加热试管中的水', '热机工作原理', '跨学科实践：制作简易热机模型'] },
-                { id: 'ch15', name: '第十五章・电流和电路', experiments: ['电荷间的相互作用', '验电器', '摩擦起电的原因', '连接串联电路和并联电路', '用电流表测量电流', '探究串联电路中各处电流的关系', '探究并联电路中干路电流与各支路电流的关系'] },
-                { id: 'ch16', name: '第十六章・电压 电阻', experiments: ['电压的概念', '用电压表测量电压', '探究串联电路中用电器两端电压与电源两端电压的关系', '探究并联电路中各支路用电器两端电压与电源两端电压的关系', '用铅笔芯连接电路', '影响导体电阻大小的因素', '超导体和半导体', '练习使用滑动变阻器', '跨学科实践：制作简易调光台灯'] },
-                { id: 'ch17', name: '第十七章・欧姆定律', experiments: ['探究电阻一定时电流与电压的关系', '探究电压一定时电流与电阻的关系', '用电流表和电压表测量电阻'] },
-                { id: 'ch18', name: '第十八章・电功率', experiments: ['小灯泡的电功率随电压变化', '跨学科实践：为家庭节约用电提建议', '焦耳定律实验'] },
-                { id: 'ch19', name: '第十九章・生活用电', experiments: ['家庭电路中电流过大的原因', '安全用电', '家庭电路的基本组成', '试电笔的使用', '跨学科实践：为家庭电路做设计'] },
-                { id: 'ch20', name: '第二十章・电与磁', experiments: ['研究磁体周围磁场的方向', '电流的磁效应', '探究通电螺线管外部磁场的方向', '安培定则', '制作简易的电磁起重机', '电磁继电器', '通电导体棒在磁场中运动', '电动机工作原理', '扬声器的工作原理', '跨学科实践：制作简易直流电动机', '探究导体在磁场中运动时产生感应电流的条件', '发电机工作原理', '麦克风工作原理'] },
-                { id: 'ch21', name: '第二十一章・电磁波及其应用', experiments: ['电磁波及其应用'] },
-                { id: 'ch22', name: '第二十二章・能源与可持续发展', experiments: ['能源的分类', '核裂变与核聚变'] }
-            ]
-        }
-    ];
+    <!-- ====================== 主逻辑 ====================== -->
+    <script>
+        // ================================================================
+        // 1. 数据定义（书册与章节）
+        // ================================================================
 
-    // ================================================================
-    // 2. 全部视频链接（按顺序：1~116）
-    // ================================================================
-
-    // 前64个（八年级上册+下册）
-    const videoListPart1 = [
-        'https://www.bilibili.com/video/BV1A1PSz6EVB/?spm_id_from=333.1391.0.0&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1eb411i71x/?spm_id_from=333.1391.0.0&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1wywmeKEfm/?spm_id_from=333.1391.0.0&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1VZ4y1c7HY/?spm_id_from=333.1391.0.0&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1yNPueKEiP/?spm_id_from=333.1391.0.0',
-        'https://www.bilibili.com/video/BV15541117oo/?spm_id_from=333.1391.0.0&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1CT4y177Je/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV15ZkcYGEnf/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1yM41127Mr/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV16e411p7xk/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1z8411s7rN/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1zb4GedEHD/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1z1kcYJE1P/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Y54y1r7DW/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV16CkcYDEtV/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1mQo5BAESn/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1764y1P7Hi/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Q3o8B1Epf/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Kk4y117V9/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1RHnRzEEoW?spm_id_from=333.788.videopod.sections&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1ShSUYSEAf/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Ma4y1i7MK/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1uS9DB8EB9/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1QoRaYxE1R/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1ri4y177Wv/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Wa4y1i75K/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Jk4y1k7gZ/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1AU4y177PX/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1J3FAeAEzp/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1h64y1z7QX/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1jL411H7Q1/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1ro4y1f7pA/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1jWVC6XE2F/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1sq4y1w7RD/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV163YkzDEfL/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1CzkcYWEFo/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1CzkcYWEFo/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27', // 37
-        'https://www.bilibili.com/video/BV1iYwZeWEb1/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1jk4y1k7R6/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1udPMeGEhL/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1KFPuezEUH/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Bi98BUEKm/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1YEdTBUEUj/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1TfPMegEq5/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1NgMd6pEwN/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Ax4y1D7FH/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1wf4y1G7ci/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1eX4y1F7P7/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV17G4y1g7Fn/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1qxVC6HEAX/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1BVAyeXEt8/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1cb4y1C7rG/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1KP411U7BS/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1BGAyeWE5N/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1PnACeFEpS/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1bp421m7g5/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1GYVC62Eyj/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1mV411H7ZX/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1nydrBfE9b/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1dHWheYEdA/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1ca4y1i77e/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1avVC6LEh3/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1YgLF68EGJ/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1nk4y1k7rj/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27'
-    ];
-
-    // 后52个（九年级，从65到116）
-    const videoListPart2 = [
-        'https://www.bilibili.com/video/BV11YowBoE2J/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Dt4y1y7j9/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1uA411t7YU/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1nJoHBuEDC/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1ZC4y1F7KE/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27', // 65-69 对应第十三章前5个
-        'https://www.bilibili.com/video/BV1Jx411L7BC/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV16h411Z7L1/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1VM4m1y7NH/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1bu9jBfEcf/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27', // 70-73 对应第十四章（能量的转化与守恒、加热试管中的水、热机工作原理、跨学科实践：制作简易热机模型）
-        // 注意：这里第70个对应“能量的转化与守恒”，71“加热试管中的水”，72“热机工作原理”，73“跨学科实践：制作简易热机模型”
-        'https://www.bilibili.com/video/BV1Jp4y1C7bz/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1kp4y117kP/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1KU4y1H74L/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1BY9TBHE16/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1HTDYBsEUD/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1nvDsBwExH/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1U1DzBQEqt/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27', // 74-80 对应第十五章（7个）
-        'https://www.bilibili.com/video/BV1ponPzpExj/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1UpDfBuEAT/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1ScQFBVEjU/?spm_id_from=333.337.search-card.all.click',
-        'https://www.bilibili.com/video/BV1bcQFBVEXR/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1RQgzzjEGV/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1pod4BsEZC/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1xo4ez4Ehq/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1RQgzzjESL/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV14uQiBCEZH/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1icG16pEco/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1vcG16pEyc/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1M7G16kE4W/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27', // 81-93? 实际上第81开始对应第十六章（9个）82-90？需要核对数量
-        // 第十六章共9个，所以第81~89应该是第十六章，但我们需要准确计数。
-        // 为了简化，我们按顺序排列，下面的链接数量正好是52个，我们直接全放进去。
-        // 但是为了确保顺序，我们按用户提供的顺序原样放置，从65到116共52个。
-        // 用户提供的列表从65开始一直到116，我们直接全部放入，顺序即实验顺序。
-        // 但注意，用户提供的列表中，第65-69对应第十三章5个，70-73对应第十四章4个，74-80对应第十五章7个，81-89对应第十六章9个，90-92对应第十七章3个，93-95对应第十八章3个，96-100对应第十九章5个，101-113对应第二十章13个，114对应第二十一章1个，115-116对应第二十二章2个。
-        // 我们已经将上面的列表按顺序列出，但为了避免遗漏，直接使用用户提供的完整列表（从65到116）即可。
-        // 不过由于用户提供的文本中，65-69是第十三章，70-73第十四章，74-80第十五章，81-89第十六章，90-92第十七章，93-95第十八章，96-100第十九章，101-113第二十章，114第二十一章，115-116第二十二章。
-        // 所以我们将这些链接按顺序放入一个数组。
-        // 但为了代码清晰，我们不再逐个列出，而是直接使用用户提供的完整列表（从65到116），但我们之前已经列出了一部分，现在补全剩余的。
-        // 由于用户提供的所有链接都在文件中，我们只需复制所有链接即可。这里为了节省篇幅，我们直接在代码中定义完整的116个链接数组，但为了清晰，我们使用concat合并。
-    ];
-
-    // 注意：由于part2列表太长，我们直接在上面的数组中列出所有52个链接。但为了简化，我们可以直接定义一个包含全部116个链接的数组，使用两个数组concat。
-    // 实际上，我们已经定义了part1和part2，但part2目前只写了前几个，我们需要补全剩下的。为了确保完整，我将在最终代码中直接写一个完整的116个链接的数组（从1到116），这样更安全。
-
-    // 但是因为代码篇幅限制，我可以利用上面的part1和part2合并，但part2需要完整。既然用户提供了完整的，我可以直接复制全部，但那是文本，不是代码。最好的办法是在代码中定义两个数组：part1和part2，并确保part2包含全部52个。我将手动补全part2。
-
-    // 由于part2是52个链接，我可以直接复制用户提供的所有链接（从65到116）组成数组。为了避免遗漏，我将在代码中完整列出。
-
-    // 下面重新定义完整链接数组（全部116个）
-    const allVideoUrls = [
-        // 1-64 (八年级上册+下册) 使用之前已经列出的part1
-        'https://www.bilibili.com/video/BV1A1PSz6EVB/?spm_id_from=333.1391.0.0&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1eb411i71x/?spm_id_from=333.1391.0.0&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1wywmeKEfm/?spm_id_from=333.1391.0.0&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1VZ4y1c7HY/?spm_id_from=333.1391.0.0&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1yNPueKEiP/?spm_id_from=333.1391.0.0',
-        'https://www.bilibili.com/video/BV15541117oo/?spm_id_from=333.1391.0.0&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1CT4y177Je/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV15ZkcYGEnf/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1yM41127Mr/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV16e411p7xk/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1z8411s7rN/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1zb4GedEHD/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1z1kcYJE1P/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Y54y1r7DW/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV16CkcYDEtV/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1mQo5BAESn/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1764y1P7Hi/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Q3o8B1Epf/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Kk4y117V9/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1RHnRzEEoW?spm_id_from=333.788.videopod.sections&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1ShSUYSEAf/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Ma4y1i7MK/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1uS9DB8EB9/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1QoRaYxE1R/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1ri4y177Wv/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Wa4y1i75K/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Jk4y1k7gZ/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1AU4y177PX/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1J3FAeAEzp/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1h64y1z7QX/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1jL411H7Q1/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1ro4y1f7pA/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1jWVC6XE2F/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1sq4y1w7RD/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV163YkzDEfL/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1CzkcYWEFo/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1CzkcYWEFo/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1iYwZeWEb1/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1jk4y1k7R6/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1udPMeGEhL/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1KFPuezEUH/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Bi98BUEKm/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1YEdTBUEUj/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1TfPMegEq5/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1NgMd6pEwN/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Ax4y1D7FH/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1wf4y1G7ci/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1eX4y1F7P7/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV17G4y1g7Fn/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1qxVC6HEAX/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1BVAyeXEt8/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1cb4y1C7rG/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1KP411U7BS/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1BGAyeWE5N/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1PnACeFEpS/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1bp421m7g5/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1GYVC62Eyj/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1mV411H7ZX/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1nydrBfE9b/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1dHWheYEdA/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1ca4y1i77e/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1avVC6LEh3/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1YgLF68EGJ/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1nk4y1k7rj/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        // 65-116 九年级全一册
-        'https://www.bilibili.com/video/BV11YowBoE2J/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Dt4y1y7j9/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1uA411t7YU/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1nJoHBuEDC/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1ZC4y1F7KE/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Jx411L7BC/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV16h411Z7L1/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1VM4m1y7NH/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1bu9jBfEcf/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Jp4y1C7bz/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1kp4y117kP/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1KU4y1H74L/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1BY9TBHE16/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1HTDYBsEUD/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1nvDsBwExH/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1U1DzBQEqt/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1ponPzpExj/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1UpDfBuEAT/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1ScQFBVEjU/?spm_id_from=333.337.search-card.all.click',
-        'https://www.bilibili.com/video/BV1bcQFBVEXR/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1RQgzzjEGV/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1pod4BsEZC/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1xo4ez4Ehq/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1RQgzzjESL/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV14uQiBCEZH/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1icG16pEco/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1vcG16pEyc/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1M7G16kE4W/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1QML86VEoB/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1M94y1n7pH/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1BZndePEx5/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV11w4m1d7Hy/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV14x4y1S7Yy/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Hj421Z72v/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1ci42127EN/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1nPVA65E7u/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV15rGC67Eph/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1fEZPY8Exr/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV15rGC67EdC/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1934y1f7v2/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Ut411d7nn/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV16w4m1f7Rv/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1jw411F7EX/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV182rUYcEqM/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1YC4y1U77Z/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1b1Vw64EYu/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1EYGC6XE7S/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1EaGC6WEzD/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1GwGRz9EC7/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1CZUmBfEvz/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1Ng4y1m7BY/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
-        'https://www.bilibili.com/video/BV1ktj46dEdN/?spm_id_from=333.337.search-card.all.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27'
-    ];
-
-    // ================================================================
-    // 3. 构建视频链接映射（按实验顺序）
-    // ================================================================
-
-    function getAllExperimentNames() {
-        const names = [];
-        for (const book of bookData) {
-            for (const ch of book.chapters) {
-                for (const exp of ch.experiments) {
-                    names.push(exp);
-                }
+        const bookData = [
+            {
+                id: 'grade8a',
+                name: '八年级上册',
+                chapters: [
+                    { id: 'intro', name: '绪论', experiments: ['重新沸腾的水', '转动的线圈', '用放大镜观察物体', '向下吹乒乓球'] },
+                    { id: 'ch1', name: '第一章・机械运动', experiments: ['测量小车运动的速度'] },
+                    { id: 'ch2', name: '第二章・声现象', experiments: ['研究声音的传播', '钢尺振动', '观察声音的波形', '乒乓球被音叉弹起', '水瓶琴', '鸟哨', '跨学科实践：制作隔音房间模型'] },
+                    { id: 'ch3', name: '第三章・物态变化', experiments: ['研究固体熔化时温度的变化规律', '塑料袋内的酒精', '探究水在沸腾前后温度变化的特点', '烧开水用的小纸锅', '电冰箱的工作原理', '观察碘的物态变化', '观察干冰的升华', '霜的形成实验', '跨学科实践：厨房中的物态变化问题'] },
+                    { id: 'ch4', name: '第四章・光现象', experiments: ['光沿直线传播', '小孔成像', '甘肃敦煌的熔盐塔式光热电站', '探究光的反射定律', '探究平面镜成像的特点', '研究光的折射现象', '观察光的色散'] },
+                    { id: 'ch5', name: '第五章・透镜及其应用', experiments: ['两种透镜对光的作用', '自制照相机模型', '观察投影仪的成像', '探究凸透镜成像的规律', '跨学科实践：制作望远镜'] },
+                    { id: 'ch6', name: '第六章・质量与密度', experiments: ['用托盘天平测量物体的质量', '探究物质的质量与体积的关系', '测量盐水的密度', '测量小石块的密度'] }
+                ]
+            },
+            {
+                id: 'grade8b',
+                name: '八年级下册',
+                chapters: [
+                    { id: 'ch7', name: '第七章・力', experiments: ['用弹簧测力计测量力', '探究重力的大小跟质量的关系'] },
+                    { id: 'ch8', name: '第八章・运动和力', experiments: ['阻力对物体运动的影响', '探究二力平衡的条件', '探究滑动摩擦力的大小与哪些因素有关', '研究同一直线上二力的合成'] },
+                    { id: 'ch9', name: '第九章・压强', experiments: ['压力和受力面积对海绵形变的影响', '观察液体压强的特点', '探究液体压强与哪些因素有关', '三峡船闸', '大气压的测量', '马德堡半球实验', '跨学科实践：制作简易活塞式抽水机', '用传感器研究气体压强与流速的关系'] },
+                    { id: 'ch10', name: '第十章・浮力', experiments: ['观察浮力产生的原因', '测量浸没在水中的铝块所受的浮力', '探究浮力的大小与哪些因素有关', '探究浮力的大小与排开液体所受重力的关系', '潜水艇的工作原理', '跨学科实践：制作微型密度计'] },
+                    { id: 'ch11', name: '第十一章・功和机械能', experiments: ['研究物体的动能跟哪些因素有关', '动能和势能的转化', '魔瓶实验'] },
+                    { id: 'ch12', name: '第十二章・简单机械', experiments: ['探究杠杆的平衡条件', '跨学科实践：制作简易杆秤', '研究定滑轮和动滑轮的特点', '测量滑轮组的机械效率'] }
+                ]
+            },
+            {
+                id: 'grade9',
+                name: '九年级全一册',
+                chapters: [
+                    { id: 'ch13', name: '第十三章・内能', experiments: ['比较不同物质吸收热量的情况', '气体扩散实验', '墨水扩散快慢与温度的关系', '铅柱间的作用力', '做功改变空气的内能'] },
+                    { id: 'ch14', name: '第十四章・内能的利用', experiments: ['能量的转化与守恒', '加热试管中的水', '热机工作原理', '跨学科实践：制作简易热机模型'] },
+                    { id: 'ch15', name: '第十五章・电流和电路', experiments: ['电荷间的相互作用', '验电器', '摩擦起电的原因', '连接串联电路和并联电路', '用电流表测量电流', '探究串联电路中各处电流的关系', '探究并联电路中干路电流与各支路电流的关系'] },
+                    { id: 'ch16', name: '第十六章・电压 电阻', experiments: ['电压的概念', '用电压表测量电压', '探究串联电路中用电器两端电压与电源两端电压的关系', '探究并联电路中各支路用电器两端电压与电源两端电压的关系', '用铅笔芯连接电路', '影响导体电阻大小的因素', '超导体和半导体', '练习使用滑动变阻器', '跨学科实践：制作简易调光台灯'] },
+                    { id: 'ch17', name: '第十七章・欧姆定律', experiments: ['探究电阻一定时电流与电压的关系', '探究电压一定时电流与电阻的关系', '用电流表和电压表测量电阻'] },
+                    { id: 'ch18', name: '第十八章・电功率', experiments: ['小灯泡的电功率随电压变化', '跨学科实践：为家庭节约用电提建议', '焦耳定律实验'] },
+                    { id: 'ch19', name: '第十九章・生活用电', experiments: ['家庭电路中电流过大的原因', '安全用电', '家庭电路的基本组成', '试电笔的使用', '跨学科实践：为家庭电路做设计'] },
+                    { id: 'ch20', name: '第二十章・电与磁', experiments: ['研究磁体周围磁场的方向', '电流的磁效应', '探究通电螺线管外部磁场的方向', '安培定则', '制作简易的电磁起重机', '电磁继电器', '通电导体棒在磁场中运动', '电动机工作原理', '扬声器的工作原理', '跨学科实践：制作简易直流电动机', '探究导体在磁场中运动时产生感应电流的条件', '发电机工作原理', '麦克风工作原理'] },
+                    { id: 'ch21', name: '第二十一章・电磁波及其应用', experiments: ['电磁波及其应用'] },
+                    { id: 'ch22', name: '第二十二章・能源与可持续发展', experiments: ['能源的分类', '核裂变与核聚变'] }
+                ]
             }
-        }
-        return names;
-    }
+        ];
 
-    const allExpNames = getAllExperimentNames(); // 长度应为116
-    const videoLinks = {};
-    for (let i = 0; i < allExpNames.length; i++) {
-        const url = allVideoUrls[i];
-        if (url) {
-            const match = url.match(/BV[a-zA-Z0-9]+/);
-            if (match) {
-                const bvid = match[0];
-                videoLinks[allExpNames[i]] = `https://player.bilibili.com/player.html?bvid=${bvid}&autoplay=1`;
-            } else {
-                videoLinks[allExpNames[i]] = url;
-            }
-        }
-    }
+        // ================================================================
+        // 2. 引用外部资源（全局变量）
+        // ================================================================
 
-    // ================================================================
-    // 4. 模拟软件、习题、封面映射
-    // ================================================================
+        // ================================================================
+        // 3. DOM 引用 & 状态
+        // ================================================================
 
-    const simLinks = {};
-    const exerciseData = {};
+        const bookBtnBox = document.getElementById('bookBtnBox');
+        const chapterBtnBox = document.getElementById('chapterBtnBox');
+        const container = document.getElementById('experimentContainer');
 
-    // 封面图片自动生成（1~116）
-    function buildCoverImages() {
-        const coverImages = {};
-        let index = 1;
-        const baseUrl = 'https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/experiment/';
-        for (const book of bookData) {
-            for (const chapter of book.chapters) {
-                for (const exp of chapter.experiments) {
-                    coverImages[exp] = baseUrl + index + '.webp';
-                    index++;
-                }
-            }
-        }
-        return coverImages;
-    }
-    const coverImages = buildCoverImages();
+        const videoModal = document.getElementById('videoModal');
+        const videoIframe = document.getElementById('videoIframe');
+        const videoModalTitle = document.getElementById('videoModalTitle');
+        const videoModalClose = document.getElementById('videoModalClose');
 
-    // ================================================================
-    // 5. DOM 引用 & 状态
-    // ================================================================
+        const exerciseModal = document.getElementById('exerciseModal');
+        const exerciseModalTitle = document.getElementById('exerciseModalTitle');
+        const exerciseModalClose = document.getElementById('exerciseModalClose');
+        const exerciseContent = document.getElementById('exerciseContent');
 
-    const bookBtnBox = document.getElementById('bookBtnBox');
-    const chapterBtnBox = document.getElementById('chapterBtnBox');
-    const container = document.getElementById('experimentContainer');
+        let selectedBookId = null;
+        let selectedChapterId = null;
 
-    const videoModal = document.getElementById('videoModal');
-    const videoIframe = document.getElementById('videoIframe');
-    const videoModalTitle = document.getElementById('videoModalTitle');
-    const videoModalClose = document.getElementById('videoModalClose');
+        // ================================================================
+        // 4. 渲染函数
+        // ================================================================
 
-    const simModal = document.getElementById('simModal');
-    const simIframe = document.getElementById('simIframe');
-    const simModalTitle = document.getElementById('simModalTitle');
-    const simModalClose = document.getElementById('simModalClose');
-
-    const exerciseModal = document.getElementById('exerciseModal');
-    const exerciseModalTitle = document.getElementById('exerciseModalTitle');
-    const exerciseModalClose = document.getElementById('exerciseModalClose');
-    const exerciseContent = document.getElementById('exerciseContent');
-    const answerBox = document.getElementById('answerBox');
-    const answerImg = document.getElementById('answerImg');
-    const toggleAnswerBtn = document.getElementById('toggleAnswerBtn');
-
-    let selectedBookId = null;
-    let selectedChapterId = null;
-
-    // ================================================================
-    // 6. 渲染函数
-    // ================================================================
-
-    function renderBookButtons() {
-        bookBtnBox.innerHTML = '';
-        bookData.forEach(book => {
-            const btn = document.createElement('button');
-            btn.className = 'select-btn';
-            if(selectedBookId === book.id) btn.classList.add('active');
-            btn.textContent = book.name;
-            btn.dataset.bookid = book.id;
-            btn.addEventListener('click',()=>{
-                if(selectedBookId === book.id){
-                    selectedBookId = null;
-                    selectedChapterId = null;
-                }else{
-                    selectedBookId = book.id;
-                    selectedChapterId = null;
-                }
-                renderBookButtons();
-                renderChapterButtons();
-                renderExperiments();
+        function renderBookButtons() {
+            bookBtnBox.innerHTML = '';
+            bookData.forEach(book => {
+                const btn = document.createElement('button');
+                btn.className = 'select-btn';
+                if(selectedBookId === book.id) btn.classList.add('active');
+                btn.textContent = book.name;
+                btn.dataset.bookid = book.id;
+                btn.addEventListener('click',()=>{
+                    if(selectedBookId === book.id){
+                        selectedBookId = null;
+                        selectedChapterId = null;
+                    }else{
+                        selectedBookId = book.id;
+                        selectedChapterId = null;
+                    }
+                    renderBookButtons();
+                    renderChapterButtons();
+                    renderExperiments();
+                })
+                bookBtnBox.appendChild(btn);
             })
-            bookBtnBox.appendChild(btn);
-        })
-    }
-
-    function renderChapterButtons() {
-        chapterBtnBox.innerHTML = '';
-        if(!selectedBookId) return;
-        const book = bookData.find(b => b.id === selectedBookId);
-        book.chapters.forEach(ch=>{
-            const btn = document.createElement('button');
-            btn.className = 'select-btn';
-            if(selectedChapterId === ch.id) btn.classList.add('active');
-            btn.textContent = ch.name;
-            btn.dataset.chapid = ch.id;
-            btn.addEventListener('click',()=>{
-                if(selectedChapterId === ch.id){
-                    selectedChapterId = null;
-                }else{
-                    selectedChapterId = ch.id;
-                }
-                renderChapterButtons();
-                renderExperiments();
-            })
-            chapterBtnBox.appendChild(btn);
-        })
-    }
-
-    function renderExperiments() {
-        if(!selectedBookId || !selectedChapterId){
-            container.className = 'experiment-grid empty-state-mode';
-            container.innerHTML = `
-                <div class="empty-state">
-                    <span class="icon">🔍</span>
-                    请先选择【书册】与【章节】，查看对应实验
-                </div>
-            `;
-            return;
         }
 
-        container.className = 'experiment-grid';
-        const book = bookData.find(b => b.id === selectedBookId);
-        const chapter = book.chapters.find(ch => ch.id === selectedChapterId);
-        const experiments = chapter.experiments;
+        function renderChapterButtons() {
+            chapterBtnBox.innerHTML = '';
+            if(!selectedBookId) return;
+            const book = bookData.find(b => b.id === selectedBookId);
+            book.chapters.forEach(ch=>{
+                const btn = document.createElement('button');
+                btn.className = 'select-btn';
+                if(selectedChapterId === ch.id) btn.classList.add('active');
+                btn.textContent = ch.name;
+                btn.dataset.chapid = ch.id;
+                btn.addEventListener('click',()=>{
+                    if(selectedChapterId === ch.id){
+                        selectedChapterId = null;
+                    }else{
+                        selectedChapterId = ch.id;
+                    }
+                    renderChapterButtons();
+                    renderExperiments();
+                })
+                chapterBtnBox.appendChild(btn);
+            })
+        }
 
-        let html = '';
-        experiments.forEach(expName => {
-            const hasVideo = !!videoLinks[expName];
-            const hasSim = !!simLinks[expName];
-            const hasExercise = !!exerciseData[expName];
-            const coverUrl = coverImages[expName] || '';
-
-            let coverHtml = '';
-            if(coverUrl){
-                coverHtml = `<div class="exp-cover"><img src="${coverUrl}" alt="${expName}" loading="lazy"></div>`;
-            }else{
-                coverHtml = `<div class="exp-cover">📷 实验封面待上传</div>`;
+        function renderExperiments() {
+            if(!selectedBookId || !selectedChapterId){
+                container.className = 'experiment-grid empty-state-mode';
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="icon">🔍</span>
+                        请先选择【书册】与【章节】，查看对应实验
+                    </div>
+                `;
+                return;
             }
 
-            html += `
-                <div class="experiment-card">
-                    ${coverHtml}
-                    <div class="exp-card-body">
-                        <div class="experiment-name">${expName}</div>
-                        <div class="btn-group">
-                            <button class="btn btn-video" data-exp="${expName}" ${!hasVideo ? 'disabled' : ''}>
-                                🎬 视频资源
-                            </button>
-                            <button class="btn btn-sim" data-exp="${expName}" ${!hasSim ? 'disabled' : ''}>
-                                🖥️ 模拟软件
-                            </button>
-                            <button class="btn btn-exercise" data-exp="${expName}" ${!hasExercise ? 'disabled' : ''}>
-                                📝 习题资源
-                            </button>
+            container.className = 'experiment-grid';
+            const book = bookData.find(b => b.id === selectedBookId);
+            const chapter = book.chapters.find(ch => ch.id === selectedChapterId);
+            const experiments = chapter.experiments;
+
+            const coverImages = window.coverImages || {};
+            const videoLinks = window.videoLinks || {};
+            const simLinks = window.simLinks || {};
+            const exerciseData = window.exerciseData || {};
+
+            let html = '';
+            experiments.forEach(expName => {
+                const hasVideo = !!videoLinks[expName];
+                const hasSim = !!simLinks[expName];
+                const hasExercise = !!exerciseData[expName];
+                const coverUrl = coverImages[expName] || '';
+
+                let coverHtml = '';
+                if(coverUrl){
+                    coverHtml = `<div class="exp-cover"><img src="${coverUrl}" alt="${expName}" loading="lazy"></div>`;
+                }else{
+                    coverHtml = `<div class="exp-cover">📷 实验封面待上传</div>`;
+                }
+
+                html += `
+                    <div class="experiment-card">
+                        ${coverHtml}
+                        <div class="exp-card-body">
+                            <div class="experiment-name">${expName}</div>
+                            <div class="btn-group">
+                                <button class="btn btn-video" data-exp="${expName}" ${!hasVideo ? 'disabled' : ''}>
+                                    🎬 视频资源
+                                </button>
+                                <button class="btn btn-sim" data-exp="${expName}" ${!hasSim ? 'disabled' : ''}>
+                                    🖥️ 模拟软件
+                                </button>
+                                <button class="btn btn-exercise" data-exp="${expName}" ${!hasExercise ? 'disabled' : ''}>
+                                    📝 习题资源
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
-        });
-        container.innerHTML = html;
+                `;
+            });
+            container.innerHTML = html;
 
-        // 绑定事件
-        container.querySelectorAll('.btn-video:not([disabled])').forEach(btn=>{
-            btn.onclick = ()=>{
-                const name = btn.dataset.exp;
-                openVideoModal(name, videoLinks[name]);
-            }
-        })
-        container.querySelectorAll('.btn-sim:not([disabled])').forEach(btn=>{
-            btn.onclick = ()=>{
-                const name = btn.dataset.exp;
-                openSimModal(name, simLinks[name]);
-            }
-        })
-        container.querySelectorAll('.btn-exercise:not([disabled])').forEach(btn=>{
-            btn.onclick = ()=>{
-                const name = btn.dataset.exp;
-                openExerciseModal(name);
-            }
-        })
-        container.querySelectorAll('.btn[disabled]').forEach(btn=>{
-            btn.onclick = ()=>{
-                alert(`【${btn.dataset.exp}】该资源暂未上传，敬请期待！`)
-            }
-        })
-    }
-
-    // ================================================================
-    // 7. 弹窗控制
-    // ================================================================
-
-    function openVideoModal(title,url){
-        videoModalTitle.textContent = `🎬 ${title}`;
-        videoIframe.src = url;
-        videoModal.classList.add('active');
-        document.body.style.overflow='hidden';
-    }
-    function closeVideoModal(){
-        videoModal.classList.remove('active');
-        videoIframe.src = '';
-        document.body.style.overflow='';
-    }
-
-    function openSimModal(title,url){
-        simModalTitle.textContent = `🖥️ ${title}`;
-        simIframe.src = url;
-        simModal.classList.add('active');
-        document.body.style.overflow='hidden';
-    }
-    function closeSimModal(){
-        simModal.classList.remove('active');
-        simIframe.src = '';
-        document.body.style.overflow='';
-    }
-
-    function openExerciseModal(expName){
-        exerciseModalTitle.textContent = `📝 ${expName} 习题`;
-        const data = exerciseData[expName];
-        if(data){
-            exerciseContent.innerHTML = data.question;
-            answerImg.src = data.answerImg;
-        }else{
-            exerciseContent.innerHTML = '<p style="color:#666;">习题正在录入中...</p>';
+            // 绑定事件
+            container.querySelectorAll('.btn-video:not([disabled])').forEach(btn=>{
+                btn.onclick = ()=>{
+                    const name = btn.dataset.exp;
+                    openVideoModal(name, videoLinks[name]);
+                }
+            })
+            container.querySelectorAll('.btn-sim:not([disabled])').forEach(btn=>{
+                btn.onclick = ()=>{
+                    const name = btn.dataset.exp;
+                    const url = simLinks[name];
+                    if(url){
+                        // 新窗口打开
+                        window.open(url, '_blank');
+                    }
+                }
+            })
+            container.querySelectorAll('.btn-exercise:not([disabled])').forEach(btn=>{
+                btn.onclick = ()=>{
+                    const name = btn.dataset.exp;
+                    openExerciseModal(name);
+                }
+            })
+            container.querySelectorAll('.btn[disabled]').forEach(btn=>{
+                btn.onclick = ()=>{
+                    alert(`【${btn.dataset.exp}】该资源暂未上传，敬请期待！`)
+                }
+            })
         }
-        answerBox.classList.remove('show');
-        toggleAnswerBtn.textContent = "显示答案";
-        exerciseModal.classList.add('active');
-        document.body.style.overflow='hidden';
-    }
-    function closeExerciseModal(){
-        exerciseModal.classList.remove('active');
-        document.body.style.overflow='';
-    }
 
-    toggleAnswerBtn.addEventListener('click',()=>{
-        if(answerBox.classList.contains('show')){
-            answerBox.classList.remove('show');
-            toggleAnswerBtn.textContent = "显示答案";
-        }else{
-            answerBox.classList.add('show');
-            toggleAnswerBtn.textContent = "隐藏答案";
+        // ================================================================
+        // 5. 弹窗控制
+        // ================================================================
+
+        function openVideoModal(title,url){
+            videoModalTitle.textContent = `🎬 ${title}`;
+            videoIframe.src = url;
+            videoModal.classList.add('active');
+            document.body.style.overflow='hidden';
         }
-    })
+        function closeVideoModal(){
+            videoModal.classList.remove('active');
+            videoIframe.src = '';
+            document.body.style.overflow='';
+        }
 
-    videoModalClose.onclick = closeVideoModal;
-    simModalClose.onclick = closeSimModal;
-    exerciseModalClose.onclick = closeExerciseModal;
+        function openExerciseModal(expName){
+            exerciseModalTitle.textContent = `📝 ${expName} 习题`;
+            const data = window.exerciseData && window.exerciseData[expName];
+            if(data && data.questions && data.questions.length > 0){
+                let html = '';
+                data.questions.forEach((q, index) => {
+                    html += `<div class="question-item">`;
+                    html += `<div class="question-text"><strong>第${index+1}题.</strong> ${q.questionText}</div>`;
+                    if(q.questionImages && q.questionImages.length > 0){
+                        html += `<div class="question-images">`;
+                        q.questionImages.forEach(img => {
+                            html += `<img src="${img}" alt="题目图片" loading="lazy">`;
+                        });
+                        html += `</div>`;
+                    }
+                    html += `<button class="toggle-answer-btn" data-qidx="${index}">查看答案和解析</button>`;
+                    html += `<div class="answer-section" id="answerSection_${index}">`;
+                    if(q.answerText){
+                        html += `<div class="answer-content">${q.answerText}</div>`;
+                    } else if(q.answerImg) {
+                        html += `<img src="${q.answerImg}" alt="答案图片" loading="lazy">`;
+                    } else {
+                        html += `<p style="color:#999;">暂无答案和解析</p>`;
+                    }
+                    html += `</div>`;
+                    html += `</div>`;
+                });
+                exerciseContent.innerHTML = html;
 
-    document.querySelectorAll('.modal').forEach(modal=>{
-        modal.addEventListener('click',e=>{
-            if(e.target === modal){
-                modal.classList.remove('active');
-                const iframe = modal.querySelector('iframe');
-                if(iframe) iframe.src='';
-                document.body.style.overflow='';
+                // 绑定每个题目的答案切换按钮
+                exerciseContent.querySelectorAll('.toggle-answer-btn').forEach(btn => {
+                    btn.addEventListener('click', function(){
+                        const idx = this.dataset.qidx;
+                        const section = document.getElementById(`answerSection_${idx}`);
+                        if(section.classList.contains('show')){
+                            section.classList.remove('show');
+                            this.textContent = '查看答案和解析';
+                        }else{
+                            section.classList.add('show');
+                            this.textContent = '隐藏答案和解析';
+                        }
+                    });
+                });
+            }else{
+                exerciseContent.innerHTML = '<p style="color:#666;">该实验暂无习题资源</p>';
+            }
+            exerciseModal.classList.add('active');
+            document.body.style.overflow='hidden';
+        }
+        function closeExerciseModal(){
+            exerciseModal.classList.remove('active');
+            document.body.style.overflow='';
+        }
+
+        videoModalClose.onclick = closeVideoModal;
+        exerciseModalClose.onclick = closeExerciseModal;
+
+        document.querySelectorAll('.modal').forEach(modal=>{
+            modal.addEventListener('click',e=>{
+                if(e.target === modal){
+                    modal.classList.remove('active');
+                    const iframe = modal.querySelector('iframe');
+                    if(iframe) iframe.src='';
+                    document.body.style.overflow='';
+                }
+            })
+        })
+
+        document.addEventListener('keydown',e=>{
+            if(e.key === 'Escape'){
+                closeVideoModal();
+                closeExerciseModal();
             }
         })
-    })
 
-    document.addEventListener('keydown',e=>{
-        if(e.key === 'Escape'){
-            closeVideoModal();
-            closeSimModal();
-            closeExerciseModal();
+        // ================================================================
+        // 6. 初始化
+        // ================================================================
+
+        function init(){
+            renderBookButtons();
+            renderChapterButtons();
+            renderExperiments();
         }
-    })
-
-    // ================================================================
-    // 8. 初始化
-    // ================================================================
-
-    function init(){
-        renderBookButtons();
-        renderChapterButtons();
-        renderExperiments();
-    }
-    init();
-</script>
-
+        init();
+    </script>
 </body>
 </html>
