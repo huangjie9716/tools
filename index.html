@@ -1,291 +1,355 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>中学教师数字工具箱</title>
-    <!-- 引入 Supabase CDN，用于留言板功能 
-      ==================== 设计思路说明 ====================
-         * 1. 布局：顶部导航栏左大标题 + 右信息条；
-         *    主区域左侧导航(六个分类) + 右侧内容卡片。 
-         * 2. 左侧导航选中无背景，仅靠左侧指示条与底部横线区分，
-         *    各类别独立色彩：物理橙、其他学科紫、公开课青、班级管理蓝、成绩分析绿、留言板橙。
-         * 3. 右侧面板标题下划线颜色与左侧导航对应类别颜色一致。
-         * 4. 卡片、按钮、动效等保持商务教育简约风格。
-         * 5. 顶部更新时间改为手动输入，不再自动获取。
-        =================================================== -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
     <style>
-        /* ==================== 全局设计变量 ==================== */
+        /* ============================================================
+           设计系统：教育工具 · 克制 · 专业 · 支持暗色
+           ============================================================ */
         :root {
-            /* 主色调：教育蓝 */
-            --primary: #165DFF;
-            --primary-dark: #0E45D0;
-            --primary-light: #E8F0FF;
-            --primary-gradient: linear-gradient(135deg, #165DFF 0%, #1A56E8 50%, #0E45D0 100%);
-            --primary-gradient-hover: linear-gradient(135deg, #1A56E8 0%, #0E45D0 50%, #0B38B0 100%);
+            /* 主色 —— 沉稳藏青 */
+            --primary: #1e3a8a;
+            --primary-hover: #1d4ed8;
+            --primary-light: #eff6ff;
+            --primary-border: #bfdbfe;
 
-            /* 六个分类独立指示色 */
-            --color-physics: #C8814A;   /* 物理教学 - 暖橙 */
-            --color-others: #8B5CF6;   /* 其他学科教学 - 紫罗兰 */
-            --color-public: #14B8A6;   /* 公开课 - 浅青 */
-            --color-class: #0EA5E9;    /* 班级管理 - 天蓝 */
-            --color-analysis: #4A9E6B;  /* 成绩分析系统 - 浅绿 */
-            --color-message: #E67E22;  /* 留言板 - 温馨橙 */
+            /* 六分类指示色（降低饱和度） */
+            --color-physics: #d97706;
+            --color-others: #7c3aed;
+            --color-public: #0d9488;
+            --color-class: #0284c7;
+            --color-analysis: #059669;
+            --color-message: #d97706;
 
-            /* 文本与背景 */
-            --text-main: #1E293B;
-            --text-secondary: #5B6E8C;
-            --text-muted: #94A3B8;
-            --bg: #F5F7FB;
-            --card-bg: #FFFFFF;
-            --card-bg-gradient: linear-gradient(180deg, #FFFFFF 0%, #FAFBFD 100%);
-            --border: #E5E9F2;
-            --border-light: #EEF1F7;
+            /* 中性色 */
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --text-main: #111827;
+            --text-secondary: #4b5563;
+            --text-muted: #9ca3af;
 
-            /* 阴影层次 */
-            --shadow-xs: 0 1px 4px rgba(22, 93, 255, 0.03);
-            --shadow-sm: 0 2px 10px rgba(22, 93, 255, 0.04);
-            --shadow-md: 0 4px 16px rgba(22, 93, 255, 0.06);
-            --shadow-hover: 0 8px 28px rgba(22, 93, 255, 0.10);
-            --shadow-lg: 0 16px 40px rgba(22, 93, 255, 0.12);
+            /* 表单/留言板 */
+            --form-bg: #fefcf5;
+            --form-border: #f0e6d3;
+            --input-bg: #ffffff;
+
+            /* 阴影 (仅hover使用) */
+            --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.05);
 
             /* 圆角 */
-            --radius-xl: 20px;
-            --radius-lg: 16px;
-            --radius-md: 12px;
-            --radius-pill: 50px;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 10px;
 
-            /* 过渡动画 */
-            --transition-fast: 0.18s ease;
-            --transition-normal: 0.25s ease;
-            --transition-slow: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            /* 过渡 */
+            --ease: 0.15s ease;
 
             /* 侧边栏宽度 */
-            --sidebar-width: 260px;
+            --sidebar-width: 224px;
+
+            /* Hero背景 */
+            --hero-bg: #f0f5ff;
         }
 
-        /* ==================== 全局重置 ==================== */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        /* ===== 暗色主题变量 ===== */
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-light: rgba(255, 255, 255, 0.06);
+
+            --text-main: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --primary-light: rgba(59, 130, 246, 0.15);
+            --primary-border: rgba(59, 130, 246, 0.3);
+
+            --color-physics: #f59e0b;
+            --color-others: #a78bfa;
+            --color-public: #2dd4bf;
+            --color-class: #38bdf8;
+            --color-analysis: #34d399;
+            --color-message: #f59e0b;
+
+            --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+            --form-bg: #271c19;
+            --form-border: #7c2d12;
+            --input-bg: #0f172a;
+
+            --hero-bg: #0f172a;
+        }
+
+        /* ============================================================
+           重置 & 全局
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
-            font-family: "Inter", "Microsoft YaHei", "苹方", "PingFang SC", "Helvetica Neue", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
             background-color: var(--bg);
             color: var(--text-main);
-            line-height: 1.5;
+            line-height: 1.6;
             -webkit-font-smoothing: antialiased;
             min-height: 100vh;
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
-        a { text-decoration: none; color: inherit; }
 
-        /* ==================== 关键帧动画 ==================== */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(16px); }
-            to   { opacity: 1; transform: translateY(0); }
+        a {
+            text-decoration: none;
+            color: inherit;
         }
+
+        /* ============================================================
+           关键帧 —— 仅保留必要淡入
+           ============================================================ */
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to   { opacity: 1; }
-        }
-        @keyframes underlineExpandSidebar {
-            from { transform: scaleX(0); }
-            to   { transform: scaleX(1); }
-        }
-        @keyframes underlineExpand {
-            from { width: 0; }
-            to   { width: 100%; }
-        }
-        @keyframes modalIn {
-            from { opacity: 0; transform: scale(0.92) translateY(24px); }
-            to   { opacity: 1; transform: scale(1) translateY(0); }
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
-        /* ==================== 顶部导航栏 ==================== */
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* ============================================================
+           顶部导航栏
+           ============================================================ */
         .navbar {
-            background: rgba(255, 255, 255, 0.94);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            box-shadow: 0 1px 6px rgba(22, 93, 255, 0.04);
-            padding: 0.9rem 2.5rem;
-            position: sticky;
-            top: 0;
-            z-index: 900;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0.7rem 2rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1rem;
-            transition: box-shadow var(--transition-normal), background var(--transition-normal);
-        }
-        .navbar.scrolled {
-            box-shadow: 0 3px 16px rgba(22, 93, 255, 0.08);
-            background: rgba(255, 255, 255, 0.98);
-        }
-        .navbar-logo {
-            font-family: "Segoe UI", "Microsoft YaHei", "苹方", "PingFang SC", sans-serif;
-            font-size: 2.6rem;
-            font-weight: 700;
-            color: #1A3C8C;
-            letter-spacing: 3px;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        .navbar-meta {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 0.5rem 1rem;
-        }
-        .update-badge,
-        .contact-badge {
-            background: #EEF2FB;
-            padding: 0.25rem 1rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: #3B56C8;
-            white-space: nowrap;
-        }
-        .contact-badge { background: #F0F2F8; color: #4A5568; }
-        /* 访问计数器 badge */
-        .visit-count-badge {
-        background: #EEF2FB;
-        padding: 0.25rem 1rem;
-        border-radius: 20px;
-        font-size: 0.6rem;
-        font-weight: 500;
-        color: #3B56C8;
-        white-space: nowrap;
-        display: flex;
-        align-items: baseline;
-        gap: 0.3rem;
-}
-.visit-number {
-    font-family: "Segoe UI", "Microsoft YaHei", "苹方", "PingFang SC", sans-serif;
-    font-size: 2.0rem;          /* 与主标题大小一致 */
-    font-weight: 700;
-    color: #1A3C8C;
-    line-height: 1;
-}
-        /* ==================== Hero 引导区 ==================== */
-        .hero {
-            background: linear-gradient(160deg, #EEF3FC 0%, #E3EBF8 40%, #EDF1F9 100%);
-            text-align: center;
-            padding: 2.2rem 1.5rem 2rem;
-            position: relative;
-            overflow: hidden;
-            animation: fadeIn 0.6s ease forwards;
-        }
-        .hero::before {
-            content: "";
-            position: absolute;
-            top: -18%;
-            right: -6%;
-            width: 280px;
-            height: 280px;
-            background: radial-gradient(circle, rgba(22, 93, 255, 0.06) 0%, transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-        .hero::after {
-            content: "";
-            position: absolute;
-            bottom: -22%;
-            left: -9%;
-            width: 250px;
-            height: 250px;
-            background: radial-gradient(circle, rgba(22, 93, 255, 0.04) 0%, transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-        .hero-pattern {
-            position: absolute;
+            flex-wrap: nowrap;
+            gap: 0.3rem 0.8rem;
+            position: sticky;
             top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: radial-gradient(rgba(22, 93, 255, 0.07) 1px, transparent 1px);
-            background-size: 22px 22px;
-            pointer-events: none;
-        }
-        .hero h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.4rem;
-            position: relative;
-            z-index: 1;
-        }
-        .hero p {
-            font-size: 1rem;
-            opacity: 0.85;
-            max-width: 620px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
-            color: #3D4F6B;
+            z-index: 900;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
         }
 
-        /* ==================== 主内容区：左侧导航 + 右侧内容 ==================== */
+        .navbar-logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1A3C8C;
+            /* 暗色下自动继承 text-main 或单独定义，但此处保留原色，可通过变量覆盖 */
+            transition: color 0.2s ease;
+        }
+        [data-theme="dark"] .navbar-logo {
+            color: var(--text-main);
+        }
+
+        .navbar-meta {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 0.3rem 1.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            transition: color 0.2s ease;
+        }
+
+        .navbar-meta .update-badge,
+        .navbar-meta .contact-badge {
+            background: var(--border-light);
+            padding: 0.2rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .visit-count-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            margin-left: auto;
+            transition: color 0.2s ease;
+        }
+
+        .visit-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1.2;
+            display: inline-block;
+            vertical-align: middle;
+            margin-top: -4px;
+            transition: color 0.2s ease;
+        }
+
+        /* 主题切换按钮 */
+        .theme-toggle {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.2rem 0.4rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            display: inline-flex;
+            align-items: center;
+            transition: color 0.2s ease, border-color 0.2s ease;
+            line-height: 1;
+        }
+        .theme-toggle:hover {
+            color: var(--text-main);
+            border-color: var(--text-muted);
+        }
+        .theme-toggle .sun-icon,
+        .theme-toggle .moon-icon {
+            display: block;
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+        [data-theme="dark"] .theme-toggle .sun-icon {
+            display: none;
+        }
+        [data-theme="dark"] .theme-toggle .moon-icon {
+            display: block;
+        }
+        [data-theme="light"] .theme-toggle .sun-icon {
+            display: block;
+        }
+        [data-theme="light"] .theme-toggle .moon-icon {
+            display: none;
+        }
+
+        /* ============================================================
+           Hero 引导区
+           ============================================================ */
+        .hero {
+            background: var(--hero-bg);
+            text-align: center;
+            padding: 2rem 1.5rem 1.8rem;
+            border-bottom: 1px solid var(--border);
+            animation: fadeIn 0.25s ease;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .hero h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-main);
+            letter-spacing: 0.01em;
+            margin-bottom: 0.2rem;
+            transition: color 0.2s ease;
+        }
+
+        .hero p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            max-width: 620px;
+            margin: 0 auto;
+            line-height: 1.5;
+            transition: color 0.2s ease;
+        }
+
+        /* ============================================================
+           主容器
+           ============================================================ */
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem 1.8rem 1rem 1rem;
+            padding: 1.6rem 1.6rem 1rem 1.2rem;
             display: flex;
-            gap: 2rem;
+            gap: 1.8rem;
             align-items: flex-start;
-            animation: fadeInUp 0.55s ease forwards;
-            animation-delay: 0.1s;
-            opacity: 0;
-            animation-fill-mode: forwards;
+            animation: fadeIn 0.25s ease;
         }
 
-        /* ==================== 左侧导航栏 ==================== */
+        /* ============================================================
+           侧边栏
+           ============================================================ */
         .sidebar {
             width: var(--sidebar-width);
             flex-shrink: 0;
-            background: #FFFFFF;
-            border-radius: var(--radius-xl);
-            box-shadow: var(--shadow-sm);
-            padding: 1.8rem 1rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.2rem 0.6rem;
             position: sticky;
-            top: 100px;
-            border: 1px solid var(--border-light);
-            transition: box-shadow var(--transition-normal);
+            top: 84px;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
         }
+
         .sidebar-nav {
             list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 0.35rem;
+            gap: 0.2rem;
         }
-        .sidebar-nav li { position: relative; }
+
+        .sidebar-nav li {
+            position: relative;
+        }
+
         .sidebar-nav .nav-item {
             display: flex;
             align-items: center;
-            gap: 0.8rem;
-            padding: 1.1rem 1.2rem;
+            gap: 0.7rem;
+            padding: 0.7rem 1rem 0.7rem 0.9rem;
             border-radius: var(--radius-md);
             cursor: pointer;
-            font-weight: 550;
-            font-size: 0.95rem;
+            font-weight: 500;
+            font-size: 0.88rem;
             color: var(--text-secondary);
-            transition: all var(--transition-normal);
-            position: relative;
-            border: 1.5px solid transparent;
+            transition: color 0.2s ease, background 0.2s ease;
+            border: 1px solid transparent;
             user-select: none;
-            letter-spacing: 0.3px;
+            position: relative;
         }
+
         .sidebar-nav .nav-item:hover {
             color: var(--primary);
-            background: #F8FAFD;
-            border-color: #E5EBF8;
+            background: rgba(0, 0, 0, 0.02);
         }
+        [data-theme="dark"] .sidebar-nav .nav-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--primary);
+        }
+
         .sidebar-nav .nav-item.active {
-            background: transparent;
-            border-color: transparent;
-            font-weight: 650;
-            box-shadow: none;
+            color: var(--text-main);
+            font-weight: 600;
+            background: rgba(0, 0, 0, 0.02);
         }
+        [data-theme="dark"] .sidebar-nav .nav-item.active {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
         /* 左侧指示条 */
         .sidebar-nav .nav-item.active::before {
             content: "";
@@ -293,551 +357,885 @@
             left: -0.6rem;
             top: 50%;
             transform: translateY(-50%);
-            width: 4px;
-            height: 24px;
-            border-radius: 0 4px 4px 0;
-        }
-        /* 底部下划线（展开动画） */
-        .sidebar-nav .nav-item.active::after {
-            content: "";
-            position: absolute;
-            left: 1.2rem;
-            bottom: 8px;
-            height: 2.5px;
-            width: calc(100% - 2.4rem);
-            border-radius: 2px;
-            transform: scaleX(0);
-            transform-origin: left center;
-            animation: underlineExpandSidebar 0.4s cubic-bezier(0.25, 0.8, 0.25, 1.2) forwards;
-            opacity: 0.8;
+            width: 3px;
+            height: 22px;
+            border-radius: 0 2px 2px 0;
+            transition: background 0.1s ease;
         }
 
-        /* 各分类选中色彩 */
-        .nav-item.category-physics.active::before,
-        .nav-item.category-physics.active::after { background: var(--color-physics); }
-        .nav-item.category-physics.active { color: var(--color-physics); }
+        /* 分类指示色（变量已在暗色中提亮） */
+        .nav-item.category-physics.active::before {
+            background: var(--color-physics);
+        }
+        .nav-item.category-others.active::before {
+            background: var(--color-others);
+        }
+        .nav-item.category-public.active::before {
+            background: var(--color-public);
+        }
+        .nav-item.category-class.active::before {
+            background: var(--color-class);
+        }
+        .nav-item.category-analysis.active::before {
+            background: var(--color-analysis);
+        }
+        .nav-item.category-message.active::before {
+            background: var(--color-message);
+        }
 
-        .nav-item.category-others.active::before,
-        .nav-item.category-others.active::after { background: var(--color-others); }
-        .nav-item.category-others.active { color: var(--color-others); }
+        .nav-item.category-physics.active {
+            color: var(--color-physics);
+        }
+        .nav-item.category-others.active {
+            color: var(--color-others);
+        }
+        .nav-item.category-public.active {
+            color: var(--color-public);
+        }
+        .nav-item.category-class.active {
+            color: var(--color-class);
+        }
+        .nav-item.category-analysis.active {
+            color: var(--color-analysis);
+        }
+        .nav-item.category-message.active {
+            color: var(--color-message);
+        }
 
-        .nav-item.category-public.active::before,
-        .nav-item.category-public.active::after { background: var(--color-public); }
-        .nav-item.category-public.active { color: var(--color-public); }
-
-        .nav-item.category-class.active::before,
-        .nav-item.category-class.active::after { background: var(--color-class); }
-        .nav-item.category-class.active { color: var(--color-class); }
-
-        .nav-item.category-analysis.active::before,
-        .nav-item.category-analysis.active::after { background: var(--color-analysis); }
-        .nav-item.category-analysis.active { color: var(--color-analysis); }
-
-        .nav-item.category-message.active::before,
-        .nav-item.category-message.active::after { background: var(--color-message); }
-        .nav-item.category-message.active { color: var(--color-message); }
-
-        /* 导航图标 */
         .nav-icon {
-            font-size: 1.3rem;
+            font-size: 1.25rem;
             flex-shrink: 0;
-            transition: transform var(--transition-fast);
             display: inline-flex;
             align-items: center;
+            line-height: 1;
         }
-        .nav-item:hover .nav-icon {
-            transform: scale(1.1);
-        }
+
         .nav-icon svg {
             display: block;
-            width: 2rem;
-            height: 2rem;
-            transform-origin: center center;
+            width: 1.5rem;
+            height: 1.5rem;
         }
-        .nav-label { white-space: nowrap; }
 
-        /* ==================== 右侧内容面板 ==================== */
-        .content-area { flex: 1; min-width: 0; }
-        .content-panel { display: none; animation: fadeInUp 0.4s ease forwards; }
-        .content-panel.active { display: block; }
+        .nav-label {
+            white-space: nowrap;
+        }
 
+        /* ============================================================
+           内容面板
+           ============================================================ */
+        .content-area {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .content-panel {
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .content-panel.active {
+            display: block;
+        }
+
+        /* 面板标题 */
         .panel-header {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1.4rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #EEF2F8;
-            position: relative;
+            gap: 0.6rem;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid var(--border);
+            transition: border-color 0.2s ease;
         }
+
         .panel-header .panel-icon {
             font-size: 1.5rem;
             flex-shrink: 0;
-        }
-        .panel-header h2 {
-            font-size: 1.4rem;
-            font-weight: 680;
-            color: var(--text-main);
-            letter-spacing: 0.4px;
-            position: relative;
-        }
-        .panel-header h2::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            bottom: -0.6rem;
-            width: 0;
-            height: 3px;
-            border-radius: 3px;
-            animation: underlineExpand 0.55s cubic-bezier(0.25, 0.8, 0.25, 1.2) forwards;
-            animation-delay: 0.15s;
-        }
-
-        /* 各面板标题下划线颜色 */
-        .content-panel#panel-physics .panel-header h2::after,
-        .content-panel.panel-physics .panel-header h2::after { background: var(--color-physics); }
-        .content-panel#panel-other-subjects .panel-header h2::after { background: var(--color-others); }
-        .content-panel#panel-public-lesson .panel-header h2::after { background: var(--color-public); }
-        .content-panel#panel-class-mgmt .panel-header h2::after { background: var(--color-class); }
-        .content-panel#panel-analysis .panel-header h2::after,
-        .content-panel.panel-analysis .panel-header h2::after { background: var(--color-analysis); }
-        .content-panel#panel-message-board .panel-header h2::after { background: var(--color-message); }
-
-        /* 学科切换标签 */
-        .subject-tabs {
+            line-height: 1;
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.4rem;
-            margin-bottom: 1.4rem;
+            align-items: center;
         }
+
+        .panel-header .panel-icon svg {
+            display: block;
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+
+        .panel-header h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-main);
+            letter-spacing: 0.01em;
+            position: relative;
+            margin-bottom: 0;
+            transition: color 0.2s ease;
+        }
+
+        /* 标题下划线已注释掉，但变量已包含，如需启用可取消注释并调整颜色 */
+
+        /* ============================================================
+           学科标签页 (Segmented Control)
+           ============================================================ */
+        .subject-tabs {
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            margin-bottom: 1.2rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: var(--card-bg);
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
         .subject-tab {
-            padding: 0.4rem 1.1rem;
-            border-radius: 20px;
+            padding: 0.3rem 0.9rem;
             font-size: 0.82rem;
-            font-weight: 530;
-            border: 1.5px solid #D8DFEC;
-            background: #FAFBFD;
+            font-weight: 500;
+            border: none;
+            background: var(--card-bg);
             color: var(--text-secondary);
             cursor: pointer;
-            transition: all var(--transition-fast);
-            white-space: nowrap;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            border-right: 1px solid var(--border);
+            flex: 0 0 auto;
         }
+
+        .subject-tab:last-child {
+            border-right: none;
+        }
+
         .subject-tab:hover {
-            border-color: #B8C6E0;
+            background: var(--primary-light);
             color: var(--primary);
-            background: #F8FAFD;
         }
+
         .subject-tab.active {
             background: var(--primary);
-            color: #FFFFFF;
-            border-color: var(--primary);
-            box-shadow: 0 3px 10px rgba(22, 93, 255, 0.2);
-            font-weight: 580;
+            color: #ffffff;
+            font-weight: 500;
         }
-        .subject-panel { display: none; }
-        .subject-panel.active { display: block; animation: fadeInUp 0.35s ease forwards; }
 
-        /* ==================== 工具卡片网格 ==================== */
+        .subject-panel {
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .subject-panel.active {
+            display: block;
+        }
+
+        /* ============================================================
+           工具卡片网格
+           ============================================================ */
         .tool-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-            gap: 1.4rem;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
         }
+
+        /* ============================================================
+           工具卡片
+           ============================================================ */
         .tool-card {
-            background: var(--card-bg-gradient);
-            border-radius: var(--radius-xl);
-            padding: 1.4rem 1.4rem 1.2rem;
-            box-shadow: var(--shadow-sm);
-            transition: all var(--transition-normal);
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1rem 1.2rem 1.1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease, border-color 0.2s ease;
             display: flex;
             flex-direction: column;
-            border: 1px solid var(--border-light);
             position: relative;
-            overflow: hidden;
-            animation: fadeInUp 0.45s ease forwards;
-            opacity: 0;
-            animation-fill-mode: forwards;
+            animation: fadeIn 0.2s ease;
         }
-        .tool-card:nth-child(1) { animation-delay: 0.05s; }
-        .tool-card:nth-child(2) { animation-delay: 0.12s; }
-        .tool-card:nth-child(3) { animation-delay: 0.19s; }
-        .tool-card:nth-child(4) { animation-delay: 0.26s; }
-        .tool-card:nth-child(5) { animation-delay: 0.33s; }
+
         .tool-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-2px);
             box-shadow: var(--shadow-hover);
-            border-color: #D0D9EE;
+            border-color: var(--border);
         }
+
         .tool-card h3 {
-            font-size: 1.15rem;
-            margin-bottom: 0.4rem;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
             color: var(--text-main);
-            font-weight: 660;
+            transition: color 0.2s ease;
         }
+
         .tool-card p {
+            font-size: 0.875rem;
             color: var(--text-secondary);
-            font-size: 0.88rem;
-            margin-bottom: 0.9rem;
+            margin-bottom: 0.7rem;
             flex-grow: 1;
+            line-height: 1.5;
+            transition: color 0.2s ease;
         }
+
         .tool-meta {
             display: flex;
-            gap: 0.4rem;
-            font-size: 0.73rem;
-            margin-bottom: 0.8rem;
             flex-wrap: wrap;
+            gap: 0.3rem 0.6rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.7rem;
+            transition: color 0.2s ease;
         }
+
         .tool-meta span {
-            background: #F5F7FC;
-            color: #7B8DA8;
-            padding: 0.18rem 0.6rem;
-            border-radius: 10px;
-            font-weight: 500;
-            border: 1px solid #EDF0F6;
-            white-space: nowrap;
+            background: var(--border-light);
+            padding: 0.1rem 0.6rem;
+            border-radius: 12px;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
         }
+
         .tool-actions {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.45rem;
+            gap: 0.4rem;
             align-items: center;
+            margin-top: 0.2rem;
         }
 
-        /* ==================== 按钮体系 ==================== */
+        .tool-templates,
+        .tool-guide {
+            margin-top: 0.5rem;
+            font-size: 0.78rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            flex-wrap: wrap;
+        }
+
+        .tool-templates span,
+        .tool-guide span {
+            color: var(--text-muted);
+            font-weight: 500;
+            white-space: nowrap;
+            transition: color 0.2s ease;
+        }
+
+        /* ============================================================
+           按钮系统
+           ============================================================ */
         .btn {
             display: inline-flex;
             align-items: center;
-            gap: 0.25rem;
-            padding: 0.45rem 1.1rem;
-            border-radius: var(--radius-pill);
+            gap: 0.3rem;
+            padding: 0.35rem 1rem;
+            border-radius: var(--radius-sm);
             font-size: 0.82rem;
-            font-weight: 550;
-            transition: all var(--transition-fast);
+            font-weight: 500;
+            transition: all 0.2s ease;
             white-space: nowrap;
             cursor: pointer;
-            border: none;
-            letter-spacing: 0.3px;
+            border: 1px solid transparent;
             font-family: inherit;
             text-decoration: none;
+            background: var(--card-bg);
+            color: var(--text-secondary);
+            border-color: var(--border);
         }
+
         .btn-primary {
-            background: var(--primary-gradient);
-            color: #FFFFFF;
-            box-shadow: 0 3px 10px rgba(22, 93, 255, 0.22);
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
         }
+
         .btn-primary:hover {
-            background: var(--primary-gradient-hover);
-            box-shadow: 0 6px 16px rgba(22, 93, 255, 0.32);
-            transform: translateY(-1px);
+            background: var(--primary-hover);
+            border-color: var(--primary-hover);
+            color: #ffffff;
         }
+
         .btn-outline {
-            background: #FFFFFF;
-            border: 1.5px solid #D8DFEC;
+            background: var(--card-bg);
+            border-color: var(--border);
             color: var(--text-secondary);
         }
+
         .btn-outline:hover {
-            background: #F5F8FD;
-            border-color: #B8C8E6;
-            color: var(--primary);
-            box-shadow: 0 2px 8px rgba(22, 93, 255, 0.06);
+            background: var(--border-light);
+            border-color: var(--border);
+            color: var(--text-main);
         }
+
         .btn-sm {
-            padding: 0.25rem 0.75rem;
-            font-size: 0.76rem;
-            border-radius: 16px;
-        }
-        .tool-templates,
-        .tool-guide {
-            margin-top: 0.65rem;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            flex-wrap: wrap;
-        }
-        .tool-templates span,
-        .tool-guide span {
-            color: #6B7E9B;
-            font-weight: 500;
-            white-space: nowrap;
+            padding: 0.15rem 0.6rem;
+            font-size: 0.72rem;
+            border-radius: 4px;
         }
 
         /* 占位卡片 */
         .placeholder-card {
-            background: #FAFBFD;
-            border: 2px dashed #DEE4F0;
-            border-radius: var(--radius-xl);
+            background: var(--border-light);
+            border: 1px dashed var(--border);
+            border-radius: var(--radius-lg);
             padding: 2rem 1.5rem;
             text-align: center;
-            color: #9AA9C1;
-            transition: all var(--transition-normal);
+            color: var(--text-muted);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.3rem;
-            animation: fadeInUp 0.4s ease forwards;
-            opacity: 0;
-            animation-fill-mode: forwards;
+            gap: 0.2rem;
+            animation: fadeIn 0.2s ease;
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
         }
-        .placeholder-card:hover { border-color: #BCC8E2; background: #F8FAFE; }
-        .placeholder-card .big-icon { font-size: 2.4rem; opacity: 0.55; }
-        .placeholder-card p { font-size: 0.9rem; font-weight: 500; color: #8B9BB8; }
 
-        /* ==================== 模态框 ==================== */
+        .placeholder-card .big-icon {
+            font-size: 2rem;
+            opacity: 0.5;
+        }
+
+        .placeholder-card p {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        /* ============================================================
+           模态框
+           ============================================================ */
         .modal {
             display: none;
             position: fixed;
             z-index: 1000;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(15, 23, 42, 0.35);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
             justify-content: center;
             align-items: center;
+            transition: background-color 0.2s ease;
         }
-        .modal.show { display: flex; }
+        [data-theme="dark"] .modal {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
         .modal-content {
-            background: #FFFFFF;
-            border-radius: 24px;
-            padding: 1.8rem 1.8rem 1.6rem;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 1.6rem 1.8rem 1.8rem;
             width: 90%;
-            max-width: 680px;
-            box-shadow: var(--shadow-lg);
+            max-width: 660px;
+            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.08);
             position: relative;
-            animation: modalIn 0.35s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+            animation: modalIn 0.15s ease;
+            border: 1px solid var(--border);
+            transition: background 0.2s ease, border-color 0.2s ease;
         }
+        [data-theme="dark"] .modal-content {
+            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4);
+        }
+
         .modal-close {
             position: absolute;
-            right: 1.1rem;
-            top: 0.8rem;
-            font-size: 1.6rem;
-            color: #B0BDD0;
+            right: 1rem;
+            top: 0.6rem;
+            font-size: 1.4rem;
+            color: var(--text-muted);
             cursor: pointer;
+            transition: color 0.2s ease;
+            line-height: 1;
         }
-        .modal-close:hover { color: #1E293B; }
+
+        .modal-close:hover {
+            color: var(--text-main);
+        }
+
         .modal-content h2 {
-            margin-bottom: 0.2rem;
-            font-size: 1.5rem;
-            font-weight: 680;
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.1rem;
+            color: var(--text-main);
+            transition: color 0.2s ease;
         }
+
         .modal-content .subtitle {
-            color: #64748B;
-            margin-bottom: 1.4rem;
-            font-size: 0.88rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.2rem;
+            font-size: 0.85rem;
+            transition: color 0.2s ease;
         }
-        .version-list { display: flex; flex-direction: column; gap: 0.8rem; }
+
+        .version-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
         .version-item {
-            background: #F9FAFD;
-            border-radius: var(--radius-lg);
-            padding: 1rem 1.2rem;
+            background: var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 0.8rem 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: nowrap;
-            gap: 0.8rem;
-            border: 1px solid #EEF1F7;
-            transition: all var(--transition-fast);
-            overflow-x: auto;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            border: 1px solid var(--border);
+            transition: background 0.2s ease, border-color 0.2s ease;
         }
-        .version-item:hover { background: #F5F8FC; border-color: #DDE3F0; }
-        .version-info { flex: 1; min-width: 0; }
-        .version-info h4 { font-size: 1rem; margin-bottom: 0.1rem; font-weight: 620; white-space: nowrap; }
-        .version-info p { font-size: 0.8rem; color: #5B6E8C; margin: 0; white-space: nowrap; }
-        .version-actions { display: flex; gap: 0.35rem; align-items: center; flex-wrap: nowrap; white-space: nowrap; }
-        .template-group { display: flex; gap: 0.25rem; flex-wrap: nowrap; }
 
-        /* ==================== 留言板样式 ==================== */
-        .message-board-container { display: flex; flex-direction: column; gap: 2rem; }
+        .version-item:hover {
+            background: var(--card-bg);
+        }
+
+        .version-info {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .version-info h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-main);
+            transition: color 0.2s ease;
+        }
+
+        .version-info p {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin: 0;
+            transition: color 0.2s ease;
+        }
+
+        .version-actions {
+            display: flex;
+            gap: 0.3rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .template-group {
+            display: flex;
+            gap: 0.2rem;
+            flex-wrap: wrap;
+        }
+
+        /* ============================================================
+           留言板
+           ============================================================ */
+        .message-board-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.8rem;
+        }
+
         .mailbox-form {
-            background: #FFF9F0;
-            border: 2px dashed #E67E22;
-            border-radius: var(--radius-xl);
-            padding: 2rem;
+            background: var(--form-bg);
+            border: 1px solid var(--form-border);
+            border-radius: var(--radius-lg);
+            padding: 1.4rem 1.6rem 1.6rem;
             position: relative;
-            box-shadow: var(--shadow-sm);
+            transition: background 0.2s ease, border-color 0.2s ease;
         }
-        .mailbox-form::before {
-            content: "📬";
-            position: absolute;
-            top: -18px;
-            left: 30px;
-            font-size: 2rem;
-            background: #FFF9F0;
-            padding: 0 0.5rem;
-        }
+
         .mailbox-form h3 {
-            color: #B85E0C;
-            margin-bottom: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--color-message);
+            margin-bottom: 0.8rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
+            transition: color 0.2s ease;
         }
-        .mailbox-form .form-group { margin-bottom: 1rem; }
+
+        .mailbox-form .form-group {
+            margin-bottom: 0.8rem;
+        }
+
         .mailbox-form label {
             display: block;
-            font-weight: 600;
-            margin-bottom: 0.3rem;
-            color: #5D3A1A;
+            font-weight: 500;
+            margin-bottom: 0.2rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            transition: color 0.2s ease;
         }
+
         .mailbox-form input,
         .mailbox-form textarea {
             width: 100%;
-            padding: 0.7rem 1rem;
-            border: 1px solid #EDD6B8;
-            border-radius: var(--radius-md);
+            padding: 0.5rem 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
             font-family: inherit;
-            font-size: 0.9rem;
-            background: #FFFDF7;
-            transition: border var(--transition-fast);
+            font-size: 0.875rem;
+            background: var(--input-bg);
+            transition: border 0.2s ease, background 0.2s ease, color 0.2s ease;
+            color: var(--text-main);
         }
+
         .mailbox-form input:focus,
         .mailbox-form textarea:focus {
             outline: none;
-            border-color: #E67E22;
-            box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
+            border-color: var(--color-message);
+            box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.08);
         }
-        .mailbox-form textarea { min-height: 100px; resize: vertical; }
-        .mailbox-form .btn-submit {
-            background: linear-gradient(135deg, #E67E22, #D35400);
-            color: white;
-            padding: 0.6rem 2rem;
-            font-size: 0.95rem;
-            border: none;
-            border-radius: var(--radius-pill);
-            cursor: pointer;
-            font-weight: 600;
-            transition: all var(--transition-fast);
-            box-shadow: 0 4px 10px rgba(230, 126, 34, 0.3);
+        [data-theme="dark"] .mailbox-form input:focus,
+        [data-theme="dark"] .mailbox-form textarea:focus {
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+            border-color: #f97316;
         }
-        .mailbox-form .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(230, 126, 34, 0.4);
-        }
-        .mailbox-form .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-        .messages-list { display: flex; flex-direction: column; gap: 1.2rem; }
-        .message-card {
-            background: #FFFEF9;
-            border: 1px solid #F0E5D2;
-            border-radius: var(--radius-lg);
-            padding: 1.2rem 1.4rem;
-            box-shadow: var(--shadow-sm);
-            position: relative;
-            transition: all var(--transition-normal);
+        .mailbox-form textarea {
+            min-height: 80px;
+            resize: vertical;
         }
-        .message-card:hover { box-shadow: var(--shadow-hover); border-color: #E67E22; }
+
+        .mailbox-form .btn-submit {
+            background: var(--color-message);
+            color: #ffffff;
+            padding: 0.4rem 1.6rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mailbox-form .btn-submit:hover {
+            background: #b45309;
+        }
+        [data-theme="dark"] .mailbox-form .btn-submit {
+            background: #f59e0b;
+        }
+        [data-theme="dark"] .mailbox-form .btn-submit:hover {
+            background: #d97706;
+        }
+
+        .mailbox-form .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .messages-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .message-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 0.9rem 1.2rem;
+            transition: border 0.2s ease, background 0.2s ease;
+        }
+
+        .message-card:hover {
+            border-color: var(--color-message);
+        }
+
         .message-card .message-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.2rem;
         }
-        .message-card .message-author { font-weight: 700; color: #5D3A1A; }
-        .message-card .message-time { font-size: 0.75rem; color: #A0A0A0; }
-        .message-card .message-content { color: #333; line-height: 1.6; white-space: pre-wrap; }
-        .message-card::before {
-            content: "✉️";
-            position: absolute;
-            top: -12px;
-            right: 20px;
-            font-size: 1.3rem;
-            background: #FFFEF9;
-            padding: 0 0.3rem;
+
+        .message-card .message-author {
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 0.9rem;
+            transition: color 0.2s ease;
         }
+
+        .message-card .message-time {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            transition: color 0.2s ease;
+        }
+
+        .message-card .message-content {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            transition: color 0.2s ease;
+        }
+
         .no-messages {
             text-align: center;
-            padding: 3rem;
-            color: #A0A0A0;
-            background: #FAFAFA;
-            border-radius: var(--radius-lg);
-            border: 1px dashed #DDD;
-        }
-        .loading-messages { text-align: center; padding: 2rem; color: #888; }
-        .error-message {
-            color: #D32F2F;
-            background: #FFEBEE;
-            padding: 0.8rem;
+            padding: 2rem;
+            color: var(--text-muted);
+            background: var(--border-light);
             border-radius: var(--radius-md);
-            margin-top: 0.5rem;
-            font-size: 0.85rem;
-        }
-        .success-message {
-            color: #2E7D32;
-            background: #E8F5E9;
-            padding: 0.8rem;
-            border-radius: var(--radius-md);
-            margin-top: 0.5rem;
-            font-size: 0.85rem;
+            border: 1px dashed var(--border);
+            font-size: 0.9rem;
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
         }
 
-        /* ==================== 底部声明与页脚 ==================== */
+        .loading-messages {
+            text-align: center;
+            padding: 1.5rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            transition: color 0.2s ease;
+        }
+
+        .error-message {
+            color: #b91c1c;
+            background: #fef2f2;
+            padding: 0.6rem 0.8rem;
+            border-radius: var(--radius-sm);
+            margin-top: 0.4rem;
+            font-size: 0.82rem;
+            border: 1px solid #fecaca;
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+        [data-theme="dark"] .error-message {
+            color: #fca5a5;
+            background: rgba(127, 29, 29, 0.4);
+            border-color: #7f1d1d;
+        }
+
+        .success-message {
+            color: #065f46;
+            background: #ecfdf5;
+            padding: 0.6rem 0.8rem;
+            border-radius: var(--radius-sm);
+            margin-top: 0.4rem;
+            font-size: 0.82rem;
+            border: 1px solid #a7f3d0;
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+        [data-theme="dark"] .success-message {
+            color: #6ee7b7;
+            background: rgba(6, 78, 59, 0.4);
+            border-color: #065f46;
+        }
+
+        /* ============================================================
+           页脚
+           ============================================================ */
         .footer-disclaimer {
             text-align: center;
-            font-size: 0.85rem;
-            color: #6B7280;
-            padding: 1rem 1.5rem 0;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            padding: 1rem 1.5rem 0.5rem;
             line-height: 1.6;
-            max-width: 900px;
+            max-width: 800px;
             margin: 0 auto;
-        }
-        .footer {
-            background: #FFFFFF;
-            text-align: center;
-            padding: 0.5rem 1.5rem 1.5rem;
-            font-size: 0.95rem;
-            border-top: 1px solid #EDF2F9;
-            margin-top: 2rem;
-            color: #4A5568;
-        }
-        .footer p {
-            display: inline-block;
-            background: #EEF2FB;
-            padding: 0.3rem 1.2rem;
-            border-radius: 22px;
-            font-weight: 500;
+            transition: color 0.2s ease;
         }
 
-        /* ==================== 响应式适配（平板/手机） ==================== */
+        /* 底部footer已注释掉，保留占位 */
+
+        /* ============================================================
+           响应式适配
+           ============================================================ */
         @media (max-width: 900px) {
-            .container { flex-direction: column; gap: 1rem; padding: 1.2rem 1rem; }
-            .sidebar { width: 100%; position: static; padding: 1rem 0.8rem; }
-            .sidebar-nav { flex-direction: row; flex-wrap: wrap; gap: 0.3rem; justify-content: center; }
-            .sidebar-nav .nav-item { padding: 0.6rem 1rem; font-size: 0.85rem; border-radius: 20px; }
-            .sidebar-nav .nav-item.active::before { display: none; }
-            .sidebar-nav .nav-item.active::after { left: 0.7rem; width: calc(100% - 1.4rem); }
-            .navbar { padding: 0.7rem 1.2rem; }
-            .navbar-logo { font-size: 1.8rem; }
+            .container {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem 0.8rem;
+            }
+
+            .sidebar {
+                width: 100%;
+                position: static;
+                padding: 0.6rem 0.4rem;
+                border-radius: var(--radius-md);
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .sidebar-nav {
+                flex-direction: row;
+                flex-wrap: nowrap;
+                gap: 0.1rem;
+                justify-content: flex-start;
+            }
+
+            .sidebar-nav .nav-item {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+                border-radius: var(--radius-sm);
+                flex-shrink: 0;
+                border: 1px solid transparent;
+            }
+
+            .sidebar-nav .nav-item.active {
+                background: var(--primary-light);
+                border-color: var(--primary-border);
+            }
+
+            .sidebar-nav .nav-item.active::before {
+                display: none;
+            }
+
+            .nav-icon svg {
+                width: 1.2rem;
+                height: 1.2rem;
+            }
+
+            .navbar {
+                padding: 0.5rem 1rem;
+            }
+
+            .navbar-logo {
+                font-size: 1.25rem;
+            }
+
+            .navbar-meta {
+                font-size: 0.75rem;
+                gap: 0.3rem 0.8rem;
+            }
+
+            .visit-number {
+                font-size: 1rem;
+            }
+
+            .hero h1 {
+                font-size: 1.2rem;
+            }
+
+            .hero p {
+                font-size: 0.8rem;
+            }
+
+            .tool-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .panel-header h2 {
+                font-size: 1rem;
+            }
+
+            .modal-content {
+                padding: 1.2rem;
+            }
+
+            .version-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .version-actions {
+                justify-content: flex-start;
+            }
+
+            .mailbox-form {
+                padding: 1rem;
+            }
+
+            .subject-tabs {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .subject-tab {
+                padding: 0.3rem 0.9rem;
+                font-size: 0.75rem;
+                flex-shrink: 0;
+                border-right: 1px solid var(--border);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar-logo {
+                font-size: 1.05rem;
+            }
+
+            .navbar-meta .update-badge,
+            .navbar-meta .contact-badge {
+                font-size: 0.7rem;
+                padding: 0.1rem 0.6rem;
+            }
+
+            .visit-number {
+                font-size: 0.9rem;
+            }
+
+            .hero {
+                padding: 1.2rem 1rem;
+            }
+
+            .hero h1 {
+                font-size: 1rem;
+            }
+
+            .tool-card {
+                padding: 0.8rem 1rem;
+            }
+
+            .tool-card h3 {
+                font-size: 0.9rem;
+            }
+
+            .modal-content {
+                padding: 1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- ==================== 顶部导航栏 ==================== -->
-    <div class="navbar" id="navbar">
+
+    <!-- ============================================================
+    顶部导航栏
+    ============================================================ -->
+    <header class="navbar" id="navbar">
         <div class="navbar-logo">中学教师数字工具箱</div>
         <div class="navbar-meta">
-            <div class="update-badge" id="updateBadge">🔄 最近更新：2026.08.14</div>
-            <div class="contact-badge">📧 反馈与建议：请联系珠海市九洲中学&nbsp;&nbsp;黄结（vx：Phys_H）</div>
-            <!-- 👇 新增的访问计数器 -->
-            <div class="visit-count-badge">
-            总访问次数：<span id="visit-count" class="visit-number">0</span> 次
-            </div>
+            <span class="update-badge" id="updateBadge">🔄 最近更新：2026.08.14</span>
+            <span class="contact-badge">📧 反馈与建议：请联系珠海市九洲中学 黄结（vx：Phys_H）</span>
+            <span class="visit-count-badge">
+                总访问次数：<span id="visit-count" class="visit-number">0</span> 次
+            </span>
+            <!-- 主题切换按钮 -->
+            <button id="theme-toggle" class="theme-toggle" aria-label="切换主题">
+                <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5" />
+                    <line x1="12" y1="1" x2="12" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="23" />
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                    <line x1="1" y1="12" x2="3" y2="12" />
+                    <line x1="21" y1="12" x2="23" y2="12" />
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </svg>
+                <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+            </button>
         </div>
-    </div>
+    </header>
 
-    <!-- ==================== Hero 引导语 ==================== -->
-    <div class="hero">
-        <div class="hero-pattern"></div>
+    <!-- ============================================================
+    Hero 引导区
+    ============================================================ -->
+    <section class="hero">
         <h1>让技术，温柔地支持每一堂课</h1>
-        <p>由一线教师开发，专为教学场景优化。这里汇集了学科教学、班级管理、成绩分析等实用小工具，打开浏览器就能用，无需安装。</p>
-    </div>
+        <p>由一线教师开发，专为教学场景优化。汇集学科教学、班级管理、成绩分析等实用工具，打开浏览器即用，无需安装。</p>
+    </section>
 
-    <!-- ==================== 主布局：侧边栏 + 内容区 ==================== -->
+    <!-- ============================================================
+    主布局
+    ============================================================ -->
     <div class="container">
-        <!-- 侧边栏导航 -->
+
+        <!-- 侧边栏 -->
         <aside class="sidebar" id="sidebar">
             <ul class="sidebar-nav">
-                <!-- 物理教学（SVG图标） -->
+                <!-- 物理教学 -->
                 <li>
                     <div class="nav-item active category-physics" data-panel="panel-physics">
                         <span class="nav-icon">
@@ -860,8 +1258,7 @@
                         <span class="nav-label">物理教学</span>
                     </div>
                 </li>
-
-                <!-- 其他学科教学（SVG图标） -->
+                <!-- 其他学科教学 -->
                 <li>
                     <div class="nav-item category-others" data-panel="panel-other-subjects">
                         <span class="nav-icon">
@@ -876,8 +1273,7 @@
                         <span class="nav-label">其他学科教学</span>
                     </div>
                 </li>
-
-                <!-- 公开课（SVG图标） -->
+                <!-- 公开课 -->
                 <li>
                     <div class="nav-item category-public" data-panel="panel-public-lesson">
                         <span class="nav-icon">
@@ -889,8 +1285,7 @@
                         <span class="nav-label">公开课</span>
                     </div>
                 </li>
-
-                <!-- 班级管理（SVG图标） -->
+                <!-- 班级管理 -->
                 <li>
                     <div class="nav-item category-class" data-panel="panel-class-mgmt">
                         <span class="nav-icon">
@@ -902,8 +1297,7 @@
                         <span class="nav-label">班级管理</span>
                     </div>
                 </li>
-
-                <!-- 成绩分析系统（SVG图标） -->
+                <!-- 成绩分析系统 -->
                 <li>
                     <div class="nav-item category-analysis" data-panel="panel-analysis">
                         <span class="nav-icon">
@@ -915,8 +1309,7 @@
                         <span class="nav-label">成绩分析系统</span>
                     </div>
                 </li>
-
-                <!-- 留言板（SVG图标） -->
+                <!-- 留言板 -->
                 <li>
                     <div class="nav-item category-message" data-panel="panel-message-board">
                         <span class="nav-icon">
@@ -930,13 +1323,18 @@
             </ul>
         </aside>
 
-        <!-- 右侧内容区 -->
+        <!-- ============================================================
+        内容区
+        ============================================================ -->
         <main class="content-area">
-            <!-- ===== 物理教学面板 ===== -->
-            <div class="content-panel panel-physics active" id="panel-physics">
+
+            <!-- ==========================================================
+            物理教学
+            ========================================================== -->
+            <div class="content-panel active" id="panel-physics">
                 <div class="panel-header">
                     <span class="panel-icon">
-                        <svg viewBox="0 0 1024 1024" width="5rem" height="5rem" xmlns="http://www.w3.org/2000/svg">
+                        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
                             <path d="M129.7 695.7c-1.6 0-3.2-0.4-4.7-1.3-26-16-42.9-36.3-50-60.2-15-50.7 15.6-110.9 86.2-169.6 68.6-57 167.4-106.5 278.2-139.4 103.4-30.7 207.4-43.6 292.9-36.5 86.9 7.2 148.2 34.8 172.7 77.5 3.5 6.1 6.3 12.6 8.3 19.3 1.4 4.8-1.3 9.8-6.1 11.2-4.8 1.4-9.8-1.3-11.2-6.1-1.6-5.3-3.8-10.5-6.6-15.4-21.5-37.4-77.8-61.8-158.6-68.5-83.3-6.9-185 5.8-286.3 35.8C336 374.7 239.4 423 172.7 478.4c-32 26.6-55.3 53.3-69.2 79.4-13.8 25.9-17.6 49.9-11.3 71.3 5.8 19.6 20 36.4 42.1 50 4.2 2.6 5.6 8.1 3 12.4-1.6 2.7-4.6 4.2-7.6 4.2z" fill="#330867"/>
                             <path d="M525.2 815.5c-80.8 0-156.8-31.5-214-88.6-57.2-57.2-88.6-133.1-88.6-214s31.5-156.8 88.6-214c57.2-57.2 133.1-88.6 214-88.6s156.8 31.5 214 88.6c57.2 57.2 88.6 133.1 88.6 214s-31.5 156.8-88.6 214C682 784 606 815.5 525.2 815.5z" fill="#66C1FF"/>
                             <path d="M525.2 219.3c162.2 0 293.6 131.5 293.6 293.6S687.3 806.5 525.2 806.5C363 806.5 231.6 675 231.6 512.9S363 219.3 525.2 219.3m0-18c-42.1 0-82.9 8.2-121.3 24.5-37.1 15.7-70.4 38.2-99 66.8-28.6 28.6-51.1 61.9-66.8 99-16.3 38.4-24.5 79.2-24.5 121.3s8.2 82.9 24.5 121.3c15.7 37.1 38.2 70.4 66.8 99 28.6 28.6 61.9 51.1 99 66.8 38.4 16.3 79.2 24.5 121.3 24.5s82.9-8.2 121.3-24.5c37.1-15.7 70.4-38.2 99-66.8s51.1-61.9 66.8-99c16.3-38.4 24.5-79.2 24.5-121.3s-8.2-82.9-24.5-121.3c-15.7-37.1-38.2-70.4-66.8-99-28.6-28.6-61.9-51.1-99-66.8-38.5-16.3-79.3-24.5-121.3-24.5z" fill="#330867"/>
@@ -962,7 +1360,9 @@
                             <span class="meta-date" data-default="2026.08.04">📅 更新：2026.08.04</span>
                             <span>🔖 v1.1</span>
                         </div>
-                        <div class="tool-actions"><a href="physics/v1.1PhysicsClassGame.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
+                        <div class="tool-actions">
+                            <a href="physics/v1.1PhysicsClassGame.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                        </div>
                     </div>
                     <div class="tool-card" data-file="physics/v1.1PhysicsExperiment.html">
                         <h3>🏠 初中物理实验资源库</h3>
@@ -971,16 +1371,20 @@
                             <span class="meta-date" data-default="2026.08.04">📅 更新：2026.08.04</span>
                             <span>🔖 v1.1</span>
                         </div>
-                        <div class="tool-actions"><a href="physics/v1.1PhysicsExperiment.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
+                        <div class="tool-actions">
+                            <a href="physics/v1.1PhysicsExperiment.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ===== 其他学科教学面板 ===== -->
+            <!-- ==========================================================
+            其他学科教学
+            ========================================================== -->
             <div class="content-panel" id="panel-other-subjects">
                 <div class="panel-header">
                     <span class="panel-icon">
-                        <svg viewBox="0 0 1024 1024" width="5rem" height="5rem" xmlns="http://www.w3.org/2000/svg">
+                        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
                             <path d="M196.8 867.8H180c-36.6 0-66.3-29.7-66.3-66.3V292.6c0-36.6 29.7-66.3 66.3-66.3h16.8c36.6 0 66.3 29.7 66.3 66.3v508.9c0 36.6-29.7 66.3-66.3 66.3zM180 266.3c-14.5 0-26.3 11.8-26.3 26.3v508.9c0 14.5 11.8 26.3 26.3 26.3h16.8c14.5 0 26.3-11.8 26.3-26.3V292.6c0-14.5-11.8-26.3-26.3-26.3H180z" fill="#333333"/>
                             <path d="M715.9 533.9h-93.8c-11 0-20-9-20-20V412.3c0-11 9-20 20-20h93.8c11 0 20 9 20 20v101.6c0 11-8.9 20-20 20z m-73.7-40H696v-61.6h-53.8v61.6z" fill="#A25C11"/>
                             <path d="M841.5 812.7H223.1V281.5h618.4v531.2z m-578.4-40h538.4V321.5H263.1v451.2z" fill="#333333"/>
@@ -990,7 +1394,8 @@
                     </span>
                     <h2>其他学科教学</h2>
                 </div>
-                <!-- 学科子标签 -->
+
+                <!-- 学科标签 -->
                 <div class="subject-tabs" id="subjectTabs">
                     <button class="subject-tab active" data-subject="chinese">语文</button>
                     <button class="subject-tab" data-subject="math">数学</button>
@@ -999,7 +1404,8 @@
                     <button class="subject-tab" data-subject="politics">道法</button>
                     <button class="subject-tab" data-subject="history">历史</button>
                 </div>
-                <!-- 语文面板 -->
+
+                <!-- 语文 -->
                 <div class="subject-panel active" id="panel-chinese">
                     <div class="tool-grid">
                         <div class="tool-card" data-file="others/chinese/v1.1AncientPoem.html">
@@ -1009,11 +1415,14 @@
                                 <span class="meta-date" data-default="2026.07.24">📅 更新：2026.07.24</span>
                                 <span>🔖 v1.0</span>
                             </div>
-                            <div class="tool-actions"><a href="others/chinese/v1.1AncientPoem.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
+                            <div class="tool-actions">
+                                <a href="others/chinese/v1.1AncientPoem.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <!-- 数学面板 -->
+
+                <!-- 数学 -->
                 <div class="subject-panel" id="panel-math">
                     <div class="tool-grid">
                         <div class="tool-card" data-file="others/math/v1.1MathFormula.html">
@@ -1023,13 +1432,21 @@
                                 <span class="meta-date" data-default="2026.07.24">📅 更新：2026.07.24</span>
                                 <span>🔖 v1.1</span>
                             </div>
-                            <div class="tool-actions"><a href="others/math/v1.1MathFormula.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
+                            <div class="tool-actions">
+                                <a href="others/math/v1.1MathFormula.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <!-- 英语面板（占位） -->
-                <div class="subject-panel" id="panel-english"><div class="tool-grid"><div class="placeholder-card"><div class="big-icon">🇬🇧</div><p>功能开发中，敬请期待</p></div></div></div>
-                <!-- 化学面板 -->
+
+                <!-- 英语 -->
+                <div class="subject-panel" id="panel-english">
+                    <div class="tool-grid">
+                        <div class="placeholder-card"><span class="big-icon">🇬🇧</span><p>功能开发中，敬请期待</p></div>
+                    </div>
+                </div>
+
+                <!-- 化学 -->
                 <div class="subject-panel" id="panel-chemistry">
                     <div class="tool-grid">
                         <div class="tool-card" data-file="others/chemistry/v2.0ChemistryLab.html">
@@ -1039,37 +1456,45 @@
                                 <span class="meta-date" data-default="2026.07.28">📅 更新：2026.07.28</span>
                                 <span>🔖 v2.0</span>
                             </div>
-                            <div class="tool-actions"><a href="others/chemistry/v2.0ChemistryLab.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
+                            <div class="tool-actions">
+                                <a href="others/chemistry/v2.0ChemistryLab.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <!-- 道法面板（占位） -->
 
+                <!-- 道法 -->
                 <div class="subject-panel" id="panel-politics">
-    <div class="tool-grid">
-        <div class="tool-card" data-file="others/politics/study/v1.1PoliticsStudy.html">
-            <h3>⚖️ 道法研习社</h3>
-            <p>提供答题技巧、答题模板、知识梳理、思维导图、高频考点、练习专区、万能句本、时政热点、学习贴士等丰富内容，助力道法学科高效复习。</p>
-            <div class="tool-meta">
-                <span class="meta-date" data-default="2026.08.14">📅 更新：2026.08.14</span>
-                <span>🔖 v1.1</span>
-            </div>
-            <div class="tool-actions">
-                <a href="others/politics/study/v1.1PoliticsStudy.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-            </div>
-        </div>
-    </div>
-</div>
-                
-                <!-- 历史面板（占位） -->
-                <div class="subject-panel" id="panel-history"><div class="tool-grid"><div class="placeholder-card"><div class="big-icon">🏛️</div><p>功能开发中，敬请期待</p></div></div></div>
+                    <div class="tool-grid">
+                        <div class="tool-card" data-file="others/politics/study/v1.1PoliticsStudy.html">
+                            <h3>⚖️ 道法研习社</h3>
+                            <p>提供答题技巧、答题模板、知识梳理、思维导图、高频考点、练习专区、万能句本、时政热点、学习贴士等丰富内容，助力道法学科高效复习。</p>
+                            <div class="tool-meta">
+                                <span class="meta-date" data-default="2026.08.14">📅 更新：2026.08.14</span>
+                                <span>🔖 v1.1</span>
+                            </div>
+                            <div class="tool-actions">
+                                <a href="others/politics/study/v1.1PoliticsStudy.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 历史 -->
+                <div class="subject-panel" id="panel-history">
+                    <div class="tool-grid">
+                        <div class="placeholder-card"><span class="big-icon">🏛️</span><p>功能开发中，敬请期待</p></div>
+                    </div>
+                </div>
             </div>
 
-            <!-- ===== 公开课面板 ===== -->
+            <!-- ==========================================================
+            公开课
+            ========================================================== -->
             <div class="content-panel" id="panel-public-lesson">
                 <div class="panel-header">
                     <span class="panel-icon">
-                        <svg viewBox="0 0 1024 1024" width="5rem" height="5rem" xmlns="http://www.w3.org/2000/svg">
+                        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
                             <path d="M364.196226 91.773585c-5.796226 1.932075-14.973585 10.143396-20.769811 17.388679-9.660377 12.558491-10.143396 17.388679-10.143396 139.592453v126.550943l16.422641 18.837736c14.007547 15.939623 17.871698 17.871698 25.6 13.524529 8.211321-5.313208 8.69434-14.973585 9.177359-130.415095 0-69.071698 0.483019-128 0.966038-131.381132 0.966038-4.34717 57.479245-5.796226 264.21132-5.796226H912.90566l-0.966037 184.513207-1.449057 184.996227-235.713208 1.449056-236.196226 0.966038-21.25283 15.456604c-21.25283 14.973585-26.083019 24.633962-15.939623 30.430188 9.177358 5.796226 525.524528 2.415094 538.083019-3.381132 25.6-11.592453 26.566038-20.286792 26.566038-230.883018 0-163.743396-0.966038-196.10566-7.245283-207.698114-15.456604-29.464151-9.177358-28.981132-310.098113-28.498113-150.701887 0-279.184906 1.932075-284.498114 4.34717zM156.981132 162.777358c-22.218868 11.592453-31.879245 21.735849-41.539623 42.505661-22.701887 49.267925-0.966038 104.332075 49.750944 125.101887 45.886792 19.320755 98.535849-1.932075 117.373585-46.852831 19.803774-47.335849-2.898113-107.230189-47.335849-123.65283-19.803774-7.728302-61.343396-6.279245-78.249057 2.898113z" fill="#08a1f1"/>
                             <path d="M565.615094 259.381132c-5.313208 4.830189-29.464151 31.396226-52.649056 59.411321-28.015094 33.811321-48.784906 53.615094-61.343396 59.894339-10.626415 4.830189-32.845283 19.320755-48.784906 32.362265-16.422642 13.041509-32.845283 23.667925-36.226415 23.667924-3.864151 0-19.803774-14.490566-35.260378-31.879245-15.939623-17.871698-35.743396-35.260377-44.437735-38.64151-22.218868-9.177358-155.532075-9.177358-177.267925 0-20.286792 8.211321-40.090566 31.879245-46.85283 55.064151-2.898113 10.143396-4.830189 45.886792-3.864151 83.079246l1.449056 65.207547h246.339623l1.449057-32.362264 1.449056-32.362264 17.38868 12.075471c11.592453 7.728302 24.150943 11.592453 37.675471 11.592453 17.388679 0 26.083019-4.34717 65.690566-34.777358 62.792453-47.818868 67.139623-53.132075 67.139623-79.215095 0-18.354717 2.898113-25.6 19.320755-44.437736 80.181132-95.154717 83.079245-99.501887 71.486792-111.094339-7.728302-7.728302-10.626415-7.245283-22.701887 2.415094zM161.811321 614.4c-40.573585 23.667925-52.166038 71.486792-27.049057 111.09434 30.913208 48.784906 97.086792 49.750943 132.830189 1.932075 14.490566-18.837736 14.490566-69.071698 0-87.909434-26.083019-35.260377-70.037736-45.403774-105.781132-25.116981zM473.358491 609.086792c-57.479245 23.184906-65.690566 102.4-14.007548 140.558491 39.607547 29.464151 104.332075 6.279245 120.754717-42.988679 19.803774-60.860377-46.369811-121.720755-106.747169-97.569812zM770.415094 612.950943c-57.962264 29.94717-59.411321 109.645283-2.415094 139.592453 67.622642 35.743396 139.109434-30.913208 109.162264-102.4-15.939623-38.641509-68.10566-56.996226-106.74717-37.192453zM123.169811 784.422642c-20.286792 9.177358-45.403774 36.709434-50.716981 56.513207-6.762264 23.184906-6.279245 80.181132 0.966038 84.528302 6.762264 4.34717 248.271698 3.864151 255.033962-0.483019 7.728302-4.830189 5.796226-72.935849-2.415094-92.739623-18.837736-44.437736-42.022642-54.581132-125.584906-54.098113-42.022642 0-67.622642 1.932075-77.283019 6.279246zM417.811321 788.769811c-10.143396 5.796226-25.6 20.286792-33.328302 31.396227-13.524528 19.320755-14.973585 24.150943-14.973585 61.343396 0 22.218868 0.966038 41.056604 2.415094 42.50566 5.313208 4.830189 248.754717 8.211321 256 3.864151 5.796226-3.864151 6.762264-14.007547 5.796227-46.85283-1.449057-45.403774-6.762264-59.89434-28.498113-80.181132-20.769811-19.803774-35.743396-23.184906-104.332076-23.184906-56.996226 0-65.690566 1.449057-83.079245 11.109434zM726.943396 784.422642c-19.320755 8.69434-43.471698 35.260377-50.233962 55.547169-6.279245 19.803774-7.245283 80.664151-0.966038 85.011321 8.211321 4.830189 252.618868 3.381132 257.449057-1.449057 2.898113-2.898113 3.864151-24.150943 3.381132-47.818867-1.932075-38.641509-3.381132-44.920755-15.939623-61.343397-22.701887-29.94717-43.471698-36.709434-116.407547-36.226415-42.022642 0-67.622642 1.932075-77.283019 6.279246z" fill="#08a1f1"/>
                         </svg>
@@ -1078,28 +1503,30 @@
                 </div>
                 <div class="tool-grid">
                     <div class="tool-card" data-file="opencourse/v1.1RollCall.html">
-                      <h3>🌐 3D球形环绕点名系统</h3>
-                         <p>创新的3D球形环绕随机点名工具，让课堂互动更具趣味性，支持自定义学生名单。</p>
-                            <div class="tool-meta">
+                        <h3>🌐 3D球形环绕点名系统</h3>
+                        <p>创新的3D球形环绕随机点名工具，让课堂互动更具趣味性，支持自定义学生名单。</p>
+                        <div class="tool-meta">
                             <span class="meta-date" data-default="2026.08.14">📅 更新：2026.08.14</span>
                             <span>🔖 v1.1</span>
+                        </div>
+                        <div class="tool-actions">
+                            <a href="opencourse/v1.1RollCall.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                        </div>
+                        <div class="tool-templates">
+                            <span>📥 数据模板下载：</span>
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/studentinfo2.xlsx" download class="btn btn-outline btn-sm">学生数据模板</a>
+                        </div>
                     </div>
-              <div class="tool-actions">
-             <a href="opencourse/v1.1RollCall.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-    </div>
-        <div class="tool-templates">
-        <span>📥 数据模板下载：</span>
-        <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/studentinfo2.xlsx" download class="btn btn-outline btn-sm">学生数据模板</a>
-    </div>
-</div>
                 </div>
             </div>
 
-            <!-- ===== 班级管理面板 ===== -->
+            <!-- ==========================================================
+            班级管理
+            ========================================================== -->
             <div class="content-panel" id="panel-class-mgmt">
                 <div class="panel-header">
                     <span class="panel-icon">
-                        <svg viewBox="0 0 1024 1024" width="5rem" height="5rem" xmlns="http://www.w3.org/2000/svg">
+                        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
                             <path d="M427.84 547.52a193.6 193.6 0 1 0-193.6-193.6 193.92 193.92 0 0 0 193.6 193.6z m0-323.52a129.6 129.6 0 1 1-129.6 129.6A129.92 129.92 0 0 1 427.84 224zM822.72 937.28a32 32 0 0 0-45.44 0 32 32 0 0 0-6.72 10.56A32 32 0 0 0 768 960a32 32 0 1 0 64 0 32 32 0 0 0-2.56-12.16 32 32 0 0 0-6.72-10.56zM672 928h-128a32 32 0 0 0 0 64h128a32 32 0 0 0 0-64z" fill="#2c2c2c"/>
                             <path d="M776.96 861.76h2.24a32 32 0 0 0 4.8-3.52l3.84-3.2a32 32 0 0 0 3.84-5.76 20.16 20.16 0 0 0 4.16-10.88 32 32 0 0 0 0-5.76 32 32 0 0 0 0-6.4 30.08 30.08 0 0 0 0-4.8 394.56 394.56 0 0 0-367.36-256A400.64 400.64 0 0 0 32 960a32 32 0 0 0 32 32h352a32 32 0 0 0 0-64H98.56a335.04 335.04 0 0 1 329.28-299.84A330.88 330.88 0 0 1 736 843.52v2.56a32 32 0 0 0 15.04 14.4h1.6a28.48 28.48 0 0 0 23.04 0zM565.76 124.8a110.08 110.08 0 1 1 123.84 179.84 32 32 0 1 0 28.8 57.28 174.08 174.08 0 1 0-196.16-284.16 32 32 0 1 0 43.52 47.04zM675.2 389.44a32 32 0 0 0-6.4 64 293.44 293.44 0 0 1 256 256H832a32 32 0 0 0 0 64h128a32 32 0 0 0 32-32 359.36 359.36 0 0 0-316.8-352z" fill="#2c2c2c"/>
                         </svg>
@@ -1114,7 +1541,9 @@
                             <span class="meta-date" data-default="2026.07.25">📅 更新：2026.07.25</span>
                             <span>🔖 v3.3</span>
                         </div>
-                        <div class="tool-actions"><a href="class/v3.3ReciteGame.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
+                        <div class="tool-actions">
+                            <a href="class/v3.3ReciteGame.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                        </div>
                         <div class="tool-templates">
                             <span>📥 资源下载：</span>
                             <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/picture.zip" download class="btn btn-outline btn-sm">图片库</a>
@@ -1129,7 +1558,9 @@
                             <span class="meta-date" data-default="2026.07.26">📅 更新：2026.07.26</span>
                             <span>🔖 v1.5</span>
                         </div>
-                        <div class="tool-actions"><a href="class/v1.5SeatChange.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
+                        <div class="tool-actions">
+                            <a href="class/v1.5SeatChange.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                        </div>
                         <div class="tool-templates">
                             <span>📥 数据模板下载：</span>
                             <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/SeatChangeData.xlsx" download class="btn btn-outline btn-sm">学生数据模板</a>
@@ -1142,7 +1573,9 @@
                             <span class="meta-date" data-default="2026.07.26">📅 更新：2026.07.26</span>
                             <span>🔖 v1.5</span>
                         </div>
-                        <div class="tool-actions"><a href="class/v1.5GeneralAnalysis.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
+                        <div class="tool-actions">
+                            <a href="class/v1.5GeneralAnalysis.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                        </div>
                         <div class="tool-templates">
                             <span>📥 数据模板下载：</span>
                             <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/GeneralAnalysisData1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
@@ -1153,11 +1586,13 @@
                 </div>
             </div>
 
-            <!-- ===== 成绩分析系统面板 ===== -->
-            <div class="content-panel panel-analysis" id="panel-analysis">
+            <!-- ==========================================================
+            成绩分析系统
+            ========================================================== -->
+            <div class="content-panel" id="panel-analysis">
                 <div class="panel-header">
                     <span class="panel-icon">
-                        <svg viewBox="0 0 1024 1024" width="5rem" height="5rem" xmlns="http://www.w3.org/2000/svg">
+                        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
                             <path d="M454.97837 740.295111h117.039408v243.825778h-117.039408zM729.656889 626.176h123.297185v354.834963h-123.297185zM144.402963 849.711407h134.219852v136.002371H144.402963z" fill="#FCDCCB"/>
                             <path d="M895.070815 967.717926V348.709926a37.508741 37.508741 0 0 0-37.451852-37.527704h-127.981037a37.489778 37.489778 0 0 0-37.451852 37.527704v619.026963h-78.051555V558.174815a37.489778 37.489778 0 0 0-37.451852-37.527704h-127.981037a37.489778 37.489778 0 0 0-37.451852 37.527704v409.562074h-96.768V741.850074a37.489778 37.489778 0 0 0-37.451852-37.527704H149.086815a37.489778 37.489778 0 0 0-37.451852 37.527704v225.867852H0.815407V1024h1023.981037v-56.282074h-129.725629zM749.093926 368.071111h89.088V967.111111h-89.088V368.071111zM468.15763 577.536h89.088v386.446222h-89.088V577.536zM168.523852 761.230222h89.106963v198.84563H168.523852V761.230222zM789.750519 0a59.335111 59.335111 0 0 0-59.297186 59.410963c0 9.462519 2.408296 18.280296 6.33363 26.225778l-191.867259 181.513481a58.576593 58.576593 0 0 0-19.702519-3.621926c-11.889778 0-22.907259 3.584-32.180148 9.614223l-45.719704-45.454223a59.354074 59.354074 0 0 0-57.893926-72.040296 59.335111 59.335111 0 0 0-59.297185 59.410963c0 6.731852 1.365333 13.103407 3.432297 19.13363L132.096 424.77037a58.898963 58.898963 0 0 0-23.589926-4.93037 59.354074 59.354074 0 0 0-59.297185 59.392c0 32.805926 26.548148 59.429926 59.297185 59.429926a59.354074 59.354074 0 0 0 59.297185-59.429926c0-6.428444-1.270519-12.496593-3.166815-18.299259l201.974519-191.051852c7.016296 2.939259 14.715259 4.589037 22.812444 4.589037 10.334815 0 19.930074-2.88237 28.387556-7.547259l48.82963 48.564148c-0.32237 2.465185-0.758519 4.892444-0.758519 7.452444a59.335111 59.335111 0 1 0 114.270815-22.129778l194.654815-184.111407c4.79763 1.251556 9.746963 2.142815 14.942815 2.142815a59.354074 59.354074 0 0 0 59.316148-59.392A59.354074 59.354074 0 0 0 789.750519 0z" fill="#F67250"/>
                         </svg>
@@ -1172,8 +1607,13 @@
                             <span class="meta-date" data-default="2026.07.22">📅 更新：2026.07.22</span>
                             <span>🔖 v1.4 / v1.2</span>
                         </div>
-                        <div class="tool-actions"><button class="btn btn-primary" onclick="openModal()">🚀 选择版本进入</button></div>
-                        <div class="tool-guide"><span>📘 操作指南下载：</span><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/AddGuide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
+                        <div class="tool-actions">
+                            <button class="btn btn-primary" onclick="openModal()">🚀 选择版本进入</button>
+                        </div>
+                        <div class="tool-guide">
+                            <span>📘 操作指南下载：</span>
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/AddGuide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
+                        </div>
                     </div>
                     <div class="tool-card" data-file="analysis/v1.2ResultAnalysis.html">
                         <h3>📈 结果评价分析系统</h3>
@@ -1182,9 +1622,17 @@
                             <span class="meta-date" data-default="2026.07.22">📅 更新：2026.07.22</span>
                             <span>🔖 v1.2</span>
                         </div>
-                        <div class="tool-actions"><a href="analysis/v1.2ResultAnalysis.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
-                        <div class="tool-templates"><span>📥 数据模板下载：</span><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/ResultData.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a></div>
-                        <div class="tool-guide"><span>📘 操作指南下载：</span><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/ResultGuide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
+                        <div class="tool-actions">
+                            <a href="analysis/v1.2ResultAnalysis.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                        </div>
+                        <div class="tool-templates">
+                            <span>📥 数据模板下载：</span>
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/ResultData.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a>
+                        </div>
+                        <div class="tool-guide">
+                            <span>📘 操作指南下载：</span>
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/ResultGuide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
+                        </div>
                     </div>
                     <div class="tool-card" data-file="analysis/v1.3PredictAnalysis.html">
                         <h3>📊 上线达标预测及增量分析系统</h3>
@@ -1193,9 +1641,18 @@
                             <span class="meta-date" data-default="2026.07.22">📅 更新：2026.07.22</span>
                             <span>🔖 v1.3</span>
                         </div>
-                        <div class="tool-actions"><a href="analysis/v1.3PredictAnalysis.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
-                        <div class="tool-templates"><span>📥 数据模板下载：</span><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/PredictData1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/PredictData2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a></div>
-                        <div class="tool-guide"><span>📘 操作指南下载：</span><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/PredictGuide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
+                        <div class="tool-actions">
+                            <a href="analysis/v1.3PredictAnalysis.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                        </div>
+                        <div class="tool-templates">
+                            <span>📥 数据模板下载：</span>
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/PredictData1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/PredictData2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
+                        </div>
+                        <div class="tool-guide">
+                            <span>📘 操作指南下载：</span>
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/PredictGuide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
+                        </div>
                     </div>
                     <div class="tool-card" data-file="analysis/v1.4TestAnalysis.html">
                         <h3>📝 试题分析系统</h3>
@@ -1204,18 +1661,28 @@
                             <span class="meta-date" data-default="2026.07.22">📅 更新：2026.07.22</span>
                             <span>🔖 v1.4</span>
                         </div>
-                        <div class="tool-actions"><a href="analysis/v1.4TestAnalysis.html" target="_blank" class="btn btn-primary">🚀 立即使用</a></div>
-                        <div class="tool-templates"><span>📥 数据模板下载：</span><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/TestData.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a></div>
-                        <div class="tool-guide"><span>📘 操作指南下载：</span><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/TestGuide.pptx" download class="btn btn-outline btn-sm">下载指南</a></div>
+                        <div class="tool-actions">
+                            <a href="analysis/v1.4TestAnalysis.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
+                        </div>
+                        <div class="tool-templates">
+                            <span>📥 数据模板下载：</span>
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/TestData.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a>
+                        </div>
+                        <div class="tool-guide">
+                            <span>📘 操作指南下载：</span>
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/TestGuide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ===== 留言板面板 ===== -->
+            <!-- ==========================================================
+            留言板
+            ========================================================== -->
             <div class="content-panel" id="panel-message-board">
                 <div class="panel-header">
                     <span class="panel-icon">
-                        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="5rem" height="5rem">
+                        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
                             <path d="M864 122H160c-52.9 0-96 43.1-96 96v448c0 52.9 43.1 96 96 96h203.5L512 902l148.4-140H864c52.9 0 96-43.1 96-96V218c0-52.9-43.1-96-96-96zM288 506c-35.3 0-64-28.6-64-64 0-35.3 28.7-64 64-64s64 28.7 64 64c0 35.4-28.7 64-64 64z m224 0c-35.3 0-64-28.6-64-64 0-35.3 28.7-64 64-64s64 28.7 64 64c0 35.4-28.7 64-64 64z m224 0c-35.3 0-64-28.6-64-64 0-35.3 28.7-64 64-64s64 28.7 64 64c0 35.4-28.7 64-64 64z" fill="#47444F"/>
                         </svg>
                     </span>
@@ -1231,24 +1698,28 @@
                         </div>
                         <div class="form-group">
                             <label for="msg-content">留言内容</label>
-                            <textarea id="msg-content" placeholder="分享您的使用体验、建议或问题..." maxlength="500" required></textarea>
+                            <textarea id="msg-content" placeholder="分享您的使用体验、建议或问题…" maxlength="500" required></textarea>
                         </div>
                         <button class="btn-submit" id="submit-message">📨 投递</button>
-                        <div id="form-feedback" style="margin-top: 0.5rem;"></div>
+                        <div id="form-feedback" style="margin-top:0.5rem;"></div>
                     </div>
-                    <!-- 已审核留言 -->
+
+                    <!-- 留言列表 -->
                     <div>
-                        <h3 style="margin-bottom: 1rem; color: #5D3A1A;">📮 精选留言</h3>
+                        <h3 style="margin-bottom:0.8rem;font-size:1rem;font-weight:600;color:var(--text-main);">📮 精选留言</h3>
                         <div id="messages-container" class="messages-list">
-                            <div class="loading-messages">加载中...</div>
+                            <div class="loading-messages">加载中…</div>
                         </div>
                     </div>
                 </div>
             </div>
+
         </main>
     </div>
 
-    <!-- ==================== 模态框（增值评价版本选择） ==================== -->
+    <!-- ============================================================
+    模态框 —— 增值评价版本选择
+    ============================================================ -->
     <div class="modal" id="versionModal">
         <div class="modal-content">
             <span class="modal-close" onclick="closeModal()">&times;</span>
@@ -1256,176 +1727,212 @@
             <p class="subtitle">请选择您的角色，进入对应的分析工具</p>
             <div class="version-list">
                 <div class="version-item">
-                    <div class="version-info"><h4>👔 年级主任版 (v1.4)</h4><p>全年级宏观数据，多班级对比，掌握整体增值趋势</p></div>
+                    <div class="version-info">
+                        <h4>👔 年级主任版 (v1.4)</h4>
+                        <p>全年级宏观数据，多班级对比，掌握整体增值趋势</p>
+                    </div>
                     <div class="version-actions">
                         <a href="analysis/v1.4AddGradeDirector.html" target="_blank" class="btn btn-primary">进入工具</a>
-                        <div class="template-group"><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/GradeDirectorData1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/GradeDirectorData2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a></div>
+                        <div class="template-group">
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/GradeDirectorData1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/GradeDirectorData2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
+                        </div>
                     </div>
                 </div>
                 <div class="version-item">
-                    <div class="version-info"><h4>🏫 班主任版 (v1.2)</h4><p>班级整体及学生个体增值追踪，辅助班会与家长沟通</p></div>
+                    <div class="version-info">
+                        <h4>🏫 班主任版 (v1.2)</h4>
+                        <p>班级整体及学生个体增值追踪，辅助班会与家长沟通</p>
+                    </div>
                     <div class="version-actions">
                         <a href="analysis/v1.2AddHeadTeacher.html" target="_blank" class="btn btn-primary">进入工具</a>
-                        <div class="template-group"><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/HeadTeacherData1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/HeadteacherData2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a></div>
+                        <div class="template-group">
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/HeadTeacherData1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/HeadteacherData2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
+                        </div>
                     </div>
                 </div>
                 <div class="version-item">
-                    <div class="version-info"><h4>📘 科任老师版 (v1.2)</h4><p>学科视角下的学生增值数据，支持分层教学与个别辅导</p></div>
+                    <div class="version-info">
+                        <h4>📘 科任老师版 (v1.2)</h4>
+                        <p>学科视角下的学生增值数据，支持分层教学与个别辅导</p>
+                    </div>
                     <div class="version-actions">
                         <a href="analysis/v1.2AddSubjectTeacher.html" target="_blank" class="btn btn-primary">进入工具</a>
-                        <div class="template-group"><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/SubjectTeacherData1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a><a href="https://github.com/huangjie9716/tools/releases/download/v1.0/SubjectTeacherData2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a></div>
+                        <div class="template-group">
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/SubjectTeacherData1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
+                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/SubjectTeacherData2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ==================== 底部声明与页脚 ==================== -->
+    <!-- ============================================================
+    页脚
+    ============================================================ -->
     <div class="footer-disclaimer">
         ⚠️ 本项目仅供教研学习交流，数据仅保存在用户本地，后台不收集用户信息。请遵守版权及教育部《中小学生成式人工智能使用指南（2025 年版）》相关要求，合理合规使用工具，开发者不对使用后果承担责任。
     </div>
-    <div class="footer">
-        <p>📧 反馈与建议：请联系珠海市九洲中学&nbsp;&nbsp;黄结（vx：Phys_H）</p>
-    </div>
+    <!-- 底部反馈已删除 -->
 
-    <!-- ==================== JavaScript 逻辑 ==================== -->
+    <!-- ============================================================
+    JavaScript
+    ============================================================ -->
     <script>
-        // Supabase 配置（实际密钥已填入，此处为示例值）
-        const SUPABASE_URL = 'https://nmwtgxmqlmezcjtnxgqk.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5td3RneG1xbG1lemNqdG54Z3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4MzI2OTAsImV4cCI6MjEwMTQwODY5MH0.90TChC0s47NOGJlEkRNhD0uePRfcwdndK5SyeRRKgWo';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // ============================================================
+        // Supabase 配置
+        // ============================================================
+        var SUPABASE_URL = 'https://nmwtgxmqlmezcjtnxgqk.supabase.co';
+        var SUPABASE_ANON_KEY =
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5td3RneG1xbG1lemNqdG54Z3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4MzI2OTAsImV4cCI6MjEwMTQwODY5MH0.90TChC0s47NOGJlEkRNhD0uePRfcwdndK5SyeRRKgWo';
+        var supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         (function() {
-            // ========== 工具函数：日期格式化与自动获取文件日期 ==========
+            'use strict';
+
+            // ============================================================
+            // 工具函数：日期格式化 & 文件日期获取
+            // ============================================================
             function formatDate(date) {
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                return `${year}.${month}.${day}`;
+                var y = date.getFullYear();
+                var m = String(date.getMonth() + 1).padStart(2, '0');
+                var d = String(date.getDate()).padStart(2, '0');
+                return y + '.' + m + '.' + d;
             }
+
             function parseLastModified(lastModified) {
                 if (!lastModified) return null;
-                try { const date = new Date(lastModified); return isNaN(date.getTime()) ? null : date; } catch (e) { return null; }
+                try { var d = new Date(lastModified); return isNaN(d.getTime()) ? null : d; } catch (_) { return null; }
             }
+
             async function fetchFileDate(filePath) {
                 try {
-                    const response = await fetch(filePath, { method: 'HEAD', cache: 'no-cache' });
-                    if (response.ok) {
-                        const lastModified = response.headers.get('Last-Modified');
-                        if (lastModified) {
-                            const date = parseLastModified(lastModified);
-                            if (date) return formatDate(date);
+                    var resp = await fetch(filePath, { method: 'HEAD', cache: 'no-cache' });
+                    if (resp.ok) {
+                        var lm = resp.headers.get('Last-Modified');
+                        if (lm) {
+                            var d = parseLastModified(lm);
+                            if (d) return formatDate(d);
                         }
                     }
-                } catch (error) {}
+                } catch (_) {}
                 return null;
             }
 
-            // 更新所有卡片的日期（自动获取或使用默认值）
+            // ============================================================
+            // 更新卡片日期
+            // ============================================================
             async function updateCardDates() {
-                const cards = document.querySelectorAll('.tool-card[data-file]');
-                const promises = Array.from(cards).map(async (card) => {
-                    const filePath = card.getAttribute('data-file');
-                    const dateSpan = card.querySelector('.meta-date');
+                var cards = document.querySelectorAll('.tool-card[data-file]');
+                var promises = Array.from(cards).map(async function(card) {
+                    var filePath = card.getAttribute('data-file');
+                    var dateSpan = card.querySelector('.meta-date');
                     if (!dateSpan || !filePath) return;
-                    dateSpan.textContent = '📅 更新：加载中...';
-                    dateSpan.classList.add('loading');
-                    const dateStr = await fetchFileDate(filePath);
+                    dateSpan.textContent = '📅 更新：加载中…';
+                    var dateStr = await fetchFileDate(filePath);
                     if (dateStr) {
-                        dateSpan.textContent = `📅 更新：${dateStr}`;
+                        dateSpan.textContent = '📅 更新：' + dateStr;
                     } else {
-                        const defaultDate = dateSpan.getAttribute('data-default');
-                        dateSpan.textContent = `📅 更新：${defaultDate || '未知'}`;
+                        var def = dateSpan.getAttribute('data-default');
+                        dateSpan.textContent = '📅 更新：' + (def || '未知');
                     }
-                    dateSpan.classList.remove('loading');
                 });
                 await Promise.allSettled(promises);
             }
-            window.addEventListener('DOMContentLoaded', () => {
-            updateCardDates();
-            updateVisitCount();   // 添加这一行
-            });
 
-            // 访问计数器：从 Supabase 读取并更新
-async function updateVisitCount() {
-    const countElement = document.getElementById('visit-count');
-    if (!countElement) return;
+            // ============================================================
+            // 访问计数器
+            // ============================================================
+            async function updateVisitCount() {
+                var el = document.getElementById('visit-count');
+                if (!el) return;
+                var { data, error: readErr } = await supabaseClient
+                    .from('site_visits')
+                    .select('count')
+                    .eq('id', 1)
+                    .single();
+                if (readErr || !data) {
+                    console.error('读取访问计数失败:', readErr?.message);
+                    el.textContent = '--';
+                    return;
+                }
+                var newCount = data.count + 1;
+                var { error: updateErr } = await supabaseClient
+                    .from('site_visits')
+                    .update({ count: newCount })
+                    .eq('id', 1);
+                if (updateErr) {
+                    console.error('更新访问计数失败:', updateErr.message);
+                    el.textContent = data.count;
+                } else {
+                    el.textContent = newCount;
+                }
+            }
 
-    // 1. 读取当前计数
-    const { data, error: readError } = await supabaseClient
-        .from('site_visits')
-        .select('count')
-        .eq('id', 1)
-        .single();
+            // ============================================================
+            // 侧边栏导航切换
+            // ============================================================
+            var navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+            var contentPanels = document.querySelectorAll('.content-panel');
 
-    if (readError || !data) {
-        console.error('读取访问计数失败:', readError?.message);
-        countElement.textContent = '--';
-        return;
-    }
-
-    const newCount = data.count + 1;
-
-    // 2. 更新计数（原子操作，并发安全）
-    const { error: updateError } = await supabaseClient
-        .from('site_visits')
-        .update({ count: newCount })
-        .eq('id', 1);
-
-    if (updateError) {
-        console.error('更新访问计数失败:', updateError.message);
-        countElement.textContent = data.count; // 显示旧值
-    } else {
-        countElement.textContent = newCount;
-    }
-}
-
-            // ========== 左侧导航栏切换面板 ==========
-            const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
-            const contentPanels = document.querySelectorAll('.content-panel');
-            navItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    navItems.forEach(n => n.classList.remove('active'));
+            navItems.forEach(function(item) {
+                item.addEventListener('click', function() {
+                    navItems.forEach(function(n) { n.classList.remove('active'); });
                     item.classList.add('active');
-                    contentPanels.forEach(p => p.classList.remove('active'));
-                    const target = document.getElementById(item.dataset.panel);
+                    contentPanels.forEach(function(p) { p.classList.remove('active'); });
+                    var target = document.getElementById(item.dataset.panel);
                     if (target) {
                         target.classList.add('active');
-                        target.querySelectorAll('.tool-card, .placeholder-card').forEach((card,i) => {
-                            card.style.animation = 'none';
-                            card.offsetHeight;
-                            card.style.animation = 'fadeInUp 0.4s ease forwards';
-                            card.style.animationDelay = (0.05 + i*0.07) + 's';
-                        });
-                        if (item.dataset.panel === 'panel-message-board') loadMessages();
+                        // 如果切到留言板，加载留言
+                        if (item.dataset.panel === 'panel-message-board') {
+                            loadMessages();
+                        }
                     }
                 });
             });
 
-            // ========== 学科子标签切换 ==========
-            const tabs = document.querySelectorAll('.subject-tab');
-            const panels = document.querySelectorAll('.subject-panel');
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    tabs.forEach(t => t.classList.remove('active'));
+            // ============================================================
+            // 学科子标签切换
+            // ============================================================
+            var tabs = document.querySelectorAll('.subject-tab');
+            var subPanels = document.querySelectorAll('.subject-panel');
+
+            tabs.forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    tabs.forEach(function(t) { t.classList.remove('active'); });
                     tab.classList.add('active');
-                    panels.forEach(p => p.classList.remove('active'));
-                    document.getElementById('panel-' + tab.dataset.subject).classList.add('active');
+                    subPanels.forEach(function(p) { p.classList.remove('active'); });
+                    var target = document.getElementById('panel-' + tab.dataset.subject);
+                    if (target) target.classList.add('active');
                 });
             });
 
-            // ========== 模态框控制 ==========
-            window.openModal = function() { document.getElementById('versionModal').classList.add('show'); };
-            window.closeModal = function() { document.getElementById('versionModal').classList.remove('show'); };
-            window.onclick = function(e) { if (e.target === document.getElementById('versionModal')) closeModal(); };
-            document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+            // ============================================================
+            // 模态框
+            // ============================================================
+            window.openModal = function() {
+                document.getElementById('versionModal').classList.add('show');
+            };
+            window.closeModal = function() {
+                document.getElementById('versionModal').classList.remove('show');
+            };
+            window.onclick = function(e) {
+                if (e.target === document.getElementById('versionModal')) closeModal();
+            };
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeModal();
+            });
 
-            // ========== 导航栏滚动阴影 ==========
-            const navbar = document.getElementById('navbar');
-            let ticking = false;
-            window.addEventListener('scroll', () => {
+            // ============================================================
+            // 导航栏滚动阴影（轻量）
+            // ============================================================
+            var navbar = document.getElementById('navbar');
+            var ticking = false;
+            window.addEventListener('scroll', function() {
                 if (!ticking) {
-                    requestAnimationFrame(() => {
+                    requestAnimationFrame(function() {
                         navbar.classList.toggle('scrolled', window.scrollY > 10);
                         ticking = false;
                     });
@@ -1433,82 +1940,140 @@ async function updateVisitCount() {
                 }
             });
 
-            // ========== 留言板功能 ==========
+            // ============================================================
+            // 留言板
+            // ============================================================
+            function escapeHtml(text) {
+                var div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
             async function loadMessages() {
-                const container = document.getElementById('messages-container');
+                var container = document.getElementById('messages-container');
                 if (!container) return;
-                container.innerHTML = '<div class="loading-messages">加载中...</div>';
-                const { data, error } = await supabaseClient
+                container.innerHTML = '<div class="loading-messages">加载中…</div>';
+                var { data, error } = await supabaseClient
                     .from('messages')
                     .select('name, content, created_at')
                     .eq('approved', true)
                     .order('created_at', { ascending: false });
                 if (error) {
-                    container.innerHTML = `<div class="error-message">加载留言失败：${error.message}</div>`;
+                    container.innerHTML = '<div class="error-message">加载留言失败：' + escapeHtml(error.message) + '</div>';
                     return;
                 }
                 if (!data || data.length === 0) {
                     container.innerHTML = '<div class="no-messages">📭 暂无留言，快来写第一条吧！</div>';
                     return;
                 }
-                container.innerHTML = data.map(msg => {
-                    const time = new Date(msg.created_at).toLocaleDateString('zh-CN', {
-                        year: 'numeric', month: '2-digit', day: '2-digit',
-                        hour: '2-digit', minute: '2-digit'
+                container.innerHTML = data.map(function(msg) {
+                    var time = new Date(msg.created_at).toLocaleDateString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
                     });
-                    return `
-                        <div class="message-card">
-                            <div class="message-header">
-                                <span class="message-author">💬 ${escapeHtml(msg.name)}</span>
-                                <span class="message-time">${time}</span>
-                            </div>
-                            <div class="message-content">${escapeHtml(msg.content)}</div>
-                        </div>
-                    `;
+                    return '<div class="message-card">' +
+                        '<div class="message-header">' +
+                        '<span class="message-author">💬 ' + escapeHtml(msg.name) + '</span>' +
+                        '<span class="message-time">' + time + '</span>' +
+                        '</div>' +
+                        '<div class="message-content">' + escapeHtml(msg.content) + '</div>' +
+                        '</div>';
                 }).join('');
             }
 
-            function escapeHtml(text) {
-                const div = document.createElement('div');
-                div.textContent = text;
-                return div.innerHTML;
-            }
-
-            // 投递留言按钮事件
-            document.getElementById('submit-message').addEventListener('click', async () => {
-                const nameInput = document.getElementById('msg-name');
-                const contentInput = document.getElementById('msg-content');
-                const feedback = document.getElementById('form-feedback');
-                const btn = document.getElementById('submit-message');
-                const name = nameInput.value.trim();
-                const content = contentInput.value.trim();
-                if (!name || !content) {
-                    feedback.innerHTML = '<div class="error-message">请填写称呼和留言内容。</div>';
-                    return;
-                }
-                if (content.length > 500) {
-                    feedback.innerHTML = '<div class="error-message">留言内容不能超过500字。</div>';
-                    return;
-                }
-                btn.disabled = true;
-                btn.textContent = '投递中...';
-                feedback.innerHTML = '';
-                const { error } = await supabaseClient
-                    .from('messages')
-                    .insert([{ name, content, approved: false }]);
-                if (error) {
-                    feedback.innerHTML = `<div class="error-message">提交失败：${error.message}</div>`;
+            // 投递留言
+            var submitBtn = document.getElementById('submit-message');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', async function() {
+                    var nameInput = document.getElementById('msg-name');
+                    var contentInput = document.getElementById('msg-content');
+                    var feedback = document.getElementById('form-feedback');
+                    var btn = this;
+                    var name = nameInput.value.trim();
+                    var content = contentInput.value.trim();
+                    if (!name || !content) {
+                        feedback.innerHTML = '<div class="error-message">请填写称呼和留言内容。</div>';
+                        return;
+                    }
+                    if (content.length > 500) {
+                        feedback.innerHTML = '<div class="error-message">留言内容不能超过500字。</div>';
+                        return;
+                    }
+                    btn.disabled = true;
+                    btn.textContent = '投递中…';
+                    feedback.innerHTML = '';
+                    var { error } = await supabaseClient
+                        .from('messages')
+                        .insert([{ name: name, content: content, approved: false }]);
+                    if (error) {
+                        feedback.innerHTML = '<div class="error-message">提交失败：' + escapeHtml(error.message) +
+                        '</div>';
+                        btn.disabled = false;
+                        btn.textContent = '📨 投递';
+                        return;
+                    }
+                    nameInput.value = '';
+                    contentInput.value = '';
+                    feedback.innerHTML = '<div class="success-message">✅ 留言已投递！审核通过后将显示在下方。</div>';
                     btn.disabled = false;
                     btn.textContent = '📨 投递';
-                    return;
+                });
+            }
+
+            // ============================================================
+            // 主题切换
+            // ============================================================
+            function initTheme() {
+                var stored = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = stored || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+
+            function toggleTheme() {
+                var current = document.documentElement.getAttribute('data-theme');
+                var next = current === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+            }
+
+            // 监听系统主题变化（仅在用户未手动设置时跟随）
+            var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            mediaQuery.addEventListener('change', function(e) {
+                if (!localStorage.getItem('theme')) {
+                    document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
                 }
-                nameInput.value = '';
-                contentInput.value = '';
-                feedback.innerHTML = '<div class="success-message">✅ 留言已投递！审核通过后将显示在下方。</div>';
-                btn.disabled = false;
-                btn.textContent = '📨 投递';
             });
+
+            // 绑定切换按钮
+            var toggleBtn = document.getElementById('theme-toggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', toggleTheme);
+            }
+
+            // ============================================================
+            // 初始化
+            // ============================================================
+            // 主题
+            initTheme();
+
+            // 更新卡片日期
+            updateCardDates();
+
+            // 访问计数
+            updateVisitCount();
+
+            // 如果当前显示留言板，加载留言
+            var activePanel = document.querySelector('.content-panel.active');
+            if (activePanel && activePanel.id === 'panel-message-board') {
+                loadMessages();
+            }
+
         })();
     </script>
+
 </body>
 </html>
