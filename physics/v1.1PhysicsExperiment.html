@@ -235,26 +235,16 @@
             background: #ffffff;
             border-radius: 16px;
             width: 100%;
-            max-width: 1000px;
+            max-width: 900px;
             padding: 28px;
             box-shadow: 0 30px 70px rgba(0, 0, 0, 0.25);
             animation: fadeUp 0.25s ease;
-        }
-        /* 习题弹窗全屏 */
-        .modal-content.exercise-fullscreen {
-            max-width: 98vw;
-            width: 98vw;
-            height: 94vh;
-            padding: 28px;
-            display: flex;
-            flex-direction: column;
         }
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-            flex-shrink: 0;
         }
         .modal-header h3 {
             font-size: 22px;
@@ -293,9 +283,38 @@
             border: 0;
         }
 
-        /* ====================== 习题弹窗样式 ====================== */
+        .sim-wrapper {
+            min-height: 460px;
+            border-radius: 10px;
+            border:1px solid #e2e8f0;
+            overflow:hidden;
+        }
+        .sim-wrapper iframe {
+            width:100%;
+            height:460px;
+            border:0;
+        }
+
+        /* ====================== 习题弹窗样式（优化版） ====================== */
+        /* 让习题弹窗和视频弹窗一样大 */
+      #exerciseModal .modal-content {
+    width: 96%;               /* 与视频弹窗宽度一致 */
+    height: 92vh;             /* 与视频弹窗高度一致 */
+    max-width: none;          /* 去掉原有的 900px 或 1000px 限制 */
+    padding: 22px;            /* 与视频弹窗内边距一致 */
+    display: flex;
+    flex-direction: column;
+     }
+
+      #exerciseModal .exercise-body {
+    flex: 1;                  /* 自动填充剩余高度 */
+    max-height: none;         /* 取消原有的 70vh 限制 */
+    overflow-y: auto;         /* 保持滚动 */
+    padding: 4px;
+    font-size: 17px;
+     }
         .exercise-body {
-            flex: 1;
+            max-height: 50vh;
             overflow-y: auto;
             padding: 4px;
             font-size:17px;
@@ -311,6 +330,13 @@
             font-weight: 500;
             margin-bottom: 12px;
             line-height: 1.8;
+            white-space: pre-wrap;    /* 保留换行和空格，但需配合 innerHTML 中的 <br> */
+        }
+        .question-text .option-line {
+            display: block;
+            padding-left: 1.2em;
+            text-indent: -1.2em;
+            margin-left: 1.2em;
         }
         .question-images {
             display: flex;
@@ -321,8 +347,13 @@
         }
         .question-images img {
             max-width: 100%;
+             max-height: 70vh;           /* 限制最大高度为视口高度的70%，防止图片过高 */
+            height: auto;               /* 保持宽高比 */
+            object-fit: contain;        /* 保持比例，不裁剪 */
             border-radius: 8px;
             border: 1px solid #dce3ec;
+            display: block;             /* 确保居中生效 */
+            margin: 0 auto;             /* 水平居中 */
         }
         .answer-section {
             margin-top: 14px;
@@ -333,22 +364,13 @@
         .answer-section.show {
             display: block;
         }
-        .answer-section .answer-content {
-            background: #f0f4fe;
-            padding: 14px 18px;
-            border-radius: 8px;
-            border-left: 4px solid #2576D9;
-            color: #1e2a3a;
+        .answer-section p {
+            margin-bottom: 6px;
             line-height: 1.8;
-            white-space: pre-wrap;
-            word-break: break-word;
         }
-        .answer-section img {
-            max-width: 100%;
-            border-radius: 8px;
-            border: 1px solid #dce3ec;
-            display: block;
-            margin: 10px auto 0;
+        .answer-section .answer-label {
+            font-weight: 600;
+            color: #1a5fa8;
         }
         .toggle-answer-btn {
             margin-top: 10px;
@@ -403,12 +425,6 @@
             .experiment-grid.empty-state-mode {
                 min-height: calc(100vh - 200px);
             }
-            .modal-content.exercise-fullscreen {
-                width: 100vw;
-                height: 100vh;
-                border-radius: 0;
-                padding: 16px;
-            }
         }
         @media (max-width: 480px) {
             .main-title {
@@ -420,6 +436,17 @@
             }
         }
     </style>
+    <script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+    },
+    svg: {
+        fontCache: 'global'
+    }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
 </head>
 <body>
     <!-- ====================== 顶部标题区域 ====================== -->
@@ -463,9 +490,22 @@
         </div>
     </div>
 
-    <!-- ====================== 习题弹窗（全屏） ====================== -->
+    <!-- ====================== 模拟软件弹窗 ====================== -->
+    <div class="modal" id="simModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="simModalTitle">🖥️ 实验模拟软件</h3>
+                <button class="modal-close" id="simModalClose">&times;</button>
+            </div>
+            <div class="sim-wrapper">
+                <iframe id="simIframe" src=""></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================== 习题弹窗 ====================== -->
     <div class="modal" id="exerciseModal">
-        <div class="modal-content exercise-fullscreen">
+        <div class="modal-content" style="max-width: 1500px;">
             <div class="modal-header">
                 <h3 id="exerciseModalTitle">📝 习题资源</h3>
                 <button class="modal-close" id="exerciseModalClose">&times;</button>
@@ -476,16 +516,20 @@
         </div>
     </div>
 
-    <!-- ====================== 加载外部资源 JS ====================== -->
+    <!-- ====================== 加载四个外部资源 JS ====================== -->
+    <!-- 封面图片数据 -->
     <script src="cover.js"></script>
+    <!-- 视频资源 -->
     <script src="video.js"></script>
+    <!-- 模拟软件资源 -->
     <script src="simulate.js"></script>
+    <!-- 习题资源 -->
     <script src="question.js"></script>
 
-    <!-- ====================== 主逻辑 ====================== -->
+    <!-- ====================== 主逻辑脚本 ====================== -->
     <script>
         // ================================================================
-        // 1. 数据定义（书册与章节）
+        // 1. 数据定义（书册与章节，保持不变）
         // ================================================================
 
         const bookData = [
@@ -533,7 +577,11 @@
         ];
 
         // ================================================================
-        // 2. 引用外部资源（全局变量）
+        // 2. 引用外部资源（由外部 JS 定义全局变量）
+        //    coverImages  -> 来自 cover.js
+        //    videoLinks   -> 来自 video.js
+        //    simLinks     -> 来自 simulate.js
+        //    exerciseData -> 来自 question.js
         // ================================================================
 
         // ================================================================
@@ -548,6 +596,11 @@
         const videoIframe = document.getElementById('videoIframe');
         const videoModalTitle = document.getElementById('videoModalTitle');
         const videoModalClose = document.getElementById('videoModalClose');
+
+        const simModal = document.getElementById('simModal');
+        const simIframe = document.getElementById('simIframe');
+        const simModalTitle = document.getElementById('simModalTitle');
+        const simModalClose = document.getElementById('simModalClose');
 
         const exerciseModal = document.getElementById('exerciseModal');
         const exerciseModalTitle = document.getElementById('exerciseModalTitle');
@@ -676,11 +729,7 @@
             container.querySelectorAll('.btn-sim:not([disabled])').forEach(btn=>{
                 btn.onclick = ()=>{
                     const name = btn.dataset.exp;
-                    const url = simLinks[name];
-                    if(url){
-                        // 新窗口打开
-                        window.open(url, '_blank');
-                    }
+                    openSimModal(name, simLinks[name]);
                 }
             })
             container.querySelectorAll('.btn-exercise:not([disabled])').forEach(btn=>{
@@ -697,7 +746,7 @@
         }
 
         // ================================================================
-        // 5. 弹窗控制
+        // 5. 弹窗控制（优化习题显示：换行 + 选项整齐）
         // ================================================================
 
         function openVideoModal(title,url){
@@ -712,31 +761,72 @@
             document.body.style.overflow='';
         }
 
+        function openSimModal(title,url){
+            simModalTitle.textContent = `🖥️ ${title}`;
+            simIframe.src = url;
+            simModal.classList.add('active');
+            document.body.style.overflow='hidden';
+        }
+        function closeSimModal(){
+            simModal.classList.remove('active');
+            simIframe.src = '';
+            document.body.style.overflow='';
+        }
+
         function openExerciseModal(expName){
             exerciseModalTitle.textContent = `📝 ${expName} 习题`;
             const data = window.exerciseData && window.exerciseData[expName];
             if(data && data.questions && data.questions.length > 0){
                 let html = '';
                 data.questions.forEach((q, index) => {
+                    // 将题目文本中的 \n 替换为 <br> 实现换行
+                    let questionHtml = q.questionText.replace(/\n/g, '<br>');
+                    // 进一步优化：将选项（A．、B．等）加粗或缩进，但此处已换行，再添加左内边距
+                    // 我们通过 CSS 的 white-space: pre-wrap 配合 <br> 即可实现整齐换行。
+                    // 为了更美观，可将选项行用 <span class="option-line"> 包裹，但这样需要更复杂的正则，
+                    // 简单起见，我们直接使用 <br>，CSS 设置 padding-left 即可。
                     html += `<div class="question-item">`;
-                    html += `<div class="question-text"><strong>第${index+1}题.</strong> ${q.questionText}</div>`;
-                    if(q.questionImages && q.questionImages.length > 0){
-                        html += `<div class="question-images">`;
-                        q.questionImages.forEach(img => {
-                            html += `<img src="${img}" alt="题目图片" loading="lazy">`;
-                        });
-                        html += `</div>`;
-                    }
-                    html += `<button class="toggle-answer-btn" data-qidx="${index}">查看答案和解析</button>`;
-                    html += `<div class="answer-section" id="answerSection_${index}">`;
+                    html += `<div class="question-text"><strong>第${index+1}题.</strong> ${questionHtml}</div>`;
+                    // ===== 替换原来的图片渲染代码 =====
+if (q.questionImages && q.questionImages.length > 0) {
+    html += `<div class="question-images">`;
+    q.questionImages.forEach(img => {
+        // 如果该题目设置了 imageMaxHeight，则生成内联样式；否则留空
+        let imgStyle = '';
+        if (q.imageMaxHeight) {
+            imgStyle = ` style="max-height: ${q.imageMaxHeight};"`;
+        }
+        html += `<img src="${img}" alt="题目图片" loading="lazy"${imgStyle}>`;
+    });
+    html += `</div>`;
+}
+                    // 答案和解析部分（使用 answerText 字段）
                     if(q.answerText){
-                        html += `<div class="answer-content">${q.answerText}</div>`;
-                    } else if(q.answerImg) {
-                        html += `<img src="${q.answerImg}" alt="答案图片" loading="lazy">`;
+                        html += `<button class="toggle-answer-btn" data-qidx="${index}">查看答案和解析</button>`;
+                        html += `<div class="answer-section" id="answerSection_${index}">`;
+                        // 将 answerText 中的换行转换为 <br>，并保留已有 <br> 标签
+                        let answerHtml = q.answerText.replace(/\n/g, '<br>');
+                        html += `<div>${answerHtml}</div>`;
+                        html += `</div>`;
                     } else {
-                        html += `<p style="color:#999;">暂无答案和解析</p>`;
+                        // 兼容旧格式（如果有 answerImg）
+                        if(q.answerImg){
+                            html += `<button class="toggle-answer-btn" data-qidx="${index}">查看答案和解析</button>`;
+                            html += `<div class="answer-section" id="answerSection_${index}">`;
+                            // 原代码（仅示例）：
+                       //html += `<img src="${q.answerImg}" alt="答案图片" loading="lazy">`;
+
+                      // 修改为：
+                     let imgStyle = '';
+                     if (q.answerImgMaxHeight) {
+                      imgStyle = ` style="max-height: ${q.answerImgMaxHeight};"`;
+                        }
+                       html += `<img src="${q.answerImg}" alt="答案图片" loading="lazy"${imgStyle}>`;
+                            html += `</div>`;
+                        } else {
+                            html += `<p style="color:#999; margin-top:10px;">暂无答案和解析</p>`;
+                        }
                     }
-                    html += `</div>`;
                     html += `</div>`;
                 });
                 exerciseContent.innerHTML = html;
@@ -758,7 +848,13 @@
             }else{
                 exerciseContent.innerHTML = '<p style="color:#666;">该实验暂无习题资源</p>';
             }
+            if (window.MathJax && MathJax.typesetPromise) {
+    MathJax.typesetPromise().catch(function(err) {
+        console.log('MathJax渲染出错:', err);
+    });
+}
             exerciseModal.classList.add('active');
+            
             document.body.style.overflow='hidden';
         }
         function closeExerciseModal(){
@@ -766,9 +862,12 @@
             document.body.style.overflow='';
         }
 
+        // 关闭按钮
         videoModalClose.onclick = closeVideoModal;
+        simModalClose.onclick = closeSimModal;
         exerciseModalClose.onclick = closeExerciseModal;
 
+        // 点击背景关闭
         document.querySelectorAll('.modal').forEach(modal=>{
             modal.addEventListener('click',e=>{
                 if(e.target === modal){
@@ -780,9 +879,11 @@
             })
         })
 
+        // ESC键关闭
         document.addEventListener('keydown',e=>{
             if(e.key === 'Escape'){
                 closeVideoModal();
+                closeSimModal();
                 closeExerciseModal();
             }
         })
