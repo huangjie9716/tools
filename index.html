@@ -4,1187 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>中学教师数字工具箱</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-    </script>
-    <style>
-        /* ============================================================
-           设计系统：教育工具 · 克制 · 专业 · 支持暗色
-           ============================================================ */
-        :root {
-            /* 主色 —— 沉稳藏青 */
-            --primary: #1e3a8a;
-            --primary-hover: #1d4ed8;
-            --primary-light: #eff6ff;
-            --primary-border: #bfdbfe;
-
-            /* 六分类指示色（降低饱和度） */
-            --color-physics: #d97706;
-            --color-others: #7c3aed;
-            --color-public: #0d9488;
-            --color-class: #0284c7;
-            --color-analysis: #059669;
-            --color-message: #d97706;
-
-            /* 中性色 */
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --border: #e2e8f0;
-            --border-light: #f1f5f9;
-            --text-main: #111827;
-            --text-secondary: #4b5563;
-            --text-muted: #9ca3af;
-
-            /* 表单/留言板 */
-            --form-bg: #fefcf5;
-            --form-border: #f0e6d3;
-            --input-bg: #ffffff;
-
-            /* 阴影 (仅hover使用) */
-            --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.05);
-
-            /* 圆角 */
-            --radius-sm: 6px;
-            --radius-md: 8px;
-            --radius-lg: 10px;
-
-            /* 过渡 */
-            --ease: 0.15s ease;
-
-            /* 侧边栏宽度 */
-            --sidebar-width: 224px;
-
-            /* Hero背景 */
-            --hero-bg: #f0f5ff;
-        }
-
-        /* ===== 暗色主题变量 ===== */
-        [data-theme="dark"] {
-            --bg: #0f172a;
-            --card-bg: #1e293b;
-            --border: rgba(255, 255, 255, 0.08);
-            --border-light: rgba(255, 255, 255, 0.06);
-
-            --text-main: #e2e8f0;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-
-            --primary: #3b82f6;
-            --primary-hover: #2563eb;
-            --primary-light: rgba(59, 130, 246, 0.15);
-            --primary-border: rgba(59, 130, 246, 0.3);
-
-            --color-physics: #f59e0b;
-            --color-others: #a78bfa;
-            --color-public: #2dd4bf;
-            --color-class: #38bdf8;
-            --color-analysis: #34d399;
-            --color-message: #f59e0b;
-
-            --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.3);
-
-            --form-bg: #271c19;
-            --form-border: #7c2d12;
-            --input-bg: #0f172a;
-
-            --hero-bg: #0f172a;
-        }
-
-        /* ============================================================
-           重置 & 全局
-           ============================================================ */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-            background-color: var(--bg);
-            color: var(--text-main);
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-            min-height: 100vh;
-            transition: background-color 0.2s ease, color 0.2s ease;
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        /* ============================================================
-           关键帧 —— 仅保留必要淡入
-           ============================================================ */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes modalIn {
-            from {
-                opacity: 0;
-                transform: scale(0.98);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        /* ============================================================
-           顶部导航栏
-           ============================================================ */
-        .navbar {
-            background: var(--card-bg);
-            border-bottom: 1px solid var(--border);
-            padding: 0.7rem 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: nowrap;
-            gap: 0.3rem 0.8rem;
-            position: sticky;
-            top: 0;
-            z-index: 900;
-            transition: background-color 0.2s ease, border-color 0.2s ease;
-        }
-
-        .navbar-logo {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #1A3C8C;
-            /* 暗色下自动继承 text-main 或单独定义，但此处保留原色，可通过变量覆盖 */
-            transition: color 0.2s ease;
-        }
-        [data-theme="dark"] .navbar-logo {
-            color: var(--text-main);
-        }
-
-        .navbar-meta {
-            display: flex;
-            flex-wrap: nowrap;
-            align-items: center;
-            gap: 0.3rem 1.5rem;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            transition: color 0.2s ease;
-        }
-
-        .navbar-meta .update-badge,
-        .navbar-meta .contact-badge {
-            background: var(--border-light);
-            padding: 0.2rem 0.9rem;
-            border-radius: 20px;
-            font-size: 0.78rem;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            transition: background-color 0.2s ease, color 0.2s ease;
-        }
-
-        .visit-count-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.2rem;
-            font-size: 0.78rem;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            margin-left: auto;
-            transition: color 0.2s ease;
-        }
-
-        .visit-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary);
-            line-height: 1.2;
-            display: inline-block;
-            vertical-align: middle;
-            margin-top: -4px;
-            transition: color 0.2s ease;
-        }
-
-        /* 主题切换按钮 */
-        .theme-toggle {
-            background: none;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 0.2rem 0.4rem;
-            cursor: pointer;
-            color: var(--text-secondary);
-            display: inline-flex;
-            align-items: center;
-            transition: color 0.2s ease, border-color 0.2s ease;
-            line-height: 1;
-        }
-        .theme-toggle:hover {
-            color: var(--text-main);
-            border-color: var(--text-muted);
-        }
-        .theme-toggle .sun-icon,
-        .theme-toggle .moon-icon {
-            display: block;
-            width: 18px;
-            height: 18px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-        }
-        [data-theme="dark"] .theme-toggle .sun-icon {
-            display: none;
-        }
-        [data-theme="dark"] .theme-toggle .moon-icon {
-            display: block;
-        }
-        [data-theme="light"] .theme-toggle .sun-icon {
-            display: block;
-        }
-        [data-theme="light"] .theme-toggle .moon-icon {
-            display: none;
-        }
-
-        /* ============================================================
-           Hero 引导区
-           ============================================================ */
-        .hero {
-            background: var(--hero-bg);
-            text-align: center;
-            padding: 2rem 1.5rem 1.8rem;
-            border-bottom: 1px solid var(--border);
-            animation: fadeIn 0.25s ease;
-            transition: background-color 0.2s ease, border-color 0.2s ease;
-        }
-
-        .hero h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--text-main);
-            letter-spacing: 0.01em;
-            margin-bottom: 0.2rem;
-            transition: color 0.2s ease;
-        }
-
-        .hero p {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            max-width: 620px;
-            margin: 0 auto;
-            line-height: 1.5;
-            transition: color 0.2s ease;
-        }
-
-        /* ============================================================
-           主容器
-           ============================================================ */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1.6rem 1.6rem 1rem 1.2rem;
-            display: flex;
-            gap: 1.8rem;
-            align-items: flex-start;
-            animation: fadeIn 0.25s ease;
-        }
-
-        /* ============================================================
-           侧边栏
-           ============================================================ */
-        .sidebar {
-            width: var(--sidebar-width);
-            flex-shrink: 0;
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 1.2rem 0.6rem;
-            position: sticky;
-            top: 84px;
-            transition: background-color 0.2s ease, border-color 0.2s ease;
-        }
-
-        .sidebar-nav {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 0.2rem;
-        }
-
-        .sidebar-nav li {
-            position: relative;
-        }
-
-        .sidebar-nav .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 0.7rem;
-            padding: 0.7rem 1rem 0.7rem 0.9rem;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.88rem;
-            color: var(--text-secondary);
-            transition: color 0.2s ease, background 0.2s ease;
-            border: 1px solid transparent;
-            user-select: none;
-            position: relative;
-        }
-
-        .sidebar-nav .nav-item:hover {
-            color: var(--primary);
-            background: rgba(0, 0, 0, 0.02);
-        }
-        [data-theme="dark"] .sidebar-nav .nav-item:hover {
-            background: rgba(255, 255, 255, 0.03);
-            color: var(--primary);
-        }
-
-        .sidebar-nav .nav-item.active {
-            color: var(--text-main);
-            font-weight: 600;
-            background: rgba(0, 0, 0, 0.02);
-        }
-        [data-theme="dark"] .sidebar-nav .nav-item.active {
-            background: rgba(255, 255, 255, 0.03);
-        }
-
-        /* 左侧指示条 */
-        .sidebar-nav .nav-item.active::before {
-            content: "";
-            position: absolute;
-            left: -0.6rem;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 3px;
-            height: 22px;
-            border-radius: 0 2px 2px 0;
-            transition: background 0.1s ease;
-        }
-
-        /* 分类指示色（变量已在暗色中提亮） */
-        .nav-item.category-physics.active::before {
-            background: var(--color-physics);
-        }
-        .nav-item.category-others.active::before {
-            background: var(--color-others);
-        }
-        .nav-item.category-public.active::before {
-            background: var(--color-public);
-        }
-        .nav-item.category-class.active::before {
-            background: var(--color-class);
-        }
-        .nav-item.category-analysis.active::before {
-            background: var(--color-analysis);
-        }
-        .nav-item.category-message.active::before {
-            background: var(--color-message);
-        }
-
-        .nav-item.category-physics.active {
-            color: var(--color-physics);
-        }
-        .nav-item.category-others.active {
-            color: var(--color-others);
-        }
-        .nav-item.category-public.active {
-            color: var(--color-public);
-        }
-        .nav-item.category-class.active {
-            color: var(--color-class);
-        }
-        .nav-item.category-analysis.active {
-            color: var(--color-analysis);
-        }
-        .nav-item.category-message.active {
-            color: var(--color-message);
-        }
-
-        .nav-icon {
-            font-size: 1.25rem;
-            flex-shrink: 0;
-            display: inline-flex;
-            align-items: center;
-            line-height: 1;
-        }
-
-        .nav-icon svg {
-            display: block;
-            width: 1.5rem;
-            height: 1.5rem;
-        }
-
-        .nav-label {
-            white-space: nowrap;
-        }
-
-        /* ============================================================
-           内容面板
-           ============================================================ */
-        .content-area {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .content-panel {
-            display: none;
-            animation: fadeIn 0.2s ease;
-        }
-
-        .content-panel.active {
-            display: block;
-        }
-
-        /* 面板标题 */
-        .panel-header {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            margin-bottom: 1.2rem;
-            padding-bottom: 0.6rem;
-            border-bottom: 1px solid var(--border);
-            transition: border-color 0.2s ease;
-        }
-
-        .panel-header .panel-icon {
-            font-size: 1.5rem;
-            flex-shrink: 0;
-            line-height: 1;
-            display: flex;
-            align-items: center;
-        }
-
-        .panel-header .panel-icon svg {
-            display: block;
-            width: 1.5rem;
-            height: 1.5rem;
-        }
-
-        .panel-header h2 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: var(--text-main);
-            letter-spacing: 0.01em;
-            position: relative;
-            margin-bottom: 0;
-            transition: color 0.2s ease;
-        }
-
-        /* 标题下划线已注释掉，但变量已包含，如需启用可取消注释并调整颜色 */
-
-        /* ============================================================
-           学科标签页 (Segmented Control)
-           ============================================================ */
-        .subject-tabs {
-            display: inline-flex;
-            flex-wrap: wrap;
-            gap: 0.25rem;
-            margin-bottom: 1.2rem;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            overflow: hidden;
-            background: var(--card-bg);
-            transition: border-color 0.2s ease, background 0.2s ease;
-        }
-
-        .subject-tab {
-            padding: 0.3rem 0.9rem;
-            font-size: 0.82rem;
-            font-weight: 500;
-            border: none;
-            background: var(--card-bg);
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-family: inherit;
-            border-right: 1px solid var(--border);
-            flex: 0 0 auto;
-        }
-
-        .subject-tab:last-child {
-            border-right: none;
-        }
-
-        .subject-tab:hover {
-            background: var(--primary-light);
-            color: var(--primary);
-        }
-
-        .subject-tab.active {
-            background: var(--primary);
-            color: #ffffff;
-            font-weight: 500;
-        }
-
-        .subject-panel {
-            display: none;
-            animation: fadeIn 0.2s ease;
-        }
-
-        .subject-panel.active {
-            display: block;
-        }
-
-        /* ============================================================
-           工具卡片网格
-           ============================================================ */
-        .tool-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1rem;
-        }
-
-        /* ============================================================
-           工具卡片
-           ============================================================ */
-        .tool-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 1rem 1.2rem 1.1rem;
-            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease, border-color 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            animation: fadeIn 0.2s ease;
-        }
-
-        .tool-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-hover);
-            border-color: var(--border);
-        }
-
-        .tool-card h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 0.3rem;
-            color: var(--text-main);
-            transition: color 0.2s ease;
-        }
-
-        .tool-card p {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.7rem;
-            flex-grow: 1;
-            line-height: 1.5;
-            transition: color 0.2s ease;
-        }
-
-        .tool-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.3rem 0.6rem;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 0.7rem;
-            transition: color 0.2s ease;
-        }
-
-        .tool-meta span {
-            background: var(--border-light);
-            padding: 0.1rem 0.6rem;
-            border-radius: 12px;
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
-            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-        }
-
-        .tool-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.4rem;
-            align-items: center;
-            margin-top: 0.2rem;
-        }
-
-        .tool-templates,
-        .tool-guide {
-            margin-top: 0.5rem;
-            font-size: 0.78rem;
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-            flex-wrap: wrap;
-        }
-
-        .tool-templates span,
-        .tool-guide span {
-            color: var(--text-muted);
-            font-weight: 500;
-            white-space: nowrap;
-            transition: color 0.2s ease;
-        }
-
-        /* ============================================================
-           按钮系统
-           ============================================================ */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            padding: 0.35rem 1rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.82rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            cursor: pointer;
-            border: 1px solid transparent;
-            font-family: inherit;
-            text-decoration: none;
-            background: var(--card-bg);
-            color: var(--text-secondary);
-            border-color: var(--border);
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: #ffffff;
-            border-color: var(--primary);
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-hover);
-            border-color: var(--primary-hover);
-            color: #ffffff;
-        }
-
-        .btn-outline {
-            background: var(--card-bg);
-            border-color: var(--border);
-            color: var(--text-secondary);
-        }
-
-        .btn-outline:hover {
-            background: var(--border-light);
-            border-color: var(--border);
-            color: var(--text-main);
-        }
-
-        .btn-sm {
-            padding: 0.15rem 0.6rem;
-            font-size: 0.72rem;
-            border-radius: 4px;
-        }
-
-        /* 占位卡片 */
-        .placeholder-card {
-            background: var(--border-light);
-            border: 1px dashed var(--border);
-            border-radius: var(--radius-lg);
-            padding: 2rem 1.5rem;
-            text-align: center;
-            color: var(--text-muted);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.2rem;
-            animation: fadeIn 0.2s ease;
-            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-        }
-
-        .placeholder-card .big-icon {
-            font-size: 2rem;
-            opacity: 0.5;
-        }
-
-        .placeholder-card p {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-muted);
-        }
-
-        /* ============================================================
-           模态框
-           ============================================================ */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
-            justify-content: center;
-            align-items: center;
-            transition: background-color 0.2s ease;
-        }
-        [data-theme="dark"] .modal {
-            background-color: rgba(0, 0, 0, 0.6);
-        }
-
-        .modal.show {
-            display: flex;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            border-radius: var(--radius-lg);
-            padding: 1.6rem 1.8rem 1.8rem;
-            width: 90%;
-            max-width: 660px;
-            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.08);
-            position: relative;
-            animation: modalIn 0.15s ease;
-            border: 1px solid var(--border);
-            transition: background 0.2s ease, border-color 0.2s ease;
-        }
-        [data-theme="dark"] .modal-content {
-            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4);
-        }
-
-        .modal-close {
-            position: absolute;
-            right: 1rem;
-            top: 0.6rem;
-            font-size: 1.4rem;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: color 0.2s ease;
-            line-height: 1;
-        }
-
-        .modal-close:hover {
-            color: var(--text-main);
-        }
-
-        .modal-content h2 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 0.1rem;
-            color: var(--text-main);
-            transition: color 0.2s ease;
-        }
-
-        .modal-content .subtitle {
-            color: var(--text-secondary);
-            margin-bottom: 1.2rem;
-            font-size: 0.85rem;
-            transition: color 0.2s ease;
-        }
-
-        .version-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.6rem;
-        }
-
-        .version-item {
-            background: var(--border-light);
-            border-radius: var(--radius-md);
-            padding: 0.8rem 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 0.6rem;
-            border: 1px solid var(--border);
-            transition: background 0.2s ease, border-color 0.2s ease;
-        }
-
-        .version-item:hover {
-            background: var(--card-bg);
-        }
-
-        .version-info {
-            flex: 1;
-            min-width: 140px;
-        }
-
-        .version-info h4 {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--text-main);
-            transition: color 0.2s ease;
-        }
-
-        .version-info p {
-            font-size: 0.78rem;
-            color: var(--text-secondary);
-            margin: 0;
-            transition: color 0.2s ease;
-        }
-
-        .version-actions {
-            display: flex;
-            gap: 0.3rem;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .template-group {
-            display: flex;
-            gap: 0.2rem;
-            flex-wrap: wrap;
-        }
-
-        /* ============================================================
-           留言板
-           ============================================================ */
-        .message-board-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1.8rem;
-        }
-
-        .mailbox-form {
-            background: var(--form-bg);
-            border: 1px solid var(--form-border);
-            border-radius: var(--radius-lg);
-            padding: 1.4rem 1.6rem 1.6rem;
-            position: relative;
-            transition: background 0.2s ease, border-color 0.2s ease;
-        }
-
-        .mailbox-form h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--color-message);
-            margin-bottom: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            transition: color 0.2s ease;
-        }
-
-        .mailbox-form .form-group {
-            margin-bottom: 0.8rem;
-        }
-
-        .mailbox-form label {
-            display: block;
-            font-weight: 500;
-            margin-bottom: 0.2rem;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            transition: color 0.2s ease;
-        }
-
-        .mailbox-form input,
-        .mailbox-form textarea {
-            width: 100%;
-            padding: 0.5rem 0.8rem;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-family: inherit;
-            font-size: 0.875rem;
-            background: var(--input-bg);
-            transition: border 0.2s ease, background 0.2s ease, color 0.2s ease;
-            color: var(--text-main);
-        }
-
-        .mailbox-form input:focus,
-        .mailbox-form textarea:focus {
-            outline: none;
-            border-color: var(--color-message);
-            box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.08);
-        }
-        [data-theme="dark"] .mailbox-form input:focus,
-        [data-theme="dark"] .mailbox-form textarea:focus {
-            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
-            border-color: #f97316;
-        }
-
-        .mailbox-form textarea {
-            min-height: 80px;
-            resize: vertical;
-        }
-
-        .mailbox-form .btn-submit {
-            background: var(--color-message);
-            color: #ffffff;
-            padding: 0.4rem 1.6rem;
-            font-size: 0.9rem;
-            font-weight: 500;
-            border: none;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .mailbox-form .btn-submit:hover {
-            background: #b45309;
-        }
-        [data-theme="dark"] .mailbox-form .btn-submit {
-            background: #f59e0b;
-        }
-        [data-theme="dark"] .mailbox-form .btn-submit:hover {
-            background: #d97706;
-        }
-
-        .mailbox-form .btn-submit:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .messages-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
-        }
-
-        .message-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 0.9rem 1.2rem;
-            transition: border 0.2s ease, background 0.2s ease;
-        }
-
-        .message-card:hover {
-            border-color: var(--color-message);
-        }
-
-        .message-card .message-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.2rem;
-        }
-
-        .message-card .message-author {
-            font-weight: 600;
-            color: var(--text-main);
-            font-size: 0.9rem;
-            transition: color 0.2s ease;
-        }
-
-        .message-card .message-time {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            transition: color 0.2s ease;
-        }
-
-        .message-card .message-content {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            transition: color 0.2s ease;
-        }
-
-        .no-messages {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-muted);
-            background: var(--border-light);
-            border-radius: var(--radius-md);
-            border: 1px dashed var(--border);
-            font-size: 0.9rem;
-            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-        }
-
-        .loading-messages {
-            text-align: center;
-            padding: 1.5rem;
-            color: var(--text-muted);
-            font-size: 0.875rem;
-            transition: color 0.2s ease;
-        }
-
-        .error-message {
-            color: #b91c1c;
-            background: #fef2f2;
-            padding: 0.6rem 0.8rem;
-            border-radius: var(--radius-sm);
-            margin-top: 0.4rem;
-            font-size: 0.82rem;
-            border: 1px solid #fecaca;
-            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-        }
-        [data-theme="dark"] .error-message {
-            color: #fca5a5;
-            background: rgba(127, 29, 29, 0.4);
-            border-color: #7f1d1d;
-        }
-
-        .success-message {
-            color: #065f46;
-            background: #ecfdf5;
-            padding: 0.6rem 0.8rem;
-            border-radius: var(--radius-sm);
-            margin-top: 0.4rem;
-            font-size: 0.82rem;
-            border: 1px solid #a7f3d0;
-            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-        }
-        [data-theme="dark"] .success-message {
-            color: #6ee7b7;
-            background: rgba(6, 78, 59, 0.4);
-            border-color: #065f46;
-        }
-
-        /* ============================================================
-           页脚
-           ============================================================ */
-        .footer-disclaimer {
-            text-align: center;
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            padding: 1rem 1.5rem 0.5rem;
-            line-height: 1.6;
-            max-width: 800px;
-            margin: 0 auto;
-            transition: color 0.2s ease;
-        }
-
-        /* 底部footer已注释掉，保留占位 */
-
-        /* ============================================================
-           响应式适配
-           ============================================================ */
-        @media (max-width: 900px) {
-            .container {
-                flex-direction: column;
-                gap: 1rem;
-                padding: 1rem 0.8rem;
-            }
-
-            .sidebar {
-                width: 100%;
-                position: static;
-                padding: 0.6rem 0.4rem;
-                border-radius: var(--radius-md);
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-
-            .sidebar-nav {
-                flex-direction: row;
-                flex-wrap: nowrap;
-                gap: 0.1rem;
-                justify-content: flex-start;
-            }
-
-            .sidebar-nav .nav-item {
-                padding: 0.4rem 0.8rem;
-                font-size: 0.8rem;
-                border-radius: var(--radius-sm);
-                flex-shrink: 0;
-                border: 1px solid transparent;
-            }
-
-            .sidebar-nav .nav-item.active {
-                background: var(--primary-light);
-                border-color: var(--primary-border);
-            }
-
-            .sidebar-nav .nav-item.active::before {
-                display: none;
-            }
-
-            .nav-icon svg {
-                width: 1.2rem;
-                height: 1.2rem;
-            }
-
-            .navbar {
-                padding: 0.5rem 1rem;
-            }
-
-            .navbar-logo {
-                font-size: 1.25rem;
-            }
-
-            .navbar-meta {
-                font-size: 0.75rem;
-                gap: 0.3rem 0.8rem;
-            }
-
-            .visit-number {
-                font-size: 1rem;
-            }
-
-            .hero h1 {
-                font-size: 1.2rem;
-            }
-
-            .hero p {
-                font-size: 0.8rem;
-            }
-
-            .tool-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .panel-header h2 {
-                font-size: 1rem;
-            }
-
-            .modal-content {
-                padding: 1.2rem;
-            }
-
-            .version-item {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .version-actions {
-                justify-content: flex-start;
-            }
-
-            .mailbox-form {
-                padding: 1rem;
-            }
-
-            .subject-tabs {
-                overflow-x: auto;
-                flex-wrap: nowrap;
-                -webkit-overflow-scrolling: touch;
-            }
-
-            .subject-tab {
-                padding: 0.3rem 0.9rem;
-                font-size: 0.75rem;
-                flex-shrink: 0;
-                border-right: 1px solid var(--border);
-            }
-        }
-
-        @media (max-width: 480px) {
-            .navbar-logo {
-                font-size: 1.05rem;
-            }
-
-            .navbar-meta .update-badge,
-            .navbar-meta .contact-badge {
-                font-size: 0.7rem;
-                padding: 0.1rem 0.6rem;
-            }
-
-            .visit-number {
-                font-size: 0.9rem;
-            }
-
-            .hero {
-                padding: 1.2rem 1rem;
-            }
-
-            .hero h1 {
-                font-size: 1rem;
-            }
-
-            .tool-card {
-                padding: 0.8rem 1rem;
-            }
-
-            .tool-card h3 {
-                font-size: 0.9rem;
-            }
-
-            .modal-content {
-                padding: 1rem;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -1194,8 +14,20 @@
     <header class="navbar" id="navbar">
         <div class="navbar-logo">中学教师数字工具箱</div>
         <div class="navbar-meta">
-            <span class="update-badge" id="updateBadge">🔄 最近更新：2026.08.20</span>
-            <span class="contact-badge">📧 反馈与建议：请联系珠海市九洲中学 黄结（vx：Phys_H）</span>
+            <span class="update-badge" id="updateBadge">
+                <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="width:0.9em;height:0.9em;vertical-align:-0.1em;margin-right:0.25em;display:inline-block;">
+                    <path d="M896.384 494.634667A21.461333 21.461333 0 0 1 917.333333 469.333333a21.333333 21.333333 0 0 1 21.290667 22.826667A427.093333 427.093333 0 0 1 725.333333 881.493333C521.258667 999.338667 260.309333 929.408 142.506667 725.333333a434.773333 434.773333 0 0 1-5.674667-10.154666L119.466667 786.645333a19.669333 19.669333 0 0 1-24.917334 14.378667 22.058667 22.058667 0 0 1-15.061333-26.112l29.482667-121.557333a19.669333 19.669333 0 0 1 24.917333-14.378667l120.021333 35.242667c11.050667 3.242667 17.792 14.933333 15.061334 26.112a19.669333 19.669333 0 0 1-24.917334 14.378666l-70.101333-20.565333 5.504 9.856A384 384 0 0 0 704 844.544a384.341333 384.341333 0 0 0 192.384-349.866667zM128 490.88a21.333333 21.333333 0 1 1-42.325333-4.053333C94.634667 349.312 170.368 216.576 298.666667 142.506667a425.941333 425.941333 0 0 1 373.333333-26.026667 424.618667 424.618667 0 0 1 196.266667 160.682667l17.493333-72.277334a19.669333 19.669333 0 0 1 24.96-14.378666c11.008 3.242667 17.792 14.933333 15.061333 26.112l-29.482666 121.557333a19.669333 19.669333 0 0 1-24.917334 14.378667l-120.021333-35.242667a22.058667 22.058667 0 0 1-15.104-26.112 19.669333 19.669333 0 0 1 24.917333-14.378667l69.077334 20.266667a381.738667 381.738667 0 0 0-174.208-141.056 383.189333 383.189333 0 0 0-336.042667 23.424C204.8 245.930667 136.32 367.445333 128 490.88z" fill="#1296db"/>
+                </svg>
+                最近更新：2026.08.20
+            </span>
+            <span class="contact-badge">
+                <svg viewBox="0 0 1213 1024" xmlns="http://www.w3.org/2000/svg" style="width:0.9em;height:0.9em;vertical-align:-0.1em;margin-right:0.25em;display:inline-block;">
+                    <path d="M119.734969 914.905702l27.726077-73.223172c7.102922-18.895418 12.670077-42.891775 12.971745-54.574573-102.07365-85.810975-160.432791-206.423525-160.432791-332.274137 0-122.395136 53.258202-237.193712 149.984092-323.251507C245.475883 46.731193 371.847559 0 506.007767 0c109.834757 0 214.321755 31.071855 302.134711 89.842363 85.810975 57.426712 150.313185 139.453119 181.659284 230.913522l-77.830472 26.656526c-25.532125-74.539543-78.653204-141.729345-149.572725-189.228421C688.270388 108.518386 599.634698 82.273226 506.007767 82.273226 272.296955 82.273226 82.163529 249.397574 82.163529 454.83382c0 103.801387 49.912424 203.735933 136.957497 274.244088 23.530143 19.059964 25.011061 50.131819 22.597713 72.674683 72.126195-13.9316 88.14205-7.815957 95.985431-4.881545a470.657704 470.657704 0 0 0 168.303597 30.495943v82.273226a552.958355 552.958355 0 0 1-194.219663-34.664452c-16.728889-0.301668-72.290742 10.421275-116.142372 21.199068z" fill="#1296db"/>
+                    <path d="M1117.133292 1024l-75.746217-18.593749c-38.394172-9.461421-80.792308-17.277378-94.504513-17.551622a469.670425 469.670425 0 0 1-163.888266 29.015025c-237.330834 0-430.563218-173.815903-430.563219-387.506897S545.773159 241.883286 782.994296 241.883286s430.563218 173.815903 430.563218 387.506896c0 106.297008-48.733174 208.151263-134.105359 281.127614a186.869922 186.869922 0 0 0 10.256728 40.451003zM782.994296 324.156512c-191.970862 0-348.289992 136.930073-348.289992 305.23367s156.31913 305.23367 348.289992 305.23367a387.369774 387.369774 0 0 0 138.630386-25.175608c7.185195-2.742441 20.321487-7.761108 75.307427 2.166529-0.740459-19.197086 2.934412-42.398136 21.939527-57.865503 71.303463-57.591258 112.193256-139.453119 112.193256-224.331664 0.219395-168.358446-156.099735-305.261094-348.070596-305.261094zM385.340368 324.979244a54.848818 54.848818 0 1 1 54.848818-54.848817 54.848818 54.848818 0 0 1-54.848818 54.848817z m0-82.273226a27.424409 27.424409 0 1 0 27.424409 27.424409 27.424409 27.424409 0 0 0-27.424409-27.424409z" fill="#1296db"/>
+                    <path d="M637.644929 319.494362a54.848818 54.848818 0 1 1 54.848817-54.848817 54.848818 54.848818 0 0 1-54.848817 54.848817z m0-82.273226a27.424409 27.424409 0 1 0 27.424409 27.424409 27.424409 27.424409 0 0 0-27.424409-27.424409zM665.069338 566.314042a54.848818 54.848818 0 1 1 54.848817-54.848818 54.848818 54.848818 0 0 1-54.848817 54.848818z m0-82.273227a27.424409 27.424409 0 1 0 27.424408 27.424409 27.424409 27.424409 0 0 0-27.424408-27.424409zM917.373899 560.82916a54.848818 54.848818 0 1 1 54.848817-54.848818 54.848818 54.848818 0 0 1-54.848817 54.848818z m0-82.273227a27.424409 27.424409 0 1 0 27.424408 27.424409 27.424409 27.424409 0 0 0-27.424408-27.424409z" fill="#1296db"/>
+                </svg>
+                反馈与建议：请联系珠海市九洲中学 黄结（vx：Phys_H）
+            </span>
             <span class="visit-count-badge">
                 总访问次数：<span id="visit-count" class="visit-number">0</span> 次
             </span>
@@ -1224,7 +56,7 @@
     ============================================================ -->
     <section class="hero">
         <h1>让技术，温柔地支持每一堂课</h1>
-        <p>由一线教师开发，专为教学场景优化。汇集学科教学、班级管理、成绩分析等实用工具，打开浏览器即用，无需安装。</p>
+        <p>由一线教师倾心打造，覆盖学科教学、班级管理、成绩分析与公开课互动等多元场景，无需安装、即开即用，让每一堂课都更高效、更精彩。</p>
     </section>
 
     <!-- ============================================================
@@ -1240,19 +72,10 @@
                     <div class="nav-item active category-physics" data-panel="panel-physics">
                         <span class="nav-icon">
                             <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M129.7 695.7c-1.6 0-3.2-0.4-4.7-1.3-26-16-42.9-36.3-50-60.2-15-50.7 15.6-110.9 86.2-169.6 68.6-57 167.4-106.5 278.2-139.4 103.4-30.7 207.4-43.6 292.9-36.5 86.9 7.2 148.2 34.8 172.7 77.5 3.5 6.1 6.3 12.6 8.3 19.3 1.4 4.8-1.3 9.8-6.1 11.2-4.8 1.4-9.8-1.3-11.2-6.1-1.6-5.3-3.8-10.5-6.6-15.4-21.5-37.4-77.8-61.8-158.6-68.5-83.3-6.9-185 5.8-286.3 35.8C336 374.7 239.4 423 172.7 478.4c-32 26.6-55.3 53.3-69.2 79.4-13.8 25.9-17.6 49.9-11.3 71.3 5.8 19.6 20 36.4 42.1 50 4.2 2.6 5.6 8.1 3 12.4-1.6 2.7-4.6 4.2-7.6 4.2z" fill="#330867"/>
-                                <path d="M525.2 815.5c-80.8 0-156.8-31.5-214-88.6-57.2-57.2-88.6-133.1-88.6-214s31.5-156.8 88.6-214c57.2-57.2 133.1-88.6 214-88.6s156.8 31.5 214 88.6c57.2 57.2 88.6 133.1 88.6 214s-31.5 156.8-88.6 214C682 784 606 815.5 525.2 815.5z" fill="#66C1FF"/>
-                                <path d="M525.2 219.3c162.2 0 293.6 131.5 293.6 293.6S687.3 806.5 525.2 806.5C363 806.5 231.6 675 231.6 512.9S363 219.3 525.2 219.3m0-18c-42.1 0-82.9 8.2-121.3 24.5-37.1 15.7-70.4 38.2-99 66.8-28.6 28.6-51.1 61.9-66.8 99-16.3 38.4-24.5 79.2-24.5 121.3s8.2 82.9 24.5 121.3c15.7 37.1 38.2 70.4 66.8 99 28.6 28.6 61.9 51.1 99 66.8 38.4 16.3 79.2 24.5 121.3 24.5s82.9-8.2 121.3-24.5c37.1-15.7 70.4-38.2 99-66.8s51.1-61.9 66.8-99c16.3-38.4 24.5-79.2 24.5-121.3s-8.2-82.9-24.5-121.3c-15.7-37.1-38.2-70.4-66.8-99-28.6-28.6-61.9-51.1-99-66.8-38.5-16.3-79.3-24.5-121.3-24.5z" fill="#330867"/>
-                                <path d="M538 384.2m-48.4 0a48.4 48.4 0 1 0 96.8 0 48.4 48.4 0 1 0-96.8 0Z" fill="#41AAD8"/>
-                                <path d="M538 338.7c25.1 0 45.4 20.3 45.4 45.4 0 25.1-20.3 45.4-45.4 45.4-25.1 0-45.4-20.3-45.4-45.4-0.1-25 20.3-45.4 45.4-45.4m0-6c-28.4 0-51.4 23.1-51.4 51.4 0 28.4 23.1 51.4 51.4 51.4 28.4 0 51.4-23.1 51.4-51.4 0-28.3-23-51.4-51.4-51.4z" fill="#330867"/>
-                                <path d="M449.2 587.9c-9.5 0-17.2-7.7-17.2-17.2s7.7-17.2 17.2-17.2 17.2 7.7 17.2 17.2-7.7 17.2-17.2 17.2z" fill="#41AAD8"/>
-                                <path d="M449.2 556.4c7.9 0 14.2 6.4 14.2 14.2s-6.4 14.2-14.2 14.2c-7.9 0-14.2-6.4-14.2-14.2s6.3-14.2 14.2-14.2m0-6c-11.1 0-20.2 9.1-20.2 20.2s9.1 20.2 20.2 20.2 20.2-9.1 20.2-20.2-9.1-20.2-20.2-20.2z" fill="#330867"/>
-                                <path d="M641.2 782.7c-35.6 15.3-74.8 23.8-116 23.8-162.2 0-293.6-131.5-293.6-293.6 0-40.5 8.2-79.1 23-114.2-12 251.1 173.6 407.8 386.6 384z" fill="#18A3D3"/>
-                                <path d="M899 384.2m-56.8 0a56.8 56.8 0 1 0 113.6 0 56.8 56.8 0 1 0-113.6 0Z" fill="#FFE08A"/>
-                                <path d="M899 449.9c-36.3 0-65.8-29.5-65.8-65.8s29.5-65.8 65.8-65.8 65.8 29.5 65.8 65.8-29.6 65.8-65.8 65.8z m0-113.5c-26.3 0-47.8 21.4-47.8 47.8S872.6 432 899 432s47.8-21.4 47.8-47.8-21.5-47.8-47.8-47.8z" fill="#330867"/>
-                                <path d="M136.2 686.7m-72.9 0a72.9 72.9 0 1 0 145.8 0 72.9 72.9 0 1 0-145.8 0Z" fill="#FC6B79"/>
-                                <path d="M136.2 768.6c-45.2 0-81.9-36.7-81.9-81.9s36.7-81.9 81.9-81.9 81.9 36.7 81.9 81.9c0 45.1-36.7 81.9-81.9 81.9z m0-145.8c-35.2 0-63.9 28.7-63.9 63.9s28.7 63.9 63.9 63.9 63.9-28.7 63.9-63.9-28.6-63.9-63.9-63.9z" fill="#330867"/>
-                                <path d="M303.8 732.8H302c-75.2-0.2-136.4-13.5-177.1-38.4-4.2-2.6-5.6-8.1-3-12.4 2.6-4.2 8.1-5.6 12.4-3 37.8 23.2 95.8 35.6 167.7 35.8h1.7c73.9 0 156.9-13 240-37.7 108.5-32.2 205.1-80.5 271.8-135.9 32-26.6 55.3-53.3 69.2-79.4 13.8-25.9 17.6-49.9 11.3-71.3-1.6-5.3-3.8-10.5-6.6-15.4-2.5-4.3-1-9.8 3.3-12.3s9.8-1 12.3 3.3c3.5 6.1 6.3 12.6 8.3 19.3 15 50.7-15.6 110.9-86.2 169.6-68.5 57-167.3 106.5-278.1 139.4-84.8 25.1-169.5 38.4-245.2 38.4z" fill="#330867"/>
+                                <path d="M512 512m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" fill="currentColor"/>
+                                <path d="M512 160c15.7 0 31.8 6.4 48 19.1 19.5 15.3 38.4 39.2 54.5 69.2 17.9 33.1 32 72.2 42.1 116.1 10.6 46.6 16 96.3 16 147.7s-5.4 101.1-16 147.7c-10 43.9-24.2 83-42.1 116.1-16.2 30-35.1 53.9-54.5 69.2-16.2 12.7-32.3 19.1-48 19.1-15.7 0-31.8-6.4-48-19.1-19.5-15.3-38.4-39.2-54.5-69.2-17.9-33.1-32-72.2-42.1-116.1-10.6-46.6-16-96.3-16-147.7s5.4-101.1 16-147.7c10-43.9 24.2-83 42.1-116.1 16.2-30 35.1-53.9 54.5-69.2 16.2-12.7 32.3-19.1 48-19.1m0-64c-124.1 0-224.6 186.2-224.6 416S387.9 928 512 928s224.6-186.2 224.6-416S636.1 96 512 96z" fill="currentColor"/>
+                                <path d="M325.5 291.2c79.6 0 176.9 29.8 266.8 81.7 44.5 25.7 84.8 55.2 119.9 87.7 33 30.6 59.8 62.4 79.5 94.5 17.9 29 29.2 57.3 32.6 81.8 2.9 20.3 0.4 37.5-7.5 51.1-7.4 12.9-20.2 23.3-37.8 30.9-21.2 9.1-49 13.9-80.6 13.9-79.6 0-176.9-29.8-266.8-81.7-44.5-25.7-84.8-55.2-119.9-87.7-33-30.6-59.8-62.4-79.5-94.5-17.9-29-29.2-57.3-32.6-81.8-2.9-20.3-0.4-37.5 7.5-51.1 7.4-12.9 20.2-23.3 37.8-30.9 21.2-9.1 49.1-13.9 80.6-13.9m0-64c-80.3 0-144.1 25.4-173.8 76.8-62 107.4 49 287.6 248 402.5 103.9 60 211.1 90.3 298.8 90.3 80.3 0 144.1-25.4 173.8-76.8 62-107.4-49-287.6-248-402.5-103.8-60-211.1-90.3-298.8-90.3z" fill="currentColor"/>
+                                <path d="M698.5 291.2c31.5 0 59.4 4.8 80.6 13.9 17.6 7.6 30.3 18 37.8 30.9 7.8 13.6 10.3 30.8 7.5 51.1-3.5 24.5-14.8 52.8-32.6 81.8-19.7 32-46.5 63.8-79.5 94.5-35 32.5-75.4 62-119.9 87.7-89.9 51.9-187.2 81.7-266.8 81.7-31.5 0-59.4-4.8-80.6-13.9-17.6-7.6-30.3-18-37.8-30.9-7.8-13.6-10.3-30.8-7.5-51.1 3.5-24.5 14.8-52.8 32.6-81.8 19.7-32 46.5-63.8 79.5-94.5 35-32.5 75.4-62 119.9-87.7 89.9-51.9 187.2-81.7 266.8-81.7m0-64c-87.7 0-194.9 30.3-298.8 90.3-199 114.9-310 295.1-248 402.5 29.7 51.4 93.5 76.8 173.8 76.8 87.7 0 194.9-30.3 298.8-90.3 199-114.9 310-295.1 248-402.5-29.7-51.4-93.5-76.8-173.8-76.8z" fill="currentColor"/>
                             </svg>
                         </span>
                         <span class="nav-label">物理教学</span>
@@ -1263,11 +86,7 @@
                     <div class="nav-item category-others" data-panel="panel-other-subjects">
                         <span class="nav-icon">
                             <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M196.8 867.8H180c-36.6 0-66.3-29.7-66.3-66.3V292.6c0-36.6 29.7-66.3 66.3-66.3h16.8c36.6 0 66.3 29.7 66.3 66.3v508.9c0 36.6-29.7 66.3-66.3 66.3zM180 266.3c-14.5 0-26.3 11.8-26.3 26.3v508.9c0 14.5 11.8 26.3 26.3 26.3h16.8c14.5 0 26.3-11.8 26.3-26.3V292.6c0-14.5-11.8-26.3-26.3-26.3H180z" fill="#333333"/>
-                                <path d="M715.9 533.9h-93.8c-11 0-20-9-20-20V412.3c0-11 9-20 20-20h93.8c11 0 20 9 20 20v101.6c0 11-8.9 20-20 20z m-73.7-40H696v-61.6h-53.8v61.6z" fill="#A25C11"/>
-                                <path d="M841.5 812.7H223.1V281.5h618.4v531.2z m-578.4-40h538.4V321.5H263.1v451.2z" fill="#333333"/>
-                                <path d="M884.6 867.8h-16.8c-36.6 0-66.3-29.7-66.3-66.3V292.6c0-36.6 29.7-66.3 66.3-66.3h16.8c36.6 0 66.3 29.7 66.3 66.3v508.9c0 36.6-29.8 66.3-66.3 66.3z m-16.9-601.5c-14.5 0-26.3 11.8-26.3 26.3v508.9c0 14.5 11.8 26.3 26.3 26.3h16.8c14.5 0 26.3-11.8 26.3-26.3V292.6c0-14.5-11.8-26.3-26.3-26.3h-16.8z" fill="#333333"/>
-                                <path d="M474.2 392.7h40v308.7h-40zM347.2 392.7h40v308.7h-40z" fill="#A25C11"/>
+                                <path d="M960.147606 0.00119H832.84179c-35.164431 0-47.062171 28.81897-47.062171 63.983401v896.032008c0 35.164431 11.89774 63.983401 47.062171 63.983401h127.966802a64.115598 64.115598 0 0 0 63.851204-63.983401V63.984591A64.115598 64.115598 0 0 0 960.147606 0.00119z m-4.362504 836.278915h-118.977399v-51.160282h118.977399z m0-136.559615h-118.977399v-51.160281h118.977399z m0-528.788438h-118.977399V68.214898h118.977399zM191.818006 0.00119H63.983401A64.247795 64.247795 0 0 0 0 63.984591v896.032008a64.247795 64.247795 0 0 0 63.983401 63.983401h127.834605c35.164431 0 47.062171-28.81897 47.062171-63.983401V63.984591c0-35.164431-11.89774-63.983401-47.062171-63.983401z m-4.098111 836.278915h-118.977398v-51.160282h118.977398z m0-136.559615h-118.977398v-51.160281h118.977398z m0-528.788438h-118.977398V68.214898h118.977398zM576.511595 0.00119h-127.966802c-35.164431 0-73.105002 28.81897-73.105002 63.983401v896.032008c0 35.164431 37.94057 63.983401 73.105002 63.983401h127.966802c35.164431 0 72.047425-28.81897 72.047424-63.983401V63.984591c0-35.164431-36.882994-63.983401-72.047424-63.983401z m-13.219711 836.278915h-102.45276v-51.160282h102.320562z m0-136.559615h-102.45276v-51.160281h102.320562z m0-528.788438h-102.45276V68.214898h102.320562z" fill="currentColor"/>
                             </svg>
                         </span>
                         <span class="nav-label">其他学科教学</span>
@@ -1278,8 +97,9 @@
                     <div class="nav-item category-public" data-panel="panel-public-lesson">
                         <span class="nav-icon">
                             <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M364.196226 91.773585c-5.796226 1.932075-14.973585 10.143396-20.769811 17.388679-9.660377 12.558491-10.143396 17.388679-10.143396 139.592453v126.550943l16.422641 18.837736c14.007547 15.939623 17.871698 17.871698 25.6 13.524529 8.211321-5.313208 8.69434-14.973585 9.177359-130.415095 0-69.071698 0.483019-128 0.966038-131.381132 0.966038-4.34717 57.479245-5.796226 264.21132-5.796226H912.90566l-0.966037 184.513207-1.449057 184.996227-235.713208 1.449056-236.196226 0.966038-21.25283 15.456604c-21.25283 14.973585-26.083019 24.633962-15.939623 30.430188 9.177358 5.796226 525.524528 2.415094 538.083019-3.381132 25.6-11.592453 26.566038-20.286792 26.566038-230.883018 0-163.743396-0.966038-196.10566-7.245283-207.698114-15.456604-29.464151-9.177358-28.981132-310.098113-28.498113-150.701887 0-279.184906 1.932075-284.498114 4.34717zM156.981132 162.777358c-22.218868 11.592453-31.879245 21.735849-41.539623 42.505661-22.701887 49.267925-0.966038 104.332075 49.750944 125.101887 45.886792 19.320755 98.535849-1.932075 117.373585-46.852831 19.803774-47.335849-2.898113-107.230189-47.335849-123.65283-19.803774-7.728302-61.343396-6.279245-78.249057 2.898113z" fill="#08a1f1"/>
-                                <path d="M565.615094 259.381132c-5.313208 4.830189-29.464151 31.396226-52.649056 59.411321-28.015094 33.811321-48.784906 53.615094-61.343396 59.894339-10.626415 4.830189-32.845283 19.320755-48.784906 32.362265-16.422642 13.041509-32.845283 23.667925-36.226415 23.667924-3.864151 0-19.803774-14.490566-35.260378-31.879245-15.939623-17.871698-35.743396-35.260377-44.437735-38.64151-22.218868-9.177358-155.532075-9.177358-177.267925 0-20.286792 8.211321-40.090566 31.879245-46.85283 55.064151-2.898113 10.143396-4.830189 45.886792-3.864151 83.079246l1.449056 65.207547h246.339623l1.449057-32.362264 1.449056-32.362264 17.38868 12.075471c11.592453 7.728302 24.150943 11.592453 37.675471 11.592453 17.388679 0 26.083019-4.34717 65.690566-34.777358 62.792453-47.818868 67.139623-53.132075 67.139623-79.215095 0-18.354717 2.898113-25.6 19.320755-44.437736 80.181132-95.154717 83.079245-99.501887 71.486792-111.094339-7.728302-7.728302-10.626415-7.245283-22.701887 2.415094zM161.811321 614.4c-40.573585 23.667925-52.166038 71.486792-27.049057 111.09434 30.913208 48.784906 97.086792 49.750943 132.830189 1.932075 14.490566-18.837736 14.490566-69.071698 0-87.909434-26.083019-35.260377-70.037736-45.403774-105.781132-25.116981zM473.358491 609.086792c-57.479245 23.184906-65.690566 102.4-14.007548 140.558491 39.607547 29.464151 104.332075 6.279245 120.754717-42.988679 19.803774-60.860377-46.369811-121.720755-106.747169-97.569812zM770.415094 612.950943c-57.962264 29.94717-59.411321 109.645283-2.415094 139.592453 67.622642 35.743396 139.109434-30.913208 109.162264-102.4-15.939623-38.641509-68.10566-56.996226-106.74717-37.192453zM123.169811 784.422642c-20.286792 9.177358-45.403774 36.709434-50.716981 56.513207-6.762264 23.184906-6.279245 80.181132 0.966038 84.528302 6.762264 4.34717 248.271698 3.864151 255.033962-0.483019 7.728302-4.830189 5.796226-72.935849-2.415094-92.739623-18.837736-44.437736-42.022642-54.581132-125.584906-54.098113-42.022642 0-67.622642 1.932075-77.283019 6.279246zM417.811321 788.769811c-10.143396 5.796226-25.6 20.286792-33.328302 31.396227-13.524528 19.320755-14.973585 24.150943-14.973585 61.343396 0 22.218868 0.966038 41.056604 2.415094 42.50566 5.313208 4.830189 248.754717 8.211321 256 3.864151 5.796226-3.864151 6.762264-14.007547 5.796227-46.85283-1.449057-45.403774-6.762264-59.89434-28.498113-80.181132-20.769811-19.803774-35.743396-23.184906-104.332076-23.184906-56.996226 0-65.690566 1.449057-83.079245 11.109434zM726.943396 784.422642c-19.320755 8.69434-43.471698 35.260377-50.233962 55.547169-6.279245 19.803774-7.245283 80.664151-0.966038 85.011321 8.211321 4.830189 252.618868 3.381132 257.449057-1.449057 2.898113-2.898113 3.864151-24.150943 3.381132-47.818867-1.932075-38.641509-3.381132-44.920755-15.939623-61.343397-22.701887-29.94717-43.471698-36.709434-116.407547-36.226415-42.022642 0-67.622642 1.932075-77.283019 6.279246z" fill="#08a1f1"/>
+                                <path d="M363.21 646.09c-110.33 0-200.09-89.76-200.09-200.09s89.76-200.09 200.09-200.09 200.09 89.77 200.09 200.1-89.76 200.08-200.09 200.08z m0-324.17c-68.42 0-124.09 55.67-124.09 124.09S294.79 570.1 363.21 570.1 487.3 514.43 487.3 446.01s-55.67-124.09-124.09-124.09z" fill="currentColor"/>
+                                <path d="M624 968.16c-20.99 0-38-17.01-38-38 0-140.94-99.94-255.6-222.79-255.6s-222.79 114.66-222.79 255.6c0 20.99-17.01 38-38 38s-38-17.01-38-38c0-87.74 30.53-170.43 85.97-232.84 27.35-30.79 59.3-55.01 94.97-71.99 37.29-17.76 76.95-26.76 117.85-26.76s80.55 9 117.85 26.76c35.67 16.99 67.62 41.21 94.97 71.99C631.47 759.73 662 842.43 662 930.16c0 20.99-17.01 38-38 38z" fill="currentColor"/>
+                                <path d="M621.65 935.07l-2.39-0.47c-19.94-3.9-32.94-23.22-29.04-43.16l101.59-519.62c3.9-19.94 23.22-32.94 43.16-29.04l2.38 0.47c19.94 3.9 32.94 23.22 29.04 43.16L664.81 906.03c-3.89 19.94-23.22 32.94-43.16 29.04zM888.23 255.95h-159.2c-20.99 0-38-17.01-38-38s17.01-38 38-38h159.19c20.99 0 38 17.01 38 38 0.01 20.99-17 38-37.99 38zM890.7 146.99H611.71c-20.99 0-38-17.01-38-38s17.01-38 38-38H890.7c20.99 0 38 17.01 38 38s-17.02 38-38 38z" fill="currentColor"/>
                             </svg>
                         </span>
                         <span class="nav-label">公开课</span>
@@ -1290,8 +110,8 @@
                     <div class="nav-item category-class" data-panel="panel-class-mgmt">
                         <span class="nav-icon">
                             <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M427.84 547.52a193.6 193.6 0 1 0-193.6-193.6 193.92 193.92 0 0 0 193.6 193.6z m0-323.52a129.6 129.6 0 1 1-129.6 129.6A129.92 129.92 0 0 1 427.84 224zM822.72 937.28a32 32 0 0 0-45.44 0 32 32 0 0 0-6.72 10.56A32 32 0 0 0 768 960a32 32 0 1 0 64 0 32 32 0 0 0-2.56-12.16 32 32 0 0 0-6.72-10.56zM672 928h-128a32 32 0 0 0 0 64h128a32 32 0 0 0 0-64z" fill="#2c2c2c"/>
-                                <path d="M776.96 861.76h2.24a32 32 0 0 0 4.8-3.52l3.84-3.2a32 32 0 0 0 3.84-5.76 20.16 20.16 0 0 0 4.16-10.88 32 32 0 0 0 0-5.76 32 32 0 0 0 0-6.4 30.08 30.08 0 0 0 0-4.8 394.56 394.56 0 0 0-367.36-256A400.64 400.64 0 0 0 32 960a32 32 0 0 0 32 32h352a32 32 0 0 0 0-64H98.56a335.04 335.04 0 0 1 329.28-299.84A330.88 330.88 0 0 1 736 843.52v2.56a32 32 0 0 0 15.04 14.4h1.6a28.48 28.48 0 0 0 23.04 0zM565.76 124.8a110.08 110.08 0 1 1 123.84 179.84 32 32 0 1 0 28.8 57.28 174.08 174.08 0 1 0-196.16-284.16 32 32 0 1 0 43.52 47.04zM675.2 389.44a32 32 0 0 0-6.4 64 293.44 293.44 0 0 1 256 256H832a32 32 0 0 0 0 64h128a32 32 0 0 0 32-32 359.36 359.36 0 0 0-316.8-352z" fill="#2c2c2c"/>
+                                <path d="M427.84 547.52a193.6 193.6 0 1 0-193.6-193.6 193.92 193.92 0 0 0 193.6 193.6z m0-323.52a129.6 129.6 0 1 1-129.6 129.6A129.92 129.92 0 0 1 427.84 224zM822.72 937.28a32 32 0 0 0-45.44 0 32 32 0 0 0-6.72 10.56A32 32 0 0 0 768 960a32 32 0 1 0 64 0 32 32 0 0 0-2.56-12.16 32 32 0 0 0-6.72-10.56zM672 928h-128a32 32 0 0 0 0 64h128a32 32 0 0 0 0-64z" fill="currentColor"/>
+                                <path d="M776.96 861.76h2.24a32 32 0 0 0 4.8-3.52l3.84-3.2a32 32 0 0 0 3.84-5.76 20.16 20.16 0 0 0 4.16-10.88 32 32 0 0 0 0-5.76 32 32 0 0 0 0-6.4 30.08 30.08 0 0 0 0-4.8 394.56 394.56 0 0 0-367.36-256A400.64 400.64 0 0 0 32 960a32 32 0 0 0 32 32h352a32 32 0 0 0 0-64H98.56a335.04 335.04 0 0 1 329.28-299.84A330.88 330.88 0 0 1 736 843.52v2.56a32 32 0 0 0 15.04 14.4h1.6a28.48 28.48 0 0 0 23.04 0zM565.76 124.8a110.08 110.08 0 1 1 123.84 179.84 32 32 0 1 0 28.8 57.28 174.08 174.08 0 1 0-196.16-284.16 32 32 0 1 0 43.52 47.04zM675.2 389.44a32 32 0 0 0-6.4 64 293.44 293.44 0 0 1 256 256H832a32 32 0 0 0 0 64h128a32 32 0 0 0 32-32 359.36 359.36 0 0 0-316.8-352z" fill="currentColor"/>
                             </svg>
                         </span>
                         <span class="nav-label">班级管理</span>
@@ -1302,8 +122,8 @@
                     <div class="nav-item category-analysis" data-panel="panel-analysis">
                         <span class="nav-icon">
                             <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M454.97837 740.295111h117.039408v243.825778h-117.039408zM729.656889 626.176h123.297185v354.834963h-123.297185zM144.402963 849.711407h134.219852v136.002371H144.402963z" fill="#FCDCCB"/>
-                                <path d="M895.070815 967.717926V348.709926a37.508741 37.508741 0 0 0-37.451852-37.527704h-127.981037a37.489778 37.489778 0 0 0-37.451852 37.527704v619.026963h-78.051555V558.174815a37.489778 37.489778 0 0 0-37.451852-37.527704h-127.981037a37.489778 37.489778 0 0 0-37.451852 37.527704v409.562074h-96.768V741.850074a37.489778 37.489778 0 0 0-37.451852-37.527704H149.086815a37.489778 37.489778 0 0 0-37.451852 37.527704v225.867852H0.815407V1024h1023.981037v-56.282074h-129.725629zM749.093926 368.071111h89.088V967.111111h-89.088V368.071111zM468.15763 577.536h89.088v386.446222h-89.088V577.536zM168.523852 761.230222h89.106963v198.84563H168.523852V761.230222zM789.750519 0a59.335111 59.335111 0 0 0-59.297186 59.410963c0 9.462519 2.408296 18.280296 6.33363 26.225778l-191.867259 181.513481a58.576593 58.576593 0 0 0-19.702519-3.621926c-11.889778 0-22.907259 3.584-32.180148 9.614223l-45.719704-45.454223a59.354074 59.354074 0 0 0-57.893926-72.040296 59.335111 59.335111 0 0 0-59.297185 59.410963c0 6.731852 1.365333 13.103407 3.432297 19.13363L132.096 424.77037a58.898963 58.898963 0 0 0-23.589926-4.93037 59.354074 59.354074 0 0 0-59.297185 59.392c0 32.805926 26.548148 59.429926 59.297185 59.429926a59.354074 59.354074 0 0 0 59.297185-59.429926c0-6.428444-1.270519-12.496593-3.166815-18.299259l201.974519-191.051852c7.016296 2.939259 14.715259 4.589037 22.812444 4.589037 10.334815 0 19.930074-2.88237 28.387556-7.547259l48.82963 48.564148c-0.32237 2.465185-0.758519 4.892444-0.758519 7.452444a59.335111 59.335111 0 1 0 114.270815-22.129778l194.654815-184.111407c4.79763 1.251556 9.746963 2.142815 14.942815 2.142815a59.354074 59.354074 0 0 0 59.316148-59.392A59.354074 59.354074 0 0 0 789.750519 0z" fill="#F67250"/>
+                                <path d="M454.978 740.295h117.04v243.826h-117.04z m274.679-114.119h123.297v354.835H729.657zM144.403 849.711h134.22v136.003h-134.22z" fill="currentColor"/>
+                                <path d="M895.07 967.718V348.71a37.509 37.509 0 0 0-37.451-37.528H729.638a37.49 37.49 0 0 0-37.452 37.528v619.027h-78.051V558.175a37.49 37.49 0 0 0-37.452-37.528H448.702a37.49 37.49 0 0 0-37.452 37.528v409.562h-96.768V741.85a37.49 37.49 0 0 0-37.452-37.528H149.087a37.49 37.49 0 0 0-37.452 37.528v225.868H0.815V1024h1023.981v-56.282H895.071zM749.095 368.07h89.088v599.04h-89.088v-599.04zM468.158 577.536h89.088v386.446h-89.088V577.536zM168.524 761.23h89.107v198.846h-89.107V761.23zM789.75 0a59.335 59.335 0 0 0-59.298 59.411c0 9.462 2.409 18.28 6.334 26.226L544.92 267.15a58.577 58.577 0 0 0-19.703-3.622c-11.89 0-22.907 3.584-32.18 9.615l-45.72-45.455a59.354 59.354 0 0 0-57.894-72.04 59.335 59.335 0 0 0-59.297 59.411c0 6.732 1.366 13.103 3.433 19.134L132.096 424.77a58.899 58.899 0 0 0-23.59-4.93 59.354 59.354 0 0 0-59.297 59.392c0 32.806 26.548 59.43 59.297 59.43a59.354 59.354 0 0 0 59.297-59.43c0-6.428-1.27-12.497-3.167-18.3l201.975-191.051a58.889 58.889 0 0 0 22.812 4.589c10.335 0 19.93-2.882 28.388-7.547l48.83 48.564c-0.323 2.465-0.759 4.892-0.759 7.452a59.335 59.335 0 1 0 114.27-22.13L774.809 116.7c4.797 1.25 9.747 2.142 14.943 2.142a59.354 59.354 0 0 0 59.316-59.392A59.354 59.354 0 0 0 789.75 0z" fill="currentColor"/>
                             </svg>
                         </span>
                         <span class="nav-label">成绩分析系统</span>
@@ -1314,7 +134,9 @@
                     <div class="nav-item category-message" data-panel="panel-message-board">
                         <span class="nav-icon">
                             <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M864 122H160c-52.9 0-96 43.1-96 96v448c0 52.9 43.1 96 96 96h203.5L512 902l148.4-140H864c52.9 0 96-43.1 96-96V218c0-52.9-43.1-96-96-96zM288 506c-35.3 0-64-28.6-64-64 0-35.3 28.7-64 64-64s64 28.7 64 64c0 35.4-28.7 64-64 64z m224 0c-35.3 0-64-28.6-64-64 0-35.3 28.7-64 64-64s64 28.7 64 64c0 35.4-28.7 64-64 64z m224 0c-35.3 0-64-28.6-64-64 0-35.3 28.7-64 64-64s64 28.7 64 64c0 35.4-28.7 64-64 64z" fill="#47444F"/>
+                                <path d="M30.885428 218.84017H5.706979v628.290563c0 70.178339 56.525388 127.158075 125.918851 127.158075H957.122847V460.95544c0-14.066367-11.272741-25.469068-25.178449-25.469068s-25.178449 11.402701-25.178449 25.469068v487.865324l25.178449-25.469068H131.62583c-41.620933 0-75.56093-34.214243-75.56093-76.220963V244.309238L30.885428 269.777283H600.265276c13.905708 0 25.178449-11.402701 25.178449-25.469068 0-14.066367-11.272741-25.469068-25.178449-25.469068H30.885428z" fill="currentColor"/>
+                                <path d="M437.025425 584.354911l-5.182023 6.654561-0.208754 8.468882-3.713578 150.418848-0.914836 37.035498 34.513048-12.400425 144.862295-52.0474 7.03216-2.526543 4.535294-5.994527 389.849985-515.263324 15.473413-20.450774-20.388352-15.423271-129.862674-98.239442-19.664875-14.876825-15.195073 19.512402-401.13603 515.13234zM842.8615 105.379049l129.862673 98.239442-4.91494-35.875069-389.849985 515.263323 11.567453-8.52107-144.862295 52.0474 33.598212 24.636096 3.713578-150.418848-5.390777 15.123443 401.13603-515.131317-34.859949 4.6366z" fill="currentColor"/>
+                                <path d="M894.924249 299.05305l29.495778-41.285289-113.079428-82.656534-29.495778 41.285288 113.079428 82.656535zM310.028009 487.293295c14.543228 0 26.333762-11.949146 26.333762-26.689872 0-14.739702-11.789511-26.689872-26.333762-26.689872H165.19232c-14.543228 0-26.333762 11.949146-26.333762 26.689872 0 14.739702 11.789511 26.689872 26.333762 26.689872h144.835689zM310.028009 840.311421c14.543228 0 26.333762-11.949146 26.333762-26.689872 0-14.739702-11.789511-26.689872-26.333762-26.689873H165.19232c-14.543228 0-26.333762 11.949146-26.333762 26.689873 0 14.739702 11.789511 26.689872 26.333762 26.689872h144.835689zM310.028009 668.629293c14.543228 0 26.333762-11.949146 26.333762-26.689872 0-14.739702-11.789511-26.689872-26.333762-26.689872H165.19232c-14.543228 0-26.333762 11.949146-26.333762 26.689872 0 14.739702 11.789511 26.689872 26.333762 26.689872h144.835689zM797.557688 840.311421c14.543228 0 26.333762-11.949146 26.333762-26.689872 0-14.739702-11.789511-26.689872-26.333762-26.689873H652.721998c-14.543228 0-26.333762 11.949146-26.333761 26.689873 0 14.739702 11.789511 26.689872 26.333761 26.689872h144.83569z" fill="currentColor"/>
                             </svg>
                         </span>
                         <span class="nav-label">留言板</span>
@@ -1335,47 +157,15 @@
                 <div class="panel-header">
                     <span class="panel-icon">
                         <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M129.7 695.7c-1.6 0-3.2-0.4-4.7-1.3-26-16-42.9-36.3-50-60.2-15-50.7 15.6-110.9 86.2-169.6 68.6-57 167.4-106.5 278.2-139.4 103.4-30.7 207.4-43.6 292.9-36.5 86.9 7.2 148.2 34.8 172.7 77.5 3.5 6.1 6.3 12.6 8.3 19.3 1.4 4.8-1.3 9.8-6.1 11.2-4.8 1.4-9.8-1.3-11.2-6.1-1.6-5.3-3.8-10.5-6.6-15.4-21.5-37.4-77.8-61.8-158.6-68.5-83.3-6.9-185 5.8-286.3 35.8C336 374.7 239.4 423 172.7 478.4c-32 26.6-55.3 53.3-69.2 79.4-13.8 25.9-17.6 49.9-11.3 71.3 5.8 19.6 20 36.4 42.1 50 4.2 2.6 5.6 8.1 3 12.4-1.6 2.7-4.6 4.2-7.6 4.2z" fill="#330867"/>
-                            <path d="M525.2 815.5c-80.8 0-156.8-31.5-214-88.6-57.2-57.2-88.6-133.1-88.6-214s31.5-156.8 88.6-214c57.2-57.2 133.1-88.6 214-88.6s156.8 31.5 214 88.6c57.2 57.2 88.6 133.1 88.6 214s-31.5 156.8-88.6 214C682 784 606 815.5 525.2 815.5z" fill="#66C1FF"/>
-                            <path d="M525.2 219.3c162.2 0 293.6 131.5 293.6 293.6S687.3 806.5 525.2 806.5C363 806.5 231.6 675 231.6 512.9S363 219.3 525.2 219.3m0-18c-42.1 0-82.9 8.2-121.3 24.5-37.1 15.7-70.4 38.2-99 66.8-28.6 28.6-51.1 61.9-66.8 99-16.3 38.4-24.5 79.2-24.5 121.3s8.2 82.9 24.5 121.3c15.7 37.1 38.2 70.4 66.8 99 28.6 28.6 61.9 51.1 99 66.8 38.4 16.3 79.2 24.5 121.3 24.5s82.9-8.2 121.3-24.5c37.1-15.7 70.4-38.2 99-66.8s51.1-61.9 66.8-99c16.3-38.4 24.5-79.2 24.5-121.3s-8.2-82.9-24.5-121.3c-15.7-37.1-38.2-70.4-66.8-99-28.6-28.6-61.9-51.1-99-66.8-38.5-16.3-79.3-24.5-121.3-24.5z" fill="#330867"/>
-                            <path d="M538 384.2m-48.4 0a48.4 48.4 0 1 0 96.8 0 48.4 48.4 0 1 0-96.8 0Z" fill="#41AAD8"/>
-                            <path d="M538 338.7c25.1 0 45.4 20.3 45.4 45.4 0 25.1-20.3 45.4-45.4 45.4-25.1 0-45.4-20.3-45.4-45.4-0.1-25 20.3-45.4 45.4-45.4m0-6c-28.4 0-51.4 23.1-51.4 51.4 0 28.4 23.1 51.4 51.4 51.4 28.4 0 51.4-23.1 51.4-51.4 0-28.3-23-51.4-51.4-51.4z" fill="#330867"/>
-                            <path d="M449.2 587.9c-9.5 0-17.2-7.7-17.2-17.2s7.7-17.2 17.2-17.2 17.2 7.7 17.2 17.2-7.7 17.2-17.2 17.2z" fill="#41AAD8"/>
-                            <path d="M449.2 556.4c7.9 0 14.2 6.4 14.2 14.2s-6.4 14.2-14.2 14.2c-7.9 0-14.2-6.4-14.2-14.2s6.3-14.2 14.2-14.2m0-6c-11.1 0-20.2 9.1-20.2 20.2s9.1 20.2 20.2 20.2 20.2-9.1 20.2-20.2-9.1-20.2-20.2-20.2z" fill="#330867"/>
-                            <path d="M641.2 782.7c-35.6 15.3-74.8 23.8-116 23.8-162.2 0-293.6-131.5-293.6-293.6 0-40.5 8.2-79.1 23-114.2-12 251.1 173.6 407.8 386.6 384z" fill="#18A3D3"/>
-                            <path d="M899 384.2m-56.8 0a56.8 56.8 0 1 0 113.6 0 56.8 56.8 0 1 0-113.6 0Z" fill="#FFE08A"/>
-                            <path d="M899 449.9c-36.3 0-65.8-29.5-65.8-65.8s29.5-65.8 65.8-65.8 65.8 29.5 65.8 65.8-29.6 65.8-65.8 65.8z m0-113.5c-26.3 0-47.8 21.4-47.8 47.8S872.6 432 899 432s47.8-21.4 47.8-47.8-21.5-47.8-47.8-47.8z" fill="#330867"/>
-                            <path d="M136.2 686.7m-72.9 0a72.9 72.9 0 1 0 145.8 0 72.9 72.9 0 1 0-145.8 0Z" fill="#FC6B79"/>
-                            <path d="M136.2 768.6c-45.2 0-81.9-36.7-81.9-81.9s36.7-81.9 81.9-81.9 81.9 36.7 81.9 81.9c0 45.1-36.7 81.9-81.9 81.9z m0-145.8c-35.2 0-63.9 28.7-63.9 63.9s28.7 63.9 63.9 63.9 63.9-28.7 63.9-63.9-28.6-63.9-63.9-63.9z" fill="#330867"/>
-                            <path d="M303.8 732.8H302c-75.2-0.2-136.4-13.5-177.1-38.4-4.2-2.6-5.6-8.1-3-12.4 2.6-4.2 8.1-5.6 12.4-3 37.8 23.2 95.8 35.6 167.7 35.8h1.7c73.9 0 156.9-13 240-37.7 108.5-32.2 205.1-80.5 271.8-135.9 32-26.6 55.3-53.3 69.2-79.4 13.8-25.9 17.6-49.9 11.3-71.3-1.6-5.3-3.8-10.5-6.6-15.4-2.5-4.3-1-9.8 3.3-12.3s9.8-1 12.3 3.3c3.5 6.1 6.3 12.6 8.3 19.3 15 50.7-15.6 110.9-86.2 169.6-68.5 57-167.3 106.5-278.1 139.4-84.8 25.1-169.5 38.4-245.2 38.4z" fill="#330867"/>
+                            <path d="M512 512m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" fill="currentColor"/>
+                            <path d="M512 160c15.7 0 31.8 6.4 48 19.1 19.5 15.3 38.4 39.2 54.5 69.2 17.9 33.1 32 72.2 42.1 116.1 10.6 46.6 16 96.3 16 147.7s-5.4 101.1-16 147.7c-10 43.9-24.2 83-42.1 116.1-16.2 30-35.1 53.9-54.5 69.2-16.2 12.7-32.3 19.1-48 19.1-15.7 0-31.8-6.4-48-19.1-19.5-15.3-38.4-39.2-54.5-69.2-17.9-33.1-32-72.2-42.1-116.1-10.6-46.6-16-96.3-16-147.7s5.4-101.1 16-147.7c10-43.9 24.2-83 42.1-116.1 16.2-30 35.1-53.9 54.5-69.2 16.2-12.7 32.3-19.1 48-19.1m0-64c-124.1 0-224.6 186.2-224.6 416S387.9 928 512 928s224.6-186.2 224.6-416S636.1 96 512 96z" fill="currentColor"/>
+                            <path d="M325.5 291.2c79.6 0 176.9 29.8 266.8 81.7 44.5 25.7 84.8 55.2 119.9 87.7 33 30.6 59.8 62.4 79.5 94.5 17.9 29 29.2 57.3 32.6 81.8 2.9 20.3 0.4 37.5-7.5 51.1-7.4 12.9-20.2 23.3-37.8 30.9-21.2 9.1-49 13.9-80.6 13.9-79.6 0-176.9-29.8-266.8-81.7-44.5-25.7-84.8-55.2-119.9-87.7-33-30.6-59.8-62.4-79.5-94.5-17.9-29-29.2-57.3-32.6-81.8-2.9-20.3-0.4-37.5 7.5-51.1 7.4-12.9 20.2-23.3 37.8-30.9 21.2-9.1 49.1-13.9 80.6-13.9m0-64c-80.3 0-144.1 25.4-173.8 76.8-62 107.4 49 287.6 248 402.5 103.9 60 211.1 90.3 298.8 90.3 80.3 0 144.1-25.4 173.8-76.8 62-107.4-49-287.6-248-402.5-103.8-60-211.1-90.3-298.8-90.3z" fill="currentColor"/>
+                            <path d="M698.5 291.2c31.5 0 59.4 4.8 80.6 13.9 17.6 7.6 30.3 18 37.8 30.9 7.8 13.6 10.3 30.8 7.5 51.1-3.5 24.5-14.8 52.8-32.6 81.8-19.7 32-46.5 63.8-79.5 94.5-35 32.5-75.4 62-119.9 87.7-89.9 51.9-187.2 81.7-266.8 81.7-31.5 0-59.4-4.8-80.6-13.9-17.6-7.6-30.3-18-37.8-30.9-7.8-13.6-10.3-30.8-7.5-51.1 3.5-24.5 14.8-52.8 32.6-81.8 19.7-32 46.5-63.8 79.5-94.5 35-32.5 75.4-62 119.9-87.7 89.9-51.9 187.2-81.7 266.8-81.7m0-64c-87.7 0-194.9 30.3-298.8 90.3-199 114.9-310 295.1-248 402.5 29.7 51.4 93.5 76.8 173.8 76.8 87.7 0 194.9-30.3 298.8-90.3 199-114.9 310-295.1 248-402.5-29.7-51.4-93.5-76.8-173.8-76.8z" fill="currentColor"/>
                         </svg>
                     </span>
                     <h2>物理教学</h2>
                 </div>
-                <div class="tool-grid">
-                    <div class="tool-card" data-file="physics/PhysicsClassGame.html">
-                        <h3>🎮 初中物理课堂知识PK赛</h3>
-                        <p>两人对战模式，涵盖初中物理课堂核心知识点，增强课堂互动与趣味性。</p>
-                        <div class="tool-meta">
-                            <span class="meta-date" data-default="2026.08.04">📅 更新：2026.08.04</span>
-                            <span>🔖 v1.1</span>
-                        </div>
-                        <div class="tool-actions">
-                            <a href="physics/PhysicsClassGame.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-                        </div>
-                    </div>
-                    <div class="tool-card" data-file="physics/v1.1PhysicsExperiment.html">
-                        <h3>🏠 初中物理实验资源库</h3>
-                        <p>涵盖初中物理演示实验和学生实验，提供视频资源、模拟软件、习题资源，致力成为老师和学生们宝贵的学习财富！</p>
-                        <div class="tool-meta">
-                            <span class="meta-date" data-default="2026.08.04">📅 更新：2026.08.04</span>
-                            <span>🔖 v1.1</span>
-                        </div>
-                        <div class="tool-actions">
-                            <a href="physics/v1.1PhysicsExperiment.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-                        </div>
-                    </div>
-                </div>
+                <div class="tool-grid"></div>
             </div>
 
             <!-- ==========================================================
@@ -1385,11 +175,7 @@
                 <div class="panel-header">
                     <span class="panel-icon">
                         <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M196.8 867.8H180c-36.6 0-66.3-29.7-66.3-66.3V292.6c0-36.6 29.7-66.3 66.3-66.3h16.8c36.6 0 66.3 29.7 66.3 66.3v508.9c0 36.6-29.7 66.3-66.3 66.3zM180 266.3c-14.5 0-26.3 11.8-26.3 26.3v508.9c0 14.5 11.8 26.3 26.3 26.3h16.8c14.5 0 26.3-11.8 26.3-26.3V292.6c0-14.5-11.8-26.3-26.3-26.3H180z" fill="#333333"/>
-                            <path d="M715.9 533.9h-93.8c-11 0-20-9-20-20V412.3c0-11 9-20 20-20h93.8c11 0 20 9 20 20v101.6c0 11-8.9 20-20 20z m-73.7-40H696v-61.6h-53.8v61.6z" fill="#A25C11"/>
-                            <path d="M841.5 812.7H223.1V281.5h618.4v531.2z m-578.4-40h538.4V321.5H263.1v451.2z" fill="#333333"/>
-                            <path d="M884.6 867.8h-16.8c-36.6 0-66.3-29.7-66.3-66.3V292.6c0-36.6 29.7-66.3 66.3-66.3h16.8c36.6 0 66.3 29.7 66.3 66.3v508.9c0 36.6-29.8 66.3-66.3 66.3z m-16.9-601.5c-14.5 0-26.3 11.8-26.3 26.3v508.9c0 14.5 11.8 26.3 26.3 26.3h16.8c14.5 0 26.3-11.8 26.3-26.3V292.6c0-14.5-11.8-26.3-26.3-26.3h-16.8z" fill="#333333"/>
-                            <path d="M474.2 392.7h40v308.7h-40zM347.2 392.7h40v308.7h-40z" fill="#A25C11"/>
+                            <path d="M960.147606 0.00119H832.84179c-35.164431 0-47.062171 28.81897-47.062171 63.983401v896.032008c0 35.164431 11.89774 63.983401 47.062171 63.983401h127.966802a64.115598 64.115598 0 0 0 63.851204-63.983401V63.984591A64.115598 64.115598 0 0 0 960.147606 0.00119z m-4.362504 836.278915h-118.977399v-51.160282h118.977399z m0-136.559615h-118.977399v-51.160281h118.977399z m0-528.788438h-118.977399V68.214898h118.977399zM191.818006 0.00119H63.983401A64.247795 64.247795 0 0 0 0 63.984591v896.032008a64.247795 64.247795 0 0 0 63.983401 63.983401h127.834605c35.164431 0 47.062171-28.81897 47.062171-63.983401V63.984591c0-35.164431-11.89774-63.983401-47.062171-63.983401z m-4.098111 836.278915h-118.977398v-51.160282h118.977398z m0-136.559615h-118.977398v-51.160281h118.977398z m0-528.788438h-118.977398V68.214898h118.977398zM576.511595 0.00119h-127.966802c-35.164431 0-73.105002 28.81897-73.105002 63.983401v896.032008c0 35.164431 37.94057 63.983401 73.105002 63.983401h127.966802c35.164431 0 72.047425-28.81897 72.047424-63.983401V63.984591c0-35.164431-36.882994-63.983401-72.047424-63.983401z m-13.219711 836.278915h-102.45276v-51.160282h102.320562z m0-136.559615h-102.45276v-51.160281h102.320562z m0-528.788438h-102.45276V68.214898h102.320562z" fill="currentColor"/>
                         </svg>
                     </span>
                     <h2>其他学科教学</h2>
@@ -1407,84 +193,32 @@
 
                 <!-- 语文 -->
                 <div class="subject-panel active" id="panel-chinese">
-                    <div class="tool-grid">
-                        <div class="tool-card" data-file="others/chinese/AncientPoem.html">
-                            <h3>📜 初中语文必背古诗文</h3>
-                            <p>收录初中阶段必背古诗文，支持朗读、释义、名句赏析，让经典背诵不再枯燥！</p>
-                            <div class="tool-meta">
-                                <span class="meta-date" data-default="2026.07.24">📅 更新：2026.07.24</span>
-                                <span>🔖 v1.0</span>
-                            </div>
-                            <div class="tool-actions">
-                                <a href="others/chinese/v1.1AncientPoem.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="tool-grid"></div>
                 </div>
 
                 <!-- 数学 -->
                 <div class="subject-panel" id="panel-math">
-                    <div class="tool-grid">
-                        <div class="tool-card" data-file="others/math/MathFormula.html">
-                            <h3>📐 初中数学公式可视化互动学习</h3>
-                            <p>动态演示代数与几何公式，支持参数调节，让抽象概念看得见。</p>
-                            <div class="tool-meta">
-                                <span class="meta-date" data-default="2026.07.24">📅 更新：2026.07.24</span>
-                                <span>🔖 v1.1</span>
-                            </div>
-                            <div class="tool-actions">
-                                <a href="others/math/v1.1MathFormula.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="tool-grid"></div>
                 </div>
 
                 <!-- 英语 -->
                 <div class="subject-panel" id="panel-english">
-                    <div class="tool-grid">
-                        <div class="placeholder-card"><span class="big-icon">🇬🇧</span><p>功能开发中，敬请期待</p></div>
-                    </div>
+                    <div class="tool-grid"></div>
                 </div>
 
                 <!-- 化学 -->
                 <div class="subject-panel" id="panel-chemistry">
-                    <div class="tool-grid">
-                        <div class="tool-card" data-file="others/chemistry/ChemistryLab.html">
-                            <h3>🧪 初中化学实验室</h3>
-                            <p>虚拟化学实验平台，安全模拟初中常见化学反应与操作，提升实验教学效率与趣味性。</p>
-                            <div class="tool-meta">
-                                <span class="meta-date" data-default="2026.07.28">📅 更新：2026.07.28</span>
-                                <span>🔖 v2.0</span>
-                            </div>
-                            <div class="tool-actions">
-                                <a href="others/chemistry/v2.0ChemistryLab.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="tool-grid"></div>
                 </div>
 
                 <!-- 道法 -->
                 <div class="subject-panel" id="panel-politics">
-                    <div class="tool-grid">
-                        <div class="tool-card" data-file="others/politics/study/PoliticsStudy.html">
-                            <h3>⚖️ 道法研习社</h3>
-                            <p>提供答题技巧、答题模板、知识梳理、思维导图、高频考点、练习专区、万能句本、时政热点、学习贴士等丰富内容，助力道法学科高效复习。</p>
-                            <div class="tool-meta">
-                                <span class="meta-date" data-default="2026.08.14">📅 更新：2026.08.14</span>
-                                <span>🔖 v1.1</span>
-                            </div>
-                            <div class="tool-actions">
-                                <a href="others/politics/study/v1.1PoliticsStudy.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="tool-grid"></div>
                 </div>
 
                 <!-- 历史 -->
                 <div class="subject-panel" id="panel-history">
-                    <div class="tool-grid">
-                        <div class="placeholder-card"><span class="big-icon">🏛️</span><p>功能开发中，敬请期待</p></div>
-                    </div>
+                    <div class="tool-grid"></div>
                 </div>
             </div>
 
@@ -1495,29 +229,14 @@
                 <div class="panel-header">
                     <span class="panel-icon">
                         <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M364.196226 91.773585c-5.796226 1.932075-14.973585 10.143396-20.769811 17.388679-9.660377 12.558491-10.143396 17.388679-10.143396 139.592453v126.550943l16.422641 18.837736c14.007547 15.939623 17.871698 17.871698 25.6 13.524529 8.211321-5.313208 8.69434-14.973585 9.177359-130.415095 0-69.071698 0.483019-128 0.966038-131.381132 0.966038-4.34717 57.479245-5.796226 264.21132-5.796226H912.90566l-0.966037 184.513207-1.449057 184.996227-235.713208 1.449056-236.196226 0.966038-21.25283 15.456604c-21.25283 14.973585-26.083019 24.633962-15.939623 30.430188 9.177358 5.796226 525.524528 2.415094 538.083019-3.381132 25.6-11.592453 26.566038-20.286792 26.566038-230.883018 0-163.743396-0.966038-196.10566-7.245283-207.698114-15.456604-29.464151-9.177358-28.981132-310.098113-28.498113-150.701887 0-279.184906 1.932075-284.498114 4.34717zM156.981132 162.777358c-22.218868 11.592453-31.879245 21.735849-41.539623 42.505661-22.701887 49.267925-0.966038 104.332075 49.750944 125.101887 45.886792 19.320755 98.535849-1.932075 117.373585-46.852831 19.803774-47.335849-2.898113-107.230189-47.335849-123.65283-19.803774-7.728302-61.343396-6.279245-78.249057 2.898113z" fill="#08a1f1"/>
-                            <path d="M565.615094 259.381132c-5.313208 4.830189-29.464151 31.396226-52.649056 59.411321-28.015094 33.811321-48.784906 53.615094-61.343396 59.894339-10.626415 4.830189-32.845283 19.320755-48.784906 32.362265-16.422642 13.041509-32.845283 23.667925-36.226415 23.667924-3.864151 0-19.803774-14.490566-35.260378-31.879245-15.939623-17.871698-35.743396-35.260377-44.437735-38.64151-22.218868-9.177358-155.532075-9.177358-177.267925 0-20.286792 8.211321-40.090566 31.879245-46.85283 55.064151-2.898113 10.143396-4.830189 45.886792-3.864151 83.079246l1.449056 65.207547h246.339623l1.449057-32.362264 1.449056-32.362264 17.38868 12.075471c11.592453 7.728302 24.150943 11.592453 37.675471 11.592453 17.388679 0 26.083019-4.34717 65.690566-34.777358 62.792453-47.818868 67.139623-53.132075 67.139623-79.215095 0-18.354717 2.898113-25.6 19.320755-44.437736 80.181132-95.154717 83.079245-99.501887 71.486792-111.094339-7.728302-7.728302-10.626415-7.245283-22.701887 2.415094zM161.811321 614.4c-40.573585 23.667925-52.166038 71.486792-27.049057 111.09434 30.913208 48.784906 97.086792 49.750943 132.830189 1.932075 14.490566-18.837736 14.490566-69.071698 0-87.909434-26.083019-35.260377-70.037736-45.403774-105.781132-25.116981zM473.358491 609.086792c-57.479245 23.184906-65.690566 102.4-14.007548 140.558491 39.607547 29.464151 104.332075 6.279245 120.754717-42.988679 19.803774-60.860377-46.369811-121.720755-106.747169-97.569812zM770.415094 612.950943c-57.962264 29.94717-59.411321 109.645283-2.415094 139.592453 67.622642 35.743396 139.109434-30.913208 109.162264-102.4-15.939623-38.641509-68.10566-56.996226-106.74717-37.192453zM123.169811 784.422642c-20.286792 9.177358-45.403774 36.709434-50.716981 56.513207-6.762264 23.184906-6.279245 80.181132 0.966038 84.528302 6.762264 4.34717 248.271698 3.864151 255.033962-0.483019 7.728302-4.830189 5.796226-72.935849-2.415094-92.739623-18.837736-44.437736-42.022642-54.581132-125.584906-54.098113-42.022642 0-67.622642 1.932075-77.283019 6.279246zM417.811321 788.769811c-10.143396 5.796226-25.6 20.286792-33.328302 31.396227-13.524528 19.320755-14.973585 24.150943-14.973585 61.343396 0 22.218868 0.966038 41.056604 2.415094 42.50566 5.313208 4.830189 248.754717 8.211321 256 3.864151 5.796226-3.864151 6.762264-14.007547 5.796227-46.85283-1.449057-45.403774-6.762264-59.89434-28.498113-80.181132-20.769811-19.803774-35.743396-23.184906-104.332076-23.184906-56.996226 0-65.690566 1.449057-83.079245 11.109434zM726.943396 784.422642c-19.320755 8.69434-43.471698 35.260377-50.233962 55.547169-6.279245 19.803774-7.245283 80.664151-0.966038 85.011321 8.211321 4.830189 252.618868 3.381132 257.449057-1.449057 2.898113-2.898113 3.864151-24.150943 3.381132-47.818867-1.932075-38.641509-3.381132-44.920755-15.939623-61.343397-22.701887-29.94717-43.471698-36.709434-116.407547-36.226415-42.022642 0-67.622642 1.932075-77.283019 6.279246z" fill="#08a1f1"/>
+                            <path d="M363.21 646.09c-110.33 0-200.09-89.76-200.09-200.09s89.76-200.09 200.09-200.09 200.09 89.77 200.09 200.1-89.76 200.08-200.09 200.08z m0-324.17c-68.42 0-124.09 55.67-124.09 124.09S294.79 570.1 363.21 570.1 487.3 514.43 487.3 446.01s-55.67-124.09-124.09-124.09z" fill="currentColor"/>
+                            <path d="M624 968.16c-20.99 0-38-17.01-38-38 0-140.94-99.94-255.6-222.79-255.6s-222.79 114.66-222.79 255.6c0 20.99-17.01 38-38 38s-38-17.01-38-38c0-87.74 30.53-170.43 85.97-232.84 27.35-30.79 59.3-55.01 94.97-71.99 37.29-17.76 76.95-26.76 117.85-26.76s80.55 9 117.85 26.76c35.67 16.99 67.62 41.21 94.97 71.99C631.47 759.73 662 842.43 662 930.16c0 20.99-17.01 38-38 38z" fill="currentColor"/>
+                            <path d="M621.65 935.07l-2.39-0.47c-19.94-3.9-32.94-23.22-29.04-43.16l101.59-519.62c3.9-19.94 23.22-32.94 43.16-29.04l2.38 0.47c19.94 3.9 32.94 23.22 29.04 43.16L664.81 906.03c-3.89 19.94-23.22 32.94-43.16 29.04zM888.23 255.95h-159.2c-20.99 0-38-17.01-38-38s17.01-38 38-38h159.19c20.99 0 38 17.01 38 38 0.01 20.99-17 38-37.99 38zM890.7 146.99H611.71c-20.99 0-38-17.01-38-38s17.01-38 38-38H890.7c20.99 0 38 17.01 38 38s-17.02 38-38 38z" fill="currentColor"/>
                         </svg>
                     </span>
                     <h2>公开课</h2>
                 </div>
-                <div class="tool-grid">
-                    <div class="tool-card" data-file="opencourse/RollCall.html">
-                        <h3>🌐 3D球形环绕点名系统</h3>
-                        <p>创新的3D球形环绕随机点名工具，让课堂互动更具趣味性，支持自定义学生名单。</p>
-                        <div class="tool-meta">
-                            <span class="meta-date" data-default="2026.08.14">📅 更新：2026.08.14</span>
-                            <span>🔖 v1.1</span>
-                        </div>
-                        <div class="tool-actions">
-                            <a href="opencourse/v1.1RollCall.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-                        </div>
-                        <div class="tool-templates">
-                            <span>📥 数据模板下载：</span>
-                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/studentinfo2.xlsx" download class="btn btn-outline btn-sm">学生数据模板</a>
-                        </div>
-                    </div>
-                </div>
+                <div class="tool-grid"></div>
             </div>
 
             <!-- ==========================================================
@@ -1527,63 +246,13 @@
                 <div class="panel-header">
                     <span class="panel-icon">
                         <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M427.84 547.52a193.6 193.6 0 1 0-193.6-193.6 193.92 193.92 0 0 0 193.6 193.6z m0-323.52a129.6 129.6 0 1 1-129.6 129.6A129.92 129.92 0 0 1 427.84 224zM822.72 937.28a32 32 0 0 0-45.44 0 32 32 0 0 0-6.72 10.56A32 32 0 0 0 768 960a32 32 0 1 0 64 0 32 32 0 0 0-2.56-12.16 32 32 0 0 0-6.72-10.56zM672 928h-128a32 32 0 0 0 0 64h128a32 32 0 0 0 0-64z" fill="#2c2c2c"/>
-                            <path d="M776.96 861.76h2.24a32 32 0 0 0 4.8-3.52l3.84-3.2a32 32 0 0 0 3.84-5.76 20.16 20.16 0 0 0 4.16-10.88 32 32 0 0 0 0-5.76 32 32 0 0 0 0-6.4 30.08 30.08 0 0 0 0-4.8 394.56 394.56 0 0 0-367.36-256A400.64 400.64 0 0 0 32 960a32 32 0 0 0 32 32h352a32 32 0 0 0 0-64H98.56a335.04 335.04 0 0 1 329.28-299.84A330.88 330.88 0 0 1 736 843.52v2.56a32 32 0 0 0 15.04 14.4h1.6a28.48 28.48 0 0 0 23.04 0zM565.76 124.8a110.08 110.08 0 1 1 123.84 179.84 32 32 0 1 0 28.8 57.28 174.08 174.08 0 1 0-196.16-284.16 32 32 0 1 0 43.52 47.04zM675.2 389.44a32 32 0 0 0-6.4 64 293.44 293.44 0 0 1 256 256H832a32 32 0 0 0 0 64h128a32 32 0 0 0 32-32 359.36 359.36 0 0 0-316.8-352z" fill="#2c2c2c"/>
+                            <path d="M427.84 547.52a193.6 193.6 0 1 0-193.6-193.6 193.92 193.92 0 0 0 193.6 193.6z m0-323.52a129.6 129.6 0 1 1-129.6 129.6A129.92 129.92 0 0 1 427.84 224zM822.72 937.28a32 32 0 0 0-45.44 0 32 32 0 0 0-6.72 10.56A32 32 0 0 0 768 960a32 32 0 1 0 64 0 32 32 0 0 0-2.56-12.16 32 32 0 0 0-6.72-10.56zM672 928h-128a32 32 0 0 0 0 64h128a32 32 0 0 0 0-64z" fill="currentColor"/>
+                            <path d="M776.96 861.76h2.24a32 32 0 0 0 4.8-3.52l3.84-3.2a32 32 0 0 0 3.84-5.76 20.16 20.16 0 0 0 4.16-10.88 32 32 0 0 0 0-5.76 32 32 0 0 0 0-6.4 30.08 30.08 0 0 0 0-4.8 394.56 394.56 0 0 0-367.36-256A400.64 400.64 0 0 0 32 960a32 32 0 0 0 32 32h352a32 32 0 0 0 0-64H98.56a335.04 335.04 0 0 1 329.28-299.84A330.88 330.88 0 0 1 736 843.52v2.56a32 32 0 0 0 15.04 14.4h1.6a28.48 28.48 0 0 0 23.04 0zM565.76 124.8a110.08 110.08 0 1 1 123.84 179.84 32 32 0 1 0 28.8 57.28 174.08 174.08 0 1 0-196.16-284.16 32 32 0 1 0 43.52 47.04zM675.2 389.44a32 32 0 0 0-6.4 64 293.44 293.44 0 0 1 256 256H832a32 32 0 0 0 0 64h128a32 32 0 0 0 32-32 359.36 359.36 0 0 0-316.8-352z" fill="currentColor"/>
                         </svg>
                     </span>
                     <h2>班级管理</h2>
                 </div>
-                <div class="tool-grid">
-                    <div class="tool-card" data-file="class/ReciteGame.html">
-                        <h3>📖 背诵消消乐系统</h3>
-                        <p>通过趣味消消乐游戏，帮助学生高效完成背诵任务。支持自定义图片与音乐素材，让背诵过关更轻松！</p>
-                        <div class="tool-meta">
-                            <span class="meta-date" data-default="2026.07.25">📅 更新：2026.07.25</span>
-                            <span>🔖 v3.3</span>
-                        </div>
-                        <div class="tool-actions">
-                            <a href="class/v3.3ReciteGame.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-                        </div>
-                        <div class="tool-templates">
-                            <span>📥 资源下载：</span>
-                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/picture.zip" download class="btn btn-outline btn-sm">图片库</a>
-                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/music.zip" download class="btn btn-outline btn-sm">音乐库</a>
-                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/ReciteStudentInfo.xlsx" download class="btn btn-outline btn-sm">学生数据模板</a>
-                        </div>
-                    </div>
-                    <div class="tool-card" data-file="class/SeatChange.html">
-                        <h3>💺 智能座位调换系统</h3>
-                        <p>基于学生身高、活跃程度、成绩等多维度智能排座，支持手动微调，轻松生成最优座位表。</p>
-                        <div class="tool-meta">
-                            <span class="meta-date" data-default="2026.07.26">📅 更新：2026.07.26</span>
-                            <span>🔖 v1.5</span>
-                        </div>
-                        <div class="tool-actions">
-                            <a href="class/v1.5SeatChange.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-                        </div>
-                        <div class="tool-templates">
-                            <span>📥 数据模板下载：</span>
-                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/SeatChangeData.xlsx" download class="btn btn-outline btn-sm">学生数据模板</a>
-                        </div>
-                    </div>
-                    <div class="tool-card" data-file="class/GeneralAnalysis.html">
-                        <h3>📋 班主任通用版成绩分析系统</h3>
-                        <p>专为班主任设计的一站式成绩分析工具，快速生成班级成绩报告、学生进退步追踪等数据。</p>
-                        <div class="tool-meta">
-                            <span class="meta-date" data-default="2026.07.26">📅 更新：2026.07.26</span>
-                            <span>🔖 v1.5</span>
-                        </div>
-                        <div class="tool-actions">
-                            <a href="class/v1.5GeneralAnalysis.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-                        </div>
-                        <div class="tool-templates">
-                            <span>📥 数据模板下载：</span>
-                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/GeneralAnalysisData1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
-                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/GeneralAnalysisData2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
-                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/GeneralAnalysisData3.xlsx" download class="btn btn-outline btn-sm">数据模板3</a>
-                        </div>
-                    </div>
-                </div>
+                <div class="tool-grid"></div>
             </div>
 
             <!-- ==========================================================
@@ -1593,87 +262,13 @@
                 <div class="panel-header">
                     <span class="panel-icon">
                         <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M454.97837 740.295111h117.039408v243.825778h-117.039408zM729.656889 626.176h123.297185v354.834963h-123.297185zM144.402963 849.711407h134.219852v136.002371H144.402963z" fill="#FCDCCB"/>
-                            <path d="M895.070815 967.717926V348.709926a37.508741 37.508741 0 0 0-37.451852-37.527704h-127.981037a37.489778 37.489778 0 0 0-37.451852 37.527704v619.026963h-78.051555V558.174815a37.489778 37.489778 0 0 0-37.451852-37.527704h-127.981037a37.489778 37.489778 0 0 0-37.451852 37.527704v409.562074h-96.768V741.850074a37.489778 37.489778 0 0 0-37.451852-37.527704H149.086815a37.489778 37.489778 0 0 0-37.451852 37.527704v225.867852H0.815407V1024h1023.981037v-56.282074h-129.725629zM749.093926 368.071111h89.088V967.111111h-89.088V368.071111zM468.15763 577.536h89.088v386.446222h-89.088V577.536zM168.523852 761.230222h89.106963v198.84563H168.523852V761.230222zM789.750519 0a59.335111 59.335111 0 0 0-59.297186 59.410963c0 9.462519 2.408296 18.280296 6.33363 26.225778l-191.867259 181.513481a58.576593 58.576593 0 0 0-19.702519-3.621926c-11.889778 0-22.907259 3.584-32.180148 9.614223l-45.719704-45.454223a59.354074 59.354074 0 0 0-57.893926-72.040296 59.335111 59.335111 0 0 0-59.297185 59.410963c0 6.731852 1.365333 13.103407 3.432297 19.13363L132.096 424.77037a58.898963 58.898963 0 0 0-23.589926-4.93037 59.354074 59.354074 0 0 0-59.297185 59.392c0 32.805926 26.548148 59.429926 59.297185 59.429926a59.354074 59.354074 0 0 0 59.297185-59.429926c0-6.428444-1.270519-12.496593-3.166815-18.299259l201.974519-191.051852c7.016296 2.939259 14.715259 4.589037 22.812444 4.589037 10.334815 0 19.930074-2.88237 28.387556-7.547259l48.82963 48.564148c-0.32237 2.465185-0.758519 4.892444-0.758519 7.452444a59.335111 59.335111 0 1 0 114.270815-22.129778l194.654815-184.111407c4.79763 1.251556 9.746963 2.142815 14.942815 2.142815a59.354074 59.354074 0 0 0 59.316148-59.392A59.354074 59.354074 0 0 0 789.750519 0z" fill="#F67250"/>
+                            <path d="M454.978 740.295h117.04v243.826h-117.04z m274.679-114.119h123.297v354.835H729.657zM144.403 849.711h134.22v136.003h-134.22z" fill="currentColor"/>
+                            <path d="M895.07 967.718V348.71a37.509 37.509 0 0 0-37.451-37.528H729.638a37.49 37.49 0 0 0-37.452 37.528v619.027h-78.051V558.175a37.49 37.49 0 0 0-37.452-37.528H448.702a37.49 37.49 0 0 0-37.452 37.528v409.562h-96.768V741.85a37.49 37.49 0 0 0-37.452-37.528H149.087a37.49 37.49 0 0 0-37.452 37.528v225.868H0.815V1024h1023.981v-56.282H895.071zM749.095 368.07h89.088v599.04h-89.088v-599.04zM468.158 577.536h89.088v386.446h-89.088V577.536zM168.524 761.23h89.107v198.846h-89.107V761.23zM789.75 0a59.335 59.335 0 0 0-59.298 59.411c0 9.462 2.409 18.28 6.334 26.226L544.92 267.15a58.577 58.577 0 0 0-19.703-3.622c-11.89 0-22.907 3.584-32.18 9.615l-45.72-45.455a59.354 59.354 0 0 0-57.894-72.04 59.335 59.335 0 0 0-59.297 59.411c0 6.732 1.366 13.103 3.433 19.134L132.096 424.77a58.899 58.899 0 0 0-23.59-4.93 59.354 59.354 0 0 0-59.297 59.392c0 32.806 26.548 59.43 59.297 59.43a59.354 59.354 0 0 0 59.297-59.43c0-6.428-1.27-12.497-3.167-18.3l201.975-191.051a58.889 58.889 0 0 0 22.812 4.589c10.335 0 19.93-2.882 28.388-7.547l48.83 48.564c-0.323 2.465-0.759 4.892-0.759 7.452a59.335 59.335 0 1 0 114.27-22.13L774.809 116.7c4.797 1.25 9.747 2.142 14.943 2.142a59.354 59.354 0 0 0 59.316-59.392A59.354 59.354 0 0 0 789.75 0z" fill="currentColor"/>
                         </svg>
                     </span>
                     <h2>成绩分析系统</h2>
                 </div>
-                <div class="tool-grid">
-                    <div class="tool-card" data-file="analysis/AddGradeDirector.html">
-                        <h3>🎯 增值评价分析系统</h3>
-                        <p>基于学生成长数据，科学衡量教学增值效果。提供年级、班级、学科三种分析视角。</p>
-                        <div class="tool-meta">
-                            <span class="meta-date" data-default="2026.07.22">📅 更新：2026.07.22</span>
-                            <span>🔖 v1.4 </span>
-                        </div>
-                        <div class="tool-actions">
-                            <button class="btn btn-primary" onclick="openModal()">🚀 选择版本进入</button>
-                        </div>
-                        <div class="tool-guide">
-                            <span>📘 操作指南下载：</span>
-                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/AddGuide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
-                        </div>
-                    </div>
-                    <div class="tool-card" data-file="analysis/ResultAnalysis.html">
-                        <h3>📈 结果评价分析系统</h3>
-                        <p>对考试成绩进行累计比率分析对比，生成多维度统计报表，辅助结果评价。</p>
-                        <div class="tool-meta">
-                            <span class="meta-date" data-default="2026.07.22">📅 更新：2026.07.22</span>
-                            <span>🔖 v1.2</span>
-                        </div>
-                        <div class="tool-actions">
-                            <a href="analysis/v1.2ResultAnalysis.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-                        </div>
-                        <div class="tool-templates">
-                            <span>📥 数据模板下载：</span>
-                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/ResultData.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a>
-                        </div>
-                        <div class="tool-guide">
-                            <span>📘 操作指南下载：</span>
-                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/ResultGuide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
-                        </div>
-                    </div>
-                    <div class="tool-card" data-file="analysis/PredictAnalysis.html">
-                        <h3>📊 上线达标预测及增量分析系统</h3>
-                        <p>预测学生上线达标概率，分析增量变化，为临界生辅导提供精准数据支撑，划定考试上线目标。</p>
-                        <div class="tool-meta">
-                            <span class="meta-date" data-default="2026.07.22">📅 更新：2026.07.22</span>
-                            <span>🔖 v1.3</span>
-                        </div>
-                        <div class="tool-actions">
-                            <a href="analysis/v1.3PredictAnalysis.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-                        </div>
-                        <div class="tool-templates">
-                            <span>📥 数据模板下载：</span>
-                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/PredictData1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
-                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/PredictData2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
-                        </div>
-                        <div class="tool-guide">
-                            <span>📘 操作指南下载：</span>
-                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/PredictGuide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
-                        </div>
-                    </div>
-                    <div class="tool-card" data-file="analysis/v1.4TestAnalysis.html">
-                        <h3>📝 试题分析系统</h3>
-                        <p>计算试卷小题难度，得到班级弱项，帮助优化命题质量、调整班级教学方向。</p>
-                        <div class="tool-meta">
-                            <span class="meta-date" data-default="2026.07.22">📅 更新：2026.07.22</span>
-                            <span>🔖 v1.4</span>
-                        </div>
-                        <div class="tool-actions">
-                            <a href="analysis/TestAnalysis.html" target="_blank" class="btn btn-primary">🚀 立即使用</a>
-                        </div>
-                        <div class="tool-templates">
-                            <span>📥 数据模板下载：</span>
-                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/TestData.xlsx" download class="btn btn-outline btn-sm">下载数据模板</a>
-                        </div>
-                        <div class="tool-guide">
-                            <span>📘 操作指南下载：</span>
-                            <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/TestGuide.pptx" download class="btn btn-outline btn-sm">下载指南</a>
-                        </div>
-                    </div>
-                </div>
+                <div class="tool-grid"></div>
             </div>
 
             <!-- ==========================================================
@@ -1683,7 +278,9 @@
                 <div class="panel-header">
                     <span class="panel-icon">
                         <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M864 122H160c-52.9 0-96 43.1-96 96v448c0 52.9 43.1 96 96 96h203.5L512 902l148.4-140H864c52.9 0 96-43.1 96-96V218c0-52.9-43.1-96-96-96zM288 506c-35.3 0-64-28.6-64-64 0-35.3 28.7-64 64-64s64 28.7 64 64c0 35.4-28.7 64-64 64z m224 0c-35.3 0-64-28.6-64-64 0-35.3 28.7-64 64-64s64 28.7 64 64c0 35.4-28.7 64-64 64z m224 0c-35.3 0-64-28.6-64-64 0-35.3 28.7-64 64-64s64 28.7 64 64c0 35.4-28.7 64-64 64z" fill="#47444F"/>
+                            <path d="M30.885428 218.84017H5.706979v628.290563c0 70.178339 56.525388 127.158075 125.918851 127.158075H957.122847V460.95544c0-14.066367-11.272741-25.469068-25.178449-25.469068s-25.178449 11.402701-25.178449 25.469068v487.865324l25.178449-25.469068H131.62583c-41.620933 0-75.56093-34.214243-75.56093-76.220963V244.309238L30.885428 269.777283H600.265276c13.905708 0 25.178449-11.402701 25.178449-25.469068 0-14.066367-11.272741-25.469068-25.178449-25.469068H30.885428z" fill="currentColor"/>
+                            <path d="M437.025425 584.354911l-5.182023 6.654561-0.208754 8.468882-3.713578 150.418848-0.914836 37.035498 34.513048-12.400425 144.862295-52.0474 7.03216-2.526543 4.535294-5.994527 389.849985-515.263324 15.473413-20.450774-20.388352-15.423271-129.862674-98.239442-19.664875-14.876825-15.195073 19.512402-401.13603 515.13234zM842.8615 105.379049l129.862673 98.239442-4.91494-35.875069-389.849985 515.263323 11.567453-8.52107-144.862295 52.0474 33.598212 24.636096 3.713578-150.418848-5.390777 15.123443 401.13603-515.131317-34.859949 4.6366z" fill="currentColor"/>
+                            <path d="M894.924249 299.05305l29.495778-41.285289-113.079428-82.656534-29.495778 41.285288 113.079428 82.656535zM310.028009 487.293295c14.543228 0 26.333762-11.949146 26.333762-26.689872 0-14.739702-11.789511-26.689872-26.333762-26.689872H165.19232c-14.543228 0-26.333762 11.949146-26.333762 26.689872 0 14.739702 11.789511 26.689872 26.333762 26.689872h144.835689zM310.028009 840.311421c14.543228 0 26.333762-11.949146 26.333762-26.689872 0-14.739702-11.789511-26.689872-26.333762-26.689873H165.19232c-14.543228 0-26.333762 11.949146-26.333762 26.689873 0 14.739702 11.789511 26.689872 26.333762 26.689872h144.835689zM310.028009 668.629293c14.543228 0 26.333762-11.949146 26.333762-26.689872 0-14.739702-11.789511-26.689872-26.333762-26.689872H165.19232c-14.543228 0-26.333762 11.949146-26.333762 26.689872 0 14.739702 11.789511 26.689872 26.333762 26.689872h144.835689zM797.557688 840.311421c14.543228 0 26.333762-11.949146 26.333762-26.689872 0-14.739702-11.789511-26.689872-26.333762-26.689873H652.721998c-14.543228 0-26.333762 11.949146-26.333761 26.689873 0 14.739702 11.789511 26.689872 26.333761 26.689872h144.83569z" fill="currentColor"/>
                         </svg>
                     </span>
                     <h2>留言板</h2>
@@ -1691,22 +288,33 @@
                 <div class="message-board-container">
                     <!-- 投递表单 -->
                     <div class="mailbox-form">
-                        <h3>📬 投递留言</h3>
+                        <h3>
+                            <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;">
+                                <path d="M41.5 175.4c-6 8-9.6 17.9-9.6 28.7v615.8c0 8.4 2.3 16.1 6 23L364.5 505l-323-329.6z m940.5-0.6L659.5 508.5l326.9 333.7c3.5-6.7 5.7-14.2 5.7-22.3V204.1c0-11.1-3.9-21.2-10.1-29.3z" fill="currentColor"/>
+                                <path d="M579.2 591.9c-17 17.7-39.9 27.5-64.5 27.6h-0.4c-24.4 0-47.2-9.6-64.3-27.1l-49.7-50.8L84.6 868.3h855.7L624 545.4l-44.8 46.5z m-64.9-23.6h0.2c10.6 0 20.4-4.3 27.8-11.9l387-400.7H93.9l392.8 401c7.3 7.5 17.1 11.6 27.6 11.6z" fill="currentColor"/>
+                            </svg>
+                            投递留言
+                        </h3>
                         <div class="form-group">
                             <label for="msg-name">您的称呼</label>
-                            <input type="text" id="msg-name" placeholder="例如：xx学校xx老师" maxlength="20" required>
+                            <input type="text" id="msg-name" placeholder="例如：xx学校xx老师/xx学生" maxlength="20" required>
                         </div>
                         <div class="form-group">
                             <label for="msg-content">留言内容</label>
                             <textarea id="msg-content" placeholder="分享您的使用体验、建议或问题…" maxlength="500" required></textarea>
                         </div>
-                        <button class="btn-submit" id="submit-message">📨 投递</button>
+                        <button class="btn-submit" id="submit-message">投递</button>
                         <div id="form-feedback" style="margin-top:0.5rem;"></div>
                     </div>
 
                     <!-- 留言列表 -->
                     <div>
-                        <h3 style="margin-bottom:0.8rem;font-size:1rem;font-weight:600;color:var(--text-main);">📮 精选留言</h3>
+                        <h3 style="margin-bottom:0.8rem;font-size:1rem;font-weight:600;color:var(--text-main);">
+                            <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;vertical-align:-0.1em;display:inline-block;">
+                                <path d="M864 122H160c-52.9 0-96 43.1-96 96v448c0 52.9 43.1 96 96 96h203.5L512 902l148.4-140H864c52.9 0 96-43.1 96-96V218c0-52.9-43.1-96-96-96zM288 506c-35.3 0-64-28.6-64-64 0-35.3 28.7-64 64-64s64 28.7 64 64c0 35.4-28.7 64-64 64z m224 0c-35.3 0-64-28.6-64-64 0-35.3 28.7-64 64-64s64 28.7 64 64c0 35.4-28.7 64-64 64z m224 0c-35.3 0-64-28.6-64-64 0-35.3 28.7-64 64-64s64 28.7 64 64c0 35.4-28.7 64-64 64z" fill="currentColor"/>
+                            </svg>
+                            精选留言
+                        </h3>
                         <div id="messages-container" class="messages-list">
                             <div class="loading-messages">加载中…</div>
                         </div>
@@ -1723,17 +331,18 @@
     <div class="modal" id="versionModal">
         <div class="modal-content">
             <span class="modal-close" onclick="closeModal()">&times;</span>
-            <h2>🎯 增值评价分析系统</h2>
+            <h2>增值评价分析系统</h2>
             <p class="subtitle">请选择您的角色，进入对应的分析工具</p>
             <div class="version-list">
                 <div class="version-item">
                     <div class="version-info">
-                        <h4>👔 年级主任版 (v1.4)</h4>
+                        <h4>年级主任版 (v1.4)</h4>
                         <p>全年级宏观数据，多班级对比，掌握整体增值趋势</p>
                     </div>
                     <div class="version-actions">
                         <a href="analysis/AddGradeDirector.html" target="_blank" class="btn btn-primary">进入工具</a>
                         <div class="template-group">
+                            <span class="template-icon" style="display:inline-flex;align-items:center;"><svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="width:0.8em;height:0.8em;display:inline-block;"><path d="M822.4 360c6.4 16 3.2 30.4-8 41.6L539.2 676.8c-8 8-16 11.2-27.2 11.2s-20.8-3.2-27.2-11.2L211.2 403.2c-12.8-12.8-16-25.6-8-41.6 6.4-16 19.2-24 35.2-24h156.8V62.4c0-9.6 4.8-20.8 11.2-27.2 6.4-8 17.6-11.2 27.2-11.2h156.8c11.2 0 19.2 3.2 27.2 11.2 8 8 11.2 17.6 11.2 27.2V336h156.8c17.6 0 28.8 8 36.8 24zM1003.2 705.6c-11.2-11.2-25.6-17.6-41.6-17.6H700.8c-8 22.4-22.4 41.6-43.2 56-20.8 14.4-43.2 22.4-67.2 22.4h-156.8c-25.6 0-48-8-67.2-22.4-20.8-14.4-35.2-33.6-43.2-56H62.4c-16 0-30.4 6.4-41.6 17.6-11.2 11.2-17.6 25.6-17.6 41.6v195.2c0 16 6.4 30.4 17.6 41.6 11.2 11.2 25.6 17.6 41.6 17.6h899.2c16 0 30.4-6.4 41.6-17.6 11.2-11.2 17.6-25.6 17.6-41.6V747.2c0-16-6.4-30.4-17.6-41.6zM774.4 910.4c-6.4 8-17.6 11.2-27.2 11.2-9.6 0-20.8-4.8-27.2-11.2-8-8-11.2-17.6-11.2-27.2 0-9.6 4.8-20.8 11.2-27.2 6.4-8 17.6-11.2 27.2-11.2 9.6 0 20.8 4.8 27.2 11.2 8 6.4 11.2 17.6 11.2 27.2 0 11.2-3.2 20.8-11.2 27.2z m156.8 0c-6.4 8-17.6 11.2-27.2 11.2-9.6 0-20.8-4.8-27.2-11.2-8-8-11.2-17.6-11.2-27.2 0-9.6 4.8-20.8 11.2-27.2 6.4-8 17.6-11.2 27.2-11.2 9.6 0 20.8 4.8 27.2 11.2 8 6.4 11.2 17.6 11.2 27.2 0 11.2-4.8 20.8-11.2 27.2z" fill="currentColor"/></svg></span>
                             <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/GradeDirectorData1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
                             <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/GradeDirectorData2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
                         </div>
@@ -1741,12 +350,13 @@
                 </div>
                 <div class="version-item">
                     <div class="version-info">
-                        <h4>🏫 班主任版 (v1.2)</h4>
+                        <h4>班主任版 (v1.2)</h4>
                         <p>班级整体及学生个体增值追踪，辅助班会与家长沟通</p>
                     </div>
                     <div class="version-actions">
                         <a href="analysis/AddHeadTeacher.html" target="_blank" class="btn btn-primary">进入工具</a>
                         <div class="template-group">
+                            <span class="template-icon" style="display:inline-flex;align-items:center;"><svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="width:0.8em;height:0.8em;display:inline-block;"><path d="M822.4 360c6.4 16 3.2 30.4-8 41.6L539.2 676.8c-8 8-16 11.2-27.2 11.2s-20.8-3.2-27.2-11.2L211.2 403.2c-12.8-12.8-16-25.6-8-41.6 6.4-16 19.2-24 35.2-24h156.8V62.4c0-9.6 4.8-20.8 11.2-27.2 6.4-8 17.6-11.2 27.2-11.2h156.8c11.2 0 19.2 3.2 27.2 11.2 8 8 11.2 17.6 11.2 27.2V336h156.8c17.6 0 28.8 8 36.8 24zM1003.2 705.6c-11.2-11.2-25.6-17.6-41.6-17.6H700.8c-8 22.4-22.4 41.6-43.2 56-20.8 14.4-43.2 22.4-67.2 22.4h-156.8c-25.6 0-48-8-67.2-22.4-20.8-14.4-35.2-33.6-43.2-56H62.4c-16 0-30.4 6.4-41.6 17.6-11.2 11.2-17.6 25.6-17.6 41.6v195.2c0 16 6.4 30.4 17.6 41.6 11.2 11.2 25.6 17.6 41.6 17.6h899.2c16 0 30.4-6.4 41.6-17.6 11.2-11.2 17.6-25.6 17.6-41.6V747.2c0-16-6.4-30.4-17.6-41.6zM774.4 910.4c-6.4 8-17.6 11.2-27.2 11.2-9.6 0-20.8-4.8-27.2-11.2-8-8-11.2-17.6-11.2-27.2 0-9.6 4.8-20.8 11.2-27.2 6.4-8 17.6-11.2 27.2-11.2 9.6 0 20.8 4.8 27.2 11.2 8 6.4 11.2 17.6 11.2 27.2 0 11.2-3.2 20.8-11.2 27.2z m156.8 0c-6.4 8-17.6 11.2-27.2 11.2-9.6 0-20.8-4.8-27.2-11.2-8-8-11.2-17.6-11.2-27.2 0-9.6 4.8-20.8 11.2-27.2 6.4-8 17.6-11.2 27.2-11.2 9.6 0 20.8 4.8 27.2 11.2 8 6.4 11.2 17.6 11.2 27.2 0 11.2-4.8 20.8-11.2 27.2z" fill="currentColor"/></svg></span>
                             <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/HeadTeacherData1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
                             <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/HeadteacherData2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
                         </div>
@@ -1754,12 +364,13 @@
                 </div>
                 <div class="version-item">
                     <div class="version-info">
-                        <h4>📘 科任老师版 (v1.2)</h4>
+                        <h4>科任老师版 (v1.2)</h4>
                         <p>学科视角下的学生增值数据，支持分层教学与个别辅导</p>
                     </div>
                     <div class="version-actions">
                         <a href="analysis/AddSubjectTeacher.html" target="_blank" class="btn btn-primary">进入工具</a>
                         <div class="template-group">
+                            <span class="template-icon" style="display:inline-flex;align-items:center;"><svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="width:0.8em;height:0.8em;display:inline-block;"><path d="M822.4 360c6.4 16 3.2 30.4-8 41.6L539.2 676.8c-8 8-16 11.2-27.2 11.2s-20.8-3.2-27.2-11.2L211.2 403.2c-12.8-12.8-16-25.6-8-41.6 6.4-16 19.2-24 35.2-24h156.8V62.4c0-9.6 4.8-20.8 11.2-27.2 6.4-8 17.6-11.2 27.2-11.2h156.8c11.2 0 19.2 3.2 27.2 11.2 8 8 11.2 17.6 11.2 27.2V336h156.8c17.6 0 28.8 8 36.8 24zM1003.2 705.6c-11.2-11.2-25.6-17.6-41.6-17.6H700.8c-8 22.4-22.4 41.6-43.2 56-20.8 14.4-43.2 22.4-67.2 22.4h-156.8c-25.6 0-48-8-67.2-22.4-20.8-14.4-35.2-33.6-43.2-56H62.4c-16 0-30.4 6.4-41.6 17.6-11.2 11.2-17.6 25.6-17.6 41.6v195.2c0 16 6.4 30.4 17.6 41.6 11.2 11.2 25.6 17.6 41.6 17.6h899.2c16 0 30.4-6.4 41.6-17.6 11.2-11.2 17.6-25.6 17.6-41.6V747.2c0-16-6.4-30.4-17.6-41.6zM774.4 910.4c-6.4 8-17.6 11.2-27.2 11.2-9.6 0-20.8-4.8-27.2-11.2-8-8-11.2-17.6-11.2-27.2 0-9.6 4.8-20.8 11.2-27.2 6.4-8 17.6-11.2 27.2-11.2 9.6 0 20.8 4.8 27.2 11.2 8 6.4 11.2 17.6 11.2 27.2 0 11.2-3.2 20.8-11.2 27.2z m156.8 0c-6.4 8-17.6 11.2-27.2 11.2-9.6 0-20.8-4.8-27.2-11.2-8-8-11.2-17.6-11.2-27.2 0-9.6 4.8-20.8 11.2-27.2 6.4-8 17.6-11.2 27.2-11.2 9.6 0 20.8 4.8 27.2 11.2 8 6.4 11.2 17.6 11.2 27.2 0 11.2-4.8 20.8-11.2 27.2z" fill="currentColor"/></svg></span>
                             <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/SubjectTeacherData1.xlsx" download class="btn btn-outline btn-sm">数据模板1</a>
                             <a href="https://github.com/huangjie9716/tools/releases/download/v1.0/SubjectTeacherData2.xlsx" download class="btn btn-outline btn-sm">数据模板2</a>
                         </div>
@@ -1773,14 +384,27 @@
     页脚
     ============================================================ -->
     <div class="footer-disclaimer">
-        ⚠️ 本项目仅供教研学习交流，数据仅保存在用户本地，后台不收集用户信息。请遵守版权及教育部《中小学生成式人工智能使用指南（2025 年版）》相关要求，合理合规使用工具，开发者不对使用后果承担责任。
+        <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="width:0.9em;height:0.9em;vertical-align:-0.1em;margin-right:0.25em;display:inline-block;">
+            <path d="M512 0a512 512 0 1 1 0 1024A512 512 0 0 1 512 0z m0 64a448 448 0 1 0 0 896A448 448 0 0 0 512 64.073143z" fill="#F9AD33"/>
+            <path d="M486.546286 607.890286a38.985143 38.985143 0 0 0 76.580571 0l25.6-351.963429a64.073143 64.073143 0 0 0-63.853714-64 65.609143 65.609143 0 0 0-63.926857 70.363429l25.6 345.6z m38.326857 95.963428a64.073143 64.073143 0 0 0-45.129143 109.275429 63.780571 63.780571 0 0 0 108.982857-45.275429 60.562286 60.562286 0 0 0-63.853714-64z" fill="#F9AD33"/>
+        </svg>
+        本项目仅供教研学习交流，数据仅保存在用户本地，后台不收集用户信息。请遵守版权及教育部《中小学生成式人工智能使用指南（2025 年版）》相关要求，合理合规使用工具，开发者不对使用后果承担责任。
     </div>
     <!-- 底部反馈已删除 -->
 
     <!-- ============================================================
     JavaScript
     ============================================================ -->
-    <script>
+        <!-- Supabase SDK（移至 body 末尾加载，避免阻塞首屏渲染） -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+        <!-- 功能卡片数据（按类别拆分） -->
+    <script src="cards-physics.js"></script>
+    <script src="cards-others.js"></script>
+    <script src="cards-public.js"></script>
+    <script src="cards-class.js"></script>
+    <script src="cards-analysis.js"></script>
+<script>
         // ============================================================
         // Supabase 配置
         // ============================================================
@@ -1793,53 +417,88 @@
             'use strict';
 
             // ============================================================
-            // 工具函数：日期格式化 & 文件日期获取
+            // 工具卡片渲染（数据来自 cards-*.js，日期为手动设置）
             // ============================================================
-            function formatDate(date) {
-                var y = date.getFullYear();
-                var m = String(date.getMonth() + 1).padStart(2, '0');
-                var d = String(date.getDate()).padStart(2, '0');
-                return y + '.' + m + '.' + d;
+            // 更新时间前的文档图标（SVG）
+            var UPDATE_ICON_SVG = '<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="width:0.85em;height:0.85em;vertical-align:-0.1em;margin-right:0.2em;display:inline-block;">' +
+                '<path d="M948.096 64h-851.2a22.528 22.528 0 0 0-22.4 22.4v851.2c0 12.288 10.112 22.4 22.4 22.4h75.072v-0.384c0.704 0.064 1.28 0.384 1.92 0.384a24.96 24.96 0 0 0 0-49.856c-0.704 0-1.28 0.32-1.92 0.384v-0.576h-52.672V322.816h806.4v369.28h-194.752a22.528 22.528 0 0 0-22.464 22.464v195.52H272v0.704c-0.832-0.128-1.472-0.512-2.368-0.512a24.896 24.896 0 1 0 0 49.728c0.832 0 1.536-0.384 2.368-0.512V960h497.92l200.576-199.744V86.4a22.464 22.464 0 0 0-22.4-22.4z m-194.752 842.624v-169.728h171.264l-171.264 169.728z" fill="currentColor"/>' +
+                '<path d="M119.936 280a0.64 0.64 0 0 1-0.64-0.64V109.44a0.64 0.64 0 0 1 0.64-0.64h805.12a0.64 0.64 0 0 1 0.64 0.64v169.92a0.64 0.64 0 0 1-0.64 0.64H119.936z" fill="#FF3E3E"/>' +
+                '<path d="M318.976 193.984m-54.016 0a54.016 54.016 0 1 0 108.032 0 54.016 54.016 0 1 0-108.032 0Z" fill="currentColor"/>' +
+                '<path d="M318.976 193.984m-31.616 0a31.616 31.616 0 1 0 63.232 0 31.616 31.616 0 1 0-63.232 0Z" fill="#FFFFFF"/>' +
+                '<path d="M726.016 193.984m-54.016 0a54.016 54.016 0 1 0 108.032 0 54.016 54.016 0 1 0-108.032 0Z" fill="currentColor"/>' +
+                '<path d="M726.016 193.984m-31.616 0a31.616 31.616 0 1 0 63.232 0 31.616 31.616 0 1 0-63.232 0Z" fill="#FFFFFF"/>' +
+                '<path d="M361.024 182.784h326.016v22.4H361.024z" fill="currentColor"/>' +
+                '<path d="M176 378.688h692.032v92.032H176zM176 504h692.032v91.968H176zM176 629.376h472v92.032H176z" fill="#DCDCDC"/>' +
+                '</svg>';
+
+            // 数据模板下载前的图标（SVG）
+            var DOWNLOAD_ICON_SVG = '<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="width:0.85em;height:0.85em;vertical-align:-0.1em;margin-right:0.2em;display:inline-block;">' +
+                '<path d="M822.4 360c6.4 16 3.2 30.4-8 41.6L539.2 676.8c-8 8-16 11.2-27.2 11.2s-20.8-3.2-27.2-11.2L211.2 403.2c-12.8-12.8-16-25.6-8-41.6 6.4-16 19.2-24 35.2-24h156.8V62.4c0-9.6 4.8-20.8 11.2-27.2 6.4-8 17.6-11.2 27.2-11.2h156.8c11.2 0 19.2 3.2 27.2 11.2 8 8 11.2 17.6 11.2 27.2V336h156.8c17.6 0 28.8 8 36.8 24zM1003.2 705.6c-11.2-11.2-25.6-17.6-41.6-17.6H700.8c-8 22.4-22.4 41.6-43.2 56-20.8 14.4-43.2 22.4-67.2 22.4h-156.8c-25.6 0-48-8-67.2-22.4-20.8-14.4-35.2-33.6-43.2-56H62.4c-16 0-30.4 6.4-41.6 17.6-11.2 11.2-17.6 25.6-17.6 41.6v195.2c0 16 6.4 30.4 17.6 41.6 11.2 11.2 25.6 17.6 41.6 17.6h899.2c16 0 30.4-6.4 41.6-17.6 11.2-11.2 17.6-25.6 17.6-41.6V747.2c0-16-6.4-30.4-17.6-41.6zM774.4 910.4c-6.4 8-17.6 11.2-27.2 11.2-9.6 0-20.8-4.8-27.2-11.2-8-8-11.2-17.6-11.2-27.2 0-9.6 4.8-20.8 11.2-27.2 6.4-8 17.6-11.2 27.2-11.2 9.6 0 20.8 4.8 27.2 11.2 8 6.4 11.2 17.6 11.2 27.2 0 11.2-3.2 20.8-11.2 27.2z m156.8 0c-6.4 8-17.6 11.2-27.2 11.2-9.6 0-20.8-4.8-27.2-11.2-8-8-11.2-17.6-11.2-27.2 0-9.6 4.8-20.8 11.2-27.2 6.4-8 17.6-11.2 27.2-11.2 9.6 0 20.8 4.8 27.2 11.2 8 6.4 11.2 17.6 11.2 27.2 0 11.2-4.8 20.8-11.2 27.2z" fill="currentColor"/>' +
+                '</svg>';
+
+            // 操作指南下载前的图标（SVG）
+            var GUIDE_ICON_SVG = '<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="width:0.85em;height:0.85em;vertical-align:-0.1em;margin-right:0.2em;display:inline-block;">' +
+                '<path d="M472.568 953.233h-224.82c-74.94 0-135.748-60.92-135.748-135.585V206.585C112 131.735 172.993 71 247.748 71h504.87c74.94 0 135.747 60.92 135.747 135.585v253.526c0 15.416-12.459 27.86-27.893 27.86-15.434 0-27.893-12.444-27.893-27.86V206.585c0-44.018-35.89-79.865-79.961-79.865h-504.87c-44.072 0-79.961 35.847-79.961 79.865v610.877c0 44.02 35.89 79.866 79.96 79.866h224.635c15.435 0 27.894 12.444 27.894 27.86 0 15.416-12.273 28.045-27.708 28.045z" fill="currentColor"/>' +
+                '<path d="M689.12 953.233c-122.956 0-222.88-99.924-222.88-222.88 0-122.955 99.924-222.88 222.88-222.88 122.955 0 222.88 99.925 222.88 222.88 0 122.956-99.925 222.88-222.88 222.88z m0-390.04c-92.124 0-167.16 75.037-167.16 167.16 0 92.124 75.036 167.16 167.16 167.16s167.16-75.036 167.16-167.16c0-92.123-75.036-167.16-167.16-167.16z" fill="currentColor"/>' +
+                '<path d="M469.627 318.49H270.34c-15.65 0-28.281-13.793-28.281-30.878 0-17.086 12.632-30.879 28.28-30.879h199.287c15.648 0 28.28 13.793 28.28 30.879 0 17.085-12.632 30.878-28.28 30.878z m0 148.586H270.34c-15.65 0-28.281-13.792-28.281-30.878s12.632-30.878 28.28-30.878h199.287c15.648 0 28.28 13.792 28.28 30.878s-12.632 30.878-28.28 30.878z" fill="currentColor"/>' +
+                '<path d="M819.133 618.913l-167.16 74.294-74.293 148.586L726.267 767.5z" fill="currentColor"/>' +
+                '<path d="M802.65 630.057L646.9 700.637L577.68 841.792l138.443-70.578z" fill="currentColor"/>' +
+                '</svg>';
+
+            function renderToolCard(card) {
+                var actions = card.action === 'modal'
+                    ? '<button class="btn btn-primary" onclick="openModal()">' + card.actionText + '</button>'
+                    : '<a href="' + card.href + '" target="_blank" class="btn btn-primary">' + card.actionText + '</a>';
+                var templates = '';
+                if (card.templates && card.templates.length) {
+                    templates = '<div class="tool-templates"><span>' + DOWNLOAD_ICON_SVG + '数据模板下载：</span>' +
+                        card.templates.map(function(t) {
+                            return '<a href="' + t.url + '" download class="btn btn-outline btn-sm">' + t.label + '</a>';
+                        }).join('') + '</div>';
+                }
+                var guides = '';
+                if (card.guides && card.guides.length) {
+                    guides = '<div class="tool-guide"><span>' + GUIDE_ICON_SVG + '操作指南下载：</span>' +
+                        card.guides.map(function(g) {
+                            return '<a href="' + g.url + '" download class="btn btn-outline btn-sm">' + g.label + '</a>';
+                        }).join('') + '</div>';
+                }
+                return '<div class="tool-card">' +
+                    '<h3>' + card.title + '</h3>' +
+                    '<p>' + card.desc + '</p>' +
+                    '<div class="tool-meta">' +
+                        '<span>' + UPDATE_ICON_SVG + '更新：' + card.date + '</span>' +
+                        '<span>' + card.version + '</span>' +
+                    '</div>' +
+                    '<div class="tool-actions">' + actions + '</div>' +
+                    templates + guides +
+                '</div>';
             }
 
-            function parseLastModified(lastModified) {
-                if (!lastModified) return null;
-                try { var d = new Date(lastModified); return isNaN(d.getTime()) ? null : d; } catch (_) { return null; }
+            function renderGrid(panelId, cards, placeholder) {
+                var grid = document.querySelector('#' + panelId + ' .tool-grid');
+                if (!grid) return;
+                if (cards && cards.length) {
+                    grid.innerHTML = cards.map(renderToolCard).join('');
+                } else if (placeholder) {
+                    grid.innerHTML = '<div class="placeholder-card"><span class="big-icon">' + placeholder.icon +
+                        '</span><p>' + placeholder.text + '</p></div>';
+                }
             }
 
-            async function fetchFileDate(filePath) {
-                try {
-                    var resp = await fetch(filePath, { method: 'HEAD', cache: 'no-cache' });
-                    if (resp.ok) {
-                        var lm = resp.headers.get('Last-Modified');
-                        if (lm) {
-                            var d = parseLastModified(lm);
-                            if (d) return formatDate(d);
-                        }
-                    }
-                } catch (_) {}
-                return null;
-            }
-
-            // ============================================================
-            // 更新卡片日期
-            // ============================================================
-            async function updateCardDates() {
-                var cards = document.querySelectorAll('.tool-card[data-file]');
-                var promises = Array.from(cards).map(async function(card) {
-                    var filePath = card.getAttribute('data-file');
-                    var dateSpan = card.querySelector('.meta-date');
-                    if (!dateSpan || !filePath) return;
-                    dateSpan.textContent = '📅 更新：加载中…';
-                    var dateStr = await fetchFileDate(filePath);
-                    if (dateStr) {
-                        dateSpan.textContent = '📅 更新：' + dateStr;
-                    } else {
-                        var def = dateSpan.getAttribute('data-default');
-                        dateSpan.textContent = '📅 更新：' + (def || '未知');
-                    }
+            function renderAllPanels() {
+                // 物理教学
+                renderGrid('panel-physics', window.CARDS_PHYSICS);
+                // 其他学科（各学科子面板）
+                var others = window.CARDS_OTHERS || {};
+                ['chinese', 'math', 'english', 'chemistry', 'politics', 'history'].forEach(function(subject) {
+                    var cfg = others[subject];
+                    renderGrid('panel-' + subject, cfg ? cfg.cards : [], cfg ? cfg.placeholder : null);
                 });
-                await Promise.allSettled(promises);
+                // 公开课 / 班级管理 / 成绩分析
+                renderGrid('panel-public-lesson', window.CARDS_PUBLIC);
+                renderGrid('panel-class-mgmt', window.CARDS_CLASS);
+                renderGrid('panel-analysis', window.CARDS_ANALYSIS);
             }
 
             // ============================================================
@@ -1848,26 +507,24 @@
             async function updateVisitCount() {
                 var el = document.getElementById('visit-count');
                 if (!el) return;
-                var { data, error: readErr } = await supabaseClient
-                    .from('site_visits')
-                    .select('count')
-                    .eq('id', 1)
-                    .single();
-                if (readErr || !data) {
-                    console.error('读取访问计数失败:', readErr?.message);
+                try {
+                    var { data, error: readErr } = await supabaseClient
+                        .from('site_visits')
+                        .select('count')
+                        .eq('id', 1)
+                        .single();
+                    if (readErr || !data) {
+                        el.textContent = '--';
+                        return;
+                    }
+                    var newCount = data.count + 1;
+                    var { error: updateErr } = await supabaseClient
+                        .from('site_visits')
+                        .update({ count: newCount })
+                        .eq('id', 1);
+                    el.textContent = updateErr ? data.count : newCount;
+                } catch (_) {
                     el.textContent = '--';
-                    return;
-                }
-                var newCount = data.count + 1;
-                var { error: updateErr } = await supabaseClient
-                    .from('site_visits')
-                    .update({ count: newCount })
-                    .eq('id', 1);
-                if (updateErr) {
-                    console.error('更新访问计数失败:', updateErr.message);
-                    el.textContent = data.count;
-                } else {
-                    el.textContent = newCount;
                 }
             }
 
@@ -1949,6 +606,12 @@
                 return div.innerHTML;
             }
 
+            // 留言者信息前的人像图标（SVG）
+            var USER_ICON_SVG = '<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="width:0.85em;height:0.85em;vertical-align:-0.1em;margin-right:0.2em;display:inline-block;">' +
+                '<path d="M517.333333 490.666667a192 192 0 1 1 192-192 192 192 0 0 1-192 192z m0-341.333334a149.333333 149.333333 0 1 0 149.333334 149.333334 149.333333 149.333333 0 0 0-149.333334-149.333334z" fill="currentColor"/>' +
+                '<path d="M837.333333 882.773333h-640v-21.333333c0-229.546667 143.573333-416 320-416s320 186.453333 320 416z m-597.333333-42.666666h554.666667c-8.32-196.053333-129.28-352-277.333334-352s-268.586667 155.946667-276.906666 352z" fill="currentColor"/>' +
+                '</svg>';
+
             async function loadMessages() {
                 var container = document.getElementById('messages-container');
                 if (!container) return;
@@ -1976,7 +639,7 @@
                     });
                     return '<div class="message-card">' +
                         '<div class="message-header">' +
-                        '<span class="message-author">💬 ' + escapeHtml(msg.name) + '</span>' +
+                        '<span class="message-author">' + USER_ICON_SVG + escapeHtml(msg.name) + '</span>' +
                         '<span class="message-time">' + time + '</span>' +
                         '</div>' +
                         '<div class="message-content">' + escapeHtml(msg.content) + '</div>' +
@@ -2012,14 +675,14 @@
                         feedback.innerHTML = '<div class="error-message">提交失败：' + escapeHtml(error.message) +
                         '</div>';
                         btn.disabled = false;
-                        btn.textContent = '📨 投递';
+                        btn.textContent = '投递';
                         return;
                     }
                     nameInput.value = '';
                     contentInput.value = '';
-                    feedback.innerHTML = '<div class="success-message">✅ 留言已投递！审核通过后将显示在下方。</div>';
+                    feedback.innerHTML = '<div class="success-message"><svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="width:0.9em;height:0.9em;vertical-align:-0.1em;margin-right:0.3em;display:inline-block;"><path d="M512 85.333333c235.648 0 426.666667 191.018667 426.666667 426.666667s-191.018667 426.666667-426.666667 426.666667S85.333333 747.648 85.333333 512 276.352 85.333333 512 85.333333z m-74.965333 550.4L346.453333 545.152a42.666667 42.666667 0 1 0-60.330666 60.330667l120.704 120.704a42.666667 42.666667 0 0 0 60.330666 0l301.653334-301.696a42.666667 42.666667 0 1 0-60.288-60.330667l-271.530667 271.488z" fill="#52C41A"/></svg>留言已投递！审核通过后将显示在下方。</div>';
                     btn.disabled = false;
-                    btn.textContent = '📨 投递';
+                    btn.textContent = '投递';
                 });
             }
 
@@ -2060,11 +723,15 @@
             // 主题
             initTheme();
 
-            // 更新卡片日期
-            updateCardDates();
+            // 渲染工具卡片
+            renderAllPanels();
 
-            // 访问计数
-            updateVisitCount();
+            // 访问计数：页面完全加载后再执行，避免影响首屏
+            if (window.addEventListener) {
+                window.addEventListener('load', updateVisitCount);
+            } else {
+                updateVisitCount();
+            }
 
             // 如果当前显示留言板，加载留言
             var activePanel = document.querySelector('.content-panel.active');
