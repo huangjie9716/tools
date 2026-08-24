@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>小孔成像实验 · 光线模拟</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI','PingFang SC',Roboto,sans-serif;background:linear-gradient(145deg,#0b0e1a 0%,#1a1f33 40%,#12162b 100%);min-height:100vh;display:flex;justify-content:center;align-items:center;color:#eef2ff;overflow-x:hidden}
+#home{text-align:center;padding:48px 56px;background:rgba(255,255,255,.06);backdrop-filter:blur(18px);border-radius:64px;border:1px solid rgba(255,255,255,.12);box-shadow:0 32px 72px rgba(0,0,0,.7);max-width:980px;width:94%}
+#home.hidden{display:none}
+#home h1{font-size:44px;font-weight:700;background:linear-gradient(135deg,#f0e9a0,#fcd77e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px}
+#home .sub{font-size:17px;color:#b6c8f0;margin-bottom:36px}
+#home .start-btn{background:linear-gradient(135deg,#f6d365,#fda085);border:none;color:#1a1f33;font-size:22px;font-weight:700;padding:14px 60px;border-radius:60px;cursor:pointer;box-shadow:0 8px 28px rgba(253,160,133,.35);transition:.25s}
+#home .start-btn:hover{transform:scale(1.04);box-shadow:0 12px 38px rgba(253,160,133,.55)}
+.home-icon{font-size:52px;display:block;margin-bottom:12px}
+
+#experiment{width:98vw;max-width:1740px;margin:18px auto;background:rgba(15,19,42,.78);backdrop-filter:blur(16px);border-radius:48px;border:1px solid rgba(255,255,255,.068);box-shadow:0 28px 70px rgba(0,0,0,.705);padding:22px 26px 24px;display:none;flex-direction:column}
+#experiment.active{display:flex}
+
+.exp-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px 18px;margin-bottom:10px}
+.exp-header .left{display:flex;align-items:center;gap:16px}
+.exp-header .left .back-btn{background:rgba(255,255,255,.077);border:1px solid rgba(255,255,255,.127);color:#dce3ff;padding:6px 18px;border-radius:30px;font-size:14px;cursor:pointer;font-weight:500}
+.exp-header .left .back-btn:hover{background:rgba(255,255,255,.158)}
+.exp-header .left .exp-title{font-size:21px;font-weight:600;background:linear-gradient(135deg,#f0e9a0,#fcd77e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.nav-tabs{display:flex;gap:6px;background:rgba(255,255,255,.043);padding:4px;border-radius:40px;border:1px solid rgba(255,255,255,.052);flex-wrap:wrap}
+.nav-tabs .tab{padding:8px 22px;border-radius:32px;font-size:14px;font-weight:500;color:#b0c2ee;cursor:pointer;background:transparent;border:none;white-space:nowrap}
+.nav-tabs .tab:hover{background:rgba(255,255,255,.072);color:#fff}
+.nav-tabs .tab.active{background:rgba(246,211,101,.177);color:#f6d365;box-shadow:0 0 12px rgba(246,211,101,.079)}
+
+.canvas-wrapper{background:#080b1a;border-radius:32px;border:1px solid rgba(255,255,255,.056);overflow:hidden;margin:4px 0 10px;box-shadow:inset 0 0 57px rgba(0,0,0,.608);touch-action:none}
+.canvas-wrapper canvas{display:block;width:100%;height:auto;aspect-ratio:1410/510;background:radial-gradient(ellipse at center,#111630,#060916);cursor:grab}
+.canvas-wrapper canvas:active{cursor:grabbing}
+
+.control-row{display:flex;flex-wrap:wrap;gap:14px 24px;min-height:70px;padding:6px 4px 2px;align-items:center}
+.data-display{display:flex;flex-wrap:wrap;gap:10px 22px;flex:2;min-width:600px;align-items:center}
+.data-item{display:flex;align-items:baseline;gap:6px;font-size:15px;background:rgba(255,255,255,.011);padding:4px 16px 4px 12px;border-radius:30px;border:1px solid rgba(255,255,255,.018)}
+.data-item .label{color:#8899cc}
+.data-item .value{font-weight:600;color:#eaf0ff}
+.data-item .value.gold{color:#f6d365}
+.data-item .value.cyan{color:#7dd3fc}
+.data-item .value.pink{color:#f9a8d4}
+.data-item .value.green{color:#86efac}
+.nature-badge{background:rgba(123,216,138,.063);border:1px solid rgba(117,215,129,.078);padding:4px 18px;border-radius:30px;font-size:15px;font-weight:500;color:#86efac;white-space:nowrap}
+.nature-badge.warning{color:#fbbf24;border-color:rgba(251,191,36,.124);background:rgba(251,191,36,.037)}
+
+.slider-group{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.014);padding:6px 18px 6px 16px;border-radius:30px;border:1px solid rgba(255,255,255,.015);flex-shrink:0}
+.slider-group label{font-size:14px;color:#8899cc;white-space:nowrap}
+.slider-group input[type="range"]{width:168px;height:4px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,.073);border-radius:6px;outline:none}
+.slider-group input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:#f6d365;cursor:pointer;border:none}
+.slider-group input[type="range"]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#f6d365;cursor:pointer;border:none}
+.slider-group .slider-value{font-weight:600;color:#f6d365;font-size:15px;min-width:34px;text-align:center}
+
+.info-panel{flex:3;min-width:580px;background:rgba(255,255,255,.001);border-radius:24px;padding:14px 22px 16px;border:1px solid rgba(255,255,255,.001);max-height:295px;overflow-y:auto;font-size:14.5px;line-height:1.69;color:#cfdefa;display:none}
+.info-panel.active{display:block}
+.info-panel h3{font-size:17px;font-weight:600;color:#f6d365;margin-bottom:8px}
+.info-panel ul,.info-panel ol{padding-left:22px;margin:4px 0 6px}
+.info-panel li{margin-bottom:4px}
+.info-panel .highlight{color:#f6d365;font-weight:500}
+.info-panel .key{color:#7dd3fc;font-weight:500}
+
+@media(max-width:1080px){
+#experiment{padding:14px 12px 16px;border-radius:28px}
+.exp-header{flex-direction:column;align-items:stretch}
+.exp-header .left{justify-content:space-between}
+.nav-tabs{justify-content:center}
+.nav-tabs .tab{padding:6px 14px;font-size:13px}
+.control-row{flex-direction:column;align-items:stretch}
+.data-display{gap:8px 14px;min-width:unset}
+.data-item{font-size:13px;padding:2px 12px 2px 10px}
+.slider-group{align-self:flex-start}
+.info-panel{max-height:265px;font-size:13.5px;padding:12px 16px;min-width:unset}
+#home{padding:32px 24px;border-radius:40px}
+#home h1{font-size:32px}
+}
+@media(max-width:680px){
+#home h1{font-size:24px}
+#home .start-btn{font-size:17px;padding:10px 32px}
+.nav-tabs .tab{font-size:11px;padding:4px 10px}
+.data-item{font-size:11.5px;padding:2px 8px}
+.nature-badge{font-size:12px;padding:2px 12px}
+.slider-group input[type="range"]{width:85px}
+}
+</style>
+</head>
+<body>
+
+<div id="home">
+<span class="home-icon">⬆️</span>
+<h1>小孔成像实验</h1>
+<p class="sub">拖动物体或小孔 · 观察倒立实像</p>
+<button class="start-btn" onclick="enterExperiment()">开始实验</button>
+</div>
+
+<div id="experiment">
+<div class="exp-header">
+<div class="left">
+<button class="back-btn" onclick="goHome()">← 返回</button>
+<span class="exp-title">小孔成像 · 箭头光源</span>
+</div>
+<div class="nav-tabs">
+<button class="tab active" data-tab="data" onclick="switchTab('data')">📊 实验数据</button>
+<button class="tab" data-tab="knowledge" onclick="switchTab('knowledge')">📖 知识点</button>
+<button class="tab" data-tab="steps" onclick="switchTab('steps')">📋 操作说明</button>
+<button class="tab" data-tab="conclusion" onclick="switchTab('conclusion')">✅ 实验结论</button>
+</div>
+</div>
+
+<div class="canvas-wrapper">
+<canvas id="pinholeCanvas" width="1420" height="508"></canvas>
+</div>
+
+<div class="control-row">
+<div class="data-display" id="panel-data">
+<div class="data-item"><span class="label">物距 u</span><span class="value gold" id="disp-u">—</span></div>
+<div class="data-item"><span class="label">像距 v</span><span class="value cyan" id="disp-v">—</span></div>
+<div class="data-item"><span class="label">像的大小</span><span class="value pink" id="disp-size">—</span></div>
+<div class="data-item"><span class="label">像的性质</span><span class="value green" id="disp-prop">倒立、实像</span></div>
+<span class="nature-badge" id="disp-status">正常成像</span>
+<div class="slider-group">
+<label>物体位置</label>
+<input type="range" id="objSlider" min="0" max="1410" value="380" step="1">
+<span class="slider-value" id="objDisplay">380</span>
+</div>
+<div class="slider-group">
+<label>小孔位置</label>
+<input type="range" id="holeSlider" min="0" max="1410" value="830" step="1">
+<span class="slider-value" id="holeDisplay">830</span>
+</div>
+</div>
+</div>
+
+<div class="info-panel" id="panel-knowledge">
+<h3>📖 小孔成像知识点</h3>
+<ul>
+<li><span class="key">原理</span>：光的直线传播。</li>
+<li><span class="key">小孔</span>：足够小的孔，使光线能独立穿过。</li>
+<li><span class="key">像的特点</span>：<span class="highlight">倒立、实像</span>（能在光屏上呈现）。</li>
+<li><span class="key">物距 u</span>：物体到小孔的距离。</li>
+<li><span class="key">像距 v</span>：光屏到小孔的距离。</li>
+<li>当 u > v 时，像 <strong>缩小</strong>；当 u < v 时，像 <strong>放大</strong>；当 u = v 时，像 <strong>等大</strong>。</li>
+</ul>
+</div>
+
+<div class="info-panel" id="panel-steps">
+<h3>📋 操作说明</h3>
+<ol>
+<li>用鼠标 <strong>按住并拖动</strong> 箭头光源（物体）左右移动，改变物距。</li>
+<li>用鼠标 <strong>按住并拖动</strong> 小孔（发光圆点）左右移动，改变像距。</li>
+<li>也可以使用下方的两个 <strong>滑块</strong> 精确调节。</li>
+<li>观察光屏上的像：<strong>倒立的箭头</strong>（红色虚线，尖端朝下）。</li>
+<li>亮黄色光线带箭头表示光的传播路径（箭头在线段中间）。</li>
+<li>物体不能移到小孔右侧，小孔不能移到物体左侧，且小孔不能超过光屏。</li>
+<li>像的大小不再受限，可无限放大（超出画布部分被裁剪）。</li>
+</ol>
+</div>
+
+<div class="info-panel" id="panel-conclusion">
+<h3>✅ 实验结论</h3>
+<ul>
+<li>小孔所成的像是 <strong>倒立的实像</strong>。</li>
+<li>像的大小与物距、像距有关：</li>
+<ul>
+<li>物距 > 像距 → 像 <strong>缩小</strong></li>
+<li>物距 = 像距 → 像 <strong>等大</strong></li>
+<li>物距 < 像距 → 像 <strong>放大</strong></li>
+</ul>
+<li>像的亮度与小孔大小有关（本实验未模拟）。</li>
+<li>小孔成像证明了 <strong>光沿直线传播</strong>。</li>
+</ul>
+<p style="margin-top:8px;font-size:13px;">这就是小孔成像的规律！</p>
+</div>
+</div>
+
+<script>
+const canvas = document.getElementById('pinholeCanvas');
+const ctx = canvas.getContext('2d');
+const dispU = document.getElementById('disp-u');
+const dispV = document.getElementById('disp-v');
+const dispSize = document.getElementById('disp-size');
+const dispProp = document.getElementById('disp-prop');
+const dispStatus = document.getElementById('disp-status');
+const objSlider = document.getElementById('objSlider');
+const holeSlider = document.getElementById('holeSlider');
+const objDisplay = document.getElementById('objDisplay');
+const holeDisplay = document.getElementById('holeDisplay');
+
+const W = 1460, H = 504;
+const SCREEN_X = 1180;          // 光屏横坐标
+const CENTER_Y = 405;           // 所有元素中心y
+const ARROW_HEIGHT = 74;        // 箭头总高度
+const ARROW_HEAD_SIZE = 20;     // 箭头头部三角形高度
+const ARROW_SHAFT_WIDTH = 12;   // 箭杆宽度
+const HOLE_RADIUS = 7;          // 小孔点半径
+const MIN_GAP = 18;             // 物体与小孔最小间距
+const HOLE_MAX = SCREEN_X - 2;  // 小孔最大x（不能超过光屏）
+
+let objectX = 392;              // 物体中心x
+let holeX = 838;                // 小孔x
+let isDraggingObj = false;
+let isDraggingHole = false;
+
+// 绘制箭头（物体）
+function drawArrow(cx, cy, height, headSize, shaftWidth, color, glowColor, isSolid) {
+    const halfShaft = shaftWidth / 2;
+    const top = cy - height / 2;
+    const bottom = cy + height / 2;
+    const headTip = top;
+    const headBase = top + headSize;
+    const shaftTop = headBase;
+    const shaftBottom = bottom;
+
+    if (isSolid) {
+        ctx.save();
+        ctx.shadowColor = glowColor;
+        ctx.shadowBlur = 27;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.rect(cx - halfShaft, shaftTop, shaftWidth, shaftBottom - shaftTop);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(cx, headTip);
+        ctx.lineTo(cx - headSize * 0.45, headBase);
+        ctx.lineTo(cx + headSize * 0.45, headBase);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+        ctx.save();
+        ctx.fillStyle = 'rgba(255,255,255,0.322)';
+        ctx.beginPath();
+        ctx.rect(cx - halfShaft * 0.29, shaftTop + 4, shaftWidth * 0.31, (shaftBottom - shaftTop) * 0.288);
+        ctx.fill();
+        ctx.restore();
+    } else {
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([5, 6]);
+        ctx.shadowColor = glowColor;
+        ctx.shadowBlur = 10;
+        ctx.strokeRect(cx - halfShaft, shaftTop, shaftWidth, shaftBottom - shaftTop);
+        ctx.beginPath();
+        ctx.moveTo(cx, headTip);
+        ctx.lineTo(cx - headSize * 0.46, headBase);
+        ctx.lineTo(cx + headSize * 0.46, headBase);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.restore();
+    }
+}
+
+// 绘制像箭头（倒立）
+function drawImageArrow(cx, cy, height, headSize, shaftWidth) {
+    const halfShaft = shaftWidth / 2;
+    const top = cy - height / 2;
+    const bottom = cy + height / 2;
+    const headTip = bottom;
+    const headBase = bottom - headSize;
+    const shaftTop = top;
+    const shaftBottom = headBase;
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(220, 67, 76, 0.919)';
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([5, 6]);
+    ctx.shadowColor = 'rgba(221, 61, 71, 0.376)';
+    ctx.shadowBlur = 12;
+    ctx.strokeRect(cx - halfShaft, shaftTop, shaftWidth, shaftBottom - shaftTop);
+    ctx.beginPath();
+    ctx.moveTo(cx, headTip);
+    ctx.lineTo(cx - headSize * 0.455, headBase);
+    ctx.lineTo(cx + headSize * 0.455, headBase);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(237, 54, 63, 0.038)';
+    ctx.beginPath();
+    ctx.rect(cx - halfShaft, shaftTop, shaftWidth, shaftBottom - shaftTop);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(cx, headTip);
+    ctx.lineTo(cx - headSize * 0.454, headBase);
+    ctx.lineTo(cx + headSize * 0.453, headBase);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+}
+
+// 绘制带中间箭头的光线
+function drawRayWithMidArrow(x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len = Math.hypot(dx, dy);
+    if (len < 1) return;
+    const mx = (x1 + x2) / 2;
+    const my = (y1 + y2) / 2;
+    const angle = Math.atan2(dy, dx);
+    const arrowLen = 13;
+    const arrowAngle = 0.475;
+
+    ctx.save();
+    ctx.strokeStyle = '#f6d365';
+    ctx.lineWidth = 2.8;
+    ctx.shadowColor = 'rgba(246, 218, 106, 0.459)';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    ctx.fillStyle = '#f6d365';
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.moveTo(mx, my);
+    ctx.lineTo(mx - arrowLen * Math.cos(angle - arrowAngle), my - arrowLen * Math.sin(angle - arrowAngle));
+    ctx.lineTo(mx - arrowLen * Math.cos(angle + arrowAngle), my - arrowLen * Math.sin(angle + arrowAngle));
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+}
+
+function drawScene() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, W, H);
+    ctx.clip();
+
+    // 网格
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.021)';
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i <= W; i += 36) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, H); ctx.stroke(); }
+    for (let i = 0; i <= H; i += 36) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(W, i); ctx.stroke(); }
+    ctx.restore();
+
+    // 光屏
+    ctx.save();
+    ctx.fillStyle = 'rgba(128, 175, 221, 0.109)';
+    ctx.fillRect(SCREEN_X - 4, 30, 8, H - 90);
+    ctx.restore();
+    ctx.save();
+    ctx.strokeStyle = 'rgba(175, 204, 243, 0.432)';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(SCREEN_X, 22); ctx.lineTo(SCREEN_X, H - 58); ctx.stroke();
+    ctx.restore();
+    ctx.save();
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = 'rgba(172, 202, 240, 0.359)';
+    ctx.fillText('光屏', SCREEN_X, 16);
+    ctx.restore();
+
+    // 计算像参数（无大小限制）
+    const u = holeX - objectX;
+    const v = SCREEN_X - holeX;
+    const mag = v / u;
+    const imageHeight = ARROW_HEIGHT * mag;
+    const imageWidth = ARROW_SHAFT_WIDTH * mag;
+    const imageHeadSize = ARROW_HEAD_SIZE * mag;
+    const imageCX = SCREEN_X;
+    const imageCY = CENTER_Y;
+
+    const srcTopY = CENTER_Y - ARROW_HEIGHT/2;
+    const srcBottomY = CENTER_Y + ARROW_HEIGHT/2;
+    const imgTopY = imageCY - imageHeight/2;
+    const imgBottomY = imageCY + imageHeight/2;
+
+    // ---- 光线（带中间箭头）----
+    drawRayWithMidArrow(objectX, srcTopY, holeX, CENTER_Y);
+    drawRayWithMidArrow(holeX, CENTER_Y, SCREEN_X, imgBottomY);
+    drawRayWithMidArrow(objectX, srcBottomY, holeX, CENTER_Y);
+    drawRayWithMidArrow(holeX, CENTER_Y, SCREEN_X, imgTopY);
+
+    // ---- 小孔（发光圆点）----
+    ctx.save();
+    const holeGlow = ctx.createRadialGradient(holeX, CENTER_Y, 2, holeX, CENTER_Y, HOLE_RADIUS * 2.8);
+    holeGlow.addColorStop(0, 'rgba(255, 252, 242, 0.881)');
+    holeGlow.addColorStop(0.3, 'rgba(229, 239, 254, 0.531)');
+    holeGlow.addColorStop(1, 'rgba(219, 232, 255, 0)');
+    ctx.fillStyle = holeGlow;
+    ctx.beginPath();
+    ctx.arc(holeX, CENTER_Y, HOLE_RADIUS * 2.8, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.restore();
+    ctx.save();
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(188, 224, 249, 0.801)';
+    ctx.shadowBlur = 20;
+    ctx.beginPath();
+    ctx.arc(holeX, CENTER_Y, HOLE_RADIUS, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.restore();
+    ctx.save();
+    ctx.font = '13px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = 'rgba(198, 219, 251, 0.748)';
+    ctx.fillText('小孔', holeX, CENTER_Y - HOLE_RADIUS - 8);
+    ctx.restore();
+
+    // ---- 物体（箭头）----
+    drawArrow(objectX, CENTER_Y, ARROW_HEIGHT, ARROW_HEAD_SIZE, ARROW_SHAFT_WIDTH, '#f6d365', 'rgba(247, 208, 95, 0.525)', true);
+    ctx.save();
+    ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = 'rgba(244, 203, 89, 0.949)';
+    ctx.shadowColor = 'rgba(0,0,0,0.729)';
+    ctx.shadowBlur = 6;
+    ctx.fillText('光源', objectX, CENTER_Y - ARROW_HEIGHT/2 - 18);
+    ctx.restore();
+
+    // ---- 像（倒立箭头）----
+    drawImageArrow(imageCX, imageCY, imageHeight, imageHeadSize, imageWidth);
+    ctx.save();
+    ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = 'rgba(238, 50, 60, 0.912)';
+    ctx.shadowColor = 'rgba(0,0,0,0.693)';
+    ctx.shadowBlur = 6;
+    ctx.fillText('像（倒立）', imageCX, imageCY - imageHeight/2 - 18);
+    ctx.restore();
+
+    // ---- 标注 ----
+    ctx.save();
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = 'rgba(243, 206, 91, 0.793)';
+    ctx.fillText('u = ' + u.toFixed(0), (objectX + holeX)/2, CENTER_Y + 14);
+    ctx.fillStyle = 'rgba(137, 208, 258, 0.782)';
+    ctx.fillText('v = ' + v.toFixed(0), (holeX + SCREEN_X)/2, CENTER_Y + 14);
+    ctx.restore();
+
+    ctx.restore(); // 恢复裁剪
+
+    // UI更新
+    dispU.textContent = u.toFixed(0) + ' px';
+    dispV.textContent = v.toFixed(0) + ' px';
+    let sizeDesc = '';
+    if (Math.abs(mag - 1) < 0.040) sizeDesc = '等大';
+    else if (mag > 1) sizeDesc = '放大 (' + mag.toFixed(2) + '倍)';
+    else sizeDesc = '缩小 (' + mag.toFixed(2) + '倍)';
+    dispSize.textContent = sizeDesc;
+    dispProp.textContent = '倒立、实像';
+    dispStatus.textContent = '正常成像';
+    objDisplay.textContent = objectX.toFixed(0);
+    holeDisplay.textContent = holeX.toFixed(0);
+}
+
+// ---------- 鼠标交互（严格相对控制 + 小孔不超过光屏）----------
+function getCanvasCoords(e) {
+    const rect = canvas.getBoundingClientRect();
+    const sx = canvas.width / rect.width, sy = canvas.height / rect.height;
+    let cx, cy;
+    if (e.touches) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; e.preventDefault(); }
+    else { cx = e.clientX; cy = e.clientY; }
+    return { x: (cx - rect.left) * sx, y: (cy - rect.top) * sy };
+}
+
+function onPointerDown(e) {
+    const p = getCanvasCoords(e);
+    const arrowHalfW = ARROW_SHAFT_WIDTH/2 + 14;
+    const arrowHalfH = ARROW_HEIGHT/2 + 14;
+    if (p.x > objectX - arrowHalfW && p.x < objectX + arrowHalfW &&
+        p.y > CENTER_Y - arrowHalfH && p.y < CENTER_Y + arrowHalfH) {
+        isDraggingObj = true;
+        canvas.style.cursor = 'grabbing';
+        e.preventDefault();
+        return;
+    }
+    const dist = Math.hypot(p.x - holeX, p.y - CENTER_Y);
+    if (dist < HOLE_RADIUS * 3.5) {
+        isDraggingHole = true;
+        canvas.style.cursor = 'grabbing';
+        e.preventDefault();
+    }
+}
+
+function onPointerMove(e) {
+    const p = getCanvasCoords(e);
+    if (isDraggingObj) {
+        const allowedMax = holeX - MIN_GAP;
+        if (p.x > allowedMax) {
+            isDraggingObj = false;
+            canvas.style.cursor = 'grab';
+            drawScene();
+            e.preventDefault();
+            return;
+        }
+        objectX = p.x;
+        objSlider.value = p.x;
+        drawScene();
+        e.preventDefault();
+        return;
+    }
+    if (isDraggingHole) {
+        const allowedMin = objectX + MIN_GAP;
+        const allowedMax = HOLE_MAX;
+        if (p.x < allowedMin || p.x > allowedMax) {
+            isDraggingHole = false;
+            canvas.style.cursor = 'grab';
+            drawScene();
+            e.preventDefault();
+            return;
+        }
+        holeX = p.x;
+        holeSlider.value = p.x;
+        drawScene();
+        e.preventDefault();
+    }
+}
+
+function onPointerUp(e) {
+    if (isDraggingObj || isDraggingHole) {
+        isDraggingObj = false;
+        isDraggingHole = false;
+        canvas.style.cursor = 'grab';
+        drawScene();
+        e.preventDefault();
+    }
+}
+
+canvas.addEventListener('mousedown', onPointerDown);
+window.addEventListener('mousemove', onPointerMove);
+window.addEventListener('mouseup', onPointerUp);
+canvas.addEventListener('touchstart', onPointerDown, { passive: false });
+window.addEventListener('touchmove', onPointerMove, { passive: false });
+window.addEventListener('touchend', onPointerUp, { passive: false });
+
+objSlider.addEventListener('input', function() {
+    let val = parseFloat(this.value);
+    if (val >= holeX - MIN_GAP) {
+        val = holeX - MIN_GAP;
+        this.value = val;
+    }
+    objectX = val;
+    drawScene();
+});
+holeSlider.addEventListener('input', function() {
+    let val = parseFloat(this.value);
+    const allowedMin = objectX + MIN_GAP;
+    const allowedMax = HOLE_MAX;
+    if (val < allowedMin) { val = allowedMin; this.value = val; }
+    if (val > allowedMax) { val = allowedMax; this.value = val; }
+    holeX = val;
+    drawScene();
+});
+
+function enterExperiment() {
+    document.getElementById('home').classList.add('hidden');
+    document.getElementById('experiment').classList.add('active');
+    objectX = 388;
+    holeX = 835;
+    objSlider.value = 395;
+    holeSlider.value = 840;
+    drawScene();
+    switchTab('data');
+}
+
+function goHome() {
+    document.getElementById('experiment').classList.remove('active');
+    document.getElementById('home').classList.remove('hidden');
+}
+
+function switchTab(id) {
+    document.querySelectorAll('.nav-tabs .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === id));
+    document.querySelectorAll('.info-panel').forEach(p => p.classList.remove('active'));
+    if (id === 'data') {
+        document.getElementById('panel-data').style.display = 'flex';
+    } else {
+        document.getElementById('panel-data').style.display = 'none';
+        const m = {'knowledge':'panel-knowledge','steps':'panel-steps','conclusion':'panel-conclusion'};
+        const el = document.getElementById(m[id]);
+        if (el) el.classList.add('active');
+    }
+}
+
+window.onload = function() {
+    drawScene();
+    document.getElementById('home').classList.remove('hidden');
+    document.getElementById('experiment').classList.remove('active');
+    document.querySelectorAll('.nav-tabs .tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('.nav-tabs .tab[data-tab="data"]').classList.add('active');
+    document.getElementById('panel-data').style.display = 'flex';
+};
+</script>
+</body>
+</html>
