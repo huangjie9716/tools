@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
+    <title>笑傲江湖</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <!-- KaTeX JS 按需加载：见 utils.js ensureKatex() -->
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="card.css" />
+    <link rel="stylesheet" href="level.css" />
+    <link rel="stylesheet" href="compete.css" />
+    <link rel="stylesheet" href="fight.css" />
+</head>
+<body>
+    <!-- 全局 SVG 符号库：剑（顶部栏 / 欢迎页复用） -->
+    <svg style="display:none" aria-hidden="true">
+        <defs>
+            <symbol id="icon-sword" viewBox="0 0 1024 1024">
+                <path d="M1024 277.333333c0-12.8-8.533333-25.6-19.2-29.866666L597.333333 42.666667c0-23.466667-19.2-42.666667-42.666666-42.666667h-85.333334c-23.466667 0-42.666667 19.2-42.666666 42.666667L19.2 247.466667c-10.666667 4.266667-19.2 17.066667-19.2 29.866666v21.333334s25.6 25.6 85.333333 53.333333V426.666667l85.333334 42.666666v-87.466666c34.133333 10.666667 72.533333 19.2 119.466666 27.733333 19.2 55.466667 49.066667 106.666667 87.466667 142.933333-160 46.933333-273.066667 177.066667-273.066667 326.4 0 192 817.066667 192 817.066667 0 0-104.533333-55.466667-198.4-140.8-262.4 76.8-44.8 140.8-96.533333 243.2-105.066666L966.4 471.466667l17.066667-38.4c-147.2 19.2-181.333333 85.333333-290.133334 134.4-14.933333-6.4-29.866667-10.666667-44.8-14.933334 38.4-36.266667 68.266667-87.466667 87.466667-142.933333C947.2 375.466667 1024 298.666667 1024 298.666667v-21.333334z m-512 149.333334c42.666667 0 83.2-2.133333 119.466667-4.266667-8.533333 21.333333-17.066667 36.266667-17.066667 36.266667s-59.733333 27.733333-104.533333 27.733333c-44.8 0-102.4-25.6-102.4-25.6s-8.533333-14.933333-17.066667-38.4c38.4 2.133333 78.933333 4.266667 121.6 4.266667zM187.733333 881.066667c0-42.666667 12.8-81.066667 34.133334-117.333334 57.6 70.4 142.933333 145.066667 288 177.066667-44.8 4.266667-247.466667-19.2-322.133334-59.733333zM814.933333 789.333333c12.8 27.733333 21.333333 59.733333 21.333334 91.733334 0-2.133333-66.133333 14.933333-185.6 0s-185.6-53.333333-185.6-53.333334 151.466667 4.266667 349.866666-38.4z m-125.866666-128c27.733333 14.933333 51.2 32 72.533333 53.333334-145.066667 32-388.266667 8.533333-460.8-32 27.733333-19.2 57.6-34.133333 91.733333-44.8 147.2 55.466667 258.133333 38.4 296.533334 23.466666z" fill="#ea9518"></path>
+            </symbol>
+        </defs>
+    </svg>
+    <div id="app">
+        <!-- 顶部栏 -->
+        <div class="top-bar" id="topBar" style="display:none;">
+            <div class="top-bar-center">
+                <div class="top-left">
+                    <button class="btn-sound" id="btnSound" onclick="toggleBgm()" title="背景音乐开关">
+                        <svg id="soundOnIcon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+                            <path d="M3 9v6h4l5 5V4L7 9H3z"/>
+                            <path d="M16.5 8.5a4.5 4.5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M19 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <svg id="soundOffIcon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="display:none" aria-hidden="true">
+                            <path d="M3 9v6h4l5 5V4L7 9H3z"/>
+                            <path d="M17 9l5 6M22 9l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="top-center">
+                    <svg class="top-sword" viewBox="0 0 1024 1024" aria-hidden="true"><use href="#icon-sword"></use></svg>
+                    <span class="top-brand">笑傲江湖</span>
+                    <span class="top-stat" title="累计内力值，不设上限"><span class="star-ico"><svg viewBox="0 0 1024 1024" width="16" height="16" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;"><path d="M313.991837 914.285714c-20.37551 0-40.228571-6.269388-56.946939-18.808163-30.302041-21.942857-44.930612-58.514286-38.661225-95.085714l24.032654-141.061225c3.134694-18.285714-3.134694-36.571429-16.195919-49.110204L123.297959 509.910204c-26.644898-26.122449-36.04898-64.261224-24.555102-99.787755 11.493878-35.526531 41.795918-61.126531 78.889796-66.35102l141.583674-20.375511c18.285714-2.612245 33.959184-14.106122 41.795918-30.30204l63.216326-128.522449C440.946939 130.612245 474.383673 109.714286 512 109.714286s71.053061 20.897959 87.24898 54.334694L662.987755 292.571429c8.359184 16.195918 24.032653 27.689796 41.795918 30.30204l141.583674 20.375511c37.093878 5.22449 67.395918 30.82449 78.889796 66.35102 11.493878 35.526531 2.089796 73.665306-24.555102 99.787755l-102.4 99.787755c-13.061224 12.538776-19.330612 31.346939-16.195919 49.110204l24.032654 141.061225c6.269388 37.093878-8.359184 73.142857-38.661225 95.085714-30.302041 21.942857-69.485714 24.555102-102.4 7.314286L538.122449 836.440816c-16.195918-8.359184-35.526531-8.359184-51.722449 0l-126.955102 66.87347c-14.628571 7.314286-30.302041 10.971429-45.453061 10.971428z m162.481632-96.653061z" fill="#F2CB51"/></svg></span> <span id="starCount">0</span></span>
+                    <span class="top-stat" id="titleStat"><span id="titleDisplay"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="b1-g1" cx="30%" cy="30%" r="70%"><stop offset="0%" stop-color="#fff" stop-opacity="0.35"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><circle cx="32" cy="32" r="30" fill="#8B6914"/><circle cx="32" cy="32" r="28" fill="#D2B48C"/><path d="M12 12 Q20 10 28 16" stroke="#5c4033" fill="none" stroke-width="0.6" opacity="0.5"/><path d="M48 48 Q40 50 32 44" stroke="#5c4033" fill="none" stroke-width="0.6" opacity="0.5"/><ellipse cx="32" cy="44" rx="6" ry="3" fill="#8B4513"/><path d="M32 44 Q28 30 22 24 Q28 28 32 38 Q36 28 42 24 Q36 30 32 44Z" fill="#4ade80"/><circle cx="32" cy="32" r="30" fill="url(#b1-g1)" opacity="0.3"/></svg><span class="title-name">江湖菜鸟</span></span></span>
+                </div>
+                <div class="top-right">
+                    <button class="btn-back" id="btnBack" style="display:none;">返回</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 欢迎页：武侠游戏开场 -->
+        <div class="page active" id="pageWelcome">
+            <!-- 背景：月光光晕 + 远山 -->
+            <div class="welcome-bg">
+                <div class="moon-glow"></div>
+                <div class="far-mountains">
+                    <div class="fm fm1"></div>
+                    <div class="fm fm2"></div>
+                    <div class="fm fm3"></div>
+                </div>
+            </div>
+
+            <!-- 古剑图标（SVG） -->
+            <div class="sword" aria-hidden="true">
+                <svg viewBox="0 0 1024 1024"><use href="#icon-sword"></use></svg>
+            </div>
+
+            <!-- 游戏名 -->
+            <h1 class="title-calligraphy">笑傲江湖</h1>
+
+            <!-- 一句话世界观 -->
+            <p class="tagline">公式即秘籍，计算即内功。</p>
+
+            <!-- 世界观注释 -->
+            <p class="world-intro">
+                初中物理的每一个公式，都是江湖中失传的武功秘籍。<br />
+                玩家从一名初入江湖的菜鸟开始，在门派中修炼成长——<br />
+                去百草园采药练基本功，去藏经阁研读秘籍习得公式，<br />
+                在演武场比武闯关精进招式，最终登上华山论剑成为武林盟主，<br />
+                再入问道崖参悟天道，破解中考计算难题。
+            </p>
+
+            <!-- 山门风格入口 -->
+            <button class="btn-gate" onclick="enterMain()">踏入江湖</button>
+        </div>
+
+        <!-- 主界面：江湖地图 3D 沙盘 -->
+        <div class="page" id="pageMain">
+            <!-- Three.js 3D 画布（由 sect3d.js 挂载） -->
+            <div id="sect3d-container"></div>
+            <!-- HTML UI 覆盖层 -->
+            <div class="sect3d-ui">
+                <div class="sect3d-bottom">
+                    <div class="sect3d-actions">
+                        <button class="btn-ghost" onclick="resetCards()">散功重修</button>
+                        <button class="btn-ghost" id="arenaAction" onclick="resetLevels()">重登擂台</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 藏经阁页面 -->
+        <div class="page" id="pageCards">
+            <div class="flex-center" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                <h2 style="display:flex;align-items:center;gap:10px;"><svg class="page-title-sword" viewBox="0 0 1152 1024" xmlns="http://www.w3.org/2000/svg"><path d="M1036.8 323.392h-15.68C843.008 323.392 691.2 210.176 633.6 48.512 628.352 37.696 628.352 32.32 623.104 21.568c0-5.376-5.184-16.192-5.184-21.568H539.328c0 5.376-5.248 16.192-5.248 21.568-5.184 10.752-5.184 21.568-10.432 26.88C460.8 210.24 308.928 323.456 130.88 323.456h-26.176c-36.608 0-73.28-10.816-104.704-21.568v21.568c0 32.32 10.496 64.64 20.928 96.96C57.6 490.432 125.696 538.944 209.472 538.944v377.28h-50.816a53.888 53.888 0 1 0 0 107.776H993.28a53.888 53.888 0 1 0 0-107.776h-50.816v-382.72c68.096-16.128 125.696-53.824 162.368-107.712 26.176-37.76 41.856-75.52 47.104-123.968-36.672 10.752-73.28 21.568-115.2 21.568z m-199.04 592.832H314.24V538.88h523.52v377.28z m52.48-485.12H209.408c-10.496 0-15.744 0-26.24-5.312C350.912 409.6 492.288 312.576 576 172.48a531.904 531.904 0 0 0 361.344 247.872c-15.744 10.816-31.488 10.816-47.168 10.816z" fill="#ffffff"/></svg> 藏经阁</h2>
+                <span class="text-muted" id="cardCollectStatus">已修炼 0 / 17</span>
+            </div>
+            <div class="card-grid" id="cardGrid"></div>
+        </div>
+
+        <!-- 演武场选择页 -->
+        <div class="page" id="pageLevels">
+            <h2 style="text-align:center;display:flex;align-items:center;justify-content:center;gap:10px;"><svg class="page-title-sword" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M511.891284 277.124575a49.887412 49.887412 0 0 1 22.299673 5.288066l461.907551 230.978719a49.887412 49.887412 0 0 1 0 89.248581l-461.907551 230.978718a49.887412 49.887412 0 0 1-44.599346 0L27.68406 602.639941a49.887412 49.887412 0 0 1 0-89.248581l461.907551-230.978719a49.887412 49.887412 0 0 1 22.299673-5.288066z m350.359297 280.866132l-350.359297-175.154705-350.359297 175.154705 350.359297 175.154704z" fill="#ffffff"/><path d="M511.891284 69.293616a49.887412 49.887412 0 0 1 22.299673 5.288065l461.907551 230.978719a49.887412 49.887412 0 0 1 0 89.248581l-461.907551 230.978719a49.887412 49.887412 0 0 1-44.599346 0L27.68406 394.808981a49.887412 49.887412 0 0 1 0-89.248581l461.907551-230.978719a49.887412 49.887412 0 0 1 22.299673-5.288065z m350.359297 280.866131l-350.359297-175.204592-350.359297 175.204592 350.359297 175.154704z" fill="#ffffff"/><path d="M49.983734 508.103294a49.887412 49.887412 0 0 1 22.299673 5.288066l439.607877 219.803939 439.607877-219.803939a49.887412 49.887412 0 0 1 72.187086 44.599347v184.583425a49.887412 49.887412 0 0 1-27.587739 44.599347l-461.907551 230.978719a49.887412 49.887412 0 0 1-44.599346 0L27.68406 787.472803a49.887412 49.887412 0 0 1-27.587739-44.898671v-184.583425a49.887412 49.887412 0 0 1 49.887413-49.887413z m461.90755 330.753544a49.887412 49.887412 0 0 1-22.299673-5.288066L99.871146 638.70854v73.234721l412.020138 206.035013 412.020138-206.035013v-73.234721l-389.720465 194.860232a49.887412 49.887412 0 0 1-22.299673 5.288066z" fill="#ffffff"/><path d="M973.798834 607.878119a49.887412 49.887412 0 0 1-49.887412-49.887412V280.866131a49.887412 49.887412 0 0 1 99.774825 0v277.124576a49.887412 49.887412 0 0 1-49.887413 49.887412z" fill="#ffffff"/><path d="M49.983734 607.878119a49.887412 49.887412 0 0 1-49.887413-49.887412V280.866131a49.887412 49.887412 0 0 1 99.774825 0v277.124576a49.887412 49.887412 0 0 1-49.887412 49.887412z" fill="#ffffff"/><path d="M511.891284 838.80695a49.887412 49.887412 0 0 1-49.887412-49.887412v-277.124575a49.887412 49.887412 0 0 1 99.774824 0v277.124575a49.887412 49.887412 0 0 1-49.887412 49.887412z" fill="#ffffff"/><path d="M511.891284 376.8994a49.887412 49.887412 0 0 1-49.887412-49.887412V49.887412a49.887412 49.887412 0 0 1 99.774824 0v277.124576a49.887412 49.887412 0 0 1-49.887412 49.887412z" fill="#ffffff"/></svg> 演武场</h2>
+            <div id="levelContent" class="level-content"></div>
+        </div>
+
+        <!-- 问道崖页面 -->
+        <div class="page" id="pageCompete">
+            <h2 style="display:flex;align-items:center;gap:10px;"><svg class="page-title-sword" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M558.208 913.792l-5.248-21.504s-60.288-197.76-136.32-353.344c53.632-149.888 127.04-349.312 148.8-379.136 35.392-48.576 135.68-127.104 224 139.2 110.464 333.12 169.792 614.784 169.792 614.784H558.208z m162.688-591.68c-36.032-88.32-68.032-113.28-102.4-93.184-34.304 20.224-86.592 225.6-86.592 225.6s31.104-25.92 58.56-28.032c27.456-2.112 65.28 48.896 65.28 48.896s21.632-63.04 47.296-60.672c25.664 2.368 68.608 34.24 68.608 34.24s-14.784-38.528-50.752-126.848zM506.24 913.792l-441.6-1.792s94.464-238.272 123.008-319.104c28.544-80.832 83.52-206.848 158.208-90.304 74.688 116.48 142.848 339.84 142.848 339.84l17.536 71.36z m-178.944-284.16c-19.456-47.104-36.608-60.416-54.976-49.536-18.304 10.88-45.76 120.96-45.76 120.96s16.576-13.952 31.232-15.168c14.72-1.216 35.072 25.984 35.072 25.984s11.392-33.792 25.088-32.576c13.824 1.216 36.864 18.048 36.864 18.048s-8-20.48-27.52-67.648z" fill="#ffffff"/></svg> 问道崖</h2>
+            <div id="competeContent"></div>
+        </div>
+
+        <!-- 百草园页面 -->
+        <div class="page" id="pageFight">
+            <h2 style="text-align:center;">🌿 百草园</h2>
+            <div id="fightContent"></div>
+        </div>
+
+        <!-- 全屏模态框 -->
+        <div class="modal-overlay" id="cardModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalTitle">秘籍详情</h2>
+                    <span class="modal-close" onclick="closeCardModal()">&times;</span>
+                </div>
+                <div class="modal-body" id="cardModalBody"></div>
+            </div>
+        </div>
+
+        <!-- 冷却遮罩 -->
+        <div class="cooldown-overlay" id="cooldownOverlay">
+            <div class="cooldown-box">
+                <div class="cd-icon">⏳</div>
+                <h3 id="cdTitle">挑战失败</h3>
+                <p id="cdDesc">胜败乃兵家常事，请大侠稍事休息，重整旗鼓后再来！</p>
+                <div class="cd-time" id="cdTimer">10:00</div>
+                <button class="btn-secondary" onclick="closeCooldown()">我知道了</button>
+            </div>
+        </div>
+
+        <!-- 通用提示弹窗（替代浏览器原生 alert / confirm） -->
+        <div class="game-modal-overlay" id="gameModal">
+            <div class="game-modal">
+                <div class="gm-icon" id="gmIcon">⚔️</div>
+                <h3 class="gm-title" id="gmTitle">江湖传讯</h3>
+                <div class="gm-desc" id="gmDesc"></div>
+                <div class="gm-actions" id="gmActions"></div>
+            </div>
+        </div>
+
+        <!-- 段位晋升弹窗（5 秒后自动消失） -->
+        <div class="title-popup-overlay" id="titlePopup">
+            <div class="title-popup">
+                <div class="tp-rays"></div>
+                <div class="tp-icon" id="tpIcon"></div>
+                <div class="tp-label">晋升 · 江湖段位</div>
+                <div class="tp-title" id="tpTitle">外门弟子</div>
+                <div class="tp-congrats" id="tpCongrats">恭喜！你已习得三门基础心法，正式踏入外门。</div>
+            </div>
+        </div>
+
+        <!-- 玩法/建筑解锁弹窗（演武场、问道崖开启，独立动画与称号弹窗区分） -->
+        <div class="unlock-popup-overlay" id="unlockPopup">
+            <div class="unlock-popup">
+                <div class="up-rays"></div>
+                <div class="up-icon" id="upIcon"></div>
+                <div class="up-label">✦ 已开启 ✦</div>
+                <div class="up-title" id="upTitle">演武场 · 已开启</div>
+                <div class="up-desc" id="upDesc"></div>
+            </div>
+        </div>
+
+        <!-- 进入建筑淡出过渡遮罩 -->
+        <div class="sect-transition" id="sectTransition"></div>
+
+        <!-- 音效 -->
+        <audio id="sfxRight" src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/formula/music/right.wav" preload="auto"></audio>
+        <audio id="sfxWrong" src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/formula/music/wrong.wav" preload="auto"></audio>
+        <audio id="sfxTitle" src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/formula/music/update.mp3" preload="auto"></audio>
+        <audio id="sfxClick" src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/formula/music/click.wav" preload="auto"></audio>
+        <audio id="bgmAudio" src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/formula/music/gamebgm.mp3" loop preload="auto"></audio>
+    </div>
+
+    <!-- Three.js（经典脚本，先于模块执行，供 sect3d.js 使用全局 THREE） -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- 3D 沙盘（独立经典脚本：Three.js CDN 加载失败时不影响其余游戏逻辑） -->
+    <script src="sect3d.js"></script>
+    <!-- 应用入口（ESM：内部 import 各模块，不再依赖脚本加载顺序） -->
+    <script type="module" src="app.js"></script>
+    <!-- 容错诊断：若核心模块加载失败（缺文件 / file:// 直开 / CDN 被墙），给出明确提示 -->
+    <script>
+        window.addEventListener('DOMContentLoaded', function () {
+            setTimeout(function () {
+                if (typeof window.enterMain !== 'function') {
+                    var o = document.createElement('div');
+                    o.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.88);color:#fcd34d;display:flex;align-items:center;justify-content:center;z-index:99999;font-size:16px;padding:28px;text-align:center;line-height:2;';
+                    o.innerHTML = '⚠️ 游戏脚本加载失败。<br>可能原因：<br>① 直接用浏览器双击打开（file://）不支持 ES Modules，请改用本地服务器或已部署网址访问；<br>② 服务器缺少新文件（utils.js / quiz-utils.js / compete-data.json 等）；<br>③ 网络无法访问外部 CDN。<br><br>请检查后刷新重试。';
+                    document.body.appendChild(o);
+                }
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
