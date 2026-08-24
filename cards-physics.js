@@ -18,8 +18,8 @@ window.CARDS_PHYSICS = [
         desc: '两人对战模式，涵盖初中物理课堂核心知识点，增强课堂互动与趣味性。',
         date: '2026.08.04',
         version: 'v1.1',
-        file: 'physics/PhysicsClassGame.html',
-        href: 'physics/PhysicsClassGame.html',
+        file: 'physics/1/PhysicsClassGame.html',
+        href: 'physics/1/PhysicsClassGame.html',
         action: 'link',
         actionText: '立即使用'
     },
@@ -28,8 +28,8 @@ window.CARDS_PHYSICS = [
         desc: '涵盖初中物理演示实验和学生实验，提供视频资源、模拟软件、习题资源，致力成为老师和学生们宝贵的学习财富！',
         date: '2026.08.04',
         version: 'v1.1',
-        file: 'physics/PhysicsExperiment.html',
-        href: 'physics/PhysicsExperiment.html',
+        file: 'physics/2/PhysicsExperiment.html',
+        href: 'physics/2/PhysicsExperiment.html',
         action: 'link',
         actionText: '立即使用'
     }
