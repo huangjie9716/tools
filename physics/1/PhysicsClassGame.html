@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>初中物理课堂知识PK赛</title>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", sans-serif; background: linear-gradient(135deg, #0f172a, #1e293b, #0f3460); min-height: 100vh; color: #fff; overflow-x: hidden; }
+    .game-container { max-width: 1500px; margin: 0 auto; padding: 18px; }
+    .title-area { text-align: center; padding: 10px 0 6px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+    .title-area .left { display: flex; flex-direction: column; align-items: flex-start; }
+    .title-area .left h1 { font-size: 2rem; background: linear-gradient(90deg, #f7971e, #ffd200); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: 3px; }
+    .title-area .left .sub { color: #a5b4fc; font-size: 1.2rem; margin-top: 4px; }
+    .title-area .right { display: flex; gap: 12px; align-items: center; }
+    .title-area .right button { padding: 12px 28px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer; font-size: 1.2rem; transition: all 0.2s; }
+    .title-area .right button:hover { background: rgba(255,255,255,0.18); color: #fff; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; margin: 12px 0 14px; }
+    .top-info { display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; }
+    .top-btn { padding: 10px 22px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer; font-size: 1.05rem; transition: all 0.2s; }
+    .top-btn:hover { background: rgba(255,255,255,0.18); color: #fff; }
+    .timer-box, .question-progress, .topic-badge { background: rgba(255,255,255,0.09); border-radius: 12px; padding: 10px 18px; border: 1px solid rgba(255,255,255,0.12); }
+    .timer-box { background: linear-gradient(135deg, #e94560, #c0392b); font-weight: bold; font-size: 1.5rem; }
+    .question-progress { color: #ffd200; font-size: 1.2rem; }
+    .topic-badge { color: #cbd5e1; font-size: 1.1rem; }
+    .main-area { display: grid; grid-template-columns: 280px 1fr 280px; gap: 16px; align-items: start; }
+    .player-panel, .question-area { background: rgba(255,255,255,0.08); border-radius: 18px; border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(4px); }
+    .player-panel { padding: 18px 16px; min-height: 650px; display: flex; flex-direction: column; }
+    .player-panel.correct-flash { animation: correctFlash 0.5s ease; }
+    .player-panel.wrong-flash { animation: wrongFlash 0.5s ease; }
+    @keyframes correctFlash { 0%,100% { background: rgba(255,255,255,0.08); } 50% { background: rgba(46,213,115,0.28); } }
+    @keyframes wrongFlash { 0%,100% { background: rgba(255,255,255,0.08); } 50% { background: rgba(233,69,96,0.28); } }
+    
+    /* ==== 优化后的 player-head：一行布局 ==== */
+    .player-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 0 4px;
+    }
+    .player-info-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .player-score-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    .avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      flex-shrink: 0;
+    }
+    .player-a .avatar { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+    .player-b .avatar { background: linear-gradient(135deg, #f093fb, #f5576c); }
+    .player-name {
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+    .player-a .player-name { color: #4facfe; }
+    .player-b .player-name { color: #f093fb; }
+    .score-label {
+      color: #94a3b8;
+      font-size: 0.75rem;
+    }
+    .score-num {
+      font-size: 2rem;
+      font-weight: bold;
+      line-height: 1.2;
+    }
+    .player-a .score-num { color: #4facfe; }
+    .player-b .score-num { color: #f093fb; }
+    /* ==== 其余样式不变 ==== */
+
+    .player-status { text-align: center; margin: 8px 0; min-height: 32px; font-size: 1.1rem; color: #ffd200; }
+    .answer-area { margin-top: 6px; display: grid; gap: 10px; }
+    .answer-btn { width: 100%; padding: 14px 16px; border-radius: 14px; border: 2px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; cursor: pointer; text-align: left; font-size: clamp(1.15rem, 1.55vw, 1.9rem); line-height: 1.4; transition: all 0.2s; }
+    .answer-btn sup, .answer-btn sub { font-size: 0.7em; line-height: 0; }
+    .answer-btn:hover:not(:disabled) { transform: translateY(-2px); background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.35); }
+    .answer-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .answer-btn.correct { background: rgba(46,213,115,0.23); border-color: #2ed573; color: #2ed573; }
+    .answer-btn.wrong { background: rgba(233,69,96,0.23); border-color: #e94560; color: #ff7b8a; }
+    .record-wrap { margin-top: 14px; }
+    .record-title { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 6px; }
+    .record-dots { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+    .record-dot { width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.14); }
+    .record-dot.correct { background: #2ed573; }
+    .record-dot.wrong { background: #e94560; }
+    .question-area { padding: 22px 20px; min-height: 650px; display: flex; flex-direction: column; align-items: center; }
+    .q-dots { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; justify-content: center; }
+    .q-dot { width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); }
+    .q-dot.current { background: #ffd200; border-color: #ffd200; animation: pulse 1s infinite; }
+    .q-dot.done-correct { background: #2ed573; border-color: #2ed573; }
+    .q-dot.done-wrong { background: #e94560; border-color: #e94560; }
+    @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+    .question-type { background: linear-gradient(135deg, #f7971e, #ffd200); color: #1e293b; border-radius: 20px; padding: 6px 18px; font-size: 1.1rem; font-weight: bold; margin-bottom: 12px; }
+    .mid-hint { display: none; }
+    .question-text { font-size: clamp(1.2rem, 2.8vw, 2.4rem); line-height: 1.9; text-align: left; color: #f8fafc; min-height: 140px; display: block; margin-bottom: 16px; padding: 14px 8px; width: 100%; transition: font-size 0.2s ease; }
+    .question-text img { display: block; max-width: 100% !important; max-height: clamp(200px, 42vh, 540px) !important; width: auto !important; height: auto !important; object-fit: contain; margin: 10px auto 6px; border-radius: 8px; }
+    .question-text sup { font-size: 0.7em; vertical-align: super; }
+    .question-text sub { font-size: 0.7em; vertical-align: sub; }
+    .result-msg { width: 100%; min-height: 70px; border-radius: 12px; padding: 12px 16px; background: rgba(255,255,255,0.05); color: #e2e8f0; line-height: 1.7; margin-top: 8px; text-align: center; font-size: 1.1rem; }
+    .next-btn { padding: 10px 26px; border: none; border-radius: 12px; background: linear-gradient(135deg, #f7971e, #ffd200); color: #1a1a2e; font-weight: bold; font-size: 1.1rem; cursor: pointer; display: none; transition: all 0.2s; }
+    .next-btn.show { display: inline-block; }
+    .next-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255,210,0,0.35); }
+    /* 单人刷题模式 */
+    .single-area { padding: 26px 20px; max-width: 1080px; margin: 0 auto; flex-direction: column; align-items: center; }
+    .s-q-dots { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; justify-content: center; }
+    .s-question-text { font-size: clamp(1.1rem, 2.2vw, 2.2rem); line-height: 1.9; color: #f8fafc; text-align: left; display: block; width: 100%; padding: 14px 8px; }
+    .s-question-text img { display: block; max-width: 100% !important; max-height: clamp(200px, 42vh, 540px) !important; width: auto !important; height: auto !important; object-fit: contain; margin: 10px auto 6px; border-radius: 8px; }
+    .s-question-text sup { font-size: 0.7em; vertical-align: super; }
+    .s-question-text sub { font-size: 0.7em; vertical-align: sub; }
+    .s-answer-area { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; margin-top: 20px; }
+    .s-answer-area .answer-btn { font-size: clamp(1rem, 1.5vw, 1.5rem); padding: 16px 18px; }
+    .s-result-msg { width: 100%; min-height: 60px; border-radius: 12px; padding: 12px 16px; background: rgba(255,255,255,0.05); color: #e2e8f0; line-height: 1.7; margin-top: 16px; text-align: center; font-size: 1.15rem; }
+    .s-track { margin-top: 12px; color: #94a3b8; font-size: 1.1rem; letter-spacing: 1px; }
+    .s-track b { color: #ffd200; }
+    .restart-wrap { display: flex; justify-content: center; gap: 16px; margin-top: 14px; }
+    .restart-wrap button { padding: 10px 28px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer; font-size: 1rem; transition: all 0.2s; }
+    .restart-wrap button:hover { background: rgba(255,255,255,0.14); color: #fff; }
+    .start-screen, .result-screen { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: rgba(2,6,23,0.92); padding: 20px; }
+    .start-card, .result-card { width: min(1000px, 96vw); background: linear-gradient(135deg, #111827, #1e293b); border-radius: 40px; padding: 60px 50px; border: 1px solid rgba(255,255,255,0.12); text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+    .result-card { position: relative; padding: 46px 44px 40px; }
+    .start-card h1, .result-title { background: linear-gradient(90deg, #f7971e, #ffd200); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: 2px; }
+    .start-card h1 { font-size: 3.2rem; margin-bottom: 20px; }
+    .result-title { font-size: 2.1rem; margin-bottom: 16px; }
+    .start-card p { color: #cbd5e1; line-height: 2.2; font-size: 1.3rem; margin-bottom: 8px; }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 18px 0; }
+    .tag { background: rgba(255,210,0,0.14); color: #ffd200; border: 1px solid rgba(255,210,0,0.35); border-radius: 24px; padding: 8px 22px; font-size: 1.1rem; }
+    .chapter-select-area { margin: 25px 0 15px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 16px 20px; }
+    .chapter-select-area .select-group { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+    .chapter-select-area .select-group.hidden { display: none; }
+    .chapter-select-area label { color: #94a3b8; font-size: 1.1rem; letter-spacing: 1px; }
+    .chapter-select-area select { padding: 12px 42px 12px 18px; border-radius: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #f1f5f9; font-size: 1.1rem; cursor: pointer; outline: none; appearance: none; min-width: 160px; max-width: 320px; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 12px center; background-size: 18px; }
+    .chapter-select-area select:focus { border-color: #ffd200; }
+    .chapter-select-area select option { background: #1e293b; color: #f1f5f9; }
+    #questionCountHint { color: #94a3b8; font-size: 1.1rem; margin-top: 8px; width: 100%; text-align: center; }
+    .start-btns { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 25px; flex-wrap: wrap; }
+    .start-btns .start-btn { margin-top: 0; }
+    .start-btn, .restart-btn { border-radius: 999px; border: none; cursor: pointer; font-weight: bold; background: linear-gradient(135deg, #f7971e, #ffd200); color: #1e293b; transition: all 0.2s; }
+    .start-btn { margin-top: 25px; padding: 18px 64px; font-size: 1.4rem; }
+    .restart-btn { margin-top: 25px; padding: 14px 40px; font-size: 1.15rem; }
+    .start-btn:hover, .restart-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(255,210,0,0.35); }
+    .start-btn:disabled, .restart-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+    .start-btn.secondary { background: linear-gradient(135deg, #4facfe, #00f2fe); color: #0f172a; }
+    .start-btn.secondary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+    .result-screen { display: none; }
+    .result-screen.show { display: flex; }
+    .winner-emoji, .draw-emoji { font-size: 3.2rem; margin-bottom: 8px; }
+    .winner-emoji { animation: jump 0.7s infinite alternate; }
+    @keyframes jump { from { transform: translateY(0); } to { transform: translateY(-12px); } }
+    .score-summary { display: flex; justify-content: center; align-items: center; gap: 28px; margin: 14px 0; flex-wrap: wrap; }
+    .score-item .name { color: #94a3b8; margin-bottom: 4px; font-size: 1.05rem; }
+    .score-item .num { font-size: 2.4rem; font-weight: bold; }
+    .result-stats { margin: 8px auto 0; max-width: 520px; display: flex; flex-direction: column; gap: 6px; }
+    .result-stats .stat-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.06); border-radius: 10px; padding: 8px 16px; }
+    .result-stats .stat-label { color: #94a3b8; font-size: 0.95rem; }
+    .result-stats .stat-value { color: #f1f5f9; font-size: 1rem; font-weight: bold; }
+    .result-buttons { display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 20px; flex-wrap: wrap; }
+    .result-buttons .restart-btn { margin-top: 0; }
+    .result-home-btn { position: absolute; top: 18px; right: 18px; padding: 8px 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer; font-size: 0.95rem; transition: all 0.2s; }
+    .result-home-btn:hover { background: rgba(255,255,255,0.14); color: #fff; }
+    .restart-btn.ghost { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #cbd5e1; }
+    .restart-btn.ghost:hover { background: rgba(255,255,255,0.14); color: #fff; }
+    .mistakes-overlay { position: fixed; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center; background: rgba(2,6,23,0.9); padding: 20px; }
+    .mistakes-overlay.show { display: flex; }
+    .mistakes-panel { width: min(1200px, 96vw); height: 90vh; background: linear-gradient(135deg, #111827, #1e293b); border-radius: 24px; border: 1px solid rgba(255,255,255,0.12); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+    .mistakes-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; position: relative; }
+    .mistakes-header h2 { font-size: 1.6rem; color: #ffd200; margin: 0; }
+    .mistakes-toggle { position: absolute; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; }
+    .mistakes-tab { padding: 6px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+    .mistakes-tab:hover { background: rgba(255,255,255,0.16); color: #fff; }
+    .mistakes-tab.active { background: #ffd200; color: #1e293b; border-color: #ffd200; font-weight: bold; }
+    .mistakes-close { padding: 8px 22px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer; font-size: 1rem; }
+    .mistakes-close:hover { background: rgba(255,255,255,0.16); color: #fff; }
+    .mistakes-list { flex: 1; overflow-y: auto; padding: 16px 24px; text-align: left; }
+    .mistake-item { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; border-left: 4px solid #e94560; }
+    .mistake-item .q-text { color: #f1f5f9; line-height: 1.7; }
+    .mistake-item .q-options { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+    .mistake-item .q-opt { color: #e2e8f0; font-size: 1rem; line-height: 1.5; }
+    .mistake-item .q-opt.correct { color: #2ed573; font-weight: bold; }
+    .mistake-item .q-result { color: #94a3b8; margin-top: 8px; font-size: 0.95rem; }
+    .mistake-item img { display: block; max-width: 100% !important; max-height: clamp(90px, 20vh, 280px) !important; width: auto !important; height: auto !important; object-fit: contain; margin: 8px auto; border-radius: 6px; }
+    .confetti-container { position: fixed; inset: 0; pointer-events: none; display: none; z-index: 99; overflow: hidden; }
+    .confetti-container.show { display: block; }
+    .confetti { position: absolute; animation: fall linear forwards; }
+    @keyframes fall { 0% { transform: translateY(-30px) rotate(0deg); opacity: 1; } 100% { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+    @media (max-width: 1200px) { .main-area { grid-template-columns: 1fr; } .player-panel, .question-area { min-height: auto; } .chapter-select-area { flex-direction: column; align-items: stretch; } .chapter-select-area .select-group { width: 100%; } .title-area { flex-direction: column; align-items: center; } .title-area .right { margin-top: 10px; } .s-answer-area { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) { .start-card { padding: 30px 20px; } .start-card h1 { font-size: 2.2rem; } .question-text { font-size: 1.6rem; } .answer-btn { font-size: 1.2rem; } }
+  </style>
+
+  <!-- 添加公式解析（MathJax SVG 输出，仅加载一个输出处理器） -->
+  <script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\(', '\)']],
+      displayMath: [['$$', '$$'], ['\[', '\]']],
+      processEscapes: true
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async defer></script>
+</head>
+<body>
+
+  <!-- ============ 开始界面 ============ -->
+  <div class="start-screen" id="startScreen">
+    <div class="start-card">
+      <h1>🎮 初中物理课堂知识PK赛</h1>
+      <p>双人同时作答 · 每题各答一次，答对 +10 分，答错 -10 分</p>
+      <p>选择年级、章、节后，系统自动加载对应题库，题量动态适配</p>
+      <div class="chapter-select-area">
+        <div class="select-group">
+          <label for="gradeSelect">📚 年级</label>
+          <select id="gradeSelect"></select>
+        </div>
+        <div class="select-group">
+          <label for="chapterSelect">📖 章</label>
+          <select id="chapterSelect"></select>
+        </div>
+        <div class="select-group" id="sectionGroup">
+          <label for="sectionSelect">📝 节</label>
+          <select id="sectionSelect"></select>
+        </div>
+      </div>
+      <div id="questionCountHint">当前题库共 0 题</div>
+      <div class="tag-list" id="tagList">
+        <span class="tag">长度测量</span>
+        <span class="tag">单位换算</span>
+        <span class="tag">刻度尺读数</span>
+        <span class="tag">停表读数</span>
+      </div>
+      <div class="start-btns">
+        <button class="start-btn" id="startBtn" onclick="startGame()">开始 PK</button>
+        <button class="start-btn secondary" id="singleBtn" onclick="startSingle()">单人刷题</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 游戏主界面 ============ -->
+  <div class="game-container" id="gameContainer">
+    <div class="top-bar">
+      <button class="top-btn" onclick="restartGame()">重新开始</button>
+      <div class="top-info">
+        <div class="timer-box">⏱ <span id="timerDisplay">00:00</span></div>
+        <div class="question-progress" id="questionProgress">第 1 / 0 题</div>
+        <div class="topic-badge" id="topicBadge">知识点：—</div>
+        <button class="next-btn" id="nextBtn" onclick="nextQuestion()">下一题 ▶</button>
+      </div>
+      <button class="top-btn" onclick="goHome()">返回主界面</button>
+    </div>
+    <div class="main-area" id="mainArea">
+      <!-- 参赛者 A -->
+      <div class="player-panel player-a" id="panelA">
+        <div class="player-head">
+          <div class="player-info-left">
+            <div class="avatar">A</div>
+            <div class="player-name">参赛者</div>
+          </div>
+          <div class="player-score-right">
+            <div class="score-label">当前得分</div>
+            <div class="score-num" id="scoreA">0</div>
+          </div>
+        </div>
+        <div class="player-status" id="statusA">等待本题作答</div>
+        <div class="answer-area" id="answerAreaA"></div>
+        <div class="record-wrap">
+          <div class="record-title">答题记录</div>
+          <div class="record-dots" id="recordA"></div>
+        </div>
+      </div>
+
+      <!-- 中间区域 -->
+      <div class="question-area">
+        <div class="q-dots" id="qDots"></div>
+        <div class="mid-hint" id="midHint"></div>
+        <div class="question-text" id="questionText">点击“开始 PK”后显示题目</div>
+        <div class="result-msg" id="resultMsg"></div>
+      </div>
+
+      <!-- 参赛者 B -->
+      <div class="player-panel player-b" id="panelB">
+        <div class="player-head">
+          <div class="player-info-left">
+            <div class="avatar">B</div>
+            <div class="player-name">参赛者</div>
+          </div>
+          <div class="player-score-right">
+            <div class="score-label">当前得分</div>
+            <div class="score-num" id="scoreB">0</div>
+          </div>
+        </div>
+        <div class="player-status" id="statusB">等待本题作答</div>
+        <div class="answer-area" id="answerAreaB"></div>
+        <div class="record-wrap">
+          <div class="record-title">答题记录</div>
+          <div class="record-dots" id="recordB"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 单人刷题模式 -->
+    <div class="single-area" id="singleArea" style="display:none;">
+      <div class="s-q-dots" id="sQdots"></div>
+      <div class="s-question-text" id="sQuestionText">点击“单人刷题”后显示题目</div>
+      <div class="s-answer-area" id="sAnswerArea"></div>
+      <div class="s-result-msg" id="sResultMsg"></div>
+      <div class="s-track" id="sTrack">答对 <b id="sCorrect">0</b> 题 ｜ 答错 <b id="sWrong">0</b> 题 ｜ 得分 <b id="sScore">0</b></div>
+    </div>
+  </div>
+
+  <!-- ============ 结果界面 ============ -->
+  <div class="result-screen" id="resultScreen">
+    <div class="result-card">
+      <button class="result-home-btn" onclick="goHome()">返回主界面</button>
+      <div id="resultEmoji"></div>
+      <div class="result-title" id="resultTitle"></div>
+      <div class="score-summary" id="scoreSummary"></div>
+      <div class="result-stats" id="resultStats"></div>
+      <div class="result-buttons">
+        <button class="restart-btn" onclick="restartGame()">再来一局</button>
+        <button class="restart-btn ghost" id="redoBtn" onclick="redoMistakes()" style="display:none;">重做错题</button>
+        <button class="restart-btn ghost" id="viewBtn" onclick="toggleMistakes()">查看错题</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 错题全屏面板 -->
+  <div class="mistakes-overlay" id="mistakesOverlay">
+    <div class="mistakes-panel">
+      <div class="mistakes-header">
+        <h2>📋 错题回顾</h2>
+        <div class="mistakes-toggle" id="mistakesToggle" style="display:none;">
+          <button class="mistakes-tab" id="tabAll" onclick="setMistakesView('all')">全部题目</button>
+          <button class="mistakes-tab" id="tabWrong" onclick="setMistakesView('wrong')">仅错题</button>
+        </div>
+        <button class="mistakes-close" onclick="closeMistakes()">✕ 关闭</button>
+      </div>
+      <div class="mistakes-list" id="mistakesList"></div>
+    </div>
+  </div>
+
+  <!-- 彩带容器 -->
+  <div class="confetti-container" id="confettiContainer"></div>
+
+<script src="questions.js"></script>
+  <script>
+    // ===================================================================
+    //  初中物理课堂知识PK赛 —— 游戏逻辑
+    // ===================================================================
+
+    // ===================================================================
+    //  整章模式：第21、22章题量较少，去掉"节"选择，选中章后直接合并整章题目
+    // ===================================================================
+    const wholeChapterSections = {
+      '21': ['21.1', '21.2', '21.3'],
+      '22': ['22.1', '22.2', '22.3', '22.4', '22.5']
+    };
+    // 按 key 取题：章节级 key 合并该章所有小节题目，其余直接取对应题库
+    function resolveQuestions(key) {
+      if (!key) return [];
+      const parts = wholeChapterSections[key];
+      if (parts) return parts.flatMap(k => chapterQuestions[k] || []);
+      return chapterQuestions[key] || [];
+    }
+    // 判断是否为"整章模式"（节选项仅一个且非 x.y 小节格式）
+    function isWholeChapter(sections) {
+      return sections.length === 1 && !/^\d+\.\d+$/.test(sections[0] || '');
+    }
+    // 根据当前选中的节/整章刷新"开始 PK"与"单人刷题"按钮可用状态
+    function updateStartBtn() {
+      const key = document.getElementById('sectionSelect').value;
+      const hasQ = resolveQuestions(key).length > 0;
+      document.getElementById('startBtn').disabled = !hasQ;
+      document.getElementById('singleBtn').disabled = !hasQ;
+    }
+
+    // ===================================================================
+    //  开始界面选择记忆（localStorage）
+    // ===================================================================
+    const LAST_SEL_KEY = 'pkLastSelection';
+    function saveSelection() {
+      try {
+        localStorage.setItem(LAST_SEL_KEY, JSON.stringify({
+          grade: document.getElementById('gradeSelect').value,
+          chapter: document.getElementById('chapterSelect').value,
+          section: document.getElementById('sectionSelect').value
+        }));
+      } catch (e) { /* 忽略存储异常 */ }
+    }
+    function loadSelection() {
+      try {
+        const raw = localStorage.getItem(LAST_SEL_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) { return null; }
+    }
+
+    // ===================================================================
+    //  初始化下拉菜单
+    // ===================================================================
+    function populateSelects() {
+      const gradeSelect = document.getElementById('gradeSelect');
+      const chapterSelect = document.getElementById('chapterSelect');
+      const sectionSelect = document.getElementById('sectionSelect');
+
+      Object.keys(gradeStructure).forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g;
+        opt.textContent = g;
+        gradeSelect.appendChild(opt);
+      });
+
+      gradeSelect.addEventListener('change', function() {
+        const grade = this.value;
+        const data = gradeStructure[grade];
+        if (!data) return;
+        chapterSelect.innerHTML = '<option value="">-- 请选择章 --</option>';
+        sectionSelect.innerHTML = '<option value="">-- 请选择节 --</option>';
+        data.chapters.forEach(ch => {
+          const opt = document.createElement('option');
+          opt.value = ch;
+          opt.textContent = ch;
+          chapterSelect.appendChild(opt);
+        });
+        chapterSelect.dispatchEvent(new Event('change'));
+        saveSelection();
+      });
+
+      chapterSelect.addEventListener('change', function() {
+        const grade = gradeSelect.value;
+        const chapter = this.value;
+        if (!grade || !chapter) {
+          sectionSelect.innerHTML = '<option value="">-- 请选择节 --</option>';
+          document.getElementById('sectionGroup').classList.remove('hidden');
+          updateQuestionCountHint();
+          updateStartBtn();
+          saveSelection();
+          return;
+        }
+        const sections = gradeStructure[grade].sections[chapter] || [];
+        sectionSelect.innerHTML = '<option value="">-- 请选择节 --</option>';
+        sections.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s;
+          opt.textContent = chapterDisplayNames[s] || s;
+          sectionSelect.appendChild(opt);
+        });
+        if (sections.length > 0) {
+          sectionSelect.value = sections[0];
+        }
+        // 整章模式（第21/22章）：隐藏"节"下拉框，直接使用整章题目
+        document.getElementById('sectionGroup').classList.toggle('hidden', isWholeChapter(sections));
+        updateQuestionCountHint();
+        updateTagList(sectionSelect.value);
+        updateStartBtn();
+        saveSelection();
+      });
+
+      sectionSelect.addEventListener('change', function() {
+        updateQuestionCountHint();
+        updateTagList(this.value);
+        updateStartBtn();
+        saveSelection();
+      });
+
+      // 恢复上次选择（localStorage）；无记录则用默认（八年级上册第一章第一节）
+      const saved = loadSelection();
+      const defGrade = (saved && gradeStructure[saved.grade]) ? saved.grade : '八年级上册';
+      gradeSelect.value = defGrade;
+      gradeSelect.dispatchEvent(new Event('change'));
+      setTimeout(() => {
+        const data = gradeStructure[defGrade];
+        const chapters = data ? data.chapters : [];
+        const defChapter = (saved && chapters.indexOf(saved.chapter) !== -1) ? saved.chapter : chapters[0];
+        if (defChapter) {
+          chapterSelect.value = defChapter;
+          chapterSelect.dispatchEvent(new Event('change'));
+          setTimeout(() => {
+            const sections = gradeStructure[defGrade].sections[defChapter] || [];
+            const defSection = (saved && sections.indexOf(saved.section) !== -1) ? saved.section : sections[0];
+            if (sections.length > 0) {
+              sectionSelect.value = defSection;
+              sectionSelect.dispatchEvent(new Event('change'));
+            }
+          }, 50);
+        }
+      }, 50);
+    }
+
+    function updateQuestionCountHint() {
+      const key = document.getElementById('sectionSelect').value;
+      const qs = resolveQuestions(key);
+      document.getElementById('questionCountHint').textContent = `当前题库共 ${qs.length} 题`;
+    }
+
+    function updateTagList(chapterKey) {
+    
+      const tags = tagMap[chapterKey] || ['物理知识', '双人PK'];
+      document.getElementById('tagList').innerHTML = tags.map(t => `<span class="tag">${t}</span>`).join('');
+    }
+
+    // ===================================================================
+    //  游戏配置（集中管理，便于调整）
+    // ===================================================================
+    const CONFIG = {
+      correctScore: 10,        // 答对加分
+      wrongScore: -10,         // 答错扣分
+      soundEnabled: true,      // 音效开关
+      playerAKeys: ['1', '2', '3', '4', '5', '6'],   // 参赛者 A 键盘（按按钮显示顺序）
+      playerBKeys: ['7', '8', '9', '0', '-', '='],   // 参赛者 B 键盘
+      nextKeys: ['Enter', ' '],                      // 下一题快捷键
+      homeKey: 'Escape'                              // 返回主界面快捷键
+    };
+
+    // DOM 快捷获取
+    const $ = (id) => document.getElementById(id);
+
+    // ===================================================================
+    //  物理符号规范化（上标/下标 → HTML <sup>/<sub>，统一初中物理书写形式）
+    //  自动保护 $...$ 数学段；题干请用 applyPhysicsNormalization（TreeWalker）
+    //  以免误伤 <img> 等标签属性；选项文本可直接调用
+    // ===================================================================
+    function normalizePhysicsText(text) {
+      if (!text) return text;
+      const placeholders = [];
+      // 先把 $...$ / $$...$$ 数学段用占位符保护，避免被转换
+      const protectedText = text.replace(/\$\$[\s\S]*?\$\$|\$[^$\n]*?\$/g, (m) => {
+        placeholders.push(m);
+        return '\u0001' + (placeholders.length - 1) + '\u0001';
+      });
+      let result = protectedText
+        // Unicode 上标 → <sup>
+        .replace(/²/g, '<sup>2</sup>').replace(/³/g, '<sup>3</sup>')
+        .replace(/¹/g, '<sup>1</sup>').replace(/⁰/g, '<sup>0</sup>')
+        .replace(/⁴/g, '<sup>4</sup>').replace(/⁵/g, '<sup>5</sup>')
+        .replace(/⁶/g, '<sup>6</sup>').replace(/⁷/g, '<sup>7</sup>')
+        .replace(/⁸/g, '<sup>8</sup>').replace(/⁹/g, '<sup>9</sup>')
+        // Unicode 下标 → <sub>
+        .replace(/₁/g, '<sub>1</sub>').replace(/₂/g, '<sub>2</sub>')
+        .replace(/₃/g, '<sub>3</sub>').replace(/₄/g, '<sub>4</sub>')
+        .replace(/₅/g, '<sub>5</sub>').replace(/₆/g, '<sub>6</sub>')
+        .replace(/₇/g, '<sub>7</sub>').replace(/₈/g, '<sub>8</sub>')
+        .replace(/₉/g, '<sub>9</sub>').replace(/₀/g, '<sub>0</sub>')
+        // 下划线下标：t_AB → t<sub>AB</sub>
+        .replace(/([A-Za-z])_([A-Za-z0-9]+)/g, '$1<sub>$2</sub>')
+        // 大写物理量字母 + 数字下标：F1 → F<sub>1</sub>、R2 → R<sub>2</sub>
+        .replace(/([A-Z])(\d+)(?![\d.])/g, '$1<sub>$2</sub>');
+      // 恢复数学段
+      return result.replace(/\u0001(\d+)\u0001/g, (m, idx) => placeholders[+idx] || m);
+    }
+
+    // 遍历容器内所有文本节点并规范化（不触碰 HTML 标签属性，安全处理题干 HTML）
+    function applyPhysicsNormalization(container) {
+      if (!container) return;
+      // 1) 规范化文本节点（Unicode 上下标、下划线、数字下标）
+      const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
+      const nodes = [];
+      while (walker.nextNode()) nodes.push(walker.currentNode);
+      nodes.forEach(node => {
+        const normalized = normalizePhysicsText(node.nodeValue);
+        if (normalized === node.nodeValue) return;  // 无变化，保持原文本节点
+        // 有变化：解析 <sub>/<sup> 并用 span 包裹整组节点
+        // （不能直接赋给 nodeValue——HTML 只显示字面；也不能裸插入多节点——
+        //  在 flex 容器中每个节点会被拆成独立行项导致上下标换行）
+        const template = document.createElement('template');
+        template.innerHTML = normalized;
+        const wrapper = document.createElement('span');
+        while (template.content.firstChild) wrapper.appendChild(template.content.firstChild);
+        node.parentNode.replaceChild(wrapper, node);
+      });
+
+      // 2) 把 <sub>/<sup> 与其前面紧邻的单位/数字字符包进 nowrap span，
+      //    确保 cm³、g/cm³、kg/m³、10³、F₁ 等作为整体不换行
+      container.querySelectorAll('sub, sup').forEach(el => {
+        if (el.closest('span.qnowrap')) return;
+        let prev = el.previousSibling;
+        if (!prev || prev.nodeType !== 3) return;
+        const m = prev.nodeValue.match(/([A-Za-z0-9/·°'’x×%]+)$/);
+        if (!m) return;
+        const tail = m[1];
+        prev.nodeValue = prev.nodeValue.slice(0, -tail.length);
+        const span = document.createElement('span');
+        span.className = 'qnowrap';
+        span.style.whiteSpace = 'nowrap';
+        span.textContent = tail;
+        prev.parentNode.insertBefore(span, el);
+        span.appendChild(el);
+      });
+    }
+
+    // ===================================================================
+    //  音效模块（Web Audio API，无需外部音频文件）
+    // ===================================================================
+    const sound = (() => {
+      let ctx = null;
+      function ensure() {
+        if (!ctx) {
+          try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ctx = null; }
+        }
+        if (ctx && ctx.state === 'suspended') ctx.resume();
+        return ctx;
+      }
+      function tone(freq, start, dur, type, vol) {
+        const ac = ensure();
+        if (!ac) return;
+        const t0 = ac.currentTime + start;
+        const osc = ac.createOscillator();
+        const gain = ac.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, t0);
+        gain.gain.exponentialRampToValueAtTime(vol || 0.16, t0 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+        osc.connect(gain).connect(ac.destination);
+        osc.start(t0);
+        osc.stop(t0 + dur + 0.05);
+      }
+      function seq(notes) { notes.forEach(n => tone(n.f, n.s, n.d, n.t, n.v)); }
+      return {
+        click()   { if (!CONFIG.soundEnabled) return; tone(620, 0, 0.07, 'triangle', 0.08); },
+        correct() { if (!CONFIG.soundEnabled) return; seq([{ f: 660, s: 0, d: 0.12 }, { f: 880, s: 0.12, d: 0.2 }]); },
+        wrong()   { if (!CONFIG.soundEnabled) return; seq([{ f: 220, s: 0, d: 0.18, t: 'sawtooth', v: 0.1 }, { f: 175, s: 0.16, d: 0.24, t: 'sawtooth', v: 0.1 }]); },
+        win()     { if (!CONFIG.soundEnabled) return; seq([{ f: 523, s: 0, d: 0.15 }, { f: 659, s: 0.15, d: 0.15 }, { f: 784, s: 0.3, d: 0.35 }]); }
+      };
+    })();
+
+    // ===================================================================
+    //  键盘快捷键（双人同机：A 用左侧数字，B 用右侧数字）
+    // ===================================================================
+    function handleKeydown(e) {
+      const tag = (e.target && e.target.tagName) || '';
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+
+      if (e.key === CONFIG.homeKey) { goHome(); return; }
+
+      const nextBtn = $('nextBtn');
+      if (nextBtn.classList.contains('show') && CONFIG.nextKeys.indexOf(e.key) !== -1) {
+        e.preventDefault();
+        nextBtn.click();
+        return;
+      }
+
+      const q = gameState.questions[gameState.currentIndex];
+      if (!q) return;
+
+      // 单人刷题模式：数字键 1-4 对应 A-D 选项
+      if (gameState.mode === 'single') {
+        if (gameState.singleAnswer !== null) return;
+        const idx = CONFIG.playerAKeys.indexOf(e.key);
+        if (idx !== -1 && idx < 4) {
+          const btn = document.querySelector(`#sAnswerArea .answer-btn:nth-child(${idx + 1})`);
+          if (btn && !btn.disabled) { e.preventDefault(); sound.click(); btn.click(); }
+        }
+        return;
+      }
+
+      if (gameState.answerA === null) {
+        const ia = CONFIG.playerAKeys.indexOf(e.key);
+        if (ia !== -1) {
+          const btn = document.querySelector(`#answerAreaA .answer-btn:nth-child(${ia + 1})`);
+          if (btn && !btn.disabled) { e.preventDefault(); sound.click(); btn.click(); }
+          return;
+        }
+      }
+      if (gameState.answerB === null) {
+        const ib = CONFIG.playerBKeys.indexOf(e.key);
+        if (ib !== -1) {
+          const btn = document.querySelector(`#answerAreaB .answer-btn:nth-child(${ib + 1})`);
+          if (btn && !btn.disabled) { e.preventDefault(); sound.click(); btn.click(); }
+        }
+      }
+    }
+
+    // ===================================================================
+    //  游戏状态
+    // ===================================================================
+    let gameState = {
+      mode: 'pk',              // 'pk' 双人PK / 'single' 单人刷题
+      scoreA: 0,
+      scoreB: 0,
+      currentIndex: 0,
+      questions: [],
+      totalQuestions: 0,
+      seconds: 0,
+      timer: null,
+      answerA: null,
+      answerB: null,
+      recordA: [],
+      recordB: [],
+      chapterKey: '1.1',
+      correctA: 0,             // 统计：A 答对题数
+      correctB: 0,             // 统计：B 答对题数
+      singleScore: 0,          // 单人：得分
+      singleCorrect: 0,        // 单人：答对题数
+      singleWrong: 0,          // 单人：答错题数
+      singleRecord: [],        // 单人：每题作答记录（'correct'/'wrong'）
+      singleAnswer: null       // 单人：当前题作答选项
+    };
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function shuffleGroups(questionList) {
+      const groups = {};
+      const noGroup = [];
+      questionList.forEach(q => {
+        if (q.group) {
+          if (!groups[q.group]) groups[q.group] = [];
+          groups[q.group].push(q);
+        } else {
+          noGroup.push(q);
+        }
+      });
+      const groupArray = [];
+      for (const key in groups) {
+        groupArray.push(groups[key]);
+      }
+      noGroup.forEach(q => groupArray.push([q]));
+      const shuffledGroups = shuffle(groupArray);
+      return shuffledGroups.flat();
+    }
+
+    function goHome() {
+      clearInterval(gameState.timer);
+      gameState.timer = null;
+      $('scoreA').textContent = '0';
+      $('scoreB').textContent = '0';
+      $('startScreen').style.display = 'flex';
+      $('resultScreen').classList.remove('show');
+      $('confettiContainer').classList.remove('show');
+      $('confettiContainer').innerHTML = '';
+      $('timerDisplay').textContent = '00:00';
+      closeMistakes();
+      gameState.questions = [];
+      gameState.totalQuestions = 0;
+      gameState.currentIndex = 0;
+      gameState.recordA = [];
+      gameState.recordB = [];
+      gameState.correctA = 0;
+      gameState.correctB = 0;
+      // 单人模式重置
+      gameState.mode = 'pk';
+      gameState.singleScore = 0;
+      gameState.singleCorrect = 0;
+      gameState.singleWrong = 0;
+      gameState.singleRecord = [];
+      gameState.singleAnswer = null;
+      $('mainArea').style.display = 'grid';
+      $('singleArea').style.display = 'none';
+      $('startBtn').disabled = false;
+      $('singleBtn').disabled = false;
+    }
+
+    function startGame() {
+      const key = document.getElementById('sectionSelect').value;
+      if (!key) {
+        alert('请先选择一个小节。');
+        return;
+      }
+      const qs = resolveQuestions(key);
+      if (qs.length === 0) {
+        alert('该章节暂无题目，请选择其他章节。');
+        return;
+      }
+      gameState.mode = 'pk';
+      gameState.chapterKey = key;
+      document.getElementById('startScreen').style.display = 'none';
+      initGame(qs);
+    }
+
+    // ===================================================================
+    //  单人刷题模式（学生在家自测，逻辑与双人PK类似，含错题回顾）
+    // ===================================================================
+    function startSingle() {
+      const key = document.getElementById('sectionSelect').value;
+      if (!key) {
+        alert('请先选择一个章节。');
+        return;
+      }
+      const qs = resolveQuestions(key);
+      if (qs.length === 0) {
+        alert('该章节暂无题目，请选择其他章节。');
+        return;
+      }
+      gameState.mode = 'single';
+      gameState.chapterKey = key;
+      document.getElementById('startScreen').style.display = 'none';
+      initSingleGame(qs);
+    }
+
+    function initSingleGame(questionList) {
+      gameState.singleScore = 0;
+      gameState.singleCorrect = 0;
+      gameState.singleWrong = 0;
+      gameState.singleRecord = [];
+      gameState.singleAnswer = null;
+      gameState.currentIndex = 0;
+      gameState.questions = shuffle(questionList);
+      gameState.totalQuestions = gameState.questions.length;
+      gameState.seconds = 0;
+
+      clearInterval(gameState.timer);
+      startTimer();
+
+      $('mainArea').style.display = 'none';
+      $('singleArea').style.display = 'flex';
+      buildSDots();
+      updateSingleTrack();
+      loadSingleQuestion(0);
+
+      $('resultScreen').classList.remove('show');
+      $('confettiContainer').classList.remove('show');
+      $('confettiContainer').innerHTML = '';
+    }
+
+    function buildSDots() {
+      const box = $('sQdots');
+      box.innerHTML = '';
+      for (let i = 0; i < gameState.totalQuestions; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'q-dot' + (i === 0 ? ' current' : '');
+        dot.id = 'sqdot-' + i;
+        box.appendChild(dot);
+      }
+    }
+
+    function updateSDot(index, result) {
+      const dot = document.getElementById('sqdot-' + index);
+      if (dot) {
+        dot.classList.remove('current');
+        dot.classList.add(result === 'correct' ? 'done-correct' : 'done-wrong');
+      }
+      const next = document.getElementById('sqdot-' + (index + 1));
+      if (next) next.classList.add('current');
+    }
+
+    function updateSingleTrack() {
+      $('sCorrect').textContent = gameState.singleCorrect;
+      $('sWrong').textContent = gameState.singleWrong;
+      $('sScore').textContent = gameState.singleScore;
+    }
+
+    function loadSingleQuestion(index) {
+      const q = gameState.questions[index];
+      gameState.singleAnswer = null;
+
+      $('questionProgress').textContent = `第 ${index + 1} / ${gameState.totalQuestions} 题`;
+      $('topicBadge').textContent = `知识点：${q.topic}`;
+      const textEl = $('sQuestionText');
+      const mathContent = renderQuestionBody(textEl, q);
+
+      $('sResultMsg').innerHTML = '';
+      $('nextBtn').classList.remove('show');
+
+      renderSingleAnswerArea(q);
+
+      // MathJax 按需渲染：题干 + 单人答题区
+      if (window.MathJax && MathJax.typesetPromise && /[\$\\]/.test(mathContent)) {
+        MathJax.typesetPromise([textEl, $('sAnswerArea')]).catch(err => console.log('MathJax error:', err));
+      }
+    }
+
+    function renderSingleAnswerArea(q) {
+      const area = $('sAnswerArea');
+      area.innerHTML = '';
+      Object.keys(q.options).forEach(key => {
+        const btn = document.createElement('button');
+        btn.className = 'answer-btn';
+        btn.innerHTML = `${key}. ${normalizePhysicsText(q.options[key])}`;
+        btn.dataset.key = key;
+        btn.onclick = () => submitSingle(key);
+        area.appendChild(btn);
+      });
+    }
+
+    function submitSingle(answerKey) {
+      if (gameState.singleAnswer !== null) return;
+      const q = gameState.questions[gameState.currentIndex];
+      const isCorrect = answerKey === q.answer;
+      gameState.singleAnswer = answerKey;
+
+      if (isCorrect) {
+        gameState.singleCorrect++;
+        gameState.singleScore += CONFIG.correctScore;
+      } else {
+        gameState.singleWrong++;
+        gameState.singleScore += CONFIG.wrongScore;
+      }
+      gameState.singleRecord.push(isCorrect ? 'correct' : 'wrong');
+
+      updateSDot(gameState.currentIndex, isCorrect ? 'correct' : 'wrong');
+      updateSingleTrack();
+
+      const buttons = document.querySelectorAll('#sAnswerArea .answer-btn');
+      buttons.forEach(btn => {
+        const key = btn.dataset.key;
+        if (key === q.answer) btn.classList.add('correct');
+        else if (key === answerKey) btn.classList.add('wrong');
+        btn.disabled = true;
+      });
+
+      if (isCorrect) { sound.correct(); } else { sound.wrong(); }
+
+      const answerText = `${q.answer}. ${normalizePhysicsText(q.options[q.answer])}`;
+      $('sResultMsg').innerHTML = `<b>${isCorrect ? '✅ 回答正确' : '❌ 回答错误'}</b>　正确答案：${answerText}`;
+
+      const btn = $('nextBtn');
+      btn.textContent = gameState.currentIndex < gameState.totalQuestions - 1 ? '下一题 ▶' : '查看结果 🏆';
+      btn.classList.add('show');
+    }
+
+    function initGame(questionList) {
+      gameState.scoreA = 0;
+      gameState.scoreB = 0;
+      gameState.currentIndex = 0;
+      if (gameState.chapterKey && (gameState.chapterKey.startsWith('17.') || gameState.chapterKey.startsWith('18.'))) {
+    gameState.questions = questionList;  // 直接使用原顺序
+         } else {
+    gameState.questions = shuffleGroups(questionList);
+        } 
+      gameState.totalQuestions = gameState.questions.length;
+      gameState.seconds = 0;
+      gameState.answerA = null;
+      gameState.answerB = null;
+      gameState.recordA = [];
+      gameState.recordB = [];
+      gameState.correctA = 0;
+      gameState.correctB = 0;
+
+      clearInterval(gameState.timer);
+      startTimer();
+      updateScores();
+      buildDots();
+      updateRecords();
+      loadQuestion(0);
+
+      document.getElementById('resultScreen').classList.remove('show');
+      document.getElementById('confettiContainer').classList.remove('show');
+      document.getElementById('confettiContainer').innerHTML = '';
+    }
+
+    function restartGame() {
+      const key = gameState.chapterKey || '1.1';
+      const qs = resolveQuestions(key);
+      if (qs.length === 0) {
+        alert('该章节无题目，请返回重新选择。');
+        document.getElementById('startScreen').style.display = 'flex';
+        return;
+      }
+      if (gameState.mode === 'single') {
+        initSingleGame(qs);
+      } else {
+        initGame(qs);
+      }
+    }
+
+    function startTimer() {
+      document.getElementById('timerDisplay').textContent = '00:00';
+      gameState.timer = setInterval(() => {
+        gameState.seconds++;
+        const m = String(Math.floor(gameState.seconds / 60)).padStart(2, '0');
+        const s = String(gameState.seconds % 60).padStart(2, '0');
+        document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+      }, 1000);
+    }
+
+    function updateScores() {
+      document.getElementById('scoreA').textContent = gameState.scoreA;
+      document.getElementById('scoreB').textContent = gameState.scoreB;
+    }
+
+    function buildDots() {
+      const box = document.getElementById('qDots');
+      box.innerHTML = '';
+      for (let i = 0; i < gameState.totalQuestions; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'q-dot' + (i === 0 ? ' current' : '');
+        dot.id = 'qdot-' + i;
+        box.appendChild(dot);
+      }
+    }
+
+    function updateDot(index, result) {
+      const dot = document.getElementById('qdot-' + index);
+      if (dot) {
+        dot.classList.remove('current');
+        dot.classList.add(result === 'correct' ? 'done-correct' : 'done-wrong');
+      }
+      const next = document.getElementById('qdot-' + (index + 1));
+      if (next) next.classList.add('current');
+    }
+
+    function updateRecords() {
+      ['A', 'B'].forEach(player => {
+        const list = player === 'A' ? gameState.recordA : gameState.recordB;
+        const el = document.getElementById('record' + player);
+        el.innerHTML = '';
+        for (let i = 0; i < gameState.totalQuestions; i++) {
+          const dot = document.createElement('div');
+          dot.className = 'record-dot';
+          if (list[i]) dot.classList.add(list[i]);
+          el.appendChild(dot);
+        }
+      });
+    }
+
+    // 公共：渲染题干（物理规范化 + 图片懒加载 + 动态字号），返回用于 MathJax 检测的文本
+    function renderQuestionBody(textEl, q) {
+      textEl.innerHTML = q.text;
+
+      // 物理符号规范化（上标/下标统一，不触碰 <img> 等标签属性）
+      applyPhysicsNormalization(textEl);
+
+      // 图片懒加载 + 异步解码（不阻塞主线程）
+      textEl.querySelectorAll('img').forEach(img => {
+        img.loading = 'lazy';
+        img.decoding = 'async';
+      });
+
+      const plainText = textEl.textContent || '';
+      const len = plainText.length;
+      // 字号随视口宽度与题目长度动态调整（适配 seewo 白板大屏）
+      const fontSizeVw = (len > 200 ? 1.5 : len > 150 ? 1.7 : len > 110 ? 1.9 : len > 70 ? 2.1 : 2.5);
+      textEl.style.fontSize = `clamp(0.95rem, ${fontSizeVw}vw, 2.8rem)`;
+      return q.text + Object.values(q.options).join(' ');
+    }
+
+    function loadQuestion(index) {
+      const q = gameState.questions[index];
+      gameState.answerA = null;
+      gameState.answerB = null;
+
+      $('questionProgress').textContent = `第 ${index + 1} / ${gameState.totalQuestions} 题`;
+      $('topicBadge').textContent = `知识点：${q.topic}`;
+      const textEl = $('questionText');
+      const mathContent = renderQuestionBody(textEl, q);
+
+      $('resultMsg').innerHTML = '';
+      $('nextBtn').classList.remove('show');
+
+      $('statusA').textContent = '请作答';
+      $('statusB').textContent = '请作答';
+
+      $('panelA').classList.remove('correct-flash', 'wrong-flash');
+      $('panelB').classList.remove('correct-flash', 'wrong-flash');
+
+      const keys = Object.keys(q.options);
+      renderAnswerArea('A', q, keys);
+      const shuffledKeys = shuffle([...keys]);
+      renderAnswerArea('B', q, shuffledKeys);
+
+      // MathJax 按需渲染：仅当题干或选项含数学标记时，只重排本题相关区域
+      // （题干 + 左右两个答题区，避免选项中的公式漏渲染）
+      if (window.MathJax && MathJax.typesetPromise && /[\$\\]/.test(mathContent)) {
+        MathJax.typesetPromise([textEl, $('answerAreaA'), $('answerAreaB')]).catch(err => console.log('MathJax error:', err));
+      }
+    }
+
+    function renderAnswerArea(player, question, keyOrder) {
+      const area = document.getElementById('answerArea' + player);
+      area.innerHTML = '';
+      keyOrder.forEach(key => {
+        const btn = document.createElement('button');
+        btn.className = 'answer-btn';
+        // 用 innerHTML + 规范化，正确显示选项中的上标/下标（如 10<sup>3</sup>、F₁）
+        btn.innerHTML = `${key}. ${normalizePhysicsText(question.options[key])}`;
+        btn.dataset.key = key;
+        btn.onclick = (e) => submitAnswer(player, e.target.dataset.key);
+        area.appendChild(btn);
+      });
+    }
+
+    function disablePlayerButtons(player) {
+      document.querySelectorAll(`#answerArea${player} .answer-btn`).forEach(btn => btn.disabled = true);
+    }
+
+    function submitAnswer(player, answerKey) {
+      const q = gameState.questions[gameState.currentIndex];
+      const currentAnswer = player === 'A' ? gameState.answerA : gameState.answerB;
+      if (currentAnswer !== null) return;
+
+      const isCorrect = (answerKey === q.answer);
+
+      if (player === 'A') {
+        gameState.answerA = answerKey;
+        gameState.scoreA += isCorrect ? CONFIG.correctScore : CONFIG.wrongScore;
+        gameState.recordA.push(isCorrect ? 'correct' : 'wrong');
+        if (isCorrect) gameState.correctA++;
+        $('statusA').textContent = isCorrect ? `✅ 正确，+${CONFIG.correctScore}分` : `❌ 错误，${CONFIG.wrongScore}分`;
+        $('panelA').classList.add(isCorrect ? 'correct-flash' : 'wrong-flash');
+      } else {
+        gameState.answerB = answerKey;
+        gameState.scoreB += isCorrect ? CONFIG.correctScore : CONFIG.wrongScore;
+        gameState.recordB.push(isCorrect ? 'correct' : 'wrong');
+        if (isCorrect) gameState.correctB++;
+        $('statusB').textContent = isCorrect ? `✅ 正确，+${CONFIG.correctScore}分` : `❌ 错误，${CONFIG.wrongScore}分`;
+        $('panelB').classList.add(isCorrect ? 'correct-flash' : 'wrong-flash');
+      }
+
+      updateScores();
+      updateRecords();
+      markPlayerButtons(player, answerKey, q.answer);
+      disablePlayerButtons(player);
+      if (isCorrect) { sound.correct(); } else { sound.wrong(); }
+
+      setTimeout(() => {
+        $('panelA').classList.remove('correct-flash', 'wrong-flash');
+        $('panelB').classList.remove('correct-flash', 'wrong-flash');
+      }, 500);
+
+      checkBothAnswered();
+    }
+
+    function markPlayerButtons(player, userKey, correctKey) {
+      const buttons = document.querySelectorAll(`#answerArea${player} .answer-btn`);
+      buttons.forEach(btn => {
+        const key = btn.dataset.key;
+        if (key === correctKey) {
+          btn.classList.add('correct');
+        } else if (key === userKey && key !== correctKey) {
+          btn.classList.add('wrong');
+        }
+      });
+    }
+
+    function checkBothAnswered() {
+      const answeredA = gameState.answerA !== null;
+      const answeredB = gameState.answerB !== null;
+
+      if (!answeredA || !answeredB) return;
+
+      const q = gameState.questions[gameState.currentIndex];
+      const isCorrectA = gameState.answerA === q.answer;
+      const isCorrectB = gameState.answerB === q.answer;
+
+      const anyCorrect = isCorrectA || isCorrectB;
+      updateDot(gameState.currentIndex, anyCorrect ? 'correct' : 'wrong');
+
+      // 音效：双全对播胜利旋律，否则按结果播放
+      if (isCorrectA && isCorrectB) { sound.win(); }
+      else if (isCorrectA || isCorrectB) { sound.correct(); }
+
+      const answerText = `${q.answer}. ${normalizePhysicsText(q.options[q.answer])}`;
+      $('resultMsg').innerHTML = `
+        <div><b>正确答案：</b>${answerText}</div>
+        <div style="margin-top:6px;">
+          参赛者A：${isCorrectA ? '✅ 正确' : '❌ 错误'}　｜　参赛者B：${isCorrectB ? '✅ 正确' : '❌ 错误'}
+        </div>
+      `;
+
+      const btn = $('nextBtn');
+      btn.textContent = gameState.currentIndex < gameState.totalQuestions - 1 ? '下一题 ▶' : '查看结果 🏆';
+      btn.classList.add('show');
+    }
+
+    function nextQuestion() {
+      if (gameState.mode === 'single') {
+        if (gameState.currentIndex < gameState.totalQuestions - 1) {
+          gameState.currentIndex++;
+          loadSingleQuestion(gameState.currentIndex);
+        } else {
+          showSingleResult();
+        }
+        return;
+      }
+      if (gameState.currentIndex < gameState.totalQuestions - 1) {
+        gameState.currentIndex++;
+        loadQuestion(gameState.currentIndex);
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult() {
+      clearInterval(gameState.timer);
+      gameState.timer = null;
+
+      const a = gameState.scoreA;
+      const b = gameState.scoreB;
+      let title = '';
+      let emoji = '';
+
+      if (a > b) {
+        title = '参赛者 A 获胜！';
+        emoji = '<div class="winner-emoji">🏆</div>';
+        launchConfetti();
+      } else if (b > a) {
+        title = '参赛者 B 获胜！';
+        emoji = '<div class="winner-emoji">🎉</div>';
+        launchConfetti();
+      } else {
+        title = '平局！旗鼓相当！';
+        emoji = '<div class="draw-emoji">🤝</div>';
+      }
+
+      document.getElementById('resultEmoji').innerHTML = emoji;
+      document.getElementById('resultTitle').textContent = title;
+      document.getElementById('scoreSummary').innerHTML = `
+        <div class="score-item">
+          <div class="name">参赛者 A</div>
+          <div class="num" style="color:${a >= b ? '#ffd200' : '#4facfe'}">${a}</div>
+        </div>
+        <div style="font-size:1.8rem;color:#64748b;">VS</div>
+        <div class="score-item">
+          <div class="name">参赛者 B</div>
+          <div class="num" style="color:${b >= a ? '#ffd200' : '#f093fb'}">${b}</div>
+        </div>
+      `;
+
+      // 详细统计：答对题数、正确率、用时
+      const total = gameState.totalQuestions;
+      const min = String(Math.floor(gameState.seconds / 60)).padStart(2, '0');
+      const sec = String(gameState.seconds % 60).padStart(2, '0');
+      const pct = (n) => total ? Math.round(n / total * 100) + '%' : '0%';
+      $('resultStats').innerHTML = `
+        <div class="stat-row">
+          <span class="stat-label">⏱ 用时</span>
+          <span class="stat-value">${min}:${sec}</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label" style="color:#4facfe">参赛者 A 答对</span>
+          <span class="stat-value">${gameState.correctA} / ${total} 题（${pct(gameState.correctA)}）</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label" style="color:#f093fb">参赛者 B 答对</span>
+          <span class="stat-value">${gameState.correctB} / ${total} 题（${pct(gameState.correctB)}）</span>
+        </div>
+      `;
+      document.getElementById('resultScreen').classList.add('show');
+      // 双人模式：错题面板保持"仅错题"视图，隐藏切换与"重做错题"
+      mistakesView = 'wrong';
+      $('redoBtn').style.display = 'none';
+      $('viewBtn').textContent = '查看错题';
+      buildMistakes('wrong');
+    }
+
+    // ===================================================================
+    //  单人刷题结果
+    // ===================================================================
+    function showSingleResult() {
+      clearInterval(gameState.timer);
+      gameState.timer = null;
+
+      const total = gameState.totalQuestions;
+      const correct = gameState.singleCorrect;
+      const wrong = gameState.singleWrong;
+      const pct = total ? Math.round(correct / total * 100) : 0;
+      const min = String(Math.floor(gameState.seconds / 60)).padStart(2, '0');
+      const sec = String(gameState.seconds % 60).padStart(2, '0');
+
+      let title, emoji;
+      if (total === 0) {
+        title = '未完成作答';
+        emoji = '';
+      } else if (pct === 100) {
+        title = '全部答对，太棒了！';
+        emoji = '<div class="winner-emoji">🏆</div>';
+        launchConfetti();
+      } else if (pct >= 80) {
+        title = '非常优秀！';
+        emoji = '<div class="winner-emoji">🌟</div>';
+      } else if (pct >= 60) {
+        title = '表现不错，继续加油！';
+        emoji = '<div class="draw-emoji">👍</div>';
+      } else {
+        title = '再练练，加油！';
+        emoji = '<div class="draw-emoji">💪</div>';
+      }
+
+      $('resultEmoji').innerHTML = emoji;
+      $('resultTitle').textContent = title;
+      $('scoreSummary').innerHTML = `
+        <div class="score-item">
+          <div class="name">最终得分</div>
+          <div class="num" style="color:#ffd200">${gameState.singleScore}</div>
+        </div>
+      `;
+      $('resultStats').innerHTML = `
+        <div class="stat-row"><span class="stat-label">⏱ 用时</span><span class="stat-value">${min}:${sec}</span></div>
+        <div class="stat-row"><span class="stat-label" style="color:#2ed573">✅ 答对</span><span class="stat-value">${correct} / ${total} 题（${pct}%）</span></div>
+        <div class="stat-row"><span class="stat-label" style="color:#e94560">❌ 答错</span><span class="stat-value">${wrong} / ${total} 题</span></div>
+      `;
+      $('resultScreen').classList.add('show');
+      // 单人模式：默认"全部题目"视图，可切"仅错题"；提供"重做错题"
+      mistakesView = 'all';
+      $('redoBtn').style.display = 'inline-block';
+      $('redoBtn').disabled = (wrong === 0);
+      $('viewBtn').textContent = '查看作答';
+      buildMistakes('all');
+    }
+
+    // ===================================================================
+    //  错题回顾（结果界面）
+    // ===================================================================
+    function buildMistakes(view) {
+      const list = $('mistakesList');
+      const questions = gameState.questions;
+      const isSingle = gameState.mode === 'single';
+      const showAll = view === 'all';
+      const items = [];
+      questions.forEach((q, i) => {
+        let resultLine = '';
+        if (isSingle) {
+          const res = gameState.singleRecord[i];
+          // 单人："全部题目"视图列出每题作答情况；"仅错题"只列答错/未答
+          if (!showAll && res === 'correct') return;
+          resultLine = `<div class="q-result">作答：${res === 'correct' ? '✅ 答对' : res === 'wrong' ? '❌ 答错' : '— 未作答'}</div>`;
+        } else {
+          const aRes = gameState.recordA[i];
+          const bRes = gameState.recordB[i];
+          // 双方都答对则不算错题
+          if (aRes === 'correct' && bRes === 'correct') return;
+          const aStr = aRes === 'correct' ? '✅ 对' : '❌ 错/未答';
+          const bStr = bRes === 'correct' ? '✅ 对' : '❌ 错/未答';
+          resultLine = `<div class="q-result">参赛者A：${aStr}　|　参赛者B：${bStr}</div>`;
+        }
+        // 题干字号随长度动态缩小，避免撑高面板需要滚动
+        const plainLen = (q.text || '').replace(/<[^>]*>/g, '').length;
+        const qFont = plainLen > 160 ? '0.92rem' : plainLen > 100 ? '1.02rem' : plainLen > 60 ? '1.12rem' : '1.22rem';
+        // 展示全部选项，正确答案高亮（绿色加粗）
+        const optsHtml = Object.keys(q.options).map(k => `
+          <div class="q-opt${k === q.answer ? ' correct' : ''}">${k}. ${normalizePhysicsText(q.options[k])}</div>
+        `).join('');
+        items.push(`
+          <div class="mistake-item">
+            <div class="q-text" style="font-size:${qFont}"><b>第 ${i + 1} 题</b>（${q.topic}）${q.text}</div>
+            <div class="q-options">${optsHtml}</div>
+            ${resultLine}
+          </div>
+        `);
+      });
+      list.innerHTML = items.length
+        ? items.join('')
+        : '<div style="text-align:center;color:#2ed573;padding:10px;">🎉 本题库全部答对，没有错题！</div>';
+      // 对错题列表中的题干/答案文本做物理符号规范化（文本节点级，安全）
+      applyPhysicsNormalization(list);
+    }
+
+    let mistakesView = 'wrong';
+    function toggleMistakes() {
+      $('mistakesOverlay').classList.add('show');
+      buildMistakes(mistakesView);
+      updateMistakesTabs();
+    }
+
+    function setMistakesView(view) {
+      mistakesView = view;
+      buildMistakes(view);
+      updateMistakesTabs();
+    }
+
+    function updateMistakesTabs() {
+      const isSingle = gameState.mode === 'single';
+      $('mistakesToggle').style.display = isSingle ? 'flex' : 'none';
+      $('tabAll').classList.toggle('active', mistakesView === 'all');
+      $('tabWrong').classList.toggle('active', mistakesView !== 'all');
+    }
+
+    // 单人刷题：把答错的题重新刷一遍
+    function redoMistakes() {
+      const wrongQs = [];
+      gameState.questions.forEach((q, i) => {
+        if (gameState.singleRecord[i] === 'wrong') wrongQs.push(q);
+      });
+      if (wrongQs.length === 0) {
+        alert('太棒了，没有错题需要重做！');
+        return;
+      }
+      $('resultScreen').classList.remove('show');
+      initSingleGame(wrongQs);
+    }
+
+    function closeMistakes() {
+      $('mistakesOverlay').classList.remove('show');
+    }
+
+    function launchConfetti() {
+      const container = document.getElementById('confettiContainer');
+      container.innerHTML = '';
+      container.classList.add('show');
+
+      const colors = ['#ffd200', '#f7971e', '#4facfe', '#f093fb', '#2ed573', '#e94560', '#48dbfb', '#ff9ff3'];
+      for (let i = 0; i < 140; i++) {
+        const el = document.createElement('div');
+        const size = Math.random() * 10 + 6;
+        el.className = 'confetti';
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.top = '-20px';
+        el.style.width = size + 'px';
+        el.style.height = size + 'px';
+        el.style.background = colors[Math.floor(Math.random() * colors.length)];
+        el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        el.style.animationDuration = (Math.random() * 2 + 2.2) + 's';
+        el.style.animationDelay = (Math.random() * 1.5) + 's';
+        container.appendChild(el);
+      }
+
+      setTimeout(() => {
+        container.classList.remove('show');
+      }, 5000);
+    }
+
+    // ===================================================================
+    //  页面加载完成
+    // ===================================================================
+    // 注册全局键盘事件
+    window.addEventListener('keydown', handleKeydown);
+
+    window.onload = function() {
+      populateSelects();
+    };
+  </script>
+</body>
+</html>
