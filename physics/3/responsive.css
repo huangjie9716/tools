@@ -1,0 +1,159 @@
+/* ================================================================
+   responsive.css — 平板 & 手机横屏响应式适配
+   依赖顺序：需在 style.css / card.css / level.css / compete.css / fight.css 之后加载
+   ================================================================ */
+
+/* ================================================================
+   平板（iPad 竖屏 768×1024、横屏 1024×768 等，宽度 768–1024px）
+   ================================================================ */
+@media (min-width: 768px) and (max-width: 1024px) {
+    /* 答题 / 秘籍内容限宽居中，避免文本过长、贴边 */
+    #levelContent,
+    #competeContent,
+    #fightContent,
+    #cardGrid {
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* 藏经阁卡片更大、更易触控 */
+    .card-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 26px 18px;
+    }
+    .card-item {
+        min-height: 200px;
+    }
+
+    /* 答题选项触控目标放大 */
+    .builder-pool .bp-item {
+        padding: 16px 32px;
+        font-size: 1.8rem;
+    }
+    .compete-opt,
+    .fight-opt,
+    .options .opt {
+        padding: 18px 24px;
+    }
+
+    /* 3D 沙盘：使用动态视口高度，避免移动端地址栏遮挡 */
+    #pageMain {
+        height: calc(100dvh - 58px);
+        min-height: 480px;
+    }
+}
+
+/* ================================================================
+   手机横屏（横向且高度 ≤ 500px）
+   ================================================================ */
+@media (orientation: landscape) and (max-height: 500px) {
+    /* ---------- 顶栏压缩，给内容让出高度 ---------- */
+    .top-bar { padding: 5px 14px; }
+    .top-bar-center .top-center { gap: 8px; }
+    .top-bar .top-brand { font-size: 1.02rem; letter-spacing: 2px; }
+    .top-bar .top-stat { font-size: 0.72rem; padding: 3px 9px; }
+    .top-sword { width: 18px; height: 18px; }
+    .btn-sound { width: 28px; height: 28px; }
+    .top-bar .btn-back { padding: 3px 14px; font-size: 0.76rem; }
+    .top-stat #titleDisplay svg { width: 18px; height: 18px; }
+
+    /* ---------- 页面容器压缩内边距 ---------- */
+    .page { padding: 8px 16px 14px; }
+
+    /* ---------- 3D 沙盘 ---------- */
+    #pageMain {
+        height: calc(100dvh - 44px);
+        min-height: 0;
+    }
+    .sect3d-bottom { bottom: 8px; }
+    .sect3d-actions { gap: 12px; }
+
+    /* ---------- 欢迎页：一屏紧凑排布 ---------- */
+    #pageWelcome { padding: 8px 18px; }
+    .sword { width: 52px; height: 52px; margin-bottom: 0; }
+    #pageWelcome h1.title-calligraphy { font-size: 30px; letter-spacing: 7px; text-indent: 7px; margin: 2px 0 0; }
+    #pageWelcome .tagline { margin-top: 4px; font-size: 12px; letter-spacing: 3px; }
+    #pageWelcome .world-intro { margin-top: 6px; font-size: 11px; line-height: 1.45; max-width: 680px; }
+    .btn-gate { margin-top: 8px; padding: 7px 26px; font-size: 15px; letter-spacing: 4px; }
+    .moon-glow { top: 2%; width: 170px; height: 170px; }
+    .far-mountains { height: 64px; }
+
+    /* ---------- 各页面标题压缩 ---------- */
+    .page > h2 { margin: 2px 0 6px; font-size: 1.25rem; }
+    .page > h2 .page-title-sword { width: 22px; }
+
+    /* ---------- 演武场关卡地图压缩 ---------- */
+    .adventure-map { padding: 6px 0; }
+    .map-node { padding: 14px 12px; }
+    .map-node .node-icon { font-size: 2rem; margin-bottom: 2px; }
+    .map-node .node-title { font-size: 1.05rem; }
+    .map-node .node-desc { font-size: 0.78rem; margin-bottom: 8px; }
+    .map-path { height: 18px; }
+
+    /* ---------- 公式拼图压缩 ---------- */
+    .level-content { padding: 2px 0; }
+    .formula-builder { font-size: 1.65rem; padding: 16px 12px; gap: 6px 10px; }
+    .formula-builder .fb-slot { min-width: 40px; min-height: 48px; font-size: 1.5rem; padding: 0 10px; }
+    .builder-pool { gap: 8px; }
+    .builder-pool .bp-item { font-size: 1.3rem; padding: 9px 16px; }
+    .level-content .btn-primary,
+    .level-content .btn-secondary { font-size: 1.05rem; padding: 11px 28px; }
+    #levelNextBtn { padding: 11px 38px; font-size: 1.05rem; }
+    .hint-box { font-size: 1rem; padding: 10px 14px; }
+    #levelFormulaDisplay { font-size: 1.7rem; padding: 10px; }
+
+    /* ---------- 百草园压缩 ---------- */
+    .fight-question { padding: 14px; }
+    .fight-question .q-text { font-size: 1.3rem; margin-bottom: 10px; }
+    .fight-opt { padding: 11px 14px; font-size: 1.25rem; }
+    .fight-feedback { font-size: 1.1rem; padding: 8px 12px; }
+    .fight-result .result-title { font-size: 1.5rem; }
+    .fight-progress { margin-bottom: 6px; font-size: 1rem; }
+
+    /* ---------- 问道崖压缩 ---------- */
+    .compete-question { padding: 14px; }
+    .compete-title { font-size: 1.5rem; margin-bottom: 6px; }
+    .compete-image img { max-height: 200px; }
+    .part-question { font-size: 1.45rem; }
+    .compete-opt { padding: 11px 14px; font-size: 1.4rem; }
+    .compete-part { padding: 10px 12px; }
+    .part-feedback { font-size: 1.2rem; }
+    .solution-body { font-size: 1.05rem; }
+
+    /* ---------- 秘籍卡片模态框压缩 ---------- */
+    .modal-content { padding: 18px 20px; max-height: 94vh; }
+    .modal-header h2 { font-size: 1.4rem; }
+    .options { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .options .opt { padding: 13px 16px; font-size: 1.05rem; }
+    .study-box .formula-display { font-size: 1.5rem; padding: 10px; }
+
+    /* ---------- 各类弹窗：限高 + 内部滚动 ---------- */
+    .game-modal,
+    .cooldown-box,
+    .title-popup,
+    .unlock-popup,
+    .level-complete-box {
+        max-height: 94vh;
+        overflow-y: auto;
+    }
+    .game-modal { padding: 20px 18px 16px; }
+    .gm-icon { font-size: 40px; }
+    .gm-icon svg { width: 40px; height: 40px; }
+    .gm-title { font-size: 22px; }
+    .gm-desc { font-size: 14px; margin-bottom: 14px; }
+    .cooldown-box { padding: 18px 20px; }
+    .cooldown-box .cd-icon { font-size: 2.6rem; }
+    .cooldown-box .cd-time { font-size: 2rem; }
+    .title-popup { padding: 22px 18px; }
+    .tp-icon { font-size: 40px; }
+    .tp-icon svg { width: 64px; height: 64px; }
+    .tp-title { font-size: 30px; }
+    .unlock-popup { padding: 24px 18px; }
+    .up-icon img,
+    .up-icon svg { width: 88px; height: 88px; }
+    .up-icon .up-emoji { font-size: 54px; line-height: 88px; }
+    .up-title { font-size: 28px; }
+    .level-complete-box { padding: 22px 24px; }
+    .level-complete-box .complete-icon { font-size: 3rem; margin-bottom: 6px; }
+}
