@@ -32,5 +32,15 @@ window.CARDS_PHYSICS = [
         href: 'physics/2/PhysicsExperiment.html',
         action: 'link',
         actionText: '立即使用'
+    },
+     {
+        title: '笑傲江湖',
+        desc: '初中物理的每一个公式，都是江湖中失传的武功秘籍。 玩家从一名初入江湖的菜鸟开始，在门派中修炼成长……',
+        date: '2026.08.24',
+        version: 'v1.1',
+        file: 'physics/3/FormulaGame.html',
+        href: 'physics/3/FormulaGame.html',
+        action: 'link',
+        actionText: '立即使用'
     }
 ];
