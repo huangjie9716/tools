@@ -3,7 +3,7 @@
 // （ESM 入口：其余模块经 import 引入，避免依赖 script 加载顺序）
 // ================================================================
 
-import { shuffleArray, renderKatex, renderDisplayKatex, loadJSON, saveJSON } from './utils.js';
+import { shuffleArray, renderKatex, renderDisplayKatex, loadJSON, saveJSON, initTouchCursor } from './utils.js';
 import { CARD_DATA } from './card-data.js';
 import { showCardCollection, renderCardGrid, updateCardStatus } from './card.js';
 import { showLevelSelect, renderAdventureMap, isLevelInQuiz } from './level.js';
@@ -678,6 +678,8 @@ window.resetLevels = resetLevels;
 document.addEventListener('DOMContentLoaded', function() {
     // 背景音乐（首次交互后自动播放，全流程循环）
     initBgm();
+    // 触屏光标剑（平板/手机无鼠标光标时的虚拟光标）
+    initTouchCursor();
     // 冷却已禁用，无需检查
     updateMainUI();
 
