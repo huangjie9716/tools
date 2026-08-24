@@ -68,3 +68,32 @@ export function renderKatex(el, latex, displayMode = false) {
 export function renderDisplayKatex(el, latex) {
     renderKatex(el, latex, true);
 }
+
+// ----- 触屏光标剑（平板/手机无鼠标光标：用手指跟随的小剑替代“光标剑”）-----
+export function initTouchCursor() {
+    if (typeof window.matchMedia !== 'function') return;
+    // 仅当设备具备触屏能力（any-pointer: coarse）时启用；鼠标操作仍走 CSS 光标剑
+    if (!window.matchMedia('(any-pointer: coarse)').matches) return;
+    let el = document.getElementById('touchSword');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'touchSword';
+        el.className = 'touch-sword';
+        el.innerHTML = '<svg viewBox="0 0 1024 1024" aria-hidden="true"><use href="#icon-sword"></use></svg>';
+        document.body.appendChild(el);
+    }
+    const show = () => el.classList.add('show');
+    const hide = () => el.classList.remove('show');
+    const move = (x, y) => {
+        el.style.left = x + 'px';
+        el.style.top = y + 'px';
+    };
+    document.addEventListener('pointerdown', (e) => {
+        if (e.pointerType && e.pointerType !== 'mouse') { show(); move(e.clientX, e.clientY); }
+    }, { passive: true });
+    document.addEventListener('pointermove', (e) => {
+        if (el.classList.contains('show')) move(e.clientX, e.clientY);
+    }, { passive: true });
+    document.addEventListener('pointerup', hide, { passive: true });
+    document.addEventListener('pointercancel', hide, { passive: true });
+}
