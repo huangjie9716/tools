@@ -1,0 +1,123 @@
+/* ============================================================
+   一分一段累计比率T值模型 —— 全局样式
+   说明：本文件仅包含显示层样式，不影响任何数据处理逻辑。
+   ============================================================ */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f4f9; padding: 24px; display: flex; justify-content: center; }
+.container { max-width: 1400px; width: 100%; background: #ffffff; border-radius: 24px; box-shadow: 0 12px 40px rgba(0,0,0,0.08); padding: 28px 32px; }
+.header-area { display: flex; flex-direction: column; align-items: center; margin-bottom: 28px; padding: 20px 0 10px 0; border-bottom: 2px solid #e8edf4; }
+.main-title { font-family: 'Georgia', 'Times New Roman', 'PingFang SC', 'Microsoft YaHei', serif; font-size: 40px; font-weight: 700; color: #1a3a6b; display: inline-flex; align-items: center; gap: 14px; background: linear-gradient(145deg, #1a3a6b, #2d6a9f); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 3px; margin-bottom: 10px; width: auto; text-align: center; }
+.main-title .main-icon { width: 48px; height: 48px; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(9, 114, 231, 0.25)); }
+.sub-info { font-size: 15px; color: #2f4a6e; line-height: 1.8; background: #f2f6fd; padding: 10px 28px; border-radius: 40px; max-width: 92%; text-align: left; width: auto; }
+.sub-info .highlight { font-weight: 600; color: #1a3a6b; }
+.upload-area { border-radius: 16px; margin-bottom: 24px; }
+.upload-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; border: 3px dashed #b8cbe0; border-radius: 16px; background: #f4f8fe; cursor: pointer; transition: all 0.25s; min-height: 160px; text-align: center; }
+.upload-box:hover { background: #eaf1fa; border-color: #7a9bc0; }
+.upload-box.uploaded { background: #e6f5ed; border-color: #1f7b4d; border-style: solid; }
+.upload-box .icon { font-size: 48px; margin-bottom: 10px; }
+.upload-box .icon svg { width: 56px; height: 56px; }
+.upload-box .main-text { font-size: 18px; font-weight: 500; color: #1a2a44; }
+.upload-box .sub-text { font-size: 14px; color: #5e7293; margin-top: 6px; }
+.upload-box .file-name { font-weight: 500; color: #1f7b4d; margin-top: 8px; }
+.upload-box .upload-success-icon { display: inline-flex; align-items: center; margin-right: 6px; vertical-align: middle; }
+.upload-box .upload-success-icon svg { width: 18px; height: 18px; }
+.upload-box input[type="file"] { display: none; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 42px; border-radius: 40px; border: none; background: #e4ecf5; color: #1a2a44; font-weight: 600; font-size: 17px; cursor: pointer; transition: 0.15s; }
+.btn .btn-icon { display: inline-flex; align-items: center; }
+.btn .btn-icon svg { width: 19px; height: 19px; }
+.btn-success { background: #1f7b4d; color: #fff; }
+.btn-success:hover { background: #15633d; }
+.btn-success:disabled { opacity: 0.5; pointer-events: none; }
+.btn-danger { background: #b33a3a; color: #fff; }
+.btn-danger:hover { background: #8a2a2a; }
+.btn-download { display: inline-flex; align-items: center; gap: 8px; padding: 12px 34px; border-radius: 40px; border: 1.5px solid #b8c9dd; background: #f8faff; color: #1a2a44; font-weight: 600; font-size: 16px; cursor: pointer; transition: 0.15s; box-shadow: 0 1px 4px rgba(0,0,0,0.02); }
+.btn-download:hover { background: #eaf1fa; border-color: #1a3a6b; box-shadow: 0 4px 12px rgba(0,0,0,0.06); transform: translateY(-1px); }
+.btn-sm { padding: 4px 14px; font-size: 13px; border-radius: 30px; background: #eef3fa; border: 1px solid #d0dcee; cursor: pointer; transition: 0.12s; }
+.btn-sm:hover { background: #dce5f0; }
+.action-bar { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: center; margin: 16px 0 20px 0; }
+.action-bar .status { font-size: 14px; color: #2f4a6e; margin-left: 8px; }
+.action-bar .status .status-icon { display: inline-flex; align-items: center; margin-right: 5px; vertical-align: middle; }
+.action-bar .status .status-icon svg { width: 16px; height: 16px; }
+.stats { display: flex; gap: 30px; justify-content: center; background: #f2f6fd; border-radius: 14px; padding: 12px 24px; margin-bottom: 20px; flex-wrap: wrap; }
+.stats span { font-size: 14px; color: #2f4a6e; }
+.stats .stat-icon { display: inline-flex; align-items: center; margin-right: 4px; vertical-align: middle; }
+.stats .stat-icon svg { width: 16px; height: 16px; }
+.stats strong { font-weight: 600; font-size: 18px; color: #0a1e3c; margin-left: 6px; }
+.subject-bar { display: grid; grid-template-columns: 80px 1fr; column-gap: 10px; row-gap: 10px; align-items: start; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #e8edf4; }
+.subject-bar .label, .class-tabs .label { font-weight: 500; font-size: 14px; color: #1a2a44; padding: 6px 4px 6px 0; white-space: nowrap; }
+.subject-bar .tabs, .class-tabs .tabs { display: flex; flex-wrap: wrap; gap: 10px 14px; }
+.subject-tab { padding: 6px 20px; border-radius: 40px; background: #eef3fa; color: #1a2a44; font-weight: 500; font-size: 14px; cursor: pointer; transition: 0.12s; border: 2px solid transparent; }
+.subject-tab:hover { background: #dce5f0; }
+.subject-tab.active { background: #1a3a6b; color: #fff; border-color: #1a3a6b; }
+.class-tabs { display: grid; grid-template-columns: 80px 1fr; column-gap: 10px; row-gap: 10px; align-items: start; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 2px solid #e8edf4; }
+.class-tab { padding: 8px 24px; border-radius: 40px; background: #eef3fa; color: #1a2a44; font-weight: 500; font-size: 14px; cursor: pointer; transition: 0.12s; border: 2px solid transparent; }
+.class-tab:hover { background: #dce5f0; }
+.class-tab.active { background: #1a3a6b; color: #fff; border-color: #1a3a6b; }
+.class-tab.all-class { background: #d4e2f0; font-weight: 600; }
+.class-tab.all-class.active { background: #1a3a6b; color: #fff; }
+.compare-panel { display: none; flex-wrap: wrap; align-items: center; gap: 8px 16px; background: #f8faff; padding: 10px 18px; border-radius: 10px; border: 1px solid #e2eaf2; margin-bottom: 12px; }
+.compare-panel.show { display: flex; }
+.compare-panel .label { font-weight: 500; font-size: 13px; color: #1a2a44; margin-right: 2px; }
+.label .label-icon { display: inline-flex; align-items: center; margin-right: 3px; vertical-align: middle; }
+.label .label-icon svg { width: 16px; height: 16px; }
+.compare-panel .checkbox-group { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.compare-panel .checkbox-item { display: flex; align-items: center; gap: 3px; font-size: 13px; color: #1a2a44; cursor: pointer; }
+.compare-panel .checkbox-item input[type="checkbox"] { width: 15px; height: 15px; accent-color: #1a3a6b; cursor: pointer; }
+.compare-panel .checkbox-item .color-dot { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 1px; border: 1px solid rgba(0,0,0,0.06); }
+.view-cards { display: flex; gap: 12px; margin-bottom: 14px; }
+.view-card { flex: 1; padding: 12px 20px; border-radius: 12px; border: 2px solid transparent; background: #f2f6fd; color: #1a2a44; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; text-align: center; transition: 0.15s; }
+.view-card:hover { background: #eaf1fa; }
+.view-card.active { background: #1a3a6b; color: #fff; border-color: #1a3a6b; }
+.view-content { display: flex; flex-direction: column; }
+.analysis-area { display: flex; flex-direction: column; gap: 16px; }
+
+/* 图表区域优先显示 */
+.chart-wrapper { background: #ffffff; border-radius: 14px; border: 1px solid #e2eaf2; padding: 16px 16px 8px 16px; position: relative; }
+.chart-wrapper canvas { width: 100% !important; height: 100% !important; display: block; }
+#chartContainer { position: relative; height: 420px; }
+.chart-wrapper > .flex-between:first-child { border-bottom: 2px solid #e8edf4; padding-bottom: 10px; margin-bottom: 10px; }
+
+.table-card { background: #ffffff; border: 1px solid #e2eaf2; border-radius: 14px; padding: 16px 16px 8px 16px; }
+.table-card-head { border-bottom: 2px solid #e8edf4; padding-bottom: 10px; margin-bottom: 10px; }
+.table-card-head .data-title { border: none; padding: 0; margin: 0; }
+.data-title { font-weight: 600; font-size: 16px; color: #0a1e3c; padding: 8px 0 6px 0; border-bottom: 2px solid #e8edf4; margin-bottom: 10px; }
+.table-wrapper { overflow-x: auto; border-radius: 12px; max-height: 420px; overflow-y: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { position: sticky; top: 0; background: #e9eff6; color: #1a2a44; font-weight: 600; padding: 10px 10px; text-align: center; border-bottom: 2px solid #c8d6e5; z-index: 2; white-space: nowrap; }
+td { padding: 8px 10px; text-align: center; border-bottom: 1px solid #e6edf5; font-variant-numeric: tabular-nums; }
+tr:nth-child(even) { background: #fafcff; }
+tr:hover { background: #eef4fa; }
+.no-data { text-align: center; padding: 40px 20px; color: #7a8aa8; }
+.no-data .icon { font-size: 40px; display: block; margin-bottom: 10px; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.chart-title { font-weight: 600; font-size: 17px; color: #0a1e3c; }
+.chart-title small { font-weight: 400; font-size: 14px; color: #4a6180; margin-left: 10px; }
+.hidden { display: none !important; }
+
+/* ============================================================
+   拆分优化时新增的显示增强（不影响数据处理逻辑）
+   ============================================================ */
+
+/* 表格滚动条美化 */
+.table-wrapper::-webkit-scrollbar { height: 8px; width: 8px; }
+.table-wrapper::-webkit-scrollbar-track { background: transparent; }
+.table-wrapper::-webkit-scrollbar-thumb { background: #c8d6e5; border-radius: 4px; }
+.table-wrapper::-webkit-scrollbar-thumb:hover { background: #a9bdd4; }
+
+/* 可点击标签的键盘焦点提示，提升可访问性 */
+.subject-tab:focus-visible,
+.class-tab:focus-visible,
+.btn:focus-visible,
+.btn-download:focus-visible,
+.btn-sm:focus-visible,
+.upload-box:focus-visible { outline: 2px solid #2d6a9f; outline-offset: 2px; }
+
+/* 上传解析中的加载动画（由 app.js 切换 .loading 类） */
+.upload-box.loading { pointer-events: none; opacity: 0.72; }
+.upload-box.loading .icon { animation: iconSpin 1s linear infinite; }
+@keyframes iconSpin { to { transform: rotate(360deg); } }
+
+/* 状态文字：成功 / 出错 / 提示 配色 */
+.action-bar .status.ok { color: #1f7b4d; font-weight: 600; }
+.action-bar .status.err { color: #b33a3a; font-weight: 600; }
