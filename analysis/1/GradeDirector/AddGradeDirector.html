@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>增值评价分析系统-年级主任版</title>
+    <!-- 引入 SheetJS 和 jStat -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.6/jstat.min.js"></script>
+    <!-- 引入 Plotly.js 用于绘图 -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="container">
+    <h1><img src="img/title-icon.svg" class="title-icon" alt=""> 增值评价分析系统<br><span style="font-size:18px; font-family:'Segoe UI',sans-serif; color:#4a6a8a;">——年级主任专用版</span></h1>
+    <div class="subtitle">
+        <div class="source">
+            <span>理论来源：《基于标准正态化的二十层回归分析方法》——珠海市教育研究院黄玉平主任团队</span><br>
+            <span style="background: #dce6f0; padding:2px 12px; border-radius:30px; font-weight:600; color:#004080;">设计制作：珠海市九洲中学 黄结（反馈与建议请联系vx：Phys_H）</span>
+        </div>
+    </div>
+
+    <!-- 上传区域 -->
+    <div class="upload-grid">
+        <div class="upload-card" id="drop1">
+            <div class="label"><img src="img/folder-icon.svg" class="folder-icon" alt=""> 第一次成绩表</div>
+            <div class="hint">.xlsx / .xls / .csv（含 学号 + 姓名 + 班级 + 总分 + 各科）</div>
+            <input type="file" id="file1" accept=".xlsx,.xls,.csv">
+            <div class="file-status empty" id="status1">未选择文件</div>
+        </div>
+        <div class="upload-card" id="drop2">
+            <div class="label"><img src="img/folder-icon.svg" class="folder-icon" alt=""> 第二次成绩表</div>
+            <div class="hint">.xlsx / .xls / .csv（含 学号 + 姓名 + 班级 + 总分 + 各科）</div>
+            <input type="file" id="file2" accept=".xlsx,.xls,.csv">
+            <div class="file-status empty" id="status2">未选择文件</div>
+        </div>
+    </div>
+
+    <!-- 控制栏：状态 + 层数 -->
+    <div class="control-area" id="controlArea">
+        <div class="info-group">
+            <span><strong>状态</strong> <span id="stateLabel">数据待分析</span></span>
+            <span><strong>匹配人数</strong> <span id="matchCount">-</span></span>
+        </div>
+        <div class="layer-group">
+            <label for="layerInput">分层数</label>
+            <input type="number" id="layerInput" min="2" value="5" step="1">
+            <span class="suggest">💡 建议值：<span id="suggestLayer">5</span> (log₂(N²/100))</span>
+        </div>
+    </div>
+
+    <button class="btn-primary" id="processBtn" disabled><img src="img/analyze-icon.svg" class="analyze-icon" alt=""> 开始分析</button>
+
+    <!-- 日志 -->
+    <div class="log-box" id="logBox">⚡ 就绪，请上传两个成绩表。</div>
+
+    <!-- ===== 学科选择（置于各视图之上） ===== -->
+    <div class="filter-row" id="subjectRow" style="display:none;">
+        <span class="filter-label"><img src="img/subject-icon.svg" class="subject-icon" alt=""> 学科：</span>
+        <div class="btn-group" id="subjectButtons"></div>
+    </div>
+
+    <!-- ===== 视图切换卡片（横排） ===== -->
+    <div class="view-cards" id="viewCards" style="display:none;">
+        <button class="view-card active" data-view="result">数据分析结果</button>
+        <button class="view-card" data-view="regression">分层回归分析</button>
+        <button class="view-card" data-view="classstats">班级统计汇总</button>
+    </div>
+
+    <!-- ===== 结果区域（数据分析结果） ===== -->
+    <div class="result-area" id="resultArea">
+        <div class="headline">
+            <h3>数据分析结果</h3>
+            <span style="font-size:13px; color:#6a7a8b;" id="previewNote"></span>
+        </div>
+
+        <!-- 筛选控件 -->
+        <div class="filter-row class-filter">
+            <span class="filter-label"><img src="img/class-icon.svg" class="class-icon" alt=""> 班级：</span>
+            <div class="btn-group" id="classButtons"></div>
+        </div>
+        <div class="filter-row">
+            <span class="filter-label"><img src="img/sort-icon.svg" class="sort-icon" alt=""> 排序：</span>
+            <div class="btn-group" id="sortButtons">
+                <button class="btn-sm active" data-sort="id">按学号</button>
+                <button class="btn-sm" data-sort="rank2">按第二次考试名次</button>
+                <button class="btn-sm" data-sort="tValue">按个人T值</button>
+            </div>
+            <div class="download-wrap">
+                <button class="btn-success" id="downloadBtn" style="padding:6px 18px; font-size:14px;">⬇ 下载当前学科数据</button>
+            </div>
+        </div>
+
+        <div class="table-wrap" id="tableWrap">
+            <table id="resultTable">
+                <thead id="resultHead"></thead>
+                <tbody id="resultBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ===== 回归分析区域 ===== -->
+    <div class="regression-area" id="regressionArea" style="display:none;">
+        <h4>分层回归分析（以第一次分层为基础）</h4>
+        <div id="regressionFormula" class="regression-formula">加载中...</div>
+        <div id="scatterPlot" class="plot-container"></div>
+        <div style="margin-top:12px; display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+            <button class="btn-success" id="downloadPlotBtn" style="flex:0 1 auto; padding:8px 24px;">⬇ 下载回归分析图表</button>
+            <span style="font-size:13px; color:#6a7a8b; align-self:center;">点击下载散点图</span>
+        </div>
+    </div>
+
+    <!-- ===== 班级统计区域 ===== -->
+    <div class="class-stats-area" id="classStatsArea" style="display:none;">
+        <div class="class-stats-head">
+            <h4 id="classStatsTitle">班级统计汇总</h4>
+            <button class="btn-success" id="downloadClassStatsBtn" style="padding:6px 18px; font-size:14px;">⬇ 下载班级统计数据</button>
+        </div>
+        <div class="filter-row">
+            <span class="filter-label"><img src="img/sort-icon.svg" class="sort-icon" alt=""> 排序：</span>
+            <div class="btn-group">
+                <button id="sortClassBtn" class="btn-sm">按班级排序</button>
+                <button id="sortTValueBtn" class="btn-sm">按班级T值排序</button>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table id="classStatsTable">
+                <thead>
+                    <tr>
+                        <th>班级</th>
+                        <th>人数</th>
+                        <th>第一次标准分均值</th>
+                        <th>第二次标准分均值</th>
+                        <th>残差均值</th>
+                        <th>超两标人数</th>
+                        <th>超一标人数</th>
+                        <th>退一标人数</th>
+                        <th>退两标人数</th>
+                        <th>班级T值</th>
+                    </tr>
+                </thead>
+                <tbody id="classStatsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="action-row">
+        <button class="btn-outline" id="resetBtn"><img src="img/reset-icon.svg" class="reset-icon" alt=""> 重新上传</button>
+    </div>
+
+    <div class="footer">所有计算在浏览器本地完成，数据不会上传至任何服务器。</div>
+</div>
+
+<!-- ===== 缺失数据提醒弹窗 ===== -->
+<div class="modal-overlay" id="missingModal" style="display:none;">
+    <div class="modal-box">
+        <div class="modal-head">⚠️ 检测到考试数据缺失</div>
+        <div class="modal-body">
+            <p class="modal-summary">两次成绩按学号匹配后，<strong>有效人数为 <span id="missingValidCount">0</span> 人</strong>。以下学生存在某次考试数据缺失（缺失学生不参与分析）：</p>
+            <div class="modal-list-wrap">
+                <table class="modal-table">
+                    <thead>
+                        <tr><th>学号</th><th>姓名</th><th>缺失情况</th></tr>
+                    </thead>
+                    <tbody id="missingListBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn-sm" id="missingCancelBtn">✖ 取消</button>
+            <button class="btn-success" id="missingContinueBtn">▶ 继续分析</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 重新上传确认弹窗 ===== -->
+<div class="modal-overlay" id="confirmModal" style="display:none;">
+    <div class="modal-box">
+        <div class="modal-head">⚠️ 确认重新上传</div>
+        <div class="modal-body">
+            <p class="modal-summary">确定要重置所有数据吗？<strong>未保存的分析结果将丢失。</strong></p>
+        </div>
+        <div class="modal-foot">
+            <button class="btn-sm" id="confirmCancelBtn">✖ 取消</button>
+            <button class="btn-success" id="confirmOkBtn">✔ 确认重置</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
