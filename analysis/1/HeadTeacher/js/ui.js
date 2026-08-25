@@ -256,7 +256,7 @@
         Plotly.newPlot(HT.el.scatterPlot, allTraces, layout, config);
         HT.state.plotData = { data: allTraces, layout, config };
         const formulaText = `y = ${intercept.toFixed(4)} + ${slope.toFixed(4)} · x`;
-        HT.el.regressionFormula.innerHTML = `<code>📐 经验回归方程：${formulaText}</code>`;
+        HT.el.regressionFormula.innerHTML = `<code> 经验回归方程：${formulaText}</code>`;
         HT.el.downloadPlotBtn.onclick = function() {
             if (HT.state.plotData) {
                 Plotly.downloadImage(HT.el.scatterPlot, { format: 'png', filename: `回归散点图_${subject}` });
