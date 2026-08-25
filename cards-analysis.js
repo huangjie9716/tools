@@ -20,8 +20,8 @@ window.CARDS_ANALYSIS = [
         desc: '对考试成绩进行累计比率分析对比，生成多维度统计报表，辅助结果评价。',
         date: '2026.07.22',
         version: 'v1.2',
-        file: 'analysis/ResultAnalysis.html',
-        href: 'analysis/ResultAnalysis.html',
+        file: 'analysis/2/ResultAnalysis.html',
+        href: 'analysis/2/ResultAnalysis.html',
         action: 'link',
         actionText: '立即使用',
         templates: [
