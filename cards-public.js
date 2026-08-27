@@ -5,10 +5,10 @@ window.CARDS_PUBLIC = [
     {
         title: '3D球形环绕点名系统',
         desc: '创新的3D球形环绕随机点名工具，让课堂互动更具趣味性，支持自定义学生名单。',
-        date: '2026.08.14',
+        date: '2026.08.27',
         version: 'v1.1',
-        file: 'opencourse/RollCall.html',
-        href: 'opencourse/RollCall.html',
+        file: 'opencourse/1/RollCall.html',
+        href: 'opencourse/1/RollCall.html',
         action: 'link',
         actionText: '立即使用',
         templates: [
