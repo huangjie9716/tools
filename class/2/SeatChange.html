@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>初中班级座位智能调换系统</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js">
+    </script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js">
+    </script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="top-bar">
+            <div class="top-title-area">
+                <div class="logo-icon" aria-hidden="true">
+                    <svg width="30" height="30" viewBox="0 0 1030 1024" xmlns="http://www.w3.org/2000/svg"><path d="M384.375367 369.360704c0-75.073314 63.061584-135.131965 138.134897-135.131965 75.073314 0 138.134897 60.058651 138.134897 135.131965v141.13783h-276.269794v-141.13783z" fill="#efa814"></path><path d="M297.290323 426.416422l33.032258 489.478006h339.331378l33.032258-489.478006z" fill="#4C5870"></path><path d="M510.498534 108.105572m-84.082112 0a84.082111 84.082111 0 1 0 168.164223 0 84.082111 84.082111 0 1 0-168.164223 0Z" fill="#efa814"></path><path d="M510.498534 297.290323c-12.01173 0-21.020528 9.008798-21.020528 21.020527v105.10264h42.041056v-105.10264c0-9.008798-9.008798-21.020528-21.020528-21.020527z" fill="#4C5870"></path><path d="M786.768328 447.43695h-549.536656c-12.01173 0-24.02346-9.008798-24.023461-21.020528 0-12.01173 9.008798-21.020528 24.023461-21.020528h549.536656c12.01173 0 24.02346 9.008798 24.023461 21.020528-3.002933 12.01173-12.01173 21.020528-24.023461 21.020528z" fill="#A2A9AF"></path><path d="M498.486804 735.718475m-75.073314 0a75.073314 75.073314 0 1 0 150.146627 0 75.073314 75.073314 0 1 0-150.146627 0Z" fill="#efa814"></path><path d="M522.510264 852.832845c-75.073314 0-138.134897 57.055718-138.134897 126.123167h276.269794c0-69.067449-63.061584-126.123167-138.134897-126.123167z" fill="#efa814"></path><path d="M861.841642 735.718475m-75.073314 0a75.073314 75.073314 0 1 0 150.146628 0 75.073314 75.073314 0 1 0-150.146628 0Z" fill="#efa814"></path><path d="M861.841642 852.832845c-75.073314 0-138.134897 57.055718-138.134897 126.123167h276.269795c0-69.067449-63.061584-126.123167-138.134898-126.123167z" fill="#efa814"></path><path d="M159.155425 735.718475m-75.073314 0a75.073314 75.073314 0 1 0 150.146628 0 75.073314 75.073314 0 1 0-150.146628 0Z" fill="#efa814"></path><path d="M159.155425 852.832845c-75.073314 0-138.134897 57.055718-138.134897 126.123167h276.269795c0-69.067449-60.058651-126.123167-138.134898-126.123167z" fill="#efa814"></path><path d="M522.510264 192.187683c54.052786 0 96.093842-42.041056 96.093842-96.093841 0-54.052786-42.041056-96.093842-96.093842-96.093842s-96.093842 42.041056-96.093842 96.093842c0 54.052786 42.041056 96.093842 96.093842 96.093841z m0-144.140762c27.026393 0 48.046921 21.020528 48.046921 48.046921s-21.020528 48.046921-48.046921 48.04692c-27.026393 0-48.046921-21.020528-48.046921-48.04692s21.020528-48.046921 48.046921-48.046921zM363.354839 405.395894c12.01173 0 24.02346-12.01173 24.02346-24.02346 0-66.064516 51.049853-120.117302 114.111437-120.117302s114.111437 54.052786 114.111437 120.117302c0 12.01173 9.008798 24.02346 24.02346 24.02346s24.02346-12.01173 24.023461-24.02346c0-93.090909-72.070381-168.164223-159.155425-168.164223s-159.155425 75.073314-159.155426 168.164223c-6.005865 12.01173 6.005865 24.02346 18.017596 24.02346z" fill="#11113F"></path><path d="M705.68915 873.853372l30.029325-411.401759h69.067449c12.01173 0 24.02346-9.008798 24.02346-24.023461 0-12.01173-9.008798-24.02346-24.02346-24.02346h-273.266862v-93.090909c0-12.01173-9.008798-24.02346-24.023461-24.02346-12.01173 0-24.02346 9.008798-24.02346 24.02346v93.090909h-273.266862c-12.01173 0-24.02346 9.008798-24.023461 24.02346 0 12.01173 9.008798 24.02346 24.023461 24.023461h69.067448l30.029326 411.401759c0 12.01173 12.01173 21.020528 24.02346 21.020528h3.002933c12.01173 0 21.020528-12.01173 21.020528-24.02346l-30.029326-408.398827h360.351906l-30.029325 408.398827c0 12.01173 9.008798 24.02346 21.020528 24.02346h3.002932c12.01173 0 24.02346-9.008798 24.023461-21.020528z" fill="#11113F"></path><path d="M615.601173 735.718475c0-54.052786-42.041056-96.093842-96.093842-96.093842-54.052786 0-96.093842 42.041056-96.093841 96.093842s42.041056 96.093842 96.093841 96.093842c54.052786 0 96.093842-45.043988 96.093842-96.093842z m-141.13783 0c0-27.026393 21.020528-48.046921 48.046921-48.046921s48.046921 21.020528 48.046921 48.046921c0 27.026393-21.020528 48.046921-48.046921 48.046921s-48.046921-24.02346-48.046921-48.046921zM498.486804 831.812317c-87.085044 0-159.155425 75.073314-159.155426 168.164223 0 12.01173 9.008798 24.02346 24.023461 24.02346s24.02346-12.01173 24.02346-24.02346c0-66.064516 51.049853-120.117302 114.111437-120.117302s114.111437 54.052786 114.111437 120.117302c0 12.01173 9.008798 24.02346 24.02346 24.02346s24.02346-12.01173 24.023461-24.02346c-3.002933-93.090909-75.073314-168.164223-165.16129-168.164223zM765.747801 735.718475c0 54.052786 42.041056 96.093842 96.093841 96.093842s96.093842-42.041056 96.093842-96.093842-42.041056-96.093842-96.093842-96.093842-96.093842 42.041056-96.093841 96.093842z m96.093841-48.046921c27.026393 0 48.046921 21.020528 48.046921 48.046921 0 27.026393-21.020528 48.046921-48.046921 48.046921-27.026393 0-48.046921-21.020528-48.046921-48.046921 0-27.026393 21.020528-48.046921 48.046921-48.046921zM861.841642 831.812317c-87.085044 0-159.155425 75.073314-159.155425 168.164223 0 12.01173 9.008798 24.02346 24.02346 24.02346 12.01173 0 24.02346-12.01173 24.023461-24.02346 0-66.064516 51.049853-120.117302 114.111437-120.117302s114.111437 54.052786 114.111437 120.117302c0 12.01173 9.008798 24.02346 24.02346 24.02346 12.01173 0 24.02346-12.01173 24.023461-24.02346-6.005865-93.090909-78.076246-168.164223-165.161291-168.164223zM159.155425 831.812317c54.052786 0 96.093842-42.041056 96.093842-96.093842s-42.041056-96.093842-96.093842-96.093842-96.093842 42.041056-96.093841 96.093842 45.043988 96.093842 96.093841 96.093842z m0-144.140763c27.026393 0 48.046921 21.020528 48.046921 48.046921 0 27.026393-21.020528 48.046921-48.046921 48.046921s-48.046921-21.020528-48.046921-48.046921c0-27.026393 21.020528-48.046921 48.046921-48.046921zM159.155425 831.812317c-87.085044 0-159.155425 75.073314-159.155425 168.164223 0 12.01173 9.008798 24.02346 24.02346 24.02346 12.01173 0 24.02346-12.01173 24.023461-24.02346 0-66.064516 51.049853-120.117302 114.111437-120.117302s114.111437 54.052786 114.111437 120.117302c0 12.01173 9.008798 24.02346 24.02346 24.02346 12.01173 0 24.02346-12.01173 24.023461-24.02346-6.005865-93.090909-78.076246-168.164223-165.161291-168.164223z" fill="#11113F"></path></svg>
+                </div>
+                <div class="top-title-text">
+                    <h1>座位智能调换系统</h1>
+                    <p class="top-subtitle">初中班级座位自动编排</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="steps-indicator" id="stepsIndicator">
+            <div class="step-dot active" data-step="1"><span class="step-num">1</span>基础设置</div>
+            <div class="step-dot" data-step="2"><span class="step-num">2</span>学生信息</div>
+            <div class="step-dot" data-step="3"><span class="step-num">3</span>布局与生成</div>
+            <div class="step-dot" data-step="4"><span class="step-num">4</span>座位表调整</div>
+        </div>
+
+        <!-- 步骤1 -->
+        <section class="panel" id="panelStep1">
+            <div class="panel-header">
+                <h2>基础设置</h2>
+                <p class="hint">填写班主任姓名和班级名称，保存后可进入下一步</p>
+            </div>
+            <div id="welcomeBanner" class="welcome-banner" style="display:none;">
+                <svg class="welcome-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <span>你好，<strong id="displayTeacherName"></strong>！欢迎使用座位智能调换系统</span>
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label for="teacherNameInput">班主任姓名</label>
+                    <input type="text" id="teacherNameInput" class="input" placeholder="如：张老师">
+                </div>
+                <div class="field">
+                    <label for="classNameInput">班级名称</label>
+                    <input type="text" id="classNameInput" class="input" placeholder="如：初三(5)班">
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" id="btnSaveSettings">保存设置</button>
+                <button class="btn btn-outline btn-sm" id="btnClearSettings">清除本地数据</button>
+            </div>
+        </section>
+
+        <!-- 步骤2 -->
+        <section class="panel hidden" id="panelStep2">
+            <div class="panel-header">
+                <h2>上传学生信息</h2>
+                <p class="hint">请上传 Excel 文件（.xls / .xlsx），需包含以下列：学号、姓名、性别、学习能力（年级排名，数字越小越靠前）、活跃程度（1~5，越大越活跃）、身高等级（1~5，越大越高）</p>
+            </div>
+            <div class="upload-zone" id="uploadZone">
+                <svg class="upload-icon" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5m0 0l-4 4m4-4l4 4"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+                <p>点击选择文件，或将文件拖拽到此处</p>
+                <p class="hint" id="uploadedFileName"></p>
+            </div>
+            <input type="file" id="fileInput" accept=".xls,.xlsx" hidden>
+            <div class="student-preview" id="studentPreview" style="display:none;">
+                <table>
+                    <thead><tr><th>学号</th><th>姓名</th><th>性别</th><th>学习能力</th><th>活跃</th><th>身高</th></tr></thead>
+                    <tbody id="studentTableBody"></tbody>
+                </table>
+            </div>
+            <div class="student-actions">
+                <span id="studentCountInfo" class="student-count"></span>
+                <button class="btn btn-outline btn-sm" id="btnClearStudents" style="display:none;">清除学生</button>
+            </div>
+        </section>
+
+        <!-- 步骤3 -->
+        <section class="panel hidden" id="panelStep3">
+            <div class="panel-header">
+                <h2>座位布局配置</h2>
+                <p class="hint">设定大组数量和每组列数，并可选讲台两侧的"飞机位"学生</p>
+            </div>
+
+            <div class="preset-bar">
+                <span class="preset-label">推荐布局：</span>
+                <button class="btn btn-outline btn-sm" id="btnPreset1">1-3-3-1</button>
+                <button class="btn btn-outline btn-sm" id="btnPreset2">2-2-2-2</button>
+                <button class="btn btn-outline btn-sm" id="btnPreset3">2-3-2</button>
+            </div>
+
+            <div class="form-row">
+                <div class="field field-small">
+                    <label for="groupCountSelect">大组数</label>
+                    <select id="groupCountSelect" class="select">
+                        <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option>
+                    </select>
+                </div>
+                <div class="field field-grow">
+                    <label for="columnsPerGroupInput">每大组的列数（逗号分隔）</label>
+                    <input type="text" id="columnsPerGroupInput" class="input" value="1,3,3,1">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="field field-small">
+                    <label for="wingSeatToggle">飞机位</label>
+                    <select id="wingSeatToggle" class="select">
+                        <option value="no">否</option>
+                        <option value="yes">是（讲台两侧）</option>
+                    </select>
+                </div>
+                <div id="wingSeatSelectors" class="form-row wing-selectors" style="display:none;">
+                    <div class="field">
+                        <label for="wingLeftSelect">左侧飞机位学生</label>
+                        <select id="wingLeftSelect" class="select"><option value="">-- 选择 --</option></select>
+                    </div>
+                    <div class="field">
+                        <label for="wingRightSelect">右侧飞机位学生</label>
+                        <select id="wingRightSelect" class="select"><option value="">-- 选择 --</option></select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="layout-summary" id="layoutSummary"></div>
+
+            <div class="generate-area">
+                <button class="btn btn-primary btn-lg" id="btnGenerate">智能生成座位表</button>
+                <span class="hint">内置算法 · 每次生成结果不同</span>
+            </div>
+        </section>
+
+        <!-- 步骤4 -->
+        <section class="panel hidden" id="panelStep4">
+            <div class="panel-header">
+                <h2>座位表 <span id="seatTableTitle" class="seat-table-title"></span></h2>
+                <p class="hint">拖拽卡片交换座位，或单击选中一个座位后再单击另一个交换；再次点击已选中座位可取消</p>
+            </div>
+            <div class="classroom-container" id="classroomContainer">
+                <div class="classroom-inner" id="classroomInner">
+                    <div class="empty-tip">请先生成座位表</div>
+                </div>
+            </div>
+            <div class="legend" id="legendArea" style="display:none;">
+                <span>图例：</span>
+                <span class="legend-dot male-dot"></span> 男生
+                <span class="legend-dot female-dot"></span> 女生
+            </div>
+            <div class="btn-group action-bar">
+                <button class="btn btn-success" id="btnExportImage">导出图片</button>
+                <button class="btn btn-success btn-export-xlsx" id="btnExportXlsx">导出 Excel</button>
+                <button class="btn btn-outline" id="btnRegenerate">重新生成</button>
+                <button class="btn btn-outline btn-sm" id="btnResetSeating">恢复原始</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text">正在生成座位表...</div>
+    </div>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="modal-overlay" id="modalOverlay" hidden>
+        <div class="modal" role="dialog" aria-modal="true">
+            <svg class="modal-svg" width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <div class="modal-title" id="modalTitle"></div>
+            <div class="modal-text" id="modalText"></div>
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="modalCancel">取消</button>
+                <button class="btn btn-primary" id="modalOk">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
