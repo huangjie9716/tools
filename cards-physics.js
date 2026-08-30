@@ -42,5 +42,15 @@ window.CARDS_PHYSICS = [
         href: 'physics/3/FormulaGame.html',
         action: 'link',
         actionText: '立即使用'
+    },
+    {
+        title: '珠海市九洲中学2025级学生物理小组积分可视化系统',
+        desc: '珠海市九洲中学2025级1班和2班专用，小组合作探究学习崭新模式',
+        date: '2026.08.30',
+        version: 'v1.1',
+        file: 'physics/4/GroupPointsVisualization.html',
+        href: 'physics/4/GroupPointsVisualization.html',
+        action: 'link',
+        actionText: '立即使用'
     }
 ];
