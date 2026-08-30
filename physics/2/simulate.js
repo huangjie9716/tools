@@ -50,7 +50,7 @@ var simLinks = {
     //九年级第十四章
      '热机工作原理':'https://wl.nobook.com/physics/09be2259345bcfaa4aaab3724fc7ccc3?moduleId=4&is_resource_show=1&title=%E5%9B%9B%E5%86%B2%E7%A8%8B%E6%B1%BD%E6%B2%B9%E6%9C%BA&returnUrl=%2Fconsole%2Ftemplates%2Fresource&exp_id=171',
     //九年级第十五章
-     '摩擦起电的原因': 'experiment/eight15A3.html',
+     '摩擦起电的原因': 'experiment/nine15A3.html',
     //九年级第十六章
 
     //九年级第十七章
