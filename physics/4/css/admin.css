@@ -1,0 +1,247 @@
+/* ================================================================
+   管理员后台页面样式（复用 style.css 的暗色主题变量）
+   ================================================================ */
+
+.admin-container {
+    max-width: 760px;
+    padding-top: 26px;
+}
+.admin-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 22px;
+    text-align: center;
+}
+.admin-head .title-logo {
+    width: 52px;
+    height: 52px;
+    filter: drop-shadow(0 0 12px rgba(77, 208, 255, 0.35));
+}
+.admin-head h1 {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text);
+}
+
+.admin-card {
+    background: linear-gradient(180deg, var(--card), var(--card-2));
+    border: 1px solid var(--line-soft);
+    border-radius: 16px;
+    padding: 20px 22px;
+    margin-bottom: 16px;
+}
+.admin-card h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 14px;
+}
+
+.form-group {
+    margin-bottom: 14px;
+}
+.form-group label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+.form-group input[type="text"],
+.form-group input[type="password"],
+.form-group input[type="file"],
+.form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(120, 160, 255, 0.25);
+    background-color: #182233;
+    color: #e6edf7;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+.form-group input:hover,
+.form-group select:hover {
+    border-color: rgba(77, 208, 255, 0.45);
+}
+.form-group input:focus,
+.form-group select:focus {
+    border-color: rgba(77, 208, 255, 0.7);
+    box-shadow: 0 0 0 3px rgba(77, 208, 255, 0.15);
+}
+/* 下拉菜单：原生下拉（点击后向下弹出选项） */
+.form-group select {
+    font-weight: 500;
+    cursor: pointer;
+}
+.form-group select option {
+    background: #182233;
+    color: #e6edf7;
+}
+/* 卡片标题图标 */
+.admin-card h2 .card-icon {
+    width: 18px;
+    height: 18px;
+    vertical-align: -0.25em;
+    margin-right: 6px;
+}
+/* 文件选择按钮美化 */
+.form-group input[type="file"] {
+    padding: 6px 8px;
+    color: var(--text-dim);
+    cursor: pointer;
+}
+.form-group input[type="file"]::file-selector-button {
+    background: linear-gradient(135deg, #4dd0ff, #7c8cff);
+    color: #06121f;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-right: 12px;
+    transition: filter 0.2s;
+}
+.form-group input[type="file"]::file-selector-button:hover {
+    filter: brightness(1.08);
+}
+/* 当前管理员图标 */
+.who-icon {
+    width: 16px;
+    height: 16px;
+    vertical-align: -0.2em;
+    margin-right: 5px;
+    opacity: 0.9;
+}
+.form-group input::placeholder {
+    color: #5a6f84;
+}
+.form-row {
+    display: flex;
+    gap: 14px;
+}
+.form-row .form-group {
+    flex: 1;
+}
+.hint {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    line-height: 1.5;
+}
+
+.btn-primary-wide {
+    width: 100%;
+    padding: 11px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #4dd0ff, #7c8cff);
+    color: #06121f;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter 0.2s;
+}
+.btn-primary-wide:hover {
+    filter: brightness(1.08);
+}
+.btn-primary-wide:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.admin-msg {
+    margin-top: 10px;
+    font-size: 13px;
+    min-height: 18px;
+    color: var(--text-dim);
+}
+.admin-msg.error {
+    color: var(--warn, #f87171);
+}
+.admin-msg.success {
+    color: #4ade80;
+}
+
+.admin-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.who {
+    color: var(--text-dim);
+    font-size: 14px;
+}
+
+.preview-ok {
+    color: #4ade80;
+    font-size: 13px;
+    margin: 8px 0 4px;
+}
+.preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 6px 0 12px;
+}
+.preview-table th,
+.preview-table td {
+    border-bottom: 1px solid var(--line-soft);
+    padding: 6px 8px;
+    text-align: center;
+    color: var(--text);
+}
+.preview-table th {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.week-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.week-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--line-soft);
+    background: rgba(255, 255, 255, 0.02);
+}
+.week-item .wi-week {
+    font-weight: 600;
+    color: var(--text);
+}
+.week-item .wi-time {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-left: 8px;
+}
+
+.back-link {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 13px;
+}
+.back-link a {
+    color: var(--text-dim);
+    text-decoration: none;
+}
+.back-link a:hover {
+    color: var(--accent);
+}
+
+@media (max-width: 480px) {
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+}
