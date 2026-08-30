@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<!-- saved from url=(0055)https://www.html2web.com/view/69b02371585c28d1b97f5287/ -->
+<html lang="en" data-immersive-translate-page-theme="light"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>托盘天平虚拟实验室 · 质量与密度</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            user-select: none;
+        }
+        body {
+            background: linear-gradient(145deg, #e8f0f7 0%, #cddeec 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .lab-container {
+            max-width: 1400px;
+            width: 100%;
+            background: #f0f7fd;
+            border-radius: 48px;
+            box-shadow: 20px 20px 40px rgba(0,20,40,0.2), -10px -10px 30px #ffffff;
+            padding: 24px;
+        }
+        h1 {
+            margin: 0 0 12px 0;
+            font-weight: 400;
+            font-size: 2rem;
+            color: #1e3e5c;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        h1 small {
+            font-size: 1rem;
+            background: #2b5e8c;
+            color: white;
+            padding: 4px 16px;
+            border-radius: 40px;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+        .main-panel {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        /* 天平画布区 - 放大 */
+        .balance-area {
+            flex: 3;
+            min-width: 800px;
+            background: #e2ecf5;
+            border-radius: 36px;
+            box-shadow: inset 2px 2px 8px #b0c8dd, inset -4px -4px 12px #ffffff;
+            padding: 20px;
+        }
+        canvas#balanceCanvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #ecf3fa;
+            border-radius: 28px;
+            box-shadow: 0 0 0 1px #c0d0e0, 8px 8px 20px rgba(0,30,50,0.1);
+            margin-bottom: 15px;
+            cursor: crosshair;
+        }
+        .canvas-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 20px;
+            background: #d5e3f0;
+            border-radius: 60px;
+        }
+        .status-msg {
+            background: #1e3e5c;
+            color: white;
+            padding: 8px 24px;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 1rem;
+            box-shadow: 0 4px 0 #0b1f2f;
+        }
+        .reset-btn {
+            background: white;
+            border: none;
+            padding: 8px 28px;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1e3e5c;
+            box-shadow: 0 4px 0 #9fb8cc;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .reset-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+        /* 右侧工具区 - 更紧凑 */
+        .tool-area {
+            flex: 1.2;
+            min-width: 340px;
+            background: #e8f1fa;
+            border-radius: 36px;
+            box-shadow: inset 2px 2px 8px #b8ccdd, inset -4px -4px 12px #ffffff;
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .section-title {
+            font-weight: 600;
+            color: #1e4b6e;
+            margin: 0 0 12px 0;
+            border-bottom: 2px solid #a0bedb;
+            padding-bottom: 6px;
+            font-size: 1.3rem;
+        }
+        /* 砝码盒 */
+        .weight-box {
+            background: #cbdae9;
+            border-radius: 30px;
+            padding: 18px 12px;
+            box-shadow: inset 0 2px 10px #9ab3cc, 0 8px 0 #7f96ab;
+        }
+        .weights-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 10px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .weight-item {
+            width: 70px;
+            height: 70px;
+            background: #3a4c5e;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ffefcf;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 6px 0 #1f2e3b, 0 8px 10px rgba(0,0,0,0.3);
+            transition: 0.1s;
+            cursor: pointer;
+            border: 2px solid #b9c9dd;
+        }
+        .weight-item.disabled {
+            opacity: 0.3;
+            box-shadow: 0 2px 0 #1f2e3b;
+            transform: translateY(4px);
+            pointer-events: none;
+            filter: grayscale(0.5);
+        }
+        .weight-item span {
+            font-size: 0.75rem;
+            background: #ffd966;
+            color: #1e3e5c;
+            padding: 2px 6px;
+            border-radius: 20px;
+            margin-top: 2px;
+        }
+        .tweezers-area {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            background: #b0c8de;
+            border-radius: 60px;
+            padding: 8px 18px;
+            margin-top: 8px;
+        }
+        .tweezers-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 30px;
+            background: #d0d0d0;
+            box-shadow: inset -2px -2px 5px #707070, inset 3px 3px 8px white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            cursor: pointer;
+            border: 2px solid #5f7a9a;
+            transition: 0.1s;
+        }
+        .tweezers-icon.active {
+            background: #f4d03f;
+            border-color: #b06200;
+            box-shadow: 0 0 0 3px #ffe066;
+        }
+        .tweezers-status {
+            font-weight: 600;
+            color: #0e3a5c;
+        }
+        /* 右盘砝码列表 */
+        .right-pan-weights {
+            background: #d8e5f0;
+            border-radius: 20px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+        .right-pan-title {
+            font-weight: 600;
+            color: #113750;
+            margin-bottom: 8px;
+        }
+        .weight-tag {
+            display: inline-block;
+            background: #3f5e7a;
+            color: white;
+            border-radius: 30px;
+            padding: 5px 12px;
+            margin: 4px;
+            font-size: 0.9rem;
+            box-shadow: 0 3px 0 #1f364a;
+            cursor: pointer;
+        }
+        .weight-tag:hover {
+            background: #5b7f9e;
+        }
+        /* 物体区 */
+        .object-area {
+            background: #d0dfee;
+            border-radius: 24px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: inset -2px -2px 8px white, inset 2px 2px 8px #9fb0c0;
+        }
+        .metal-block {
+            width: 100px;
+            height: 80px;
+            background: radial-gradient(circle at 30% 30%, #d8d8d8, #7e8a92);
+            border-radius: 20px 8px 20px 8px;
+            margin: 0 auto 12px;
+            box-shadow: 0 10px 0 #4f5a63, 0 12px 15px #00000030;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #2d2d2d;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border: 2px solid #aab9c9;
+            transition: 0.1s;
+        }
+        .metal-block.disabled {
+            opacity: 0.3;
+            transform: translateY(5px);
+            box-shadow: 0 5px 0 #4f5a63;
+            pointer-events: none;
+        }
+        .btn-small {
+            background: #5f7d9c;
+            border: none;
+            color: white;
+            padding: 6px 15px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #2f4a66;
+            margin: 5px;
+            transition: 0.1s;
+        }
+        .btn-small:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+        .read-area {
+            background: #bcd2e8;
+            border-radius: 20px;
+            padding: 16px;
+        }
+        .input-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .input-group input {
+            flex: 2;
+            padding: 10px 12px;
+            border: 2px solid #a0bcdc;
+            border-radius: 40px;
+            font-size: 1.2rem;
+            text-align: center;
+            background: white;
+            outline: none;
+        }
+        .input-group button {
+            flex: 1;
+            background: #f5b342;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 10px 12px;
+            border-radius: 40px;
+            color: #1e3e5c;
+            box-shadow: 0 5px 0 #a06b1f;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .input-group button:active {
+            transform: translateY(5px);
+            box-shadow: none;
+        }
+        .mass-feedback {
+            background: #e3edf5;
+            border-radius: 30px;
+            padding: 12px;
+            font-size: 1.2rem;
+            font-weight: 500;
+            text-align: center;
+            color: #003153;
+            border: 2px solid #a0bcdc;
+            min-height: 60px;
+        }
+        .question-box {
+            background: #ddebf5;
+            border-radius: 24px;
+            padding: 16px;
+            border-left: 6px solid #2b5797;
+        }
+        .question-box p {
+            margin: 8px 0;
+            font-weight: 500;
+        }
+        .question-box ul {
+            padding-left: 24px;
+            margin: 8px 0;
+        }
+        .question-box li {
+            margin: 6px 0;
+            color: #103456;
+        }
+        footer {
+            margin-top: 24px;
+            text-align: center;
+            color: #4d6985;
+        }
+    </style>
+<style data-id="immersive-translate-input-injected-css"></style></head>
+<body>
+<div class="lab-container">
+    <h1>⚖️ 托盘天平虚拟实验室 <small>人教版·第六章 质量与密度</small></h1>
+    <div class="main-panel">
+        <!-- 左侧天平画布 -->
+        <div class="balance-area">
+            <canvas id="balanceCanvas" width="900" height="450"></canvas>
+            <div class="canvas-controls">
+                <div class="status-msg" id="statusMsg">✅ 平衡! 输入测量值并提交</div>
+                <button class="reset-btn" id="resetBtn">⟲ 重置新实验</button>
+            </div>
+            <!-- 平衡螺母滑块 (符合物理调节方向) -->
+            <div style="display: flex; gap: 30px; justify-content: center; margin-top: 20px;">
+                <div style="display: flex; align-items: center; gap: 10px; background: #d3e2f0; padding: 6px 20px; border-radius: 40px;">
+                    <span style="font-weight:600;">左平衡螺母</span>
+                    <input type="range" id="leftNut" min="0" max="1" step="0.02" value="0.5" style="width:140px;" disabled="">
+                    <span id="leftNutVal" style="min-width:40px;">0.80</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; background: #d3e2f0; padding: 6px 20px; border-radius: 40px;">
+                    <span style="font-weight:600;">右平衡螺母</span>
+                    <input type="range" id="rightNut" min="0" max="1" step="0.02" value="0.5" style="width:140px;" disabled="">
+                    <span id="rightNutVal" style="min-width:40px;">0.80</span>
+                </div>
+            </div>
+        </div>
+        <!-- 右侧操作区 -->
+        <div class="tool-area">
+            <div>
+                <div class="section-title">🧰 砝码盒 &amp; 镊子</div>
+                <div class="weight-box">
+                    <div class="weights-grid" id="weightBox"><div class="weight-item disabled" data-id="w100" data-mass="100">100<span>g</span></div><div class="weight-item" data-id="w50" data-mass="50">50<span>g</span></div><div class="weight-item" data-id="w20a" data-mass="20">20<span>g</span></div><div class="weight-item disabled" data-id="w20b" data-mass="20">20<span>g</span></div><div class="weight-item disabled" data-id="w10" data-mass="10">10<span>g</span></div><div class="weight-item disabled" data-id="w5" data-mass="5">5<span>g</span></div></div>
+                    <div class="tweezers-area">
+                        <div class="tweezers-icon active" id="tweezersBtn">⚡</div>
+                        <span class="tweezers-status" id="tweezersStatus">镊子激活</span>
+                    </div>
+                    <p style="font-size:0.8rem; margin:8px 0 0; color:#1a4450;">⚡ 激活镊子后点击砝码取用；点击右盘砝码标签放回</p>
+                </div>
+            </div>
+            <!-- 右盘砝码列表 -->
+            <div class="right-pan-weights" id="rightPanList">
+                <div class="right-pan-title">🔴 右盘中的砝码 (点击放回)</div>
+                <div id="rightPanTags" style="display: flex; flex-wrap: wrap; gap: 6px;"><span class="weight-tag" data-mass="100" data-index="0">100g</span><span class="weight-tag" data-mass="20" data-index="1">20g</span><span class="weight-tag" data-mass="10" data-index="2">10g</span><span class="weight-tag" data-mass="5" data-index="3">5g</span></div>
+            </div>
+
+            <div>
+                <div class="section-title">🧪 待测物体 (未知质量)</div>
+                <div class="object-area">
+                    <div class="metal-block disabled" id="objectBlock">物体A</div>
+                    <button class="btn-small" id="takeObjectBtn" style="display: inline-block;">移走物体</button>
+                    <p style="margin:5px 0;">点击物体放置到左盘</p>
+                </div>
+            </div>
+
+            <!-- 读数区域改为输入+反馈 -->
+            <div class="read-area">
+                <div class="input-group">
+                    <input type="number" id="massInput" step="0.1" min="0" max="210" placeholder="输入质量(g)">
+                    <button id="submitMassBtn">提交</button>
+                </div>
+                <div class="mass-feedback" id="massFeedback">❌ 错误，实际质量约为 139.0 g，你的测量值 138.8 g 偏差较大</div>
+            </div>
+
+            <div class="question-box">
+                <p>📌 实验思考：</p>
+                <ul>
+                    <li>1. 天平指针偏左，应向左还是向右调平衡螺母？</li>
+                    <li>2. 为什么必须用镊子夹取砝码？</li>
+                    <li>3. 若砝码磨损，测量值偏大还是偏小？</li>
+                    <li>4. 游码在标尺上的分度值是多少？</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <footer>🧑‍🔬 严格按照人教版操作：游码归零 → 调平 → 左物右码 → 从大到小加砝码 → 调游码 → 读数</footer>
+</div>
+<script>
+    (function(){
+        // ---------- 科学常量 ----------
+        const SCALE_RANGE = 5;              // 标尺量程 5g
+        const SCALE_DIVISION = 0.2;          // 分度值 0.2g
+
+        const weightsDef = [
+            { id: 'w100', mass: 100, label: '100g' },
+            { id: 'w50', mass: 50, label: '50g' },
+            { id: 'w20a', mass: 20, label: '20g' },
+            { id: 'w20b', mass: 20, label: '20g' },
+            { id: 'w10', mass: 10, label: '10g' },
+            { id: 'w5', mass: 5, label: '5g' }
+        ];
+
+        // ---------- 全局状态 ----------
+        let stage = 0;            // 0:游码归零  1:调平衡  2:放物体  3:加砝码  4:移动游码  5:读数完成
+        let tweezersActive = false;
+        let leftNutVal = 0.5;      // 初始随机值稍后覆盖
+        let rightNutVal = 0.5;     // 初始随机值稍后覆盖
+        let zeroOk = false;
+        let objectOnLeft = false;
+        let leftPanMass = 0;        // 物体实际质量（随机生成）
+        let currentObjectMass = 72.2; // 默认，重置时随机
+        let rightPanMasses = [];        // 存储当前在右盘的砝码质量值
+        let riderPos = 1.0;              // 游码位置 (g) 初始1g，需要归零
+        // 砝码可用性 (在盒中)
+        let weightsAvailable = {};
+        weightsDef.forEach(w => { weightsAvailable[w.id] = true; });
+
+        // ---------- 辅助函数：随机初始化 ----------
+        function randomInit() {
+            // 随机平衡螺母位置 (0~1)
+            leftNutVal = parseFloat((Math.random() * 0.8 + 0.1).toFixed(2)); // 0.1~0.9 避免极端
+            rightNutVal = parseFloat((Math.random() * 0.8 + 0.1).toFixed(2));
+            // 随机物体质量：0.2的倍数，范围1.0~200.0g (确保在量程内)
+            let steps = Math.floor(Math.random() * (200/0.2 - 1/0.2) + 1/0.2); // 大约5~1000
+            currentObjectMass = Math.round((steps * 0.2) * 10) / 10; // 保留一位小数
+            if (currentObjectMass < 0.2) currentObjectMass = 10.0; // 安全fallback
+            // 重置实验相关状态
+            stage = 0;
+            tweezersActive = false;
+            objectOnLeft = false;
+            leftPanMass = 0;
+            rightPanMasses = [];
+            riderPos = 1.0;  // 游码初始不在零
+            weightsDef.forEach(w => weightsAvailable[w.id] = true);
+            document.getElementById('massInput').value = '';
+            document.getElementById('massFeedback').innerText = '等待测量...';
+        }
+
+        // ---------- 辅助函数 ----------
+        function getRightPanTotal() {
+            return rightPanMasses.reduce((acc, m) => acc + m, 0);
+        }
+
+        // 计算指针偏转量 (单位: 指针尖端x偏移量, 正数表示偏左)
+        function getPointerOffset() {
+            let left = leftPanMass;
+            let right = getRightPanTotal() + riderPos;
+            let massDiff = left - right;   // 正:左重
+            
+            // 螺母影响：左螺母增大(向左移动)使左盘更重 -> 增加正值; 右螺母增大(向右移动)使右盘更重 -> 减少正值
+            let leftNutEffect = (leftNutVal - 0.5) * 2.0;   // -1..1  正值表示左螺母偏左 -> 左盘重
+            let rightNutEffect = (rightNutVal - 0.5) * 2.0; // -1..1  正值表示右螺母偏右 -> 右盘重
+            let nutImbalance = leftNutEffect - rightNutEffect; // 正:左重
+            
+            // 综合偏移量 (灵敏度)
+            return massDiff * 5 + nutImbalance * 2.0;
+        }
+
+        // 判断指针是否近似居中 (用于调平衡)
+        function isBalanced() {
+            return Math.abs(getPointerOffset()) < 1.0;
+        }
+
+        // 更新UI
+        function refreshUI() {
+            document.getElementById('leftNutVal').innerText = leftNutVal.toFixed(2);
+            document.getElementById('rightNutVal').innerText = rightNutVal.toFixed(2);
+            const leftSlider = document.getElementById('leftNut');
+            const rightSlider = document.getElementById('rightNut');
+            // 滑块启用条件: stage>=1 且 stage<5, 且游码已归零( stage>=1 隐含归零)
+            leftSlider.disabled = !(stage >= 1 && stage < 5);
+            rightSlider.disabled = !(stage >= 1 && stage < 5);
+            // 滑块值同步
+            leftSlider.value = leftNutVal;
+            rightSlider.value = rightNutVal;
+
+            // 镊子激活UI
+            const tzBtn = document.getElementById('tweezersBtn');
+            if (tweezersActive) {
+                tzBtn.classList.add('active');
+                document.getElementById('tweezersStatus').innerText = '镊子激活';
+            } else {
+                tzBtn.classList.remove('active');
+                document.getElementById('tweezersStatus').innerText = '镊子未激活';
+            }
+
+            // 砝码灰显
+            document.querySelectorAll('.weight-item').forEach(el => {
+                const wid = el.dataset.id;
+                if (weightsAvailable[wid]) {
+                    el.classList.remove('disabled');
+                } else {
+                    el.classList.add('disabled');
+                }
+            });
+
+            // 物体块灰显
+            const objDiv = document.getElementById('objectBlock');
+            if (objectOnLeft) {
+                objDiv.classList.add('disabled');
+                document.getElementById('takeObjectBtn').style.display = 'inline-block';
+            } else {
+                objDiv.classList.remove('disabled');
+                document.getElementById('takeObjectBtn').style.display = 'none';
+            }
+
+            // 更新右盘砝码标签
+            const tagContainer = document.getElementById('rightPanTags');
+            tagContainer.innerHTML = '';
+            rightPanMasses.forEach((mass, index) => {
+                let tag = document.createElement('span');
+                tag.className = 'weight-tag';
+                tag.innerText = mass + 'g';
+                tag.dataset.mass = mass;
+                tag.dataset.index = index;
+                tag.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!tweezersActive) { alert('请先激活镊子'); return; }
+                    let idx = parseInt(e.target.dataset.index);
+                    let massToRemove = rightPanMasses[idx];
+                    // 找到对应id
+                    let idToReturn = weightsDef.find(w => w.mass === massToRemove && !weightsAvailable[w.id])?.id;
+                    if (idToReturn) {
+                        rightPanMasses.splice(idx, 1);
+                        weightsAvailable[idToReturn] = true;
+                        if (stage === 5 && !isBalanced()) stage = 4;
+                        refreshUI();
+                    }
+                });
+                tagContainer.appendChild(tag);
+            });
+
+            updateStatusMessage();
+            drawBalance();
+        }
+
+        function updateStatusMessage() {
+            const msgDiv = document.getElementById('statusMsg');
+            if (stage === 0) msgDiv.innerText = '① 请用镊子将游码归零 (点击标尺0刻度线左侧)';
+            else if (stage === 1) msgDiv.innerText = '② 调节平衡螺母使指针对中';
+            else if (stage === 2) msgDiv.innerText = '③ 点击物体放置左盘';
+            else if (stage === 3) msgDiv.innerText = '④ 从大到小加砝码 (镊子)';
+            else if (stage === 4) msgDiv.innerText = '⑤ 移动游码至天平平衡';
+            else if (stage === 5) msgDiv.innerText = '✅ 平衡! 输入测量值并提交';
+            else msgDiv.innerText = '实验完成';
+        }
+
+        // ---------- 画布绘制 (与之前相同，略作调整确保螺母显示) ----------
+        function drawBalance() {
+            const canvas = document.getElementById('balanceCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 900, 450);
+
+            // 底座
+            ctx.fillStyle = '#8b6e4b';
+            ctx.fillRect(200, 330, 500, 20);
+            ctx.fillStyle = '#b19474';
+            ctx.fillRect(200, 320, 500, 10);
+            // 立柱 (灰色)
+            ctx.fillStyle = '#8a9aa8';
+            ctx.fillRect(440, 200, 20, 130);
+            // 横梁 (棕色) 在立柱顶端
+            ctx.fillStyle = '#7a5d3c';
+            ctx.fillRect(240, 190, 420, 12);  // 横梁从x=240到x=660
+            // 横梁两端的刀口/吊环
+            ctx.fillStyle = '#c0a16b';
+            ctx.beginPath();
+            ctx.arc(260, 190, 8, 0, 2*Math.PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(640, 190, 8, 0, 2*Math.PI);
+            ctx.fill();
+            
+            // 平衡螺母 (左右) 画在横梁两端，用滑块值微调位置（视觉上象征性偏移）
+            let leftNutOffset = (leftNutVal - 0.5) * 10; // -5~5
+            let rightNutOffset = (rightNutVal - 0.5) * 10;
+            ctx.fillStyle = '#5a4a33';
+            ctx.fillRect(220 + leftNutOffset, 180, 20, 30);  // 左螺母
+            ctx.fillRect(660 + rightNutOffset, 180, 20, 30); // 右螺母
+            ctx.fillStyle = '#ffd966';
+            ctx.font = '10px Arial';
+            ctx.fillText('左', 225 + leftNutOffset, 200);
+            ctx.fillText('右', 665 + rightNutOffset, 200);
+
+            // 吊绳和托盘 (左)
+            ctx.beginPath();
+            ctx.moveTo(260, 190);
+            ctx.lineTo(260, 260);
+            ctx.strokeStyle = '#7f8c8d';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = '#b78a5b';
+            ctx.beginPath();
+            ctx.ellipse(260, 280, 40, 12, 0, 0, 2*Math.PI);
+            ctx.fill();
+            // 右托盘
+            ctx.beginPath();
+            ctx.moveTo(640, 190);
+            ctx.lineTo(640, 260);
+            ctx.stroke();
+            ctx.fillStyle = '#b78a5b';
+            ctx.beginPath();
+            ctx.ellipse(640, 280, 40, 12, 0, 0, 2*Math.PI);
+            ctx.fill();
+
+            // 左盘物体
+            if (objectOnLeft) {
+                ctx.fillStyle = '#506070';
+                ctx.shadowColor = '#00000030';
+                ctx.shadowBlur = 8;
+                ctx.fillRect(235, 255, 50, 30);
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#f0f0f0';
+                ctx.font = 'bold 12px monospace';
+                ctx.fillText('A', 250, 277);
+            }
+
+            // 右盘砝码绘制
+            let baseX = 615, baseY = 255;
+            rightPanMasses.slice(0,4).forEach((m, idx) => {
+                ctx.fillStyle = '#3f5252';
+                ctx.fillRect(baseX + idx*5, baseY - idx*8, 22, 14);
+                ctx.fillStyle = '#efd9b0';
+                ctx.font = '10px Arial';
+                ctx.fillText(m+'g', baseX+idx*5+2, baseY - idx*8+10);
+            });
+
+            // 标尺
+            ctx.fillStyle = '#4f605f';
+            ctx.fillRect(240, 350, 420, 8);
+            for (let g = 0; g <= 5; g += 0.2) {
+                let x = 240 + (g/5)*420;
+                let height = (Math.abs(g - Math.round(g)) < 0.01) ? 16 : 8;
+                ctx.fillStyle = '#000';
+                ctx.fillRect(x-1, 346, 2, height);
+            }
+            ctx.fillStyle = '#000';
+            ctx.font = '12px Arial';
+            ctx.fillText('0', 235, 380);
+            ctx.fillText('1', 240 + (1/5)*420 - 6, 380);
+            ctx.fillText('2', 240 + (2/5)*420 - 6, 380);
+            ctx.fillText('3', 240 + (3/5)*420 - 6, 380);
+            ctx.fillText('4', 240 + (4/5)*420 - 6, 380);
+            ctx.fillText('5', 240 + (5/5)*420 - 6, 380);
+
+            // 游码 (左侧对准刻度)
+            let riderX = 240 + (riderPos/5)*420;
+            ctx.fillStyle = '#c0392b';
+            ctx.fillRect(riderX, 334, 20, 22);
+            ctx.fillStyle = '#fff';
+            ctx.font = '10px monospace';
+            ctx.fillText('游码', riderX+2, 352);
+
+            // 分度盘和指针
+            ctx.beginPath();
+            ctx.arc(450, 130, 35, 0, 2*Math.PI);
+            ctx.fillStyle = '#ede7d9';
+            ctx.fill();
+            ctx.strokeStyle = '#4a3f2b';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            // 中央线
+            ctx.beginPath();
+            ctx.moveTo(450, 100);
+            ctx.lineTo(450, 160);
+            ctx.strokeStyle = '#b33';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            for (let i = -2; i <= 2; i++) {
+                if (i !== 0) {
+                    ctx.fillRect(450 + i*10 -2, 125, 4, 10);
+                }
+            }
+
+            let offset = getPointerOffset();
+            let tipX = 450 - Math.max(-20, Math.min(20, offset * 1.5));
+            ctx.beginPath();
+            ctx.moveTo(450, 190);
+            ctx.lineTo(tipX, 140);
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#b33';
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(tipX, 140, 4, 0, 2*Math.PI);
+            ctx.fillStyle = '#b33';
+            ctx.fill();
+        }
+
+        // ---------- 操作事件 ----------
+        function tryMoveRider(newPosG) {
+            if (!tweezersActive) { alert('请先激活镊子'); return false; }
+            if (stage === 0) {
+                if (Math.abs(newPosG) < 0.01) {
+                    riderPos = 0;
+                    stage = 1;
+                    refreshUI();
+                    return true;
+                } else {
+                    alert('第一步必须将游码归零 (点击标尺0刻度左侧)');
+                    return false;
+                }
+            }
+            if (stage >= 3 && stage !== 5) {
+                if (stage === 3) stage = 4;
+                riderPos = Math.min(5, Math.max(0, Math.round(newPosG/0.2)*0.2));
+                if (objectOnLeft && isBalanced() && stage === 4) {
+                    stage = 5;
+                }
+                refreshUI();
+                return true;
+            } else {
+                alert('现在不能移动游码 (请先加砝码)');
+                return false;
+            }
+        }
+
+        function handleWeightClick(weightId, mass) {
+            if (!tweezersActive) { alert('必须用镊子取放砝码！'); return; }
+            if (weightsAvailable[weightId]) {
+                // 取砝码
+                if (stage < 2) { alert('请先放物体到左盘'); return; }
+                if (stage === 2) stage = 3;
+                rightPanMasses.push(mass);
+                weightsAvailable[weightId] = false;
+                refreshUI();
+            }
+        }
+
+        // 物体放置/移走
+        function placeObject() {
+            if (objectOnLeft) return;
+            if (stage !== 2) { alert('请先完成调平'); return; }
+            objectOnLeft = true;
+            leftPanMass = currentObjectMass;  // 使用随机质量
+            stage = 3;
+            refreshUI();
+        }
+        function takeObject() {
+            if (!objectOnLeft) return;
+            objectOnLeft = false;
+            leftPanMass = 0;
+            if (stage > 2) stage = 2;
+            refreshUI();
+        }
+
+        // 提交测量值
+        function submitMass() {
+            if (stage !== 5) {
+                alert('天平尚未平衡，请完成测量');
+                return;
+            }
+            const input = document.getElementById('massInput');
+            const value = parseFloat(input.value);
+            if (isNaN(value)) {
+                alert('请输入有效数字');
+                return;
+            }
+            // 允许误差0.1g以内 (因为游码分度0.2，但学生可能估读)
+            let diff = Math.abs(value - currentObjectMass);
+            let feedback = document.getElementById('massFeedback');
+            if (diff < 0.15) {  // 小于0.15g认为正确
+                feedback.innerHTML = `✅ 正确！物体质量为 ${currentObjectMass.toFixed(1)} g`;
+            } else {
+                feedback.innerHTML = `❌ 错误，实际质量约为 ${currentObjectMass.toFixed(1)} g，你的测量值 ${value.toFixed(1)} g 偏差较大`;
+            }
+        }
+
+        // ---------- 事件绑定 ----------
+        window.addEventListener('load', ()=>{
+            // 随机初始化
+            randomInit();
+
+            const container = document.getElementById('weightBox');
+            weightsDef.forEach(w => {
+                let div = document.createElement('div');
+                div.className = 'weight-item';
+                div.dataset.id = w.id;
+                div.dataset.mass = w.mass;
+                div.innerHTML = `${w.mass}<span>g</span>`;
+                div.addEventListener('click', (e)=>{
+                    e.stopPropagation();
+                    handleWeightClick(w.id, w.mass);
+                });
+                container.appendChild(div);
+            });
+
+            document.getElementById('tweezersBtn').addEventListener('click', ()=>{
+                tweezersActive = !tweezersActive;
+                refreshUI();
+            });
+
+            document.getElementById('leftNut').addEventListener('input', (e)=>{
+                leftNutVal = parseFloat(e.target.value);
+                if (stage === 1 && isBalanced()) { stage = 2; }
+                refreshUI();
+            });
+            document.getElementById('rightNut').addEventListener('input', (e)=>{
+                rightNutVal = parseFloat(e.target.value);
+                if (stage === 1 && isBalanced()) { stage = 2; }
+                refreshUI();
+            });
+
+            document.getElementById('objectBlock').addEventListener('click', placeObject);
+            document.getElementById('takeObjectBtn').addEventListener('click', takeObject);
+
+            document.getElementById('submitMassBtn').addEventListener('click', submitMass);
+
+            const canvas = document.getElementById('balanceCanvas');
+            canvas.addEventListener('click', (e)=>{
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                let canvasX = (e.clientX - rect.left) * scaleX;
+                if (canvasX >= 240 && canvasX <= 660) {
+                    let posG = ((canvasX - 240) / 420) * 5;
+                    posG = Math.min(5, Math.max(0, posG));
+                    posG = Math.round(posG/0.2)*0.2;
+                    tryMoveRider(posG);
+                }
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', ()=>{
+                randomInit();
+                refreshUI();
+            });
+
+            refreshUI();
+        });
+    })();
+</script>
+
+</body></html>
