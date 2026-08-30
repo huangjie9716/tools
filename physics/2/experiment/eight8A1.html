@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><script data-html2web-source-protection="">
+(function () {
+  function blockShortcut(event) {
+    var key = String(event.key || '').toUpperCase();
+    var inspect = key === 'F12' || ((event.ctrlKey || event.metaKey) && event.shiftKey && ['I', 'J', 'C'].indexOf(key) >= 0);
+    var sourceOrSave = (event.ctrlKey || event.metaKey) && ['U', 'S'].indexOf(key) >= 0;
+    if (inspect || sourceOrSave) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
+  document.addEventListener('contextmenu', function (event) { event.preventDefault(); }, true);
+  document.addEventListener('keydown', blockShortcut, true);
+})();
+</script>
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>探究阻力对物体运动的影响 - 交互实验</title>
+  <script src="./gsap.min.js.下载"></script>
+  <style>
+        :root {
+            --bg-color: #ffffff;
+            --panel-bg: rgba(240, 245, 250, 0.85);
+            --accent-color: #2563eb;
+            --text-color: #1e293b;
+            --danger-color: #dc2626;
+            --success-color: #059669;
+            --ramp-color: #94a3b8;
+            --ground-base: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title-header {
+            width: 100%;
+            background: var(--accent-color);
+            color: #ffffff;
+            text-align: center;
+            padding: 18px 0;
+            font-size: 1.8rem;
+            font-weight: bold;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
+            z-index: 3;
+        }
+
+        #particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            z-index: 1;
+            position: relative;
+        }
+
+        .control-panel {
+            width: 100%;
+            min-height: 180px;
+            max-height: 200px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            z-index: 2;
+            overflow-x: auto;
+        }
+
+        .panel-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            flex: 1;
+            min-width: 100%;
+        }
+
+        .control-group {
+            background: rgba(255,255,255,0.5);
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.05);
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .material-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .material-btn {
+            background: rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.1);
+            color: var(--text-color);
+            padding: 8px 6px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        .material-btn:hover { background: rgba(0,0,0,0.1); }
+        .material-btn.active { 
+            background: var(--accent-color); 
+            border-color: var(--accent-color); 
+            color: #ffffff; 
+            font-weight: bold; 
+        }
+
+        /* 新增：释放位置滑块样式 */
+        .release-slider-container { 
+            margin: 8px 0; 
+        }
+        .slider-label { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 5px; 
+            font-size: 0.85rem; 
+        }
+        input[type=range] {
+            width: 100%;
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 0 8px var(--accent-color);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #cbd5e1;
+            border-radius: 2px;
+        }
+
+        .demo-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #f8fafc 0%, #ffffff 100%);
+            height: calc(100vh - 180px - 60px);
+        }
+
+        .scene-container {
+            position: absolute;
+            bottom: 10%;
+            left: 50px;
+            width: 2000px;
+            height: 300px;
+            transform-origin: bottom left;
+        }
+
+        /* 新增：释放位置标记点 */
+        .release-point {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 12px solid var(--success-color);
+            z-index: 4;
+            transform: translateX(-8px);
+        }
+        .release-point-label {
+            position: absolute;
+            top: -30px;
+            left: -20px;
+            width: 40px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--success-color);
+            font-weight: bold;
+            background: rgba(255,255,255,0.9);
+            border-radius: 4px;
+            padding: 3px;
+        }
+
+        .ramp {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 300px;
+            height: 150px;
+            background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+            clip-path: polygon(0 100%, 100% 100%, 0 0);
+            z-index: 2;
+        }
+        
+        .ramp::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: rgba(0,0,0,0.3);
+            transform: rotate(26.565deg);
+            transform-origin: top left;
+        }
+
+        .ground {
+            position: absolute;
+            bottom: 0;
+            left: 0; 
+            width: 100%;
+            height: 40px;
+            background: var(--ground-base);
+            z-index: 1;
+            transition: background 0.5s;
+            border-top: 2px solid rgba(0,0,0,0.2);
+        }
+
+        .ground.texture-towel { background: repeating-linear-gradient(45deg, #d6b8a2, #d6b8a2 10px, #c8a68c 10px, #c8a68c 20px); }
+        .ground.texture-cotton { background: repeating-linear-gradient(90deg, #bfc8d4, #bfc8d4 5px, #e2e8f0 5px, #e2e8f0 10px); }
+        .ground.texture-wood { background: repeating-linear-gradient(0deg, #dba569, #dba569 20px, #c88a42 22px); }
+        .ground.texture-ice { background: linear-gradient(90deg, #93c5fd, #dbeafe); box-shadow: 0 0 20px #93c5fd; }
+
+        .cart {
+            position: absolute;
+            width: 70px;
+            height: 40px;
+            background: linear-gradient(to bottom, #3b82f6, #2563eb);
+            border-radius: 6px 6px 0 0;
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            left: 0; 
+            bottom: 0; 
+            transform-origin: 35px 50px;
+        }
+
+        .cart::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 10px;
+            right: 10px;
+            height: 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+        }
+
+        .wheel {
+            position: absolute;
+            bottom: -10px;
+            width: 20px;
+            height: 20px;
+            background: #475569;
+            border-radius: 50%;
+            border: 3px solid #94a3b8;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: transform 0.1s linear;
+        }
+
+        .wheel-left {
+            left: 8px;
+        }
+
+        .wheel-right {
+            right: 8px;
+        }
+
+        .wheel::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 2px;
+            height: 8px;
+            background: #ffffff;
+            transform: translate(-50%, -50%);
+            border-radius: 1px;
+        }
+
+        .wheel::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 2px;
+            background: #ffffff;
+            transform: translate(-50%, -50%);
+            border-radius: 1px;
+        }
+
+        .ruler {
+            position: absolute;
+            bottom: -30px;
+            left: 300px;
+            width: 100%;
+            height: 20px;
+            display: flex;
+            color: rgba(0,0,0,0.7);
+            font-size: 10px;
+        }
+        .tick {
+            width: 50px;
+            height: 100%;
+            border-left: 1px solid rgba(0,0,0,0.3);
+            padding-left: 5px;
+            position: relative;
+        }
+
+        .angle-mark {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 80px;
+            height: 80px;
+            border: 2px solid transparent;
+            border-top: 2px dashed var(--accent-color);
+            border-radius: 0 100% 0 0;
+            transform-origin: bottom left;
+            transform: scaleX(-1) rotate(63.435deg);
+            opacity: 0.8;
+            pointer-events: none;
+        }
+        .angle-text {
+            position: absolute;
+            bottom: 60px;
+            left: 80px;
+            color: var(--accent-color);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        h2 { margin: 0 0 6px 0; font-size: 1rem; color: var(--accent-color); }
+        h3 { margin: 0 0 6px 0; font-size: 0.8rem; color: #475569; font-weight: normal; }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.7);
+            padding: 6px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        /* 修改：距离单位显示为分米 */
+        .stat-value { font-size: 1.1rem; font-weight: bold; color: var(--accent-color); font-family: monospace; }
+        .stat-label { font-size: 0.65rem; color: #475569; }
+
+        .marker {
+            position: absolute;
+            bottom: 40px;
+            width: 2px;
+            height: 80px;
+            background: var(--danger-color);
+            z-index: 5;
+        }
+        .marker-label {
+            position: absolute;
+            top: -30px;
+            left: -25px;
+            width: 70px;
+            text-align: center;
+            font-size: 16px;
+            color: var(--danger-color);
+            background: rgba(255,255,255,0.9);
+            border-radius: 6px;
+            padding: 5px;
+            border: 2px solid var(--danger-color);
+            font-weight: bold;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        button {
+            background: rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.1);
+            color: var(--text-color);
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+        }
+
+        button:hover { background: rgba(0,0,0,0.1); }
+        button.active { background: var(--accent-color); border-color: var(--accent-color); color: #ffffff; font-weight: bold; }
+        
+        button.play-btn {
+            background: var(--success-color);
+            width: 100%;
+            font-size: 0.9rem;
+            font-weight: bold;
+            padding: 8px;
+            margin-top: 6px;
+            border: none;
+            color: #ffffff;
+        }
+        button.play-btn:hover { filter: brightness(1.1); }
+        button.play-btn:disabled { background: #94a3b8; cursor: not-allowed; opacity: 0.7; }
+
+        button.reset-btn {
+            background: var(--danger-color);
+            width: 100%;
+            margin-top: 6px;
+            border: none;
+            color: #ffffff;
+        }
+
+        @media (max-width: 992px) {
+            .panel-controls {
+                min-width: 100%;
+            }
+            .control-group {
+                min-width: 100%;
+            }
+            .scene-container {
+                transform: scale(0.8);
+                left: 0;
+                bottom: 5%;
+            }
+            .title-header {
+                font-size: 1.5rem;
+                padding: 15px 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .control-panel {
+                min-height: 240px;
+                max-height: auto;
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .demo-area {
+                height: calc(100vh - 240px - 60px);
+            }
+            .title-header {
+                font-size: 1.3rem;
+                padding: 12px 0;
+            }
+        }
+    </style>
+ </head>
+ <body>
+  <div class="title-header">
+   探究阻力对物体运动的影响实验
+  </div>
+  <div id="particles"><canvas width="1272" height="562"></canvas></div>
+  <div class="container">
+   <div class="control-panel">
+    <div class="panel-controls">
+     <div class="control-group">
+      <h2>表面材质</h2>
+      <div class="material-selector">
+       <button class="material-btn active" onclick="setMaterial(&#39;wood&#39;)" id="btn-wood">木板表面</button>
+       <button class="material-btn" onclick="setMaterial(&#39;towel&#39;)" id="btn-towel">毛巾表面</button>
+       <button class="material-btn" onclick="setMaterial(&#39;cotton&#39;)" id="btn-cotton">棉布表面</button>
+       <button class="material-btn" onclick="setMaterial(&#39;ice&#39;)" id="btn-ice">理想光滑表面</button>
+      </div>
+     </div>
+     
+     <!-- 新增：释放位置控制 -->
+     <div class="control-group">
+      <h2>释放位置</h2>
+      <div class="release-slider-container">
+        <div class="slider-label">
+          <span>距斜面顶端距离</span>
+          <span id="releasePosVal">0%</span>
+        </div>
+        <input type="range" min="0" max="100" step="1" value="0" id="releasePosSlider">
+      </div>
+     </div>
+     
+     <div class="control-group">
+      <h2>数据仪表</h2>
+      <div class="dashboard">
+       <div class="stat-card">
+        <div class="stat-value" id="speedDisplay">0.00</div>
+        <div class="stat-label">速度 (m/s)</div>
+       </div>
+       <!-- 修改：水平距离单位改为分米 -->
+       <div class="stat-card">
+        <div class="stat-value" id="distanceDisplay">0.00</div>
+        <div class="stat-label">水平距离 (dm)</div>
+       </div>
+      </div>
+     </div>
+     
+     <div class="control-group action-buttons">
+      <button class="play-btn" id="playBtn" onclick="startSimulation()">开始演示</button>
+      <button class="reset-btn" onclick="resetSimulation()">重置位置</button>
+     </div>
+    </div>
+   </div>
+   
+   <div class="demo-area" id="demoArea">
+    <div class="scene-container" id="scene">
+     <div class="angle-mark"></div>
+     <div class="angle-text">30°</div>
+     <!-- 新增：释放位置标记点 -->
+     <div class="release-point" id="releasePoint" style="left: 0px; bottom: 210px;">
+       <div class="release-point-label" id="releasePointLabel">0%</div>
+     </div>
+     <div class="cart" id="cart" style="left: -65.5279px; bottom: 198.944px; transform: rotate(26.5651deg);">
+      <div class="wheel wheel-left" style="transform: rotate(0deg) rotate(-26.5651deg);"></div>
+      <div class="wheel wheel-right" style="transform: rotate(0deg) rotate(-26.5651deg);"></div>
+     </div>
+     <div class="ramp"></div>
+     <div class="ground texture-wood" id="ground"></div>
+     <!-- 修改：标尺刻度单位改为分米 -->
+     <div class="ruler" id="ruler"><div class="tick">0dm</div><div class="tick">1dm</div><div class="tick">2dm</div><div class="tick">3dm</div><div class="tick">4dm</div><div class="tick">5dm</div><div class="tick">6dm</div><div class="tick">7dm</div><div class="tick">8dm</div><div class="tick">9dm</div><div class="tick">10dm</div><div class="tick">11dm</div><div class="tick">12dm</div><div class="tick">13dm</div><div class="tick">14dm</div><div class="tick">15dm</div><div class="tick">16dm</div><div class="tick">17dm</div><div class="tick">18dm</div><div class="tick">19dm</div></div>
+    </div>
+   </div>
+  </div>
+  <script>
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        document.getElementById('particles').appendChild(canvas);
+
+        let particles = [];
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.speedY = Math.random() * 0.5 - 0.25;
+                this.opacity = Math.random() * 0.3;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.x < 0) this.x = canvas.width;
+                if (this.y > canvas.height) this.y = 0;
+                if (this.y < 0) this.y = canvas.height;
+            }
+            draw() {
+                ctx.fillStyle = `rgba(0, 0, 0, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            for (let i = 0; i < 50; i++) particles.push(new Particle());
+        }
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+            }
+            requestAnimationFrame(animateParticles);
+        }
+        initParticles();
+        animateParticles();
+
+        // --- 物理仿真逻辑 ---
+        const RAMP_WIDTH = 300;
+        const RAMP_HEIGHT = 150;
+        const RAMP_ANGLE = Math.atan(RAMP_HEIGHT / RAMP_WIDTH);
+        const RAMP_ANGLE_DEG = RAMP_ANGLE * (180 / Math.PI);
+        const RAMP_LENGTH = Math.sqrt(RAMP_WIDTH * RAMP_WIDTH + RAMP_HEIGHT * RAMP_HEIGHT);
+        
+        const GROUND_Y = 40;
+        const WHEEL_RADIUS = 10;
+        const CART_WIDTH = 70;
+        const GRAVITY = 9.8;
+        const PIXELS_PER_METER = 50;
+        const METERS_PER_DECIMETER = 0.1; // 1分米 = 0.1米
+        
+        // 新增：释放位置相关变量
+        let releasePositionPercent = 0; // 释放位置百分比 (0-100)
+        let initialVelocity = 0; // 初始速度 (根据释放位置计算)
+        
+        const WHEEL_CIRCUMFERENCE = 2 * Math.PI * WHEEL_RADIUS;
+        let wheelRotation = 0;
+        let wheelRotationSpeed = 0;
+        
+        let mu = 0.15;
+        let isSimulating = false;
+        let animationId = null;
+        let cartState = {
+            cartLeft: 0,
+            v: 0,
+            d: 0, // 水平距离 (米)
+            phase: 'ramp'
+        };
+
+        const cartEl = document.getElementById('cart');
+        const speedDisplay = document.getElementById('speedDisplay');
+        const distanceDisplay = document.getElementById('distanceDisplay');
+        const groundEl = document.getElementById('ground');
+        const playBtn = document.getElementById('playBtn');
+        const sceneEl = document.getElementById('scene');
+        const rulerEl = document.getElementById('ruler');
+        const releasePosSlider = document.getElementById('releasePosSlider');
+        const releasePosVal = document.getElementById('releasePosVal');
+        const releasePoint = document.getElementById('releasePoint');
+        const releasePointLabel = document.getElementById('releasePointLabel');
+        const leftWheelEl = cartEl.querySelector('.wheel-left');
+        const rightWheelEl = cartEl.querySelector('.wheel-right');
+
+        // 修改：标尺刻度单位改为分米
+        for(let i=0; i<20; i++) {
+            const tick = document.createElement('div');
+            tick.className = 'tick';
+            tick.innerText = i + 'dm'; // 分米单位
+            rulerEl.appendChild(tick);
+        }
+
+        // 材质预设数据
+        const materials = {
+            'towel': { mu: 0.4, name: '毛巾', class: 'texture-towel' },
+            'cotton': { mu: 0.25, name: '棉布', class: 'texture-cotton' },
+            'wood': { mu: 0.15, name: '木板', class: 'texture-wood' },
+            'ice': { mu: 0.0, name: '理想光滑表面', class: 'texture-ice' }
+        };
+
+        // 新增：计算释放位置处的初始速度
+        function calculateInitialVelocity(releasePercent) {
+            // 根据能量守恒：mgh = 1/2 mv²
+            // 释放点的高度 = 斜面顶端高度 * (1 - releasePercent/100)
+            const totalHeight = RAMP_HEIGHT;
+            const releaseHeight = totalHeight * (releasePercent / 100);
+            
+            // 重力势能转化为动能：mgh = 1/2 mv²
+            // 所以 v = √(2gh)
+            return Math.sqrt(2 * GRAVITY * (releaseHeight / PIXELS_PER_METER));
+        }
+
+        // 新增：更新释放位置标记
+        function updateReleasePoint() {
+            const releasePercent = releasePositionPercent;
+            
+            // 计算释放点在斜面上的位置
+            const releaseRatio = releasePercent / 100;
+            const releaseX = releaseRatio * RAMP_WIDTH;
+            const releaseY = GROUND_Y + (1 - releaseRatio) * RAMP_HEIGHT;
+            
+            // 计算释放点标记的位置（在斜面上方）
+            const markerY = releaseY + 20; // 标记在斜面上方20px
+            
+            releasePoint.style.left = `${releaseX}px`;
+            releasePoint.style.bottom = `${markerY}px`;
+            
+            // 更新标签文字
+            releasePointLabel.textContent = `${releasePercent}%`;
+        }
+
+        // 释放位置滑块事件监听
+        releasePosSlider.addEventListener('input', (e) => {
+            releasePositionPercent = parseInt(e.target.value);
+            releasePosVal.textContent = `${releasePositionPercent}%`;
+            
+            // 更新释放位置标记
+            updateReleasePoint();
+            
+            // 计算并显示初始速度
+            initialVelocity = calculateInitialVelocity(releasePositionPercent);
+            
+            // 重置实验
+            resetSimulation();
+        });
+
+        function setMaterial(type) {
+            const mat = materials[type];
+            mu = mat.mu;
+            groundEl.className = `ground ${mat.class}`;
+            updateActiveButton(type);
+            resetSimulation();
+        }
+
+        function updateActiveButton(type) {
+            document.querySelectorAll('.material-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${type}`).classList.add('active');
+        }
+
+        function updateWheels(dt) {
+            if (cartState.v !== 0) {
+                const wheelLinearSpeed = cartState.v * PIXELS_PER_METER;
+                wheelRotationSpeed = (wheelLinearSpeed / WHEEL_CIRCUMFERENCE) * 360;
+                wheelRotation += wheelRotationSpeed * dt;
+                
+                if (leftWheelEl && rightWheelEl) {
+                    leftWheelEl.style.transform = `rotate(${wheelRotation}deg)`;
+                    rightWheelEl.style.transform = `rotate(${wheelRotation}deg)`;
+                }
+            } else {
+                wheelRotationSpeed = 0;
+                if (leftWheelEl && rightWheelEl) {
+                    leftWheelEl.style.transform = `rotate(0deg)`;
+                    rightWheelEl.style.transform = `rotate(0deg)`;
+                }
+            }
+        }
+
+        // 修改：更新小车位置计算，考虑释放位置
+        function updateCartRampPosition(progressDistance) {
+            const ratio = progressDistance / RAMP_LENGTH;
+            const frontEdgeX = ratio * RAMP_WIDTH;
+            const frontEdgeY = GROUND_Y + (1 - ratio) * RAMP_HEIGHT;
+            const cartLeft = frontEdgeX - CART_WIDTH + Math.sin(RAMP_ANGLE) * WHEEL_RADIUS;
+            const cartBottom = frontEdgeY + Math.cos(RAMP_ANGLE) * WHEEL_RADIUS;
+            
+            cartEl.style.left = `${cartLeft}px`;
+            cartEl.style.bottom = `${cartBottom}px`;
+            cartEl.style.transform = `rotate(${RAMP_ANGLE_DEG}deg)`;
+            cartState.cartLeft = cartLeft;
+            
+            if (leftWheelEl && rightWheelEl) {
+                leftWheelEl.style.transform = `rotate(${wheelRotation}deg) rotate(${-RAMP_ANGLE_DEG}deg)`;
+                rightWheelEl.style.transform = `rotate(${wheelRotation}deg) rotate(${-RAMP_ANGLE_DEG}deg)`;
+            }
+        }
+
+        function initCartPosition() {
+            // 根据释放位置计算初始位置
+            const releaseRatio = releasePositionPercent / 100;
+            const initialFrontEdgeX = releaseRatio * RAMP_WIDTH;
+            
+            cartState = {
+                cartLeft: initialFrontEdgeX - CART_WIDTH + Math.sin(RAMP_ANGLE) * WHEEL_RADIUS,
+                v: initialVelocity, // 使用计算得到的初始速度
+                d: 0,
+                phase: 'ready'
+            };
+            
+            wheelRotation = 0;
+            wheelRotationSpeed = 0;
+            
+            // 更新小车到释放位置
+            const progressDistance = releaseRatio * RAMP_LENGTH;
+            updateCartRampPosition(progressDistance);
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            speedDisplay.innerText = Math.abs(cartState.v).toFixed(2);
+            // 修改：水平距离显示为分米
+            distanceDisplay.innerText = (cartState.d / METERS_PER_DECIMETER).toFixed(2);
+        }
+
+        let lastTime = 0;
+        
+        function startSimulation() {
+            if (isSimulating) return;
+            document.querySelectorAll('.marker, .marker-label').forEach(el => el.remove());
+
+            isSimulating = true;
+            playBtn.disabled = true;
+            playBtn.innerText = "演示中...";
+            cartState.phase = 'ramp';
+            cartState.v = initialVelocity; // 设置初始速度
+            wheelRotation = 0;
+            lastTime = performance.now();
+            animationId = requestAnimationFrame(loop);
+        }
+
+        function loop(timestamp) {
+            if (!isSimulating) return;
+            const dt = (timestamp - lastTime) / 1000;
+            lastTime = timestamp;
+
+            if (dt > 0.1) {
+                animationId = requestAnimationFrame(loop);
+                return;
+            }
+
+            if (cartState.phase === 'ramp') {
+                // 斜面运动：a = g * sin(theta)
+                const a = GRAVITY * Math.sin(RAMP_ANGLE);
+                cartState.v += a * dt;
+                const dx = cartState.v * dt * PIXELS_PER_METER;
+                const currentFrontEdgeX = cartState.cartLeft + CART_WIDTH + dx;
+                
+                if (currentFrontEdgeX >= RAMP_WIDTH) { 
+                    cartState.phase = 'flat';
+                    cartState.cartLeft = RAMP_WIDTH - CART_WIDTH;
+                    cartState.d = 0;
+                    cartEl.style.transform = `rotate(0deg)`;
+                    cartEl.style.left = `${cartState.cartLeft}px`;
+                    cartEl.style.bottom = `${GROUND_Y + WHEEL_RADIUS}px`;
+                } else {
+                    const progressDistance = (currentFrontEdgeX / RAMP_WIDTH) * RAMP_LENGTH;
+                    updateCartRampPosition(progressDistance);
+                }
+                
+                updateWheels(dt);
+
+            } else if (cartState.phase === 'flat') {
+                const a = -mu * GRAVITY;
+                if (mu === 0) {
+                    cartState.v = cartState.v;
+                } else {
+                    cartState.v += a * dt;
+                }
+
+                if (cartState.v <= 0 && mu > 0) {
+                    cartState.v = 0;
+                    cartState.phase = 'stopped';
+                    stopSimulation();
+                }
+
+                const dx = cartState.v * dt * PIXELS_PER_METER;
+                cartState.cartLeft += dx;
+                // 水平距离计算（单位：米）
+                cartState.d = (cartState.cartLeft + CART_WIDTH - RAMP_WIDTH) / PIXELS_PER_METER;
+                cartEl.style.left = `${cartState.cartLeft}px`;
+                cartEl.style.bottom = `${GROUND_Y + WHEEL_RADIUS}px`;
+                
+                updateWheels(dt);
+
+                const frontEdgeX = cartState.cartLeft + CART_WIDTH;
+                const viewPortWidth = document.querySelector('.demo-area').offsetWidth;
+                if (frontEdgeX > viewPortWidth * 0.6) {
+                    const offset = -(frontEdgeX - viewPortWidth * 0.6);
+                    gsap.to(sceneEl, { x: offset, duration: 0.1, ease: "none" });
+                }
+                
+                if (mu === 0 && cartState.d > 50) {
+                     stopSimulation();
+                }
+            }
+
+            updateDisplay();
+
+            if (isSimulating) {
+                animationId = requestAnimationFrame(loop);
+            }
+        }
+
+        function stopSimulation() {
+            isSimulating = false;
+            cancelAnimationFrame(animationId);
+            playBtn.innerText = "重新演示";
+            playBtn.disabled = false;
+            
+            if (mu > 0) {
+                addMarker();
+            }
+        }
+
+        // 修改：标记点标签显示分米单位
+        function addMarker() {
+            const marker = document.createElement('div');
+            marker.className = 'marker';
+            const frontEdgeX = cartState.cartLeft + CART_WIDTH;
+            marker.style.left = `${frontEdgeX}px`;
+            const label = document.createElement('div');
+            label.className = 'marker-label';
+            // 将米转换为分米显示
+            label.innerText = (cartState.d / METERS_PER_DECIMETER).toFixed(2) + 'dm';
+            marker.appendChild(label);
+            sceneEl.appendChild(marker);
+            gsap.from(marker, { scaleY: 0, duration: 0.3, ease: "back.out" });
+        }
+
+        function resetSimulation() {
+            isSimulating = false;
+            cancelAnimationFrame(animationId);
+            playBtn.innerText = "开始演示";
+            playBtn.disabled = false;
+            gsap.to(sceneEl, { x: 0, duration: 0.5 });
+            initCartPosition();
+            document.querySelectorAll('.marker').forEach(el => el.remove());
+        }
+
+        // 初始化
+        updateReleasePoint(); // 初始化释放位置标记
+        initCartPosition(); // 初始化小车位置
+        
+        // 计算初始速度
+        initialVelocity = calculateInitialVelocity(releasePositionPercent);
+    </script>
+ 
+</body></html>

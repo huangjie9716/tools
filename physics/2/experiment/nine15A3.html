@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>原子结构与核外电子排布 · 3D 互动</title>
+    <style>
+        /* ---------- 全局重置 ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+            background: #eaf3fb;
+        }
+
+        /* ---------- 主布局 ---------- */
+        #app {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* ---------- 左侧面板 ---------- */
+        #sidebar {
+            width: 340px;
+            flex-shrink: 0;
+            height: 100%;
+            background: linear-gradient(180deg, #0f2b4a 0%, #1a4a7a 100%);
+            color: #fff;
+            padding: 28px 22px 22px 22px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 3px 0 16px rgba(0, 0, 0, 0.20);
+            z-index: 10;
+            overflow-y: auto;
+        }
+        #sidebar h1 {
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            color: #fff;
+        }
+        #sidebar .sub {
+            font-size: 15px;
+            color: #9bc9f5;
+            margin-bottom: 22px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+            padding-bottom: 12px;
+        }
+
+        /* 下拉菜单 */
+        .selector-wrap {
+            margin-bottom: 20px;
+        }
+        .selector-wrap label {
+            display: block;
+            font-size: 15px;
+            color: #b8d8ff;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        #elemSelect {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.20);
+            background: rgba(255, 255, 255, 0.10);
+            color: #fff;
+            backdrop-filter: blur(4px);
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 20px;
+            padding-right: 44px;
+        }
+        #elemSelect option {
+            background: #1a3c66;
+            color: #fff;
+            padding: 8px;
+        }
+        #elemSelect:focus {
+            outline: none;
+            border-color: #4fc3f7;
+            box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.25);
+        }
+
+        /* 信息显示 */
+        #detail {
+            background: rgba(0, 0, 0, 0.22);
+            border-radius: 12px;
+            padding: 16px 18px;
+            font-size: 17px;
+            line-height: 2.1;
+            margin-bottom: 18px;
+            border-left: 4px solid #4fc3f7;
+            flex-shrink: 0;
+        }
+        #detail b {
+            color: #ffd54f;
+            font-weight: 600;
+        }
+        #detail .row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 2px 0;
+        }
+        #detail .row:last-child {
+            border-bottom: none;
+        }
+
+        /* 图例 */
+        #legend {
+            margin-top: auto;
+            font-size: 15px;
+            line-height: 2.0;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.10);
+            flex-shrink: 0;
+        }
+        #legend .dot {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 10px;
+            vertical-align: middle;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        #legend .leg-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ---------- 右侧 3D 场景 ---------- */
+        #stage {
+            flex: 1;
+            position: relative;
+            height: 100%;
+            min-width: 0;
+            background: #dce9f5;
+        }
+        #canvasWrap {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        #canvasWrap canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* 标题浮层 */
+        #titleBar {
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            color: #0a2a44;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.78);
+            padding: 6px 24px;
+            border-radius: 30px;
+            pointer-events: none;
+            white-space: nowrap;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            backdrop-filter: blur(4px);
+            letter-spacing: 0.5px;
+        }
+        #hint {
+            position: absolute;
+            left: 20px;
+            bottom: 20px;
+            font-size: 14px;
+            color: #2a4a6a;
+            background: rgba(255, 255, 255, 0.75);
+            padding: 6px 16px;
+            border-radius: 20px;
+            pointer-events: none;
+            backdrop-filter: blur(2px);
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+        }
+
+        /* ---------- 悬停提示 ---------- */
+        #tooltip {
+            position: fixed;
+            pointer-events: none;
+            z-index: 999;
+            background: rgba(12, 32, 56, 0.94);
+            color: #fff;
+            border: 2px solid #4fc3f7;
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-size: 18px;
+            line-height: 1.6;
+            display: none;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+            max-width: 300px;
+            backdrop-filter: blur(6px);
+        }
+        #tooltip .t-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffd54f;
+            margin-bottom: 2px;
+        }
+        #tooltip .t-row {
+            font-size: 16px;
+            color: #e8f0ff;
+        }
+
+        /* ---------- 响应式 ---------- */
+        @media (max-width: 820px) {
+            #sidebar {
+                width: 280px;
+                padding: 18px 14px;
+            }
+            #sidebar h1 {
+                font-size: 20px;
+            }
+            #detail {
+                font-size: 15px;
+                padding: 12px 14px;
+            }
+            #titleBar {
+                font-size: 16px;
+                padding: 4px 16px;
+                top: 12px;
+            }
+            #hint {
+                font-size: 12px;
+                padding: 4px 12px;
+                bottom: 12px;
+                left: 12px;
+            }
+        }
+        @media (max-width: 600px) {
+            #app {
+                flex-direction: column;
+            }
+            #sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 45vh;
+                padding: 14px 16px;
+                overflow-y: auto;
+            }
+            #stage {
+                height: 55vh;
+                flex: none;
+            }
+            #titleBar {
+                font-size: 14px;
+                padding: 4px 14px;
+                top: 8px;
+            }
+            #hint {
+                font-size: 11px;
+                padding: 3px 10px;
+                bottom: 8px;
+                left: 8px;
+            }
+            #sidebar h1 {
+                font-size: 18px;
+            }
+            #detail {
+                font-size: 14px;
+                padding: 10px 12px;
+                line-height: 1.8;
+            }
+            #legend {
+                font-size: 13px;
+            }
+            #elemSelect {
+                font-size: 16px;
+                padding: 10px 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <!-- 左侧面板 -->
+        <div id="sidebar">
+            <h1>⚛ 原子结构</h1>
+            <div class="sub">核外电子排布 · 3D 交互</div>
+
+            <div class="selector-wrap">
+                <label for="elemSelect">选择元素</label>
+                <select id="elemSelect">
+                    <option value="H">氢 (H) · 1 质子</option>
+                    <option value="C">碳 (C) · 6 质子</option>
+                    <option value="O" selected>氧 (O) · 8 质子</option>
+                </select>
+            </div>
+
+            <div id="detail">
+                <div class="row"><span>元素</span><b id="d-elem">氧 O</b></div>
+                <div class="row"><span>原子序数</span><b id="d-number">8</b></div>
+                <div class="row"><span>质子数</span><b id="d-protons">8</b></div>
+                <div class="row"><span>中子数</span><b id="d-neutrons">8</b></div>
+                <div class="row"><span>核外电子数</span><b id="d-electrons">8</b></div>
+                <div class="row"><span>电子排布</span><b id="d-shells">2，6</b></div>
+            </div>
+
+            <div id="legend">
+                <div class="leg-item"><span class="dot" style="background:#e53935;"></span> 质子（带正电荷）</div>
+                <div class="leg-item"><span class="dot" style="background:#9e9e9e;"></span> 中子（不带电）</div>
+                <div class="leg-item"><span class="dot" style="background:#2196f3;"></span> 电子（带负电荷）</div>
+            </div>
+        </div>
+
+        <!-- 右侧 3D -->
+        <div id="stage">
+            <div id="titleBar">氧原子（O）3D 结构</div>
+            <div id="canvasWrap"></div>
+            <div id="hint">🖱 拖动旋转 · 滚轮缩放 · 悬停查看信息</div>
+        </div>
+    </div>
+
+    <!-- 悬停提示 -->
+    <div id="tooltip"></div>
+
+    <!-- ============ 使用 import map 加载 Three.js ============ -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        // ============================================================
+        // 模块导入
+        // ============================================================
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // ============================================================
+        // 元素数据
+        // ============================================================
+        const ELEMENTS = {
+            H: { name: '氢', symbol: 'H', number: 1, protons: 1, neutrons: 0, shells: [1] },
+            C: { name: '碳', symbol: 'C', number: 6, protons: 6, neutrons: 6, shells: [2, 4] },
+            O: { name: '氧', symbol: 'O', number: 8, protons: 8, neutrons: 8, shells: [2, 6] }
+        };
+
+        const SHELL_COLORS = ['#0d47a1', '#2196f3', '#4dd0e1'];
+        const SHELL_NAMES = ['第一电子层 (K)', '第二电子层 (L)', '第三电子层 (M)'];
+
+        // ============================================================
+        // DOM 引用
+        // ============================================================
+        const wrap = document.getElementById('canvasWrap');
+        const selectEl = document.getElementById('elemSelect');
+        const tooltip = document.getElementById('tooltip');
+
+        const dElem = document.getElementById('d-elem');
+        const dNumber = document.getElementById('d-number');
+        const dProtons = document.getElementById('d-protons');
+        const dNeutrons = document.getElementById('d-neutrons');
+        const dElectrons = document.getElementById('d-electrons');
+        const dShells = document.getElementById('d-shells');
+        const titleBar = document.getElementById('titleBar');
+
+        // ============================================================
+        // Three.js 场景
+        // ============================================================
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xdce9f5);
+
+        const camera = new THREE.PerspectiveCamera(45, wrap.clientWidth / wrap.clientHeight, 0.1, 1000);
+        camera.position.set(0, 5, 16);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+        wrap.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        controls.minDistance = 5;
+        controls.maxDistance = 35;
+        controls.target.set(0, 0, 0);
+
+        // ---- 灯光 ----
+        scene.add(new THREE.AmbientLight(0xffffff, 0.70));
+        const light1 = new THREE.PointLight(0xffffff, 0.9);
+        light1.position.set(12, 18, 22);
+        scene.add(light1);
+        const light2 = new THREE.PointLight(0x88bbff, 0.4);
+        light2.position.set(-18, -8, -14);
+        scene.add(light2);
+
+        // ============================================================
+        // 原子构建
+        // ============================================================
+        let atomGroup = new THREE.Group();
+        scene.add(atomGroup);
+        let spinners = []; // 电子层旋转控制器
+        let interactables = []; // 可悬停对象
+
+        // ---- 生成原子核位置（球形团簇） ----
+        function nucleusPositions(n, spacing) {
+            const grid = [];
+            const r = 3;
+            for (let x = -r; x <= r; x++) {
+                for (let y = -r; y <= r; y++) {
+                    for (let z = -r; z <= r; z++) {
+                        grid.push({ x, y, z, d: x * x + y * y + z * z });
+                    }
+                }
+            }
+            grid.sort((a, b) => a.d - b.d);
+            const pts = [];
+            for (let i = 0; i < n; i++) {
+                const g = grid[i];
+                pts.push(new THREE.Vector3(
+                    g.x + (g.y % 2 ? 0.12 : -0.12),
+                    g.y,
+                    g.z + (g.x % 2 ? 0.12 : -0.12)
+                ).multiplyScalar(spacing));
+            }
+            return pts;
+        }
+
+        // ---- 清空原子 ----
+        function clearAtom() {
+            atomGroup.traverse((o) => {
+                if (o.geometry) o.geometry.dispose();
+                if (o.material) o.material.dispose();
+            });
+            scene.remove(atomGroup);
+            atomGroup = new THREE.Group();
+            scene.add(atomGroup);
+            spinners = [];
+            interactables = [];
+        }
+
+        // ---- 构建原子 ----
+        function buildAtom(key) {
+            clearAtom();
+            const el = ELEMENTS[key];
+            if (!el) return;
+
+            const total = el.protons + el.neutrons;
+            const nucR = 0.50;
+            const spacing = 0.80;
+            const positions = nucleusPositions(total, spacing);
+
+            // 交替分配质子和中子
+            const types = [];
+            let pc = el.protons,
+                nc = el.neutrons;
+            for (let i = 0; i < total; i++) {
+                if (pc > 0 && (nc === 0 || i % 2 === 0)) { types.push('p');
+                    pc--; } else { types.push('n');
+                    nc--; }
+            }
+
+            const protonMat = new THREE.MeshPhongMaterial({
+                color: 0xe53935,
+                shininess: 60,
+                specular: 0x552222,
+                emissive: 0x441111,
+                emissiveIntensity: 0.10
+            });
+            const neutronMat = new THREE.MeshPhongMaterial({
+                color: 0x9e9e9e,
+                shininess: 60,
+                specular: 0x333333,
+                emissive: 0x222222,
+                emissiveIntensity: 0.05
+            });
+            const sphereGeo = new THREE.SphereGeometry(nucR, 22, 22);
+
+            positions.forEach((pos, i) => {
+                const isP = types[i] === 'p';
+                const mat = isP ? protonMat : neutronMat;
+                const mesh = new THREE.Mesh(sphereGeo, mat);
+                mesh.position.copy(pos);
+                mesh.userData = {
+                    title: isP ? '⚛ 质子' : '⚛ 中子',
+                    rows: isP ? [
+                        '位于原子核内',
+                        '带 1 个单位正电荷',
+                        `该原子含 ${el.protons} 个质子`
+                    ] : [
+                        '位于原子核内',
+                        '不带电',
+                        `该原子含 ${el.neutrons} 个中子`
+                    ]
+                };
+                interactables.push(mesh);
+                atomGroup.add(mesh);
+            });
+
+            // ---- 电子层与电子 ----
+            const baseR = 4.0,
+                stepR = 2.2;
+            el.shells.forEach((count, si) => {
+                const radius = baseR + si * stepR;
+                const color = SHELL_COLORS[si];
+
+                // 轨道环
+                const torusGeo = new THREE.TorusGeometry(radius, 0.04, 12, 110);
+                const torusMat = new THREE.MeshBasicMaterial({
+                    color: color,
+                    transparent: true,
+                    opacity: 0.45
+                });
+                const orbit = new THREE.Mesh(torusGeo, torusMat);
+                orbit.userData = {
+                    title: `🌀 ${SHELL_NAMES[si]}`,
+                    rows: [`该层电子数：${count} 个`]
+                };
+                interactables.push(orbit);
+
+                // 电子旋转组
+                const spinner = new THREE.Group();
+                const eGeo = new THREE.SphereGeometry(0.38, 20, 20);
+                const eMat = new THREE.MeshPhongMaterial({
+                    color: color,
+                    emissive: color,
+                    emissiveIntensity: 0.40,
+                    shininess: 80
+                });
+                for (let k = 0; k < count; k++) {
+                    const ang = (k / count) * Math.PI * 2;
+                    const e = new THREE.Mesh(eGeo, eMat);
+                    e.position.set(Math.cos(ang) * radius, Math.sin(ang) * radius, 0);
+                    e.userData = {
+                        title: '⚡ 电子',
+                        rows: [
+                            `所属：${SHELL_NAMES[si]}`,
+                            `该层电子数：${count} 个`,
+                            '带 1 个单位负电荷'
+                        ]
+                    };
+                    interactables.push(e);
+                    spinner.add(e);
+                }
+
+                // 倾斜使各层立体交错
+                const shellGroup = new THREE.Group();
+                shellGroup.rotation.x = 1.10 + si * 0.38;
+                shellGroup.rotation.y = si * 0.55;
+                shellGroup.add(orbit);
+                shellGroup.add(spinner);
+                atomGroup.add(shellGroup);
+
+                spinners.push({
+                    spinner,
+                    speed: 0.022 / (si * 0.6 + 1)
+                });
+            });
+
+            // ---- 更新 UI ----
+            titleBar.textContent = `${el.name}原子（${el.symbol}）3D 结构`;
+            dElem.textContent = `${el.name} ${el.symbol}`;
+            dNumber.textContent = el.number;
+            dProtons.textContent = el.protons;
+            dNeutrons.textContent = el.neutrons;
+            dElectrons.textContent = el.protons;
+            dShells.textContent = el.shells.join('，');
+        }
+
+        // ============================================================
+        // 下拉菜单切换
+        // ============================================================
+        selectEl.addEventListener('change', () => {
+            buildAtom(selectEl.value);
+        });
+
+        // ============================================================
+        // 悬停提示 (Raycaster)
+        // ============================================================
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let mouseX = 0,
+            mouseY = 0,
+            hovering = false;
+
+        renderer.domElement.addEventListener('mousemove', (e) => {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            hovering = true;
+        });
+        renderer.domElement.addEventListener('mouseleave', () => {
+            tooltip.style.display = 'none';
+            hovering = false;
+        });
+
+        // 触屏设备支持
+        renderer.domElement.addEventListener('touchstart', () => {
+            tooltip.style.display = 'none';
+        }, { passive: true });
+
+        function updateTooltip() {
+            if (!hovering) return;
+            raycaster.setFromCamera(mouse, camera);
+            const hits = raycaster.intersectObjects(interactables, false);
+            if (hits.length) {
+                const d = hits[0].object.userData;
+                if (d.title) {
+                    tooltip.innerHTML = `<div class="t-title">${d.title}</div>` +
+                        d.rows.map(r => `<div class="t-row">${r}</div>`).join('');
+                    tooltip.style.display = 'block';
+                    const tw = tooltip.offsetWidth || 180,
+                        th = tooltip.offsetHeight || 80;
+                    let x = mouseX + 16,
+                        y = mouseY + 16;
+                    if (x + tw > window.innerWidth) x = mouseX - tw - 16;
+                    if (y + th > window.innerHeight) y = mouseY - th - 16;
+                    tooltip.style.left = x + 'px';
+                    tooltip.style.top = y + 'px';
+                } else {
+                    tooltip.style.display = 'none';
+                }
+            } else {
+                tooltip.style.display = 'none';
+            }
+        }
+
+        // ============================================================
+        // 动画循环
+        // ============================================================
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // 电子旋转
+            spinners.forEach(s => s.spinner.rotation.z += s.speed);
+
+            // 整体缓慢自转
+            atomGroup.rotation.y += 0.0012;
+
+            controls.update();
+            updateTooltip();
+            renderer.render(scene, camera);
+        }
+
+        // ============================================================
+        // 自适应
+        // ============================================================
+        function resize() {
+            const w = wrap.clientWidth;
+            const h = wrap.clientHeight;
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, h);
+        }
+
+        window.addEventListener('resize', resize);
+
+        // 也用 ResizeObserver 更可靠
+        if (window.ResizeObserver) {
+            const ro = new ResizeObserver(() => resize());
+            ro.observe(wrap);
+        }
+
+        // ============================================================
+        // 启动
+        // ============================================================
+        buildAtom('O');
+        animate();
+
+        // 确保 select 状态同步
+        selectEl.value = 'O';
+
+        console.log('⚛ 原子结构 3D 交互已启动');
+    </script>
+</body>
+</html>
