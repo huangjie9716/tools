@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=2.0">
+    <title>击鼓传花 · 课堂随机点名</title>
+    <link rel="stylesheet" href="RollBack2.css">
+</head>
+<body>
+
+    <!-- ===== 烟花 Canvas ===== -->
+    <canvas id="fireworksCanvas"></canvas>
+
+    <!-- ===== 工具栏 ===== -->
+    <div class="toolbar">
+        <button id="btnManageList" class="btn-text" title="上传名单 / 管理名单" aria-label="上传名单">上传名单</button>
+        <button id="btnFullscreen" title="全屏显示" aria-label="全屏">⛶</button>
+    </div>
+
+    <!-- ===== 主容器 ===== -->
+    <div class="container" id="container">
+        <!-- 名字环绕轨道 -->
+        <div class="circle-wrapper" id="circleWrapper"></div>
+
+        <!-- 鼓面 -->
+        <div class="drum" id="drumElement">
+            <div class="drum-face">
+                <div class="drum-outer-ring"></div>
+                <div class="drum-surface">
+                    <div class="texture-ring texture-ring-1"></div>
+                    <div class="texture-ring texture-ring-2"></div>
+                    <div class="texture-ring texture-ring-3"></div>
+                </div>
+                <div class="drum-nails-container" id="nailsContainer"></div>
+                <div class="drumsticks">
+                    <div class="drumstick drumstick-left" id="stickLeft">
+                        <div class="stick-head"></div>
+                        <div class="stick-handle"></div>
+                    </div>
+                    <div class="drumstick drumstick-right" id="stickRight">
+                        <div class="stick-head"></div>
+                        <div class="stick-handle"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 状态栏 -->
+        <div class="status" id="statusText">🥁 点击鼓面开始</div>
+    </div>
+
+    <!-- ===== 选中卡片容器 ===== -->
+    <div id="cardContainer"></div>
+
+    <!-- ===== 名单管理模态框 ===== -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📋 名单管理</h2>
+                <button class="modal-close" id="modalClose">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="upload-zone" id="uploadZone">
+                    <span class="icon">📤</span>
+                    <p>点击或拖拽上传名单</p>
+                    <p style="font-size:14px;color:rgba(255,255,255,0.5);margin-top:8px;">
+                        支持 Excel(.xlsx/.xls)：第一行第一列为表头，从第二行第一列起为姓名；也支持 .txt/.csv
+                    </p>
+                    <input type="file" id="fileInput" accept=".txt,.csv,.xlsx,.xls" />
+                </div>
+
+                <div class="name-list-header">
+                    <span class="count" id="listCount">共 0 人</span>
+                    <div class="actions">
+                        <button class="btn-sm" id="btnLoadDefault">↺ 默认</button>
+                        <button class="btn-sm danger" id="btnClearList">✕ 清空</button>
+                    </div>
+                </div>
+                <div class="name-grid" id="nameGrid">
+                    <div class="empty-list">还没有名单，请上传 📤</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Excel 解析库（用于 .xlsx/.xls，需联网加载） -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="RollBack2.js"></script>
+
+</body>
+</html>
