@@ -14,7 +14,7 @@ var simLinks = {
     //八上第一章
 
     //八上第二章
-
+    '观察声音的波形': 'experiment/eight2A3.html',
     //八上第三章
 
     '探究水在沸腾前后温度变化的特点':'https://wl.nobook.com/physics/b720d31dee6fc2ae89709c4eaec45251?moduleId=4&is_resource_show=1&title=%E6%8E%A2%E7%A9%B6%E6%B0%B4%E5%9C%A8%E6%B2%B8%E8%85%BE%E5%89%8D%E5%90%8E%E6%B8%A9%E5%BA%A6%E5%8F%98%E5%8C%96%E7%9A%84%E7%89%B9%E7%82%B9&returnUrl=%2Fconsole%2Ftemplates%2Fresource&exp_id=178',
