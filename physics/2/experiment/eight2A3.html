@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>声波探秘 - 声音波形显示系统</title>
+    <style>
+        /* ========== 全局重置 & 基础样式 ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0b0e1a;
+            font-family: 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* ========== 主容器 ========== */
+        .scope-container {
+            background: linear-gradient(145deg, #111627, #0a0e18);
+            border-radius: 0;
+            padding: 24px 30px 20px 30px;
+            width: 100%;
+            max-width: none;
+            min-height: 100vh;
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transition: all 0.2s;
+        }
+
+        /* ========== 顶部标题栏 ========== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .title-area {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .title-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #00d4ff, #0077ff);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 16px rgba(0, 120, 255, 0.3);
+        }
+
+        .title-text h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #f0f4ff;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, #b0d4ff, #7bb8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .title-text .sub {
+            font-size: 15px;
+            color: rgba(180, 200, 255, 0.6);
+            letter-spacing: 2px;
+            font-weight: 300;
+            -webkit-text-fill-color: rgba(180, 200, 255, 0.6);
+        }
+
+        /* ========== 顶部右侧 (状态 + 全屏按钮) ========== */
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        /* ========== 状态指示灯 ========== */
+        .status-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 6px 16px 6px 12px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4a4a6a;
+            transition: all 0.35s ease;
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+            flex-shrink: 0;
+        }
+
+        .status-dot.active {
+            background: #00f5a0;
+            box-shadow: 0 0 18px rgba(0, 245, 160, 0.45), 0 0 60px rgba(0, 245, 160, 0.1);
+        }
+
+        .status-dot.paused {
+            background: #f5b342;
+            box-shadow: 0 0 18px rgba(245, 179, 66, 0.35);
+        }
+
+        .status-dot.error {
+            background: #ff4757;
+            box-shadow: 0 0 18px rgba(255, 70, 80, 0.35);
+        }
+
+        .status-text {
+            color: rgba(200, 215, 255, 0.85);
+            font-size: 17px;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+
+        .status-text strong {
+            color: #c8daff;
+            font-weight: 500;
+        }
+
+        .status-text .error-text {
+            color: #ff6b7a;
+        }
+
+        /* ========== 波形画布 ========== */
+        .canvas-wrapper {
+            position: relative;
+            background: #070a12;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 4px 30px rgba(0, 0, 0, 0.6);
+            margin-bottom: 16px;
+            flex: 1 1 auto;
+            min-height: 120px;
+        }
+
+        #waveCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            cursor: default;
+            touch-action: none;
+        }
+
+        /* ========== 画布上的水印 / 提示 ========== */
+        .canvas-overlay-tip {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.08);
+            font-size: 13px;
+            letter-spacing: 3px;
+            font-weight: 300;
+            pointer-events: none;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        /* ========== 底部控制栏 ========== */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px 20px;
+            margin-top: 4px;
+        }
+
+        /* ---- 音量指示器 ---- */
+        .volume-area {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex: 1 1 200px;
+            min-width: 140px;
+        }
+
+        .volume-label {
+            color: rgba(180, 200, 255, 0.5);
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            flex-shrink: 0;
+        }
+
+        .volume-bar-bg {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+            min-width: 60px;
+        }
+
+        .volume-bar-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #00d4aa, #00f5a0, #f5c542, #ff6b6b);
+            transition: width 0.08s ease-out;
+            box-shadow: 0 0 12px rgba(0, 245, 160, 0.15);
+        }
+
+        .volume-number {
+            color: rgba(200, 215, 255, 0.7);
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 44px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.5px;
+        }
+
+        /* ---- 按钮组 ---- */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 9px 22px;
+            border: none;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.3px;
+            font-family: inherit;
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(200, 215, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            user-select: none;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(0px);
+        }
+
+        .btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #0077ff, #0055cc);
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0, 100, 255, 0.25);
+        }
+
+        .btn-start:hover:not(:disabled) {
+            box-shadow: 0 6px 28px rgba(0, 100, 255, 0.4);
+            background: linear-gradient(135deg, #1a86ff, #0066dd);
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #ff4757, #d63031);
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 20px rgba(255, 70, 80, 0.2);
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            box-shadow: 0 6px 28px rgba(255, 70, 80, 0.35);
+            background: linear-gradient(135deg, #ff5a6a, #e03a3a);
+        }
+
+        .btn-pause {
+            background: rgba(245, 180, 60, 0.12);
+            color: #f5b342;
+            border: 1px solid rgba(245, 180, 60, 0.2);
+        }
+
+        .btn-pause:hover:not(:disabled) {
+            background: rgba(245, 180, 60, 0.2);
+            border-color: rgba(245, 180, 60, 0.3);
+        }
+
+        .btn-pause.active-pause {
+            background: rgba(0, 245, 160, 0.12);
+            color: #00f5a0;
+            border-color: rgba(0, 245, 160, 0.2);
+        }
+
+        .btn-screenshot {
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(180, 200, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .btn-screenshot:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(200, 215, 255, 0.8);
+        }
+
+        .btn-fullscreen {
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(200, 215, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-fullscreen:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        .btn-fullscreen.fs-active {
+            background: rgba(0, 245, 160, 0.12);
+            color: #00f5a0;
+            border-color: rgba(0, 245, 160, 0.35);
+            box-shadow: 0 0 18px rgba(0, 245, 160, 0.15);
+        }
+
+        .btn-icon {
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        /* ========== 教学提示 ========== */
+        .teaching-hint {
+            margin-top: 14px;
+            display: flex;
+            justify-content: center;
+            gap: 38px;
+            flex-wrap: wrap;
+            color: rgba(180, 200, 255, 0.45);
+            font-size: 16px;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 14px;
+        }
+
+        .teaching-hint span {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .teaching-hint .hint-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 6px currentColor;
+        }
+
+        .teaching-hint .hint-dot.green {
+            background: #00f5a0;
+        }
+        .teaching-hint .hint-dot.yellow {
+            background: #f5b342;
+        }
+        .teaching-hint .hint-dot.red {
+            background: #ff6b6b;
+        }
+
+        /* ========== 安全提示横幅 ========== */
+        .security-banner {
+            background: rgba(255, 70, 80, 0.08);
+            border: 1px solid rgba(255, 70, 80, 0.15);
+            border-radius: 12px;
+            padding: 12px 18px;
+            margin-top: 14px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            color: #ff8a92;
+            font-size: 13px;
+        }
+
+        .security-banner.show {
+            display: flex;
+        }
+
+        .security-banner .icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .security-banner .msg strong {
+            color: #ff6b7a;
+        }
+
+        /* ========== 响应式 ========== */
+        @media (max-width: 700px) {
+            .scope-container {
+                padding: 18px 16px 22px 16px;
+                border-radius: 20px;
+            }
+
+            .title-text h1 {
+                font-size: 17px;
+            }
+
+            .title-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 16px;
+            }
+
+            .status-area {
+                padding: 4px 12px 4px 10px;
+            }
+            .status-text {
+                font-size: 14px;
+            }
+
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .btn-fullscreen {
+                padding: 7px 16px;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .volume-area {
+                flex: 1 1 auto;
+                width: 100%;
+            }
+
+            .btn-group {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .btn {
+                padding: 8px 16px;
+                font-size: 13px;
+                flex: 1 1 auto;
+                justify-content: center;
+            }
+
+            .teaching-hint {
+                gap: 18px;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .status-area {
+                align-self: stretch;
+                justify-content: center;
+            }
+
+            .btn-group {
+                flex-wrap: wrap;
+            }
+
+            .btn {
+                font-size: 12px;
+                padding: 6px 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ====== 主容器 ====== -->
+    <div class="scope-container">
+
+        <!-- 顶部 -->
+        <div class="header">
+            <div class="title-area">
+                <div class="title-icon">📡</div>
+                <div class="title-text">
+                    <h1>声波探秘</h1>
+                    <div class="sub">SOUND WAVE · 声音波形显示系统</div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="status-area">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span class="status-text" id="statusText">就绪 · 点击 <strong>开始</strong></span>
+                </div>
+                <button class="btn btn-fullscreen" id="btnFullscreen" title="全屏显示 / 退出全屏">
+                    <span class="btn-icon">⛶</span><span id="fsLabel">全屏</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 波形画布 -->
+        <div class="canvas-wrapper">
+            <canvas id="waveCanvas"></canvas>
+            <div class="canvas-overlay-tip">▸ 声波振动 · 实时显示 ◂</div>
+        </div>
+
+        <!-- 底部控制 -->
+        <div class="controls">
+
+            <!-- 音量 -->
+            <div class="volume-area">
+                <span class="volume-label">🔊 音量</span>
+                <div class="volume-bar-bg">
+                    <div class="volume-bar-fill" id="volumeFill"></div>
+                </div>
+                <span class="volume-number" id="volumeNumber">0%</span>
+            </div>
+
+            <!-- 按钮 -->
+            <div class="btn-group">
+                <button class="btn btn-start" id="btnStart">
+                    <span class="btn-icon">▶</span> 开始
+                </button>
+                <button class="btn btn-pause" id="btnPause" disabled>
+                    <span class="btn-icon">⏸</span> 暂停
+                </button>
+                <button class="btn btn-stop" id="btnStop" disabled>
+                    <span class="btn-icon">⏹</span> 停止
+                </button>
+                <button class="btn btn-screenshot" id="btnScreenshot" disabled>
+                    <span class="btn-icon">🖼</span> 截图
+                </button>
+            </div>
+        </div>
+
+        <!-- 安全提示横幅 -->
+        <div class="security-banner" id="securityBanner">
+            <span class="icon">🔒</span>
+            <span class="msg">
+                <strong>安全连接要求：</strong>
+                麦克风访问需要 <strong>HTTPS</strong> 或 <strong>localhost</strong> 环境。
+                请使用 <code>https://</code> 协议访问此页面，或在本地服务器中运行。
+            </span>
+        </div>
+
+        <!-- 教学提示 -->
+        <div class="teaching-hint">
+            <span><span class="hint-dot green"></span> 波形越高 → 响度越大</span>
+            <span><span class="hint-dot yellow"></span> 波形越密 → 音调越高</span>
+            <span><span class="hint-dot red"></span> 波形静止 → 无声</span>
+        </div>
+    </div>
+
+    <!-- ====== JavaScript ====== -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ---------- DOM 引用 ----------
+            const canvas = document.getElementById('waveCanvas');
+            const ctx = canvas.getContext('2d');
+
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+
+            const volumeFill = document.getElementById('volumeFill');
+            const volumeNumber = document.getElementById('volumeNumber');
+
+            const btnStart = document.getElementById('btnStart');
+            const btnPause = document.getElementById('btnPause');
+            const btnStop = document.getElementById('btnStop');
+            const btnScreenshot = document.getElementById('btnScreenshot');
+            const btnFullscreen = document.getElementById('btnFullscreen');
+
+            const securityBanner = document.getElementById('securityBanner');
+
+            // ---------- 状态变量 ----------
+            let audioContext = null;
+            let analyser = null;
+            let dataArray = null;
+            let animationId = null;
+            let isRecording = false;
+            let isPaused = false;
+            let isInitialized = false;
+
+            // 画布尺寸 (逻辑像素)
+            let canvasWidth = 0;
+            let canvasHeight = 0;
+
+            // ---------- 检测安全环境 ----------
+            function checkSecureContext() {
+                const isSecure = window.isSecureContext === true;
+                const isLocalhost = window.location.hostname === 'localhost' ||
+                    window.location.hostname === '127.0.0.1' ||
+                    window.location.hostname === '';
+
+                if (!isSecure && !isLocalhost) {
+                    securityBanner.classList.add('show');
+                    statusDot.className = 'status-dot error';
+                    statusText.innerHTML = '⚠️ 不安全连接 · 无法使用麦克风';
+                    btnStart.disabled = true;
+                    return false;
+                }
+
+                // 检查 navigator.mediaDevices 是否存在
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    securityBanner.classList.add('show');
+                    securityBanner.querySelector('.msg').innerHTML =
+                        '<strong>浏览器不支持：</strong> 当前浏览器不支持 <code>getUserMedia</code> API，请使用最新版 Chrome / Edge / Firefox。';
+                    statusDot.className = 'status-dot error';
+                    statusText.innerHTML = '⚠️ 浏览器不支持麦克风';
+                    btnStart.disabled = true;
+                    return false;
+                }
+
+                securityBanner.classList.remove('show');
+                return true;
+            }
+
+            // ---------- 画布尺寸管理 ----------
+            function resizeCanvas() {
+                const rect = canvas.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+
+                canvasWidth = rect.width * dpr;
+                canvasHeight = rect.height * dpr;
+
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
+
+                ctx.scale(dpr, dpr);
+
+                canvasWidth = rect.width;
+                canvasHeight = rect.height;
+
+                if (isInitialized) {
+                    drawGrid();
+                }
+            }
+
+            // ---------- 绘制网格 + 参考线 ----------
+            function drawGrid() {
+                const w = canvasWidth;
+                const h = canvasHeight;
+
+                ctx.save();
+
+                ctx.clearRect(0, 0, w, h);
+
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.035)';
+                ctx.lineWidth = 0.5;
+                ctx.setLineDash([4, 8]);
+
+                for (let x = 0; x <= w; x += w / 10) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, h);
+                    ctx.stroke();
+                }
+
+                for (let y = 0; y <= h; y += h / 10) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(w, y);
+                    ctx.stroke();
+                }
+
+                ctx.setLineDash([]);
+
+                const centerY = h / 2;
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(0, centerY);
+                ctx.lineTo(w, centerY);
+                ctx.stroke();
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+                ctx.font = '9px monospace';
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('0', 12, centerY);
+
+                ctx.restore();
+            }
+
+            // ---------- 绘制波形 ----------
+            function drawWaveform() {
+                if (!analyser || !dataArray || isPaused) return;
+
+                const w = canvasWidth;
+                const h = canvasHeight;
+                const centerY = h / 2;
+
+                analyser.getByteTimeDomainData(dataArray);
+
+                let sum = 0;
+                for (let i = 0; i < dataArray.length; i++) {
+                    const val = (dataArray[i] - 128) / 128;
+                    sum += val * val;
+                }
+                const rms = Math.sqrt(sum / dataArray.length);
+                const volumePercent = Math.min(100, Math.round(rms * 180));
+
+                volumeFill.style.width = volumePercent + '%';
+                volumeNumber.textContent = volumePercent + '%';
+
+                ctx.save();
+                drawGrid();
+
+                if (volumePercent < 1) {
+                    ctx.restore();
+                    return;
+                }
+
+                const step = w / dataArray.length;
+
+                // 发光阴影
+                ctx.shadowColor = 'rgba(0, 245, 160, 0.25)';
+                ctx.shadowBlur = 18;
+                ctx.lineWidth = 2.8;
+                ctx.strokeStyle = 'rgba(0, 245, 180, 0.6)';
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+
+                for (let i = 0; i < dataArray.length; i++) {
+                    const val = (dataArray[i] - 128) / 128;
+                    const x = i * step;
+                    const y = centerY + val * (h * 0.42);
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+
+                // 主线条
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.lineWidth = 2.2;
+                ctx.strokeStyle = '#00f5c8';
+                ctx.beginPath();
+
+                for (let i = 0; i < dataArray.length; i++) {
+                    const val = (dataArray[i] - 128) / 128;
+                    const x = i * step;
+                    const y = centerY + val * (h * 0.42);
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+
+                // 填充
+                ctx.beginPath();
+                for (let i = 0; i < dataArray.length; i++) {
+                    const val = (dataArray[i] - 128) / 128;
+                    const x = i * step;
+                    const y = centerY + val * (h * 0.42);
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.lineTo(dataArray.length * step, centerY);
+                ctx.lineTo(0, centerY);
+                ctx.closePath();
+
+                const grad = ctx.createLinearGradient(0, 0, 0, h);
+                grad.addColorStop(0, 'rgba(0, 245, 160, 0.04)');
+                grad.addColorStop(0.5, 'rgba(0, 245, 160, 0.08)');
+                grad.addColorStop(1, 'rgba(0, 245, 160, 0.04)');
+                ctx.fillStyle = grad;
+                ctx.fill();
+
+                ctx.restore();
+
+                let desc = '🔊 ';
+                if (volumePercent < 5) desc += '静默';
+                else if (volumePercent < 20) desc += '很轻';
+                else if (volumePercent < 45) desc += '轻柔';
+                else if (volumePercent < 70) desc += '适中';
+                else if (volumePercent < 90) desc += '响亮';
+                else desc += '🔊 震耳';
+
+                statusText.innerHTML = desc + ' · 波形实时显示中';
+            }
+
+            // ---------- 动画循环 ----------
+            function animate() {
+                if (!isRecording) return;
+                if (!isPaused) {
+                    drawWaveform();
+                }
+                animationId = requestAnimationFrame(animate);
+            }
+
+            // ---------- 开始录音 ----------
+            async function startRecording() {
+                if (isRecording) return;
+
+                // 再次检查安全环境
+                if (!checkSecureContext()) {
+                    return;
+                }
+
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            echoCancellation: false,
+                            noiseSuppression: false,
+                            autoGainControl: false
+                        }
+                    });
+
+                    audioContext = new(window.AudioContext || window.webkitAudioContext)();
+
+                    analyser = audioContext.createAnalyser();
+                    analyser.fftSize = 2048;
+                    analyser.smoothingTimeConstant = 0.6;
+
+                    const source = audioContext.createMediaStreamSource(stream);
+                    source.connect(analyser);
+
+                    dataArray = new Uint8Array(analyser.fftSize);
+
+                    if (audioContext.state === 'suspended') {
+                        await audioContext.resume();
+                    }
+
+                    isRecording = true;
+                    isPaused = false;
+                    isInitialized = true;
+
+                    statusDot.className = 'status-dot active';
+                    statusText.innerHTML = '🎤 录音中 · 波形实时显示';
+
+                    btnStart.disabled = true;
+                    btnStop.disabled = false;
+                    btnPause.disabled = false;
+                    btnScreenshot.disabled = false;
+                    btnPause.textContent = '⏸ 暂停';
+                    btnPause.className = 'btn btn-pause';
+
+                    if (animationId) cancelAnimationFrame(animationId);
+                    animate();
+
+                } catch (err) {
+                    console.error('麦克风获取失败:', err);
+
+                    let errorMsg = '无法访问麦克风，请检查权限设置。';
+                    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                        errorMsg = '❌ 用户拒绝了麦克风权限，请在浏览器地址栏右侧点击图标允许访问麦克风。';
+                    } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                        errorMsg = '❌ 未检测到麦克风设备，请插入麦克风后重试。';
+                    } else if (err.name === 'NotReadableError') {
+                        errorMsg = '❌ 麦克风被其他应用占用，请关闭其他使用麦克风的程序。';
+                    } else if (err.name === 'SecurityError') {
+                        errorMsg = '❌ 安全错误：请使用 HTTPS 或 localhost 访问此页面。';
+                    } else if (err.name === 'AbortError') {
+                        errorMsg = '❌ 请求被中止，请重试。';
+                    } else {
+                        errorMsg = '❌ 错误: ' + err.message;
+                    }
+
+                    statusDot.className = 'status-dot error';
+                    statusText.innerHTML = errorMsg;
+
+                    // 如果错误与安全相关，显示横幅
+                    if (err.name === 'SecurityError' || err.message.includes('secure')) {
+                        securityBanner.classList.add('show');
+                    }
+
+                    // 重置按钮状态
+                    btnStart.disabled = false;
+                    btnStop.disabled = true;
+                    btnPause.disabled = true;
+                    btnScreenshot.disabled = true;
+
+                    // 清理
+                    if (audioContext) {
+                        audioContext.close().catch(() => {});
+                        audioContext = null;
+                    }
+                    analyser = null;
+                    dataArray = null;
+                    isRecording = false;
+                }
+            }
+
+            // ---------- 停止录音 ----------
+            function stopRecording() {
+                if (!isRecording) return;
+
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+
+                if (audioContext) {
+                    audioContext.close().catch(() => {});
+                    audioContext = null;
+                }
+
+                isRecording = false;
+                isPaused = false;
+
+                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+                drawGrid();
+
+                volumeFill.style.width = '0%';
+                volumeNumber.textContent = '0%';
+
+                statusDot.className = 'status-dot';
+                statusText.innerHTML = '⏹ 已停止 · 点击 <strong>开始</strong> 重新录音';
+
+                btnStart.disabled = false;
+                btnStop.disabled = true;
+                btnPause.disabled = true;
+                btnScreenshot.disabled = true;
+                btnPause.textContent = '⏸ 暂停';
+                btnPause.className = 'btn btn-pause';
+
+                analyser = null;
+                dataArray = null;
+            }
+
+            // ---------- 暂停 / 继续 ----------
+            function togglePause() {
+                if (!isRecording) return;
+
+                isPaused = !isPaused;
+
+                if (isPaused) {
+                    statusDot.className = 'status-dot paused';
+                    statusText.innerHTML = '⏸ 已暂停 · 点击 "继续" 恢复';
+                    btnPause.textContent = '▶ 继续';
+                    btnPause.className = 'btn btn-pause active-pause';
+                } else {
+                    statusDot.className = 'status-dot active';
+                    statusText.innerHTML = '🎤 录音中 · 波形实时显示';
+                    btnPause.textContent = '⏸ 暂停';
+                    btnPause.className = 'btn btn-pause';
+                    drawWaveform();
+                }
+            }
+
+            // ---------- 截图 ----------
+            function takeScreenshot() {
+                if (!isInitialized) return;
+                const link = document.createElement('a');
+                link.download = '声波波形_' + new Date().toISOString().slice(0, 19).replace(/[:-]/g, '') + '.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }
+
+            // ---------- 全屏切换 ----------
+            function toggleFullscreen() {
+                const doc = document;
+                const isFs = doc.fullscreenElement || doc.webkitFullscreenElement;
+                if (!isFs) {
+                    const el = doc.documentElement;
+                    if (el.requestFullscreen) {
+                        el.requestFullscreen().catch(function() {});
+                    } else if (el.webkitRequestFullscreen) { // Safari
+                        el.webkitRequestFullscreen();
+                    } else if (el.msRequestFullscreen) {
+                        el.msRequestFullscreen();
+                    }
+                } else {
+                    if (doc.exitFullscreen) doc.exitFullscreen();
+                    else if (doc.webkitExitFullscreen) doc.webkitExitFullscreen();
+                    else if (doc.msExitFullscreen) doc.msExitFullscreen();
+                }
+            }
+
+            // ---------- 更新全屏按钮状态 ----------
+            function updateFullscreenState() {
+                const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+                const fsLabel = document.getElementById('fsLabel');
+                if (fsLabel) fsLabel.textContent = isFs ? '退出全屏' : '全屏';
+                if (btnFullscreen) btnFullscreen.classList.toggle('fs-active', isFs);
+            }
+
+            // 进入 / 退出全屏后布局尺寸会变化，需重新适配画布
+            function onFullscreenChange() {
+                updateFullscreenState();
+                setTimeout(handleResize, 120);
+            }
+
+            // ---------- 窗口自适应 ----------
+            function handleResize() {
+                resizeCanvas();
+                if (isRecording && !isPaused) {
+                    drawWaveform();
+                } else if (isInitialized) {
+                    drawGrid();
+                }
+            }
+
+            // ---------- 初始化 ----------
+            function init() {
+                resizeCanvas();
+                drawGrid();
+
+                // 先检测安全环境，如果安全则启用开始按钮
+                const secure = checkSecureContext();
+                if (secure) {
+                    btnStart.disabled = false;
+                    statusDot.className = 'status-dot';
+                    statusText.innerHTML = '就绪 · 点击 <strong>开始</strong>';
+                }
+
+                btnStart.addEventListener('click', startRecording);
+                btnStop.addEventListener('click', stopRecording);
+                btnPause.addEventListener('click', togglePause);
+                btnScreenshot.addEventListener('click', takeScreenshot);
+                btnFullscreen.addEventListener('click', toggleFullscreen);
+
+                window.addEventListener('resize', handleResize);
+
+                // 监听全屏状态变化（点按钮、按 Esc 等都会触发）
+                document.addEventListener('fullscreenchange', onFullscreenChange);
+                document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+                updateFullscreenState();
+
+                // 初始禁用状态
+                btnStop.disabled = true;
+                btnPause.disabled = true;
+                btnScreenshot.disabled = true;
+
+                console.log('✅ 声波探秘 已加载完成');
+                console.log('📢 请使用 HTTPS 或 localhost 访问以启用麦克风');
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+        })();
+    </script>
+
+</body>
+</html>
