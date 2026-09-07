@@ -24,6 +24,9 @@ window.CARDS_PUBLIC = [
         href: 'opencourse/2/RollCall2.html',
         action: 'link',
         actionText: '立即使用',
+         templates: [
+            { label: '学生数据模板', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/studentinfo2.xlsx' }
+        ]
     },
     {
         title: '聚光灯点名系统',
@@ -34,6 +37,9 @@ window.CARDS_PUBLIC = [
         href: 'opencourse/3/RollCall3.html',
         action: 'link',
         actionText: '立即使用',
+         templates: [
+            { label: '学生数据模板', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/studentinfo2.xlsx' }
+        ]
     },
     {
         title: '星尘抽选点名系统',
@@ -44,6 +50,9 @@ window.CARDS_PUBLIC = [
         href: 'opencourse/4/RollCall4.html',
         action: 'link',
         actionText: '立即使用',
+         templates: [
+            { label: '学生数据模板', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/studentinfo2.xlsx' }
+        ]
     },
       {
         title: '公开课倒计时系统',
