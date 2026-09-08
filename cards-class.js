@@ -44,5 +44,15 @@ window.CARDS_CLASS = [
             { label: '数据模板2', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/GeneralAnalysisData2.xlsx' },
             { label: '数据模板3', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/GeneralAnalysisData3.xlsx' }
         ]
+    },
+    {
+        title: '奖状批量生成系统',
+        desc: '上传奖状模板和奖励学生名单，即可批量生成奖状，方便快速高效，系统内提供A4奖状打印模板。',
+        date: '2026.09.08',
+        version: 'v1.1',
+        file: 'class/4/CertificatesGeneration.html',
+        href: 'class/4/CertificatesGeneration.html',
+        action: 'link',
+        actionText: '立即使用',
     }
 ];
