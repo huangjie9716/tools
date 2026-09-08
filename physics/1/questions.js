@@ -54,7 +54,7 @@
       // ----- 2.2 声音的特性 -----
       '2.2': [
         { type: 'choice', topic: '音调', text: '吹奏竹笛时按压竹笛上间距不同的小孔，主要是为了改变竹笛发声时的（　　）', options: { A: '响度', B: '音调', C: '音色', D: '声速' }, answer: 'B' },
-        { type: 'choice', topic: '响度', text: 'C919客机使用复合材料将舱内噪声降至60 dB，这是改变了舱内噪声的（　　）', options: { A: '频率', B: '响度', C: '音调', D: '速度' }, answer: 'B' },
+        { type: 'choice', topic: '响度', text: 'C 919客机使用复合材料将舱内噪声降至60 dB，这是改变了舱内噪声的（　　）', options: { A: '频率', B: '响度', C: '音调', D: '速度' }, answer: 'B' },
         { type: 'choice', topic: '响度', text: '小明在讲台上用敲击锤先后两次以不同力度敲击同一个音叉，座位上的小芳听到这两次声音的（　　）', options: { A: '响度不相同', B: '音调不相同', C: '音色不相同', D: '响度、音调和音色都不相同' }, answer: 'A' },
         { type: 'choice', topic: '音色', text: '自潮汕英歌舞登上春晚舞台后，世界看到中华文化"燃"到骨子里的生命力。观看表演过程中，小明分辨出"鼓声"和"英歌槌击打声"原因是（　　）', options: { A: '音调', B: '音色', C: '频率', D: '响度' }, answer: 'B' },
         { type: 'choice', topic: '声音的产生', text: '琴声是由琴弦（　　）产生的。<br><img src="https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev/image2-2/2-2-5.webp" style="max-width:100%;">', options: { A: '振动', B: '静止' }, answer: 'A', group: '2_2_5' },
