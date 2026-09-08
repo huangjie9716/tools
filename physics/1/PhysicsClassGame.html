@@ -198,6 +198,55 @@
     @keyframes fall { 0% { transform: translateY(-30px) rotate(0deg); opacity: 1; } 100% { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
     @media (max-width: 1200px) { .main-area { grid-template-columns: 1fr; } .player-panel, .question-area { min-height: auto; } .chapter-select-area { flex-direction: column; align-items: stretch; } .chapter-select-area .select-group { width: 100%; } .title-area { flex-direction: column; align-items: center; } .title-area .right { margin-top: 10px; } .s-answer-area { grid-template-columns: 1fr; } }
     @media (max-width: 600px) { .start-card { padding: 30px 20px; } .start-card h1 { font-size: 2.2rem; } .question-text { font-size: 1.6rem; } .answer-btn { font-size: 1.2rem; } }
+
+    /* ================= 全屏支持 ================= */
+    /* 让开始卡片内的“全屏”按钮能定位到卡片右上角 */
+    .start-card { position: relative; }
+    .result-top-actions { position: absolute; top: 18px; right: 18px; display: flex; gap: 10px; }
+    .result-top-actions .result-home-btn { position: static; }
+    .fs-btn.active { background: #ffd200; color: #1e293b; border-color: #ffd200; }
+
+    /* 全屏模式（进入 documentElement 全屏后，自动加在 <body> 上）屏幕适配：
+       充分利用屏幕——去掉 1500px 宽度上限、侧栏加宽、面板按视口高度铺满 */
+    body.fs-mode { background: #0b1120; }
+    body.fs-mode .game-container { max-width: 100%; width: 100%; padding: 10px 18px; }
+    body.fs-mode .main-area { grid-template-columns: 300px 1fr 300px; }
+    body.fs-mode .single-area { max-width: 1500px; }
+    body.fs-mode .player-panel,
+    body.fs-mode .question-area { min-height: max(640px, calc(100vh - 128px)); }
+    @media (max-width: 1300px) {
+      body.fs-mode .main-area { grid-template-columns: minmax(230px, 280px) 1fr minmax(230px, 280px); }
+    }
+
+    /* 按住拖动滚动时的反馈：禁止误选中文本、显示抓手光标 */
+    body.dragging { cursor: grabbing !important; user-select: none; -webkit-user-select: none; }
+
+    /* 题干 / 错题中的图片可点击放大 */
+    .question-text img, .s-question-text img, .mistake-item img { cursor: zoom-in; }
+
+    /* 图片放大查看器 */
+    body.lightbox-open { overflow: hidden; }
+    .img-viewer {
+      position: fixed; inset: 0; z-index: 9000; display: none;
+      align-items: center; justify-content: center;
+      background: rgba(2, 6, 23, 0.94);
+      padding: 24px; cursor: zoom-out;
+    }
+    .img-viewer.show { display: flex; }
+    .img-viewer img {
+      max-width: calc(100vw - 48px); max-height: calc(100vh - 48px);
+      object-fit: contain; border-radius: 8px; cursor: default;
+      box-shadow: 0 12px 44px rgba(0, 0, 0, 0.65);
+      background: #0b1120;
+    }
+    .img-viewer-close {
+      position: fixed; top: 16px; right: 20px; z-index: 1;
+      width: 46px; height: 46px; border-radius: 50%; border: none; cursor: pointer;
+      background: rgba(255, 255, 255, 0.14); color: #fff; font-size: 1.6rem; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .img-viewer-close:hover { background: #e94560; color: #fff; transform: scale(1.06); }
   </style>
 
   <!-- 添加公式解析（MathJax SVG 输出，仅加载一个输出处理器） -->
@@ -220,6 +269,7 @@
   <!-- ============ 开始界面 ============ -->
   <div class="start-screen" id="startScreen">
     <div class="start-card">
+      <button class="result-home-btn fs-btn" onclick="toggleFullscreen()" title="全屏 / 退出全屏（快捷键 F）">⛶ 全屏</button>
       <h1>🎮 初中物理课堂知识PK赛</h1>
       <p>双人同时作答 · 每题各答一次，答对 +10 分，答错 -10 分</p>
       <p>选择年级、章、节后，系统自动加载对应题库，题量动态适配</p>
@@ -261,7 +311,10 @@
         <div class="topic-badge" id="topicBadge">知识点：—</div>
         <button class="next-btn" id="nextBtn" onclick="nextQuestion()">下一题 ▶</button>
       </div>
-      <button class="top-btn" onclick="goHome()">返回主界面</button>
+      <div style="display:flex;gap:10px;">
+        <button class="top-btn fs-btn" onclick="toggleFullscreen()" title="全屏 / 退出全屏（快捷键 F）">⛶ 全屏</button>
+        <button class="top-btn" onclick="goHome()">返回主界面</button>
+      </div>
     </div>
     <div class="main-area" id="mainArea">
       <!-- 参赛者 A -->
@@ -326,7 +379,10 @@
   <!-- ============ 结果界面 ============ -->
   <div class="result-screen" id="resultScreen">
     <div class="result-card">
-      <button class="result-home-btn" onclick="goHome()">返回主界面</button>
+      <div class="result-top-actions">
+        <button class="result-home-btn fs-btn" onclick="toggleFullscreen()" title="全屏 / 退出全屏（快捷键 F）">⛶ 全屏</button>
+        <button class="result-home-btn" onclick="goHome()">返回主界面</button>
+      </div>
       <div id="resultEmoji"></div>
       <div class="result-title" id="resultTitle"></div>
       <div class="score-summary" id="scoreSummary"></div>
@@ -348,7 +404,10 @@
           <button class="mistakes-tab" id="tabAll" onclick="setMistakesView('all')">全部题目</button>
           <button class="mistakes-tab" id="tabWrong" onclick="setMistakesView('wrong')">仅错题</button>
         </div>
-        <button class="mistakes-close" onclick="closeMistakes()">✕ 关闭</button>
+        <div style="display:flex;gap:10px;">
+          <button class="mistakes-close fs-btn" onclick="toggleFullscreen()" title="全屏 / 退出全屏（快捷键 F）">⛶ 全屏</button>
+          <button class="mistakes-close" onclick="closeMistakes()">✕ 关闭</button>
+        </div>
       </div>
       <div class="mistakes-list" id="mistakesList"></div>
     </div>
@@ -356,6 +415,12 @@
 
   <!-- 彩带容器 -->
   <div class="confetti-container" id="confettiContainer"></div>
+
+  <!-- 图片放大查看器 -->
+  <div class="img-viewer" id="imgViewer" onclick="onViewerBackdropClick(event)">
+    <img id="imgViewerImg" src="" alt="" draggable="false" />
+    <button class="img-viewer-close" onclick="closeImageViewer()" title="关闭（Esc）">✕</button>
+  </div>
 
 <script src="questions.js"></script>
   <script>
@@ -523,7 +588,8 @@
       playerAKeys: ['1', '2', '3', '4', '5', '6'],   // 参赛者 A 键盘（按按钮显示顺序）
       playerBKeys: ['7', '8', '9', '0', '-', '='],   // 参赛者 B 键盘
       nextKeys: ['Enter', ' '],                      // 下一题快捷键
-      homeKey: 'Escape'                              // 返回主界面快捷键
+      homeKey: 'Escape',                             // 返回主界面快捷键
+      fullscreenKey: 'F'                             // 全屏 / 退出全屏
     };
 
     // DOM 快捷获取
@@ -639,11 +705,172 @@
     })();
 
     // ===================================================================
+    //  全屏 / 退出全屏（带前缀兼容；Esc / F11 也可由浏览器原生退出）
+    // ===================================================================
+    function isFullscreen() {
+      return !!(document.fullscreenElement || document.webkitFullscreenElement);
+    }
+    function toggleFullscreen() {
+      try {
+        const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+        if (fsEl) {
+          const exit = document.exitFullscreen || document.webkitExitFullscreen;
+          if (exit) exit.call(document);
+          return;
+        }
+        const enter = document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen;
+        if (enter) {
+          const p = enter.call(document.documentElement);
+          if (p && p.catch) p.catch(() => {});
+        } else {
+          alert('当前浏览器不支持全屏，请按 F11 尝试。');
+        }
+      } catch (e) { /* 忽略异常 */ }
+    }
+    // 进入/退出全屏时：同步各界面按钮文案并切换 body.fs-mode（触发屏幕适配）
+    function updateFullscreenUI() {
+      const fs = isFullscreen();
+      document.body.classList.toggle('fs-mode', fs);
+      document.querySelectorAll('.fs-btn').forEach(btn => {
+        btn.textContent = fs ? '⛶ 退出全屏' : '⛶ 全屏';
+        btn.classList.toggle('active', fs);
+      });
+    }
+    ['fullscreenchange', 'webkitfullscreenchange'].forEach(evt => {
+      document.addEventListener(evt, updateFullscreenUI);
+    });
+
+    // ===================================================================
+    //  按住拖动即可上下滚动（光标按住界面移动时页面跟随滑动）
+    //  - 自动判断滚动对象：按住处若在内部可滚动区（如错题列表）则滚动该区，否则滚动整页
+    //  - 原地轻点不受影响（仍正常触发答题等点击）；仅真正“拖动”时才滚动并拦截误触点击
+    // ===================================================================
+    (function initDragScroll() {
+      const THRESHOLD = 6;      // 鼠标移动超过该像素数才判定为“拖动”
+      let drag = null;          // 当前拖动状态
+      let suppressUntil = 0;    // 拖动结束后短暂拦截可能误触发的 click
+
+      // 找到光标下最近的可纵向滚动容器（内容超出可视区的），找不到则回落到整页
+      function getScroller(x, y) {
+        let el = document.elementFromPoint(x, y);
+        let n = (el && el.nodeType === 1) ? el : null;
+        while (n) {
+          if (n.scrollHeight > n.clientHeight + 4) return n;
+          if (n === document.documentElement) break;
+          n = n.parentElement;
+        }
+        const se = document.scrollingElement || document.documentElement;
+        return (se && se.scrollHeight > se.clientHeight + 4) ? se : null;
+      }
+      function isPage(el) {
+        return !el || el === document.scrollingElement || el === document.documentElement || el === document.body;
+      }
+      function getTop(el) {
+        return isPage(el) ? (window.pageYOffset || 0) : el.scrollTop;
+      }
+      function setTop(el, v) {
+        if (isPage(el)) window.scrollTo(0, v);
+        else el.scrollTop = v;
+      }
+      function finishDrag() {
+        if (!drag) return;
+        if (drag.moved) suppressUntil = Date.now() + 400;
+        drag = null;
+        document.body.classList.remove('dragging');
+      }
+
+      document.addEventListener('mousedown', function(e) {
+        if (e.button !== 0) return;
+        const t = e.target;
+        if (t && t.closest && t.closest('input, select, textarea')) return;
+        const scroller = getScroller(e.clientX, e.clientY);
+        if (!scroller) return;
+        drag = { x: e.clientX, y: e.clientY, top: getTop(scroller), el: scroller, moved: false };
+      }, true);
+
+      document.addEventListener('mousemove', function(e) {
+        if (!drag) return;
+        const dx = e.clientX - drag.x;
+        const dy = e.clientY - drag.y;
+        if (!drag.moved && dx * dx + dy * dy < THRESHOLD * THRESHOLD) return;
+        if (!drag.moved) {
+          drag.moved = true;
+          document.body.classList.add('dragging');
+        }
+        setTop(drag.el, drag.top - dy);   // 内容随手指方向移动
+        e.preventDefault();
+      }, true);
+
+      // 拖动中禁止图片等被浏览器原生拖拽
+      document.addEventListener('dragstart', function(e) {
+        if (drag && drag.moved) e.preventDefault();
+      }, true);
+
+      document.addEventListener('mouseup', finishDrag, true);
+      document.addEventListener('mouseleave', finishDrag, true);
+      document.addEventListener('mouseout', function(e) {
+        if (e.relatedTarget === null) finishDrag(); // 光标移出窗口
+      }, true);
+
+      // 拖动结束后浏览器可能在按钮上补发一次 click——短暂拦截，避免误答题
+      document.addEventListener('click', function(e) {
+        if (Date.now() < suppressUntil) {
+          suppressUntil = 0;
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, true);
+    })();
+
+    // ===================================================================
+    //  图片放大查看器：点击题目/错题中的图片放大，点 × 或背景或 Esc 关闭
+    // ===================================================================
+    const imgViewer = $('imgViewer');
+    const imgViewerImg = $('imgViewerImg');
+    function openImageViewer(img) {
+      const src = img.currentSrc || img.src;
+      if (!src) return;
+      imgViewerImg.src = src;
+      imgViewerImg.alt = img.alt || '';
+      imgViewer.classList.add('show');
+      document.body.classList.add('lightbox-open');
+    }
+    function closeImageViewer() {
+      imgViewer.classList.remove('show');
+      document.body.classList.remove('lightbox-open');
+    }
+    // 点击查看器背景（非图片区域）关闭
+    function onViewerBackdropClick(e) {
+      if (e.target === imgViewer) closeImageViewer();
+    }
+    // 委托：点击题目/错题区域内的图片即放大（排除查看器自身的图片）
+    document.addEventListener('click', function(e) {
+      const t = e.target;
+      if (!t || !t.closest || t.closest('#imgViewer')) return;
+      const img = t.closest('img');
+      if (img && img.closest('.question-text, .s-question-text, .mistake-item')) {
+        openImageViewer(img);
+      }
+    }, true);
+
+    // ===================================================================
     //  键盘快捷键（双人同机：A 用左侧数字，B 用右侧数字）
     // ===================================================================
     function handleKeydown(e) {
       const tag = (e.target && e.target.tagName) || '';
       if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+
+      // 图片放大查看器打开时：仅 Esc 可关闭，其它快捷键暂不生效（避免误返回主界面等）
+      if (imgViewer.classList.contains('show')) {
+        if (e.key === 'Escape' || e.key === 'Esc') {
+          e.preventDefault();
+          closeImageViewer();
+        }
+        return;
+      }
+
+      // F 键：全屏 / 退出全屏
+      if (e.key === CONFIG.fullscreenKey) { toggleFullscreen(); return; }
 
       if (e.key === CONFIG.homeKey) { goHome(); return; }
 
