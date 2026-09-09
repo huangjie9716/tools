@@ -51,6 +51,50 @@
             background: linear-gradient(90deg, transparent, #94bce8, transparent);
         }
 
+        /* ====================== 右上角全屏切换按钮 ====================== */
+        .fullscreen-btn {
+            position: fixed;
+            top: 18px;
+            right: 24px;
+            z-index: 3000;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            background: rgba(255, 255, 255, 0.92);
+            color: #334155;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+            backdrop-filter: blur(3px);
+            transition: background 0.2s, transform 0.15s, color 0.2s;
+        }
+        .fullscreen-btn:hover {
+            background: #ffffff;
+            color: #2576D9;
+            transform: scale(1.05);
+        }
+        .fullscreen-btn:active {
+            transform: scale(0.96);
+        }
+        .fullscreen-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+        .fullscreen-btn .icon-exit {
+            display: none;
+        }
+        /* 全屏状态下页面可整体居中铺满（可选美化） */
+        body:fullscreen,
+        body:-webkit-full-screen {
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+        }
+
         /* ====================== 筛选控件区域 ====================== */
         .filter-wrap {
             max-width: 1260px;
@@ -338,6 +382,17 @@
             padding: 4px;
             font-size:17px;
         }
+
+        /* ====================== 长按拖动滚动（教室大屏 / Seewo 友好） ====================== */
+        /* 平时保持普通箭头光标；长按后才出现“小手”（grab），按住上下拖动即可滚动 */
+        html.drag-armed,
+        html.drag-armed * {
+            cursor: grab !important;
+        }
+        html.drag-grabbing,
+        html.drag-grabbing * {
+            cursor: grabbing !important;
+        }
         .question-item {
             background: #f9fafc;
             border-radius: 10px;
@@ -373,6 +428,67 @@
             border: 1px solid #dce3ec;
             display: block;             /* 确保居中生效 */
             margin: 0 auto;             /* 水平居中 */
+        }
+
+        /* 图片缩放容器与右上角控件 */
+        .img-zoom-wrap {
+            position: relative;
+            display: block;
+            line-height: 0;
+        }
+        .img-zoom-wrap img {
+            line-height: 0;
+        }
+        .img-zoom-controls {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 6;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(15, 23, 42, 0.12);
+            border-radius: 9px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+        }
+        .img-zoom-btn {
+            width: 26px;
+            height: 26px;
+            padding: 0;
+            border: none;
+            border-radius: 6px;
+            background: #eef4fc;
+            color: #2576D9;
+            font-size: 19px;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, transform 0.12s;
+        }
+        .img-zoom-btn:hover:not(:disabled) {
+            background: #d6e7fd;
+            transform: scale(1.08);
+        }
+        .img-zoom-btn:active:not(:disabled) {
+            transform: scale(0.94);
+        }
+        .img-zoom-btn:disabled {
+            opacity: 0.38;
+            cursor: not-allowed;
+        }
+        .img-zoom-percent {
+            min-width: 46px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: #334155;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
         }
         .answer-section {
             margin-top: 14px;
@@ -482,6 +598,18 @@ MathJax = {
         </h1>
         <div class="header-divider"></div>
     </div>
+
+    <!-- ====================== 右上角全屏切换按钮 ====================== -->
+    <button type="button" id="fullscreenBtn" class="fullscreen-btn" title="进入全屏" aria-label="进入全屏">
+        <!-- 进入全屏图标（扩展箭头） -->
+        <svg class="icon-enter" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"></path>
+        </svg>
+        <!-- 退出全屏图标（收缩箭头） -->
+        <svg class="icon-exit" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"></path>
+        </svg>
+    </button>
 
     <!-- ====================== 筛选选择区域 ====================== -->
     <div class="filter-wrap">
@@ -873,7 +1001,7 @@ MathJax = {
                     // 简单起见，我们直接使用 <br>，CSS 设置 padding-left 即可。
                     html += `<div class="question-item">`;
                     html += `<div class="question-text"><strong>第${index+1}题.</strong> ${questionHtml}</div>`;
-                    // 题目图片：支持 imageMaxHeight 单独控制高度
+                    // 题目图片：支持 imageMaxHeight 单独控制高度；图片右上角提供放大/缩小控件
                     if (q.questionImages && q.questionImages.length > 0) {
                         html += `<div class="question-images">`;
                         q.questionImages.forEach(img => {
@@ -881,7 +1009,7 @@ MathJax = {
                             if (q.imageMaxHeight) {
                                 imgStyle = ` style="max-height: ${q.imageMaxHeight};"`;
                             }
-                            html += `<img src="${img}" alt="题目图片" loading="lazy"${imgStyle}>`;
+                            html += buildZoomImageHtml(img, '题目图片', imgStyle);
                         });
                         html += `</div>`;
                     }
@@ -900,7 +1028,7 @@ MathJax = {
                         if (q.answerImgMaxHeight) {
                             imgStyle = ` style="max-height: ${q.answerImgMaxHeight};"`;
                         }
-                        html += `<img src="${q.answerImg}" alt="答案图片" loading="lazy"${imgStyle}>`;
+                        html += buildZoomImageHtml(q.answerImg, '答案图片', imgStyle);
                         html += `</div>`;
                     } else {
                         html += `<p style="color:#999; margin-top:10px;">暂无答案和解析</p>`;
@@ -908,6 +1036,8 @@ MathJax = {
                     html += `</div>`;
                 });
                 exerciseContent.innerHTML = html;
+                // 初始化所有图片的缩放控件（图片加载完成后自动对齐外层宽度）
+                setupZoomWrappers(exerciseContent);
 
                 // 绑定每个题目的答案切换按钮
                 exerciseContent.querySelectorAll('.toggle-answer-btn').forEach(btn => {
@@ -920,6 +1050,10 @@ MathJax = {
                         }else{
                             section.classList.add('show');
                             this.textContent = '隐藏答案和解析';
+                            // 答案区由隐藏变为显示后，重新对齐其中图片的宽度
+                            requestAnimationFrame(function(){
+                                setupZoomWrappers(section);
+                            });
                         }
                     });
                 });
@@ -965,7 +1099,326 @@ MathJax = {
         });
 
         // ================================================================
-        // 6. 初始化
+        // 6. 全屏切换功能（右上角按钮）
+        // ================================================================
+
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const enterIcon = fullscreenBtn.querySelector('.icon-enter');
+        const exitIcon = fullscreenBtn.querySelector('.icon-exit');
+
+        // 判断当前是否处于全屏状态（兼容各浏览器前缀）
+        function isFullscreen(){
+            return !!(document.fullscreenElement
+                || document.webkitFullscreenElement
+                || document.msFullscreenElement);
+        }
+
+        function enterFullscreen(){
+            const el = document.documentElement;
+            if (el.requestFullscreen) {
+                el.requestFullscreen().catch(function(){ /* 若被拒绝则忽略 */ });
+            } else if (el.webkitRequestFullscreen) {   // 旧版 Safari / Chrome
+                el.webkitRequestFullscreen();
+            } else if (el.msRequestFullscreen) {       // 旧版 Edge / IE
+                el.msRequestFullscreen();
+            } else {
+                alert('当前浏览器不支持全屏功能，请更换浏览器（如 Chrome、Edge）。');
+            }
+        }
+
+        function exitFullscreen(){
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
+
+        function toggleFullscreen(){
+            if (isFullscreen()) {
+                exitFullscreen();
+            } else {
+                enterFullscreen();
+            }
+        }
+
+        // 根据全屏状态切换按钮图标与提示文字
+        function updateFullscreenUI(){
+            const full = isFullscreen();
+            enterIcon.style.display = full ? 'none' : 'block';
+            exitIcon.style.display  = full ? 'block' : 'none';
+            fullscreenBtn.title = full ? '退出全屏' : '进入全屏';
+            fullscreenBtn.setAttribute('aria-label', full ? '退出全屏' : '进入全屏');
+        }
+
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+        // 监听全屏状态变化（含 F11、Esc 等浏览器自带操作触发的切换）
+        document.addEventListener('fullscreenchange', updateFullscreenUI);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenUI);
+        document.addEventListener('msfullscreenchange', updateFullscreenUI);
+        updateFullscreenUI();
+
+        // ================================================================
+        // 习题图片：右上角放大/缩小控件（梯度缩放，含范围限制）
+        // ================================================================
+        const ZOOM_MIN = 0.5;   // 最小缩放比例
+        const ZOOM_MAX = 3;     // 最大缩放比例
+        const ZOOM_STEP = 1.25; // 每次点击的缩放步长（梯度）
+
+        // 生成“图片 + 右上角缩放控件”的整体 HTML
+        function buildZoomImageHtml(src, alt, styleAttr){
+            const styleStr = styleAttr ? ` style="${styleAttr}"` : '';
+            return ''
+                + '<div class="img-zoom-wrap" data-zoom="1" data-basew="">'
+                +   '<div class="img-zoom-controls">'
+                +     '<button type="button" class="img-zoom-btn img-zoom-out" title="缩小图片">−</button>'
+                +     '<span class="img-zoom-percent">100%</span>'
+                +     '<button type="button" class="img-zoom-btn img-zoom-in" title="放大图片">＋</button>'
+                +   '</div>'
+                + `<img src="${src}" alt="${alt}" loading="lazy" draggable="false"${styleStr}>`
+                + '</div>';
+        }
+
+        // 测量图片在“100%”时的基准显示宽度（尊重原有 max-width / max-height 约束）
+        function measureBaseWidth(wrap, img){
+            const container = wrap.closest('.question-images')
+                || wrap.closest('.answer-section')
+                || wrap.parentElement;
+            let avail = container ? container.clientWidth : 0;
+            if(!(avail > 0) && img.naturalWidth){
+                avail = Math.min(img.naturalWidth, (document.body.clientWidth || 1200));
+            }
+            if(!(avail > 0)) return 0;
+            // 临时把外层宽度设为容器可用宽度，让图片按约束计算出自适应后的基准宽度
+            const prevW = wrap.style.width;
+            wrap.style.width = avail + 'px';
+            let w = img.getBoundingClientRect().width;
+            wrap.style.width = prevW;
+            if(!(w > 0)) w = Math.min(img.naturalWidth || avail, avail);
+            return w;
+        }
+
+        // 缩放状态记忆：按图片地址在本地保存上次缩放比例（下次打开时自动恢复）
+        const ZOOM_STORE_KEY = 'physicsExpImageZoom';
+        function loadZoomStore(){
+            try{ return JSON.parse(localStorage.getItem(ZOOM_STORE_KEY)) || {}; }catch(e){ return {}; }
+        }
+        function saveZoomStore(store){
+            try{ localStorage.setItem(ZOOM_STORE_KEY, JSON.stringify(store)); }catch(e){ /* 隐私模式等场景可能失败，忽略 */ }
+        }
+        function getStoredZoom(src){
+            const z = parseFloat(loadZoomStore()[src]);
+            return (z > 0) ? z : 1;
+        }
+        function setStoredZoom(src, z){
+            if(!src) return;
+            const store = loadZoomStore();
+            if(z && Math.abs(z - 1) > 0.001){
+                store[src] = z;
+            }else{
+                delete store[src];
+            }
+            saveZoomStore(store);
+        }
+
+        // 图片加载完成后，让外层宽度贴合图片基准宽度（保证控件钉在图片右上角）
+        // 并读取“上次缩放比例”，若存在记忆则自动恢复上次图片大小
+        function setupZoomWrappers(root){
+            if(!root) return;
+            root.querySelectorAll('.img-zoom-wrap').forEach(wrap => {
+                const img = wrap.querySelector('img');
+                if(!img) return;
+                const align = function(){
+                    if(!img.naturalWidth){
+                        wrap.style.width = '';
+                        return;
+                    }
+                    const bw = measureBaseWidth(wrap, img);
+                    if(bw > 0){
+                        wrap.style.width = bw + 'px';
+                        wrap.dataset.basew = String(bw);
+                    }
+                    // 恢复上次打开同一图片时记忆的缩放比例
+                    const saved = getStoredZoom(img.currentSrc || img.src);
+                    if(Math.abs(saved - 1) > 0.001){
+                        applyImageZoom(wrap, img, saved);
+                    }
+                };
+                if(img.complete && img.naturalWidth){
+                    align();
+                }else{
+                    img.addEventListener('load', align);
+                }
+            });
+        }
+
+        // 按给定比例 z 应用图片缩放（含百分比显示、按钮禁用与范围限制）
+        function applyImageZoom(wrap, img, z){
+            const baseW = parseFloat(wrap.dataset.basew);
+            if(!(baseW > 0)) return;
+            // 消除浮点误差，让缩小后可精确回到 100%
+            if(Math.abs(z - 1) < 0.001) z = 1;
+            z = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
+            wrap.dataset.zoom = String(z);
+
+            if(z === 1){
+                // 回到 100%：先恢复外层基准宽度，再释放图片叠加样式，回归原始自适应效果
+                wrap.style.width = baseW + 'px';
+                img.style.width = '';
+                img.style.height = '';
+                img.style.maxWidth = '';
+                img.style.maxHeight = wrap.dataset.origMaxH || '';
+            }else{
+                // 首次放大前保存图片原有内联 max-height，便于回到 100% 时还原
+                if(!wrap.dataset.origMaxH && img.style.maxHeight){
+                    wrap.dataset.origMaxH = img.style.maxHeight;
+                }
+                img.style.maxWidth = 'none';
+                img.style.maxHeight = 'none';
+                img.style.width = Math.round(baseW * z) + 'px';
+                img.style.height = 'auto';
+            }
+
+            const pct = wrap.querySelector('.img-zoom-percent');
+            if(pct) pct.textContent = Math.round(z * 100) + '%';
+            const outBtn = wrap.querySelector('.img-zoom-out');
+            const inBtn = wrap.querySelector('.img-zoom-in');
+            if(outBtn) outBtn.disabled = (z <= ZOOM_MIN);
+            if(inBtn) inBtn.disabled = (z >= ZOOM_MAX);
+
+            // 外层宽度贴合图片当前显示宽度
+            const rectW = img.getBoundingClientRect().width;
+            if(rectW > 0) wrap.style.width = rectW + 'px';
+        }
+
+        // 执行缩放（用户点击按钮）：按 ZOOM_STEP 梯度放大/缩小，并把结果记入本地存储
+        function zoomImage(wrap, img, dir){
+            if(!img || !img.naturalWidth){
+                alert('图片尚未加载完成，请稍后再试');
+                return;
+            }
+            let baseW = parseFloat(wrap.dataset.basew);
+            if(!(baseW > 0)){
+                baseW = measureBaseWidth(wrap, img);
+                if(!(baseW > 0)) return;
+                wrap.dataset.basew = String(baseW);
+            }
+            let z = parseFloat(wrap.dataset.zoom) || 1;
+            z = (dir === 'in') ? z * ZOOM_STEP : z / ZOOM_STEP;
+            z = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
+            applyImageZoom(wrap, img, z);
+            // 记住本次缩放比例，下次打开同一习题图片时自动恢复
+            setStoredZoom(img.currentSrc || img.src, parseFloat(wrap.dataset.zoom) || 1);
+        }
+
+        // 习题弹窗内统一监听缩放按钮点击（弹窗内容每次重建后依然生效）
+        exerciseContent.addEventListener('click', function(e){
+            const btn = e.target.closest('.img-zoom-btn');
+            if(!btn) return;
+            e.preventDefault();
+            e.stopPropagation();
+            const wrap = btn.closest('.img-zoom-wrap');
+            const img = wrap && wrap.querySelector('img');
+            if(!wrap || !img) return;
+            const dir = btn.classList.contains('img-zoom-in') ? 'in' : 'out';
+            zoomImage(wrap, img, dir);
+        });
+
+        // ================================================================
+        // 长按拖动滚动（适合教室大屏 / Seewo）：平时为普通箭头鼠标，
+        // 长按约 300ms 后出现“小手”，此时按住上下拖动即可滚动页面
+        // ================================================================
+        const LONG_PRESS_MS = 300;   // 长按多久后出现小手（可按需调整）
+        let dragScrollState = null;
+        let dragArmTimer = null;
+
+        // 从按下位置向上查找可纵向滚动的容器（找不到则退化为整页滚动）
+        function findScrollTarget(node){
+            let el = node;
+            while(el && el.nodeType === 1){
+                if(el.scrollHeight > el.clientHeight + 2){
+                    const oy = getComputedStyle(el).overflowY;
+                    if(oy === 'auto' || oy === 'scroll' || oy === 'overlay') return el;
+                }
+                el = el.parentElement;
+            }
+            return document.scrollingElement || document.documentElement;
+        }
+
+        // 长按触发：出现“小手”，进入可拖动状态
+        function armDrag(){
+            if(!dragScrollState || dragScrollState.moved) return;
+            dragScrollState.armed = true;
+            document.documentElement.classList.remove('drag-grabbing');
+            document.documentElement.classList.add('drag-armed');
+        }
+
+        document.addEventListener('mousedown', function(e){
+            if(e.button !== 0) return;
+            const t = e.target;
+            if(!(t instanceof Element)) return;
+            // 在可点击控件上按下时保留原有点击行为，不进入拖动
+            if(t.closest('button, a, input, textarea, select, label, iframe, video, [contenteditable="true"]')) return;
+            const scroller = findScrollTarget(t);
+            dragScrollState = {
+                scroller: scroller,
+                startY: e.clientY,
+                startScrollTop: scroller.scrollTop,
+                moved: false,
+                armed: false
+            };
+            // 长按一小段时间后才让“小手”出现
+            clearTimeout(dragArmTimer);
+            dragArmTimer = setTimeout(armDrag, LONG_PRESS_MS);
+            // 图片上按下时禁止原生图片拖拽，保证长按后也能顺畅拖动
+            if(t.tagName === 'IMG' && e.cancelable) e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', function(e){
+            if(!dragScrollState) return;
+            const s = dragScrollState;
+            const dy = e.clientY - s.startY;
+            // 已出现小手后轻微移动即可滚动；未长按则需移动超过阈值才判定为拖动
+            const need = s.armed ? 2 : 5;
+            if(Math.abs(dy) <= need) return;
+            if(!s.moved){
+                s.moved = true;
+                clearTimeout(dragArmTimer);
+                document.documentElement.classList.remove('drag-armed');
+                document.documentElement.classList.add('drag-grabbing');
+            }
+            s.scroller.scrollTop = s.startScrollTop - dy;
+            if(e.cancelable) e.preventDefault();
+        });
+
+        function endDragScroll(){
+            clearTimeout(dragArmTimer);
+            if(!dragScrollState) return;
+            const moved = dragScrollState.moved;
+            dragScrollState = null;
+            document.documentElement.classList.remove('drag-armed', 'drag-grabbing');
+            if(moved){
+                // 清除拖动中可能产生的文本选中
+                if(window.getSelection && window.getSelection().removeAllRanges){
+                    window.getSelection().removeAllRanges();
+                }
+                // 拖动结束后抑制随后的一次 click，避免误触按钮或关闭弹窗
+                document.addEventListener('click', function(ev){
+                    ev.stopPropagation();
+                    ev.preventDefault();
+                }, {capture: true, once: true});
+            }
+        }
+        document.addEventListener('mouseup', endDragScroll);
+        document.addEventListener('mouseleave', endDragScroll);
+        // 全局禁止图片/链接的原生拖拽，让“长按拖动滚动”更稳定
+        document.addEventListener('dragstart', function(e){ e.preventDefault(); });
+
+        // ================================================================
+        // 7. 初始化
         // ================================================================
 
         function init(){
