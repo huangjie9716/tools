@@ -115,23 +115,6 @@
         .header h1 i {
             margin-right: 10px;
         }
-        .subtitle {
-            font-size: 1.1rem;
-            color: #88ccff;
-            font-weight: 300;
-            letter-spacing: 4px;
-        }
-        .subject {
-            display: inline-block;
-            background: rgba(77, 166, 255, 0.18);
-            color: #4da6ff;
-            padding: 4px 18px;
-            border-radius: 20px;
-            margin-top: 6px;
-            border: 1px solid rgba(77, 166, 255, 0.4);
-            font-size: 0.9rem;
-            pointer-events: none;
-        }
 
         /* ===== 速度指示器 ===== */
         .speed-indicator {
@@ -222,6 +205,7 @@
             padding: 14px 20px;
             background: rgba(0, 10, 30, 0.88);
             display: flex;
+            align-items: center;
             justify-content: center;
             gap: 16px;
             flex-wrap: wrap;
@@ -265,6 +249,10 @@
         }
         .stop-btn {
             background: linear-gradient(135deg, #e53935, #ff6b6b);
+        }
+        .fullscreen-btn {
+            background: linear-gradient(135deg, #7c4dff, #b366ff);
+            flex-shrink: 0;
         }
 
         /* ===== 上传弹窗 ===== */
@@ -387,7 +375,7 @@
                 gap: 8px;
                 padding: 12px 16px;
             }
-            .control-btn {
+            .control-btn, .fullscreen-btn {
                 width: 92%;
                 min-width: unset;
                 padding: 12px 16px;
@@ -395,9 +383,6 @@
             }
             .header h1 {
                 font-size: 1.5rem;
-            }
-            .header .subtitle {
-                font-size: 0.85rem;
             }
             .speed-indicator {
                 top: 12px;
@@ -439,8 +424,6 @@
     <!-- ===== 标题 ===== -->
     <div class="header">
         <h1><i class="fas fa-atom"></i> 3D球形环绕点名系统</h1>
-        <p class="subtitle">公平 · 有趣 · 高效</p>
-        <div class="subject"><i class="fas fa-chalkboard-teacher"></i> 课堂互动专用工具</div>
     </div>
 
     <!-- ===== 速度指示器 ===== -->
@@ -464,6 +447,9 @@
         </button>
         <button class="control-btn stop-btn" id="stopBtn" disabled>
             <i class="fas fa-stop-circle"></i> 停止
+        </button>
+        <button class="control-btn fullscreen-btn" id="fullscreenBtn" title="进入全屏">
+            <i class="fas fa-expand"></i><span>全屏</span>
         </button>
     </div>
 
@@ -529,6 +515,9 @@
             const stopBtn = document.getElementById('stopBtn');
             const speedSpan = document.getElementById('speed-value');
             const physicsEl = document.getElementById('physicsElements');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const headerEl = document.querySelector('.header');
+            const controlsEl = document.querySelector('.controls');
 
             // 音频元素
             const bgmDraw = document.getElementById('bgmDraw'); // 抽签背景音（循环）
@@ -619,12 +608,27 @@
                 students = SAMPLE_NAMES.slice();
                 selectedIndices = new Set();
                 startBtn.disabled = false;
+                layoutSphere();
                 buildSphere();
             }
 
             // ============================================================
             //  6. 构建球体
             // ============================================================
+            // 布局：将球体居中在“标题下方 ~ 控制栏上方”的可用区域，
+            // 并按可用空间动态计算半径，确保名字不会被标题/控制栏遮挡。
+            function layoutSphere() {
+                const headerH = headerEl ? headerEl.offsetHeight : 0;
+                const controlsH = controlsEl ? controlsEl.offsetHeight : 0;
+                const availH = Math.max(140, window.innerHeight - headerH - controlsH);
+                const availW = window.innerWidth;
+                const maxR = Math.min(availW, availH) / 2;
+                // 半径留出余量，避免最上/最下的名字被顶部标题或底部控制栏盖住
+                sphereRadius = Math.max(90, Math.floor(maxR * 0.86));
+                sphere.style.top = (headerH + availH / 2) + 'px';
+                sphere.style.left = '50%';
+            }
+
             function buildSphere() {
                 sphere.innerHTML = '';
                 nameElements = [];
@@ -740,6 +744,7 @@
                 }
 
                 setTimeout(function() {
+                    layoutSphere();
                     buildSphere();
                     // buildSphere 已重新生成 nameElements / spherePoints，无需再手动查询 DOM
                     animateSphere();
@@ -873,6 +878,7 @@
 
                         startBtn.disabled = false;
                         uploadModal.classList.remove('active');
+                        layoutSphere();
                         buildSphere();
                         alert(`✅ 成功导入 ${students.length} 名学生！`);
                     } catch (err) {
@@ -919,6 +925,51 @@
             stopBtn.addEventListener('click', stopSelection);
 
             // ============================================================
+            //  13b. 全屏切换（放在开始/停止旁边，便于教室投屏使用）
+            // ============================================================
+            fullscreenBtn.addEventListener('click', function() {
+                const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+                if (isFs) {
+                    const exitFn = document.exitFullscreen || document.webkitExitFullscreen ||
+                        document.mozCancelFullScreen || document.msExitFullscreen;
+                    if (exitFn) exitFn.call(document);
+                } else {
+                    const el = document.documentElement;
+                    const fsFn = el.requestFullscreen || el.webkitRequestFullscreen ||
+                        el.mozRequestFullScreen || el.msRequestFullscreen;
+                    if (fsFn) {
+                        const p = fsFn.call(el);
+                        if (p && typeof p.catch === 'function') p.catch(function() {});
+                    }
+                }
+            });
+
+            function updateFullscreenBtn() {
+                const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+                const icon = fullscreenBtn.querySelector('i');
+                const label = fullscreenBtn.querySelector('span');
+                if (isFs) {
+                    icon.className = 'fas fa-compress';
+                    label.textContent = '退出全屏';
+                    fullscreenBtn.title = '退出全屏';
+                } else {
+                    icon.className = 'fas fa-expand';
+                    label.textContent = '全屏';
+                    fullscreenBtn.title = '进入全屏';
+                }
+            }
+
+            function onFullscreenChange() {
+                updateFullscreenBtn();
+                layoutSphere();
+                if (!isRunning && students.length) {
+                    buildSphere();
+                }
+            }
+            document.addEventListener('fullscreenchange', onFullscreenChange);
+            document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+
+            // ============================================================
             //  14. 窗口尺寸变化
             // ============================================================
             let resizeTimer = null;
@@ -926,6 +977,7 @@
                 clearTimeout(resizeTimer);
                 resizeTimer = setTimeout(function() {
                     if (!isRunning && students.length) {
+                        layoutSphere();
                         buildSphere();
                     }
                 }, 400);
@@ -948,6 +1000,7 @@
                         students = savedList;
                         selectedIndices = new Set();
                         startBtn.disabled = false;
+                        layoutSphere();
                         buildSphere();
                         console.log('📂 已加载存储的名单:', students.length, '人');
                         return;
