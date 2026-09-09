@@ -349,10 +349,17 @@ body {
 .chart-container {
     position: relative;
     height: 360px;
+    min-width: 620px;
 }
 .chart-container canvas {
     width: 100% !important;
     height: 100% !important;
+}
+/* 图表横向滚动容器：窄屏（手机/平板）下与加分明细一致，可横向拖动查看所有小组 */
+.chart-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
 }
 
 /* ===== 加分明细 ===== */
@@ -814,21 +821,58 @@ body {
     }
 }
 
-/* ===== 滚动条美化 ===== */
-.table-wrap::-webkit-scrollbar {
+/* ===== 滚动条美化（统一深色，与加分明细样式一致） ===== */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    width: 10px;
+}
+.ws-chips::-webkit-scrollbar,
+.week-tabs::-webkit-scrollbar,
+.chart-scroll::-webkit-scrollbar,
+.table-wrap::-webkit-scrollbar,
+.modal::-webkit-scrollbar {
     width: 8px;
     height: 8px;
 }
-.table-wrap::-webkit-scrollbar-track {
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
+.ws-chips::-webkit-scrollbar-track,
+.week-tabs::-webkit-scrollbar-track,
+.chart-scroll::-webkit-scrollbar-track,
+.table-wrap::-webkit-scrollbar-track,
+.modal::-webkit-scrollbar-track {
     background: #0d141f;
     border-radius: 10px;
 }
-.table-wrap::-webkit-scrollbar-thumb {
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
+.ws-chips::-webkit-scrollbar-thumb,
+.week-tabs::-webkit-scrollbar-thumb,
+.chart-scroll::-webkit-scrollbar-thumb,
+.table-wrap::-webkit-scrollbar-thumb,
+.modal::-webkit-scrollbar-thumb {
     background: #263349;
     border-radius: 10px;
 }
-.table-wrap::-webkit-scrollbar-thumb:hover {
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover,
+.ws-chips::-webkit-scrollbar-thumb:hover,
+.week-tabs::-webkit-scrollbar-thumb:hover,
+.chart-scroll::-webkit-scrollbar-thumb:hover,
+.table-wrap::-webkit-scrollbar-thumb:hover,
+.modal::-webkit-scrollbar-thumb:hover {
     background: #33445f;
+}
+/* Firefox 深色滚动条 */
+html,
+body,
+.ws-chips,
+.week-tabs,
+.chart-scroll,
+.table-wrap,
+.modal {
+    scrollbar-width: thin;
+    scrollbar-color: #263349 #0d141f;
 }
 
 /* ===== 页脚：云端状态 + 管理员入口 ===== */
