@@ -95,6 +95,45 @@
                 <tbody id="resultBody"></tbody>
             </table>
         </div>
+
+        <!-- ===== 增值评价建议名单（本班各学科汇总，总分视为一个学科） ===== -->
+        <div class="advice-panel" id="advicePanel" style="display:none;">
+            <div class="advice-head">
+                <h4>增值评价建议名单</h4>
+                <span class="advice-scope" id="adviceScope"></span>
+            </div>
+            <div class="advice-block praise">
+                <div class="advice-title"><img src="img/praise-icon.svg" class="advice-icon" alt="">建议大力表扬的同学名单</div>
+                <div class="advice-table-wrap">
+                    <table class="advice-table">
+                        <thead>
+                            <tr>
+                                <th class="adv-subject">学科</th>
+                                <th>超2标</th>
+                                <th>超1标</th>
+                            </tr>
+                        </thead>
+                        <tbody id="advicePraiseBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="advice-block analyze">
+                <div class="advice-title"><img src="img/attention-icon.svg" class="advice-icon" alt="">建议单独分析的同学名单</div>
+                <div class="advice-table-wrap">
+                    <table class="advice-table">
+                        <thead>
+                            <tr>
+                                <th class="adv-subject">学科</th>
+                                <th>退2标</th>
+                                <th>退1标</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adviceAnalyzeBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="advice-note">说明：超2标的学生已属于超1标，退2标的学生已属于退1标，故名单已去重、互不重复；名单按个人T值排序（表扬类由高到低，需分析类由低到高）。</div>
+        </div>
     </div>
 
     <!-- ===== 回归分析区域 ===== -->
