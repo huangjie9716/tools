@@ -41,6 +41,18 @@
         const missingContinueBtn = document.getElementById('missingContinueBtn');
         const missingCancelBtn = document.getElementById('missingCancelBtn');
         const viewCards = document.getElementById('viewCards');
+        const advicePanel = document.getElementById('advicePanel');
+        const adviceScope = document.getElementById('adviceScope');
+        const adviceOverTwo = document.getElementById('adviceOverTwo');
+        const adviceOverOne = document.getElementById('adviceOverOne');
+        const adviceBelowTwo = document.getElementById('adviceBelowTwo');
+        const adviceBelowOne = document.getElementById('adviceBelowOne');
+        const regressionNote = document.getElementById('regressionNote');
+        const statDetailModal = document.getElementById('statDetailModal');
+        const statDetailTitle = document.getElementById('statDetailTitle');
+        const statDetailScope = document.getElementById('statDetailScope');
+        const statDetailBody = document.getElementById('statDetailBody');
+        const statDetailCloseBtn = document.getElementById('statDetailCloseBtn');
 
         // ---- 状态 ----
         let currentView = 'result';
@@ -439,7 +451,7 @@
             classButtons.innerHTML = '';
             const allBtn = document.createElement('button');
             allBtn.className = 'btn-sm' + (selected === 'all' ? ' active' : '');
-            allBtn.textContent = '全部班级';
+            allBtn.textContent = '全校';
             allBtn.dataset.class = 'all';
             allBtn.addEventListener('click', function() {
                 const cls = this.dataset.class;
@@ -588,6 +600,55 @@
                 btn.classList.toggle('active', btn.dataset.sort === sortField);
             });
             currentSortField = sortField;
+
+            // 同步刷新建议名单（与当前学科 + 班级筛选保持一致）
+            renderAdvicePanel(subject, filterClass);
+        }
+
+        // ---- 渲染建议名单（表扬 / 单独分析） ----
+        function renderAdvicePanel(subject, filterClass) {
+            const data = subjectResults[subject];
+            if (!data || data.length === 0) {
+                advicePanel.style.display = 'none';
+                return;
+            }
+            const subset = (filterClass === 'all') ? data : data.filter(row => row.class === filterClass);
+
+            // 超2标天然属于超1标；退2标天然属于退1标 —— 名单去重，互不重复
+            const overTwo = [], overOne = [], belowTwo = [], belowOne = [];
+            subset.forEach(row => {
+                if (row.overTwo === 1) overTwo.push(row);
+                else if (row.overOne === 1) overOne.push(row);
+
+                if (row.belowTwo === 1) belowTwo.push(row);
+                else if (row.belowOne === 1) belowOne.push(row);
+            });
+
+            // 表扬名单按个人T值从高到低；需分析名单按个人T值从低到高
+            overTwo.sort((a, b) => b.tValue - a.tValue);
+            overOne.sort((a, b) => b.tValue - a.tValue);
+            belowTwo.sort((a, b) => a.tValue - b.tValue);
+            belowOne.sort((a, b) => a.tValue - b.tValue);
+
+            const classLabel = (filterClass === 'all')
+                ? '全校'
+                : (String(filterClass).includes('班') ? String(filterClass) : filterClass + '班');
+            adviceScope.textContent = `学科：${subject} ｜ 范围：${classLabel} ｜ 共 ${subset.length} 人`;
+
+            const fill = (el, arr) => {
+                if (arr.length === 0) {
+                    el.innerHTML = '<span class="none">暂无</span>';
+                    return;
+                }
+                el.textContent = arr.map(r => r.name || r.id).join('、');
+                el.textContent += `（${arr.length}人）`;
+            };
+            fill(adviceOverTwo, overTwo);
+            fill(adviceOverOne, overOne);
+            fill(adviceBelowTwo, belowTwo);
+            fill(adviceBelowOne, belowOne);
+
+            advicePanel.style.display = 'block';
         }
 
         // ---- 渲染班级统计 ----
@@ -617,16 +678,23 @@
                     { text: row.meanStd1.toFixed(2), cls: '' },
                     { text: row.meanStd2.toFixed(2), cls: '' },
                     { text: row.meanResidual.toFixed(2), cls: '' },
-                    { text: String(row.overTwo), cls: row.overTwo > 0 ? 'cell-green' : 'cell-muted' },
-                    { text: String(row.overOne), cls: row.overOne > 0 ? 'cell-green' : 'cell-muted' },
-                    { text: String(row.belowOne), cls: row.belowOne > 0 ? 'cell-red' : 'cell-muted' },
-                    { text: String(row.belowTwo), cls: row.belowTwo > 0 ? 'cell-red' : 'cell-muted' },
+                    { text: String(row.overTwo), cls: row.overTwo > 0 ? 'cell-green' : 'cell-muted', flag: 'overTwo', count: row.overTwo },
+                    { text: String(row.overOne), cls: row.overOne > 0 ? 'cell-green' : 'cell-muted', flag: 'overOne', count: row.overOne },
+                    { text: String(row.belowOne), cls: row.belowOne > 0 ? 'cell-red' : 'cell-muted', flag: 'belowOne', count: row.belowOne },
+                    { text: String(row.belowTwo), cls: row.belowTwo > 0 ? 'cell-red' : 'cell-muted', flag: 'belowTwo', count: row.belowTwo },
                     { text: row.classT.toFixed(3), cls: row.classT > 0 ? 'cell-green' : (row.classT < 0 ? 'cell-red' : '') }
                 ];
                 cells.forEach(c => {
                     const td = document.createElement('td');
                     td.textContent = c.text;
                     if (c.cls) td.className = c.cls;
+                    if (c.flag && c.count > 0) {
+                        td.classList.add('cell-clickable');
+                        td.title = '点击查看学生名单';
+                        td.addEventListener('click', function() {
+                            showStatDetail(subject, row.class, c.flag);
+                        });
+                    }
                     tr.appendChild(td);
                 });
                 tbody.appendChild(tr);
@@ -635,6 +703,53 @@
             sortClassBtn.classList.toggle('active', sortType === 'class');
             sortTValueBtn.classList.toggle('active', sortType === 'tvalue');
             currentSortType = sortType;
+        }
+
+        // ---- 四种超/退标的定义（与班级统计人数口径一致） ----
+        const FLAG_INFO = {
+            overTwo:  { label: '超两标', match: r => r.overTwo === 1,  dir: 'desc' },
+            overOne:  { label: '超一标', match: r => r.overOne === 1,  dir: 'desc' },
+            belowOne: { label: '退一标', match: r => r.belowOne === 1, dir: 'asc' },
+            belowTwo: { label: '退两标', match: r => r.belowTwo === 1, dir: 'asc' }
+        };
+
+        // ---- 弹出某班某标的学生名单（学科 + 班级匹配） ----
+        function showStatDetail(subject, className, flag) {
+            const data = subjectResults[subject];
+            const info = FLAG_INFO[flag];
+            if (!data || !info) return;
+
+            const list = data.filter(r => r.class === className && info.match(r));
+            // 表扬类按T值由高到低，需分析类按T值由低到高
+            list.sort((a, b) => info.dir === 'desc' ? b.tValue - a.tValue : a.tValue - b.tValue);
+
+            const classLabel = String(className).includes('班') ? String(className) : className + '班';
+            statDetailTitle.textContent = `${info.label}学生名单`;
+            statDetailScope.textContent = `学科：${subject} ｜ 班级：${classLabel} ｜ 共 ${list.length} 人`;
+
+            statDetailBody.innerHTML = '';
+            if (list.length === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 3;
+                td.textContent = '暂无学生';
+                td.style.textAlign = 'center';
+                td.style.color = '#8a97a6';
+                tr.appendChild(td);
+                statDetailBody.appendChild(tr);
+            } else {
+                list.forEach(r => {
+                    const tr = document.createElement('tr');
+                    const values = [r.id, r.name || '', r.tValue.toFixed(3)];
+                    values.forEach(v => {
+                        const td = document.createElement('td');
+                        td.textContent = v;
+                        tr.appendChild(td);
+                    });
+                    statDetailBody.appendChild(tr);
+                });
+            }
+            statDetailModal.style.display = 'flex';
         }
 
         // ---- 绘制回归散点图 ----
@@ -759,8 +874,16 @@
             });
             currentView = view;
             // 切到回归视图时在可见容器中重绘，避免隐藏容器导致图表尺寸异常
-            if (view === 'regression' && currentSubject && subjectResults[currentSubject]) {
-                drawRegressionForSubject(currentSubject);
+            if (view === 'regression') {
+                // 强调：回归分析针对全校学生，不针对各班
+                if (regressionNote) {
+                    regressionNote.classList.remove('flash');
+                    void regressionNote.offsetWidth;
+                    regressionNote.classList.add('flash');
+                }
+                if (currentSubject && subjectResults[currentSubject]) {
+                    drawRegressionForSubject(currentSubject);
+                }
             }
         }
 
@@ -1072,7 +1195,7 @@
             ws['!cols'] = colWidths;
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, sub);
-            const classLabel = currentClass === 'all' ? '全部班级' : currentClass;
+            const classLabel = currentClass === 'all' ? '全校' : currentClass;
             const sortLabelMap = { id: '按学号', rank2: '按第二次名次', tValue: '按个人T值' };
             const sortLabel = sortLabelMap[currentSortField] || '默认排序';
             const fileName = `增值分析_${sub}_${classLabel}_${sortLabel}.xlsx`;
@@ -1132,11 +1255,19 @@
             resultBody.innerHTML = ''; resultHead.innerHTML = '';
             classStatsArea.style.display = 'none';
             classStatsBody.innerHTML = '';
+            statDetailModal.style.display = 'none';
+            statDetailBody.innerHTML = '';
             matchCount.textContent = '-';
             stateLabel.innerHTML = '数据待分析';
             stateLabel.style.color = '#6c757d';
             regressionArea.style.display = 'none';
             Plotly.purge(scatterPlot);
+            advicePanel.style.display = 'none';
+            adviceOverTwo.textContent = '';
+            adviceOverOne.textContent = '';
+            adviceBelowTwo.textContent = '';
+            adviceBelowOne.textContent = '';
+            adviceScope.textContent = '';
             subjectButtons.innerHTML = '';
             classButtons.innerHTML = '';
             previewNote.textContent = '';
@@ -1150,6 +1281,12 @@
         // ---- 绑定事件 ----
         processBtn.addEventListener('click', processData);
         resetBtn.addEventListener('click', resetAll);
+        statDetailCloseBtn.addEventListener('click', function() {
+            statDetailModal.style.display = 'none';
+        });
+        statDetailModal.addEventListener('click', function(e) {
+            if (e.target === statDetailModal) statDetailModal.style.display = 'none';
+        });
         confirmOkBtn.addEventListener('click', function() {
             confirmModal.style.display = 'none';
             doReset();
