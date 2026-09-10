@@ -35,6 +35,10 @@
     HT.el.downloadPlotBtn = document.getElementById('downloadPlotBtn');
     HT.el.subjectButtons = document.getElementById('subjectButtons');
     HT.el.sortButtonsContainer = document.getElementById('sortButtons');
+    HT.el.advicePanel = document.getElementById('advicePanel');
+    HT.el.adviceScope = document.getElementById('adviceScope');
+    HT.el.advicePraiseBody = document.getElementById('advicePraiseBody');
+    HT.el.adviceAnalyzeBody = document.getElementById('adviceAnalyzeBody');
     HT.el.subjectRow = document.getElementById('subjectRow');
     HT.el.viewCards = document.getElementById('viewCards');
     HT.el.missingModal = document.getElementById('missingModal');
@@ -278,6 +282,8 @@
             HT.el.stateLabel.innerHTML = HT.CHECK_ICON + ' 分析完成';
             HT.el.stateLabel.style.color = '#28a745';
             global.UI.switchSubject(firstSub);
+            // 建议名单汇总本班全部学科（与当前所选学科无关）
+            global.UI.renderAdvicePanel();
             HT.el.downloadBtn.onclick = function() {
                 global.UI.downloadCurrentSubjectExcel();
             };
@@ -312,6 +318,10 @@
         Plotly.purge(HT.el.scatterPlot);
         HT.el.subjectButtons.innerHTML = '';
         HT.el.previewNote.textContent = '';
+        HT.el.advicePanel.style.display = 'none';
+        HT.el.adviceScope.textContent = '';
+        HT.el.advicePraiseBody.innerHTML = '';
+        HT.el.adviceAnalyzeBody.innerHTML = '';
         HT.el.subjectRow.style.display = 'none';
         HT.el.viewCards.style.display = 'none';
         HT.el.viewCards.querySelectorAll('.view-card').forEach(c => c.classList.toggle('active', c.dataset.view === 'result'));
