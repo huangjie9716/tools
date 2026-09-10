@@ -352,12 +352,147 @@
         ST.log(`📥 下载成功：增值分析_${ST.state.subjectName}.xlsx`, 'ok');
     }
 
+    // ---- 按四种升降标口径拆分名单（超2标不再计入超1标，退2标不再计入退1标） ----
+    function splitFlags(data) {
+        const overTwo = [], overOne = [], belowTwo = [], belowOne = [];
+        data.forEach(row => {
+            if (row.overTwo === 1) overTwo.push(row);
+            else if (row.overOne === 1) overOne.push(row);
+
+            if (row.belowTwo === 1) belowTwo.push(row);
+            else if (row.belowOne === 1) belowOne.push(row);
+        });
+        // 表扬类按个人T值由高到低，需分析类按个人T值由低到高
+        overTwo.sort((a, b) => b.tValue - a.tValue);
+        overOne.sort((a, b) => b.tValue - a.tValue);
+        belowTwo.sort((a, b) => a.tValue - b.tValue);
+        belowOne.sort((a, b) => a.tValue - b.tValue);
+        return { overTwo, overOne, belowTwo, belowOne };
+    }
+
+    // ---- 班级显示名 ----
+    function toClassLabel(cls) {
+        if (!cls || cls === '未填写班级') return cls || '未填写班级';
+        return cls.includes('班') ? cls : cls + '班';
+    }
+
+    // ---- 生成建议名单表格行（分组名 + 各组学生名单；countOnly 时仅显示人数） ----
+    function buildAdviceRow(label, groups, countOnly) {
+        const tr = document.createElement('tr');
+        if (countOnly) tr.className = 'row-total';
+
+        const tdLabel = document.createElement('td');
+        tdLabel.className = 'adv-subject';
+        tdLabel.textContent = label;
+        tr.appendChild(tdLabel);
+
+        groups.forEach(item => {
+            const list = item.list;
+            const level = item.level;
+            const td = document.createElement('td');
+            const wrap = document.createElement('div');
+            wrap.className = 'advice-names';
+            if (countOnly) {
+                const count = document.createElement('span');
+                count.className = 'advice-count';
+                count.textContent = list.length > 0 ? list.length + ' 人' : '—';
+                wrap.appendChild(count);
+            } else if (list.length === 0) {
+                const none = document.createElement('span');
+                none.className = 'none';
+                none.textContent = '—';
+                wrap.appendChild(none);
+            } else {
+                list.forEach(row => {
+                    const chip = document.createElement('span');
+                    chip.className = 'advice-name' + (level ? ' ' + level : '');
+                    chip.textContent = row.name || row.id;
+                    chip.title = '学号：' + row.id + '　班级：' + (row.class || '—') + '　个人T值：' + row.tValue.toFixed(3);
+                    wrap.appendChild(chip);
+                });
+                const count = document.createElement('span');
+                count.className = 'advice-count';
+                count.textContent = '共' + list.length + '人';
+                wrap.appendChild(count);
+            }
+            td.appendChild(wrap);
+            tr.appendChild(td);
+        });
+        return tr;
+    }
+
+    // ---- 渲染增值评价建议名单（当前科目，按班级汇总） ----
+    function renderAdvicePanel() {
+        if (!ST.el.advicePanel) return;
+        const data = ST.state.resultData || [];
+        const praiseBody = ST.el.advicePraiseBody;
+        const analyzeBody = ST.el.adviceAnalyzeBody;
+        if (data.length === 0) {
+            ST.el.advicePanel.style.display = 'none';
+            praiseBody.innerHTML = '';
+            analyzeBody.innerHTML = '';
+            ST.el.adviceScope.textContent = '';
+            return;
+        }
+
+        // 按班级分组（数字班级优先按大小排序）
+        const classMap = new Map();
+        data.forEach(row => {
+            const key = (row.class === undefined || row.class === null || row.class === '') ? '未填写班级' : String(row.class);
+            if (!classMap.has(key)) classMap.set(key, []);
+            classMap.get(key).push(row);
+        });
+        const classes = Array.from(classMap.keys()).sort((a, b) => {
+            const na = parseFloat(a), nb = parseFloat(b);
+            if (!isNaN(na) && !isNaN(nb)) return na - nb;
+            return a.localeCompare(b, undefined, { numeric: true });
+        });
+
+        praiseBody.innerHTML = '';
+        analyzeBody.innerHTML = '';
+
+        const total = { overTwo: [], overOne: [], belowTwo: [], belowOne: [] };
+        classes.forEach(cls => {
+            const g = splitFlags(classMap.get(cls));
+            total.overTwo.push(...g.overTwo);
+            total.overOne.push(...g.overOne);
+            total.belowTwo.push(...g.belowTwo);
+            total.belowOne.push(...g.belowOne);
+
+            praiseBody.appendChild(buildAdviceRow(toClassLabel(cls), [
+                { list: g.overTwo, level: 'lv2' },
+                { list: g.overOne, level: '' }
+            ]));
+            analyzeBody.appendChild(buildAdviceRow(toClassLabel(cls), [
+                { list: g.belowTwo, level: 'lv2' },
+                { list: g.belowOne, level: '' }
+            ]));
+        });
+
+        // 多个班级时，追加仅显示人数的合计行
+        if (classes.length > 1) {
+            praiseBody.appendChild(buildAdviceRow('合计', [
+                { list: total.overTwo, level: '' },
+                { list: total.overOne, level: '' }
+            ], true));
+            analyzeBody.appendChild(buildAdviceRow('合计', [
+                { list: total.belowTwo, level: '' },
+                { list: total.belowOne, level: '' }
+            ], true));
+        }
+
+        const subject = ST.state.subjectName || '本学科';
+        ST.el.adviceScope.textContent = `学科：${subject} ｜ 班级：${classes.length} 个 ｜ 共 ${data.length} 人`;
+        ST.el.advicePanel.style.display = 'block';
+    }
+
     // ---- 对外暴露 ----
     global.UI = {
         autoFillLayerSuggestion,
         updateFileStatus,
         initSortButtons,
         renderTable,
+        renderAdvicePanel,
         drawRegression,
         switchView,
         confirmMissingData,
