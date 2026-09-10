@@ -403,6 +403,124 @@
         .class-stats-area th, .class-stats-area td {
             padding: 6px 8px;
         }
+        /* 可点击查看名单的人数单元格 */
+        .class-stats-area td.cell-clickable {
+            cursor: pointer;
+            text-decoration: underline dotted;
+            text-underline-offset: 3px;
+        }
+        .class-stats-area td.cell-clickable:hover {
+            background: #e8f2fd;
+        }
+        /* ---- 分析对象说明条 ---- */
+        .view-note {
+            background: #fff8e6;
+            border: 1px solid #f0d79a;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 13.5px;
+            line-height: 1.6;
+            color: #6a4b00;
+            margin-bottom: 14px;
+        }
+        .view-note strong { color: #a8600a; }
+        .view-note.flash {
+            animation: noteFlash 1.6s ease-out 1;
+        }
+        @keyframes noteFlash {
+            0%   { background: #ffe9a8; box-shadow: 0 0 0 0 rgba(230,168,23,0.55); }
+            100% { background: #fff8e6; box-shadow: 0 0 0 12px rgba(230,168,23,0); }
+        }
+        /* ---- 建议名单面板 ---- */
+        .advice-panel {
+            margin-top: 20px;
+            border: 1px solid #dce3ec;
+            border-radius: 14px;
+            padding: 16px 20px 18px 20px;
+            background: #fbfdff;
+        }
+        .advice-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px 12px;
+            margin-bottom: 12px;
+        }
+        .advice-head h4 {
+            margin: 0;
+            color: #1a2639;
+            font-size: 16px;
+        }
+        .advice-scope {
+            font-size: 13px;
+            color: #4a6a8a;
+            background: #eaf2fb;
+            border-radius: 30px;
+            padding: 3px 14px;
+            font-weight: 600;
+        }
+        .advice-block {
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+        }
+        .advice-block.praise {
+            background: #f2fbf5;
+            border: 1px solid #cbeed8;
+        }
+        .advice-block.analyze {
+            background: #fdf4f4;
+            border: 1px solid #f4d2d2;
+        }
+        .advice-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #1f2a3a;
+            margin-bottom: 10px;
+        }
+        .advice-icon {
+            width: 18px;
+            height: 18px;
+            flex: 0 0 auto;
+        }
+        .advice-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 6px 0;
+            border-top: 1px dashed rgba(0, 0, 0, 0.06);
+        }
+        .advice-item:first-of-type { border-top: none; }
+        .advice-tag {
+            flex: 0 0 auto;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            border-radius: 6px;
+            padding: 3px 10px;
+            margin-top: 1px;
+        }
+        .tag-over2 { background: #1f9d55; }
+        .tag-over1 { background: #63bd85; }
+        .tag-below1 { background: #e58a8a; }
+        .tag-below2 { background: #cc3b3b; }
+        .advice-names {
+            font-size: 14px;
+            line-height: 1.7;
+            color: #1f2a3a;
+            word-break: break-all;
+        }
+        .advice-names .none { color: #8a97a6; }
+        .advice-note {
+            font-size: 12.5px;
+            color: #7a8a9b;
+            border-top: 1px solid #e6ecf3;
+            padding-top: 10px;
+        }
         .footer {
             margin-top: 28px;
             font-size: 13px;
