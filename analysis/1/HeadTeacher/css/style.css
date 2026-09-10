@@ -347,6 +347,154 @@ tr:hover td {
 .col-residstd { width: 8%; }
 .col-tvalue { width: 7%; }
 .col-flag { width: 4%; }
+
+/* ===== 增值评价建议名单面板 ===== */
+.advice-panel {
+    margin-top: 22px;
+    border: 1px solid #dce3ec;
+    border-radius: 14px;
+    padding: 16px 20px 18px 20px;
+    background: #fbfdff;
+}
+.advice-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    margin-bottom: 14px;
+}
+.advice-head h4 {
+    margin: 0;
+    color: #1a2639;
+    font-size: 16px;
+}
+.advice-scope {
+    font-size: 13px;
+    color: #4a6a8a;
+    background: #eaf2fb;
+    border-radius: 30px;
+    padding: 3px 14px;
+    font-weight: 600;
+}
+.advice-block {
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+}
+.advice-block.praise {
+    background: #f2fbf5;
+    border: 1px solid #cbeed8;
+}
+.advice-block.analyze {
+    background: #fdf4f4;
+    border: 1px solid #f4d2d2;
+}
+.advice-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 14.5px;
+    color: #1f2a3a;
+    margin-bottom: 10px;
+}
+.advice-icon {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+}
+.advice-table-wrap {
+    overflow-x: auto;
+}
+/* 覆盖全局表格样式（不固定列宽、表头不吸顶） */
+.advice-table {
+    table-layout: auto;
+    min-width: 0;
+    width: 100%;
+    font-size: 13px;
+}
+.advice-table th,
+.advice-table td {
+    text-align: left;
+    padding: 8px 10px;
+    vertical-align: top;
+    white-space: normal;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+    position: static;
+    background: transparent;
+}
+.advice-table thead th {
+    font-size: 13px;
+    font-weight: 700;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    white-space: nowrap;
+    color: #4a6a8a;
+    background: transparent;
+}
+.advice-block.praise .advice-table thead th { color: #1f7a44; }
+.advice-block.analyze .advice-table thead th { color: #a83a3a; }
+.advice-table th.adv-subject,
+.advice-table td.adv-subject {
+    width: 92px;
+    font-weight: 600;
+    color: #1f2a3a;
+    white-space: nowrap;
+}
+.advice-table tr.row-total td {
+    background: rgba(74, 144, 217, 0.07);
+}
+.advice-table tr:hover td {
+    background: rgba(74, 144, 217, 0.05);
+}
+.advice-names {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px 6px;
+    line-height: 1.6;
+}
+.advice-name {
+    display: inline-block;
+    font-size: 12.5px;
+    border-radius: 6px;
+    padding: 2px 8px;
+    white-space: nowrap;
+}
+.praise .advice-name {
+    background: #d8f2e2;
+    color: #14663a;
+}
+.praise .advice-name.lv2 {
+    background: #9fe0ba;
+    color: #0d4d2b;
+    font-weight: 700;
+}
+.analyze .advice-name {
+    background: #fbe0e0;
+    color: #8f3030;
+}
+.analyze .advice-name.lv2 {
+    background: #f3b9b9;
+    color: #6f1f1f;
+    font-weight: 700;
+}
+.advice-names .none {
+    color: #8a97a6;
+    font-size: 12.5px;
+}
+.advice-names .advice-count {
+    font-size: 12px;
+    color: #7a8a9b;
+    margin-left: 2px;
+}
+.advice-note {
+    font-size: 12.5px;
+    color: #7a8a9b;
+    border-top: 1px solid #e6ecf3;
+    padding-top: 10px;
+    line-height: 1.7;
+}
 .log-box {
     background: #1e293b;
     color: #b9c9e0;
