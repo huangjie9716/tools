@@ -386,12 +386,108 @@
         HT.log(`📥 下载成功：${fileName}`, 'ok');
     }
 
+    // ---- 生成建议名单表格行（学科 + 各组学生名单） ----
+    function buildAdviceRow(subject, groups) {
+        const tr = document.createElement('tr');
+        if (subject === '总分') tr.className = 'row-total';
+
+        const tdSubject = document.createElement('td');
+        tdSubject.className = 'adv-subject';
+        tdSubject.textContent = subject;
+        tr.appendChild(tdSubject);
+
+        groups.forEach(item => {
+            const list = item.list;
+            const level = item.level;
+            const td = document.createElement('td');
+            const wrap = document.createElement('div');
+            wrap.className = 'advice-names';
+            if (list.length === 0) {
+                const none = document.createElement('span');
+                none.className = 'none';
+                none.textContent = '—';
+                wrap.appendChild(none);
+            } else {
+                list.forEach(row => {
+                    const chip = document.createElement('span');
+                    chip.className = 'advice-name' + (level ? ' ' + level : '');
+                    chip.textContent = row.name || row.id;
+                    chip.title = '学号：' + row.id + '　个人T值：' + row.tValue.toFixed(3);
+                    wrap.appendChild(chip);
+                });
+                const count = document.createElement('span');
+                count.className = 'advice-count';
+                count.textContent = '共' + list.length + '人';
+                wrap.appendChild(count);
+            }
+            td.appendChild(wrap);
+            tr.appendChild(td);
+        });
+        return tr;
+    }
+
+    // ---- 渲染增值评价建议名单（本班全部学科汇总，总分视为一个学科） ----
+    function renderAdvicePanel() {
+        if (!HT.el.advicePanel) return;
+        const subjects = (HT.state.allSubjects || [])
+            .filter(s => HT.state.subjectResults[s] && HT.state.subjectResults[s].length > 0);
+        if (subjects.length === 0) {
+            HT.el.advicePanel.style.display = 'none';
+            HT.el.advicePraiseBody.innerHTML = '';
+            HT.el.adviceAnalyzeBody.innerHTML = '';
+            HT.el.adviceScope.textContent = '';
+            return;
+        }
+
+        const praiseBody = HT.el.advicePraiseBody;
+        const analyzeBody = HT.el.adviceAnalyzeBody;
+        praiseBody.innerHTML = '';
+        analyzeBody.innerHTML = '';
+
+        let classSize = 0;
+        subjects.forEach(sub => {
+            const data = HT.state.subjectResults[sub];
+            classSize = Math.max(classSize, data.length);
+
+            // 超2标天然属于超1标；退2标天然属于退1标 —— 名单去重，互不重复
+            const overTwo = [], overOne = [], belowTwo = [], belowOne = [];
+            data.forEach(row => {
+                if (row.overTwo === 1) overTwo.push(row);
+                else if (row.overOne === 1) overOne.push(row);
+
+                if (row.belowTwo === 1) belowTwo.push(row);
+                else if (row.belowOne === 1) belowOne.push(row);
+            });
+
+            // 表扬名单按个人T值从高到低；需分析名单按个人T值从低到高
+            overTwo.sort((a, b) => b.tValue - a.tValue);
+            overOne.sort((a, b) => b.tValue - a.tValue);
+            belowTwo.sort((a, b) => a.tValue - b.tValue);
+            belowOne.sort((a, b) => a.tValue - b.tValue);
+
+            praiseBody.appendChild(buildAdviceRow(sub, [
+                { list: overTwo, level: 'lv2' },
+                { list: overOne, level: '' }
+            ]));
+            analyzeBody.appendChild(buildAdviceRow(sub, [
+                { list: belowTwo, level: 'lv2' },
+                { list: belowOne, level: '' }
+            ]));
+        });
+
+        const cls = HT.state.currentClass ? String(HT.state.currentClass) : '';
+        const classLabel = !cls ? '本班' : (cls.includes('班') ? cls : cls + '班');
+        HT.el.adviceScope.textContent = `班级：${classLabel} ｜ 共 ${classSize} 人 ｜ 学科：${subjects.length} 个（含总分）`;
+        HT.el.advicePanel.style.display = 'block';
+    }
+
     // ---- 对外暴露 ----
     global.UI = {
         autoFillLayerSuggestion,
         updateFileStatus,
         initSortButtons,
         renderStudentTable,
+        renderAdvicePanel,
         drawRegressionForSubject,
         switchView,
         buildSubjectButtons,
