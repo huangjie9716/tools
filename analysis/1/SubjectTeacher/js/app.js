@@ -35,6 +35,10 @@
     ST.el.scatterPlot = document.getElementById('scatterPlot');
     ST.el.downloadPlotBtn = document.getElementById('downloadPlotBtn');
     ST.el.sortButtonsContainer = document.getElementById('sortButtons');
+    ST.el.advicePanel = document.getElementById('advicePanel');
+    ST.el.adviceScope = document.getElementById('adviceScope');
+    ST.el.advicePraiseBody = document.getElementById('advicePraiseBody');
+    ST.el.adviceAnalyzeBody = document.getElementById('adviceAnalyzeBody');
     ST.el.viewCards = document.getElementById('viewCards');
     ST.el.missingModal = document.getElementById('missingModal');
     ST.el.missingValidCount = document.getElementById('missingValidCount');
@@ -238,6 +242,8 @@
         ST.el.stateLabel.style.color = '#28a745';
         global.UI.renderTable(ST.state.currentSortField);
         global.UI.drawRegression();
+        // 建议名单汇总当前科目全部班级
+        global.UI.renderAdvicePanel();
 
         ST.el.downloadBtn.onclick = function() {
             global.UI.downloadData();
@@ -272,6 +278,10 @@
         ST.el.regressionArea.style.display = 'none';
         Plotly.purge(ST.el.scatterPlot);
         ST.el.previewNote.textContent = '';
+        ST.el.advicePanel.style.display = 'none';
+        ST.el.adviceScope.textContent = '';
+        ST.el.advicePraiseBody.innerHTML = '';
+        ST.el.adviceAnalyzeBody.innerHTML = '';
         ST.el.viewCards.style.display = 'none';
         ST.el.viewCards.querySelectorAll('.view-card').forEach(c => c.classList.toggle('active', c.dataset.view === 'result'));
         ST.state.currentView = 'result';
