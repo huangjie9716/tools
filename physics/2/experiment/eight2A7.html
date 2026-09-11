@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>分贝计 · 声音响度测量</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --line:#1e2f45;
+    --text:#e8f0fa;
+    --muted:#7d93ab;
+    --accent:#5ad1ff;
+  }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:radial-gradient(1400px 820px at 50% -12%,#152a42 0%,#070c14 65%);
+    background-attachment:fixed;
+    color:var(--text);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:24px 20px 44px;
+    -webkit-font-smoothing:antialiased;
+    -webkit-text-size-adjust:100%;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .app{width:100%;max-width:1340px}
+
+  /* ---- 双栏布局：左主面板 / 右数据记录 ---- */
+  .layout{
+    display:grid;
+    grid-template-columns:minmax(0,1.18fr) minmax(0,1fr);
+    gap:14px 16px;
+    align-items:stretch;
+  }
+  .layout .card{margin-bottom:0}
+  .col-main{min-width:0}
+  .col-side{min-width:0;display:flex;flex-direction:column}
+  .col-side .card{flex:1;display:flex;flex-direction:column}
+  .col-side .table-wrap{flex:1;max-height:none;min-height:240px}
+
+  .head{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:24px}
+  .head .logo{
+    width:56px;height:56px;flex:none;color:var(--text);
+    filter:drop-shadow(0 0 14px rgba(90,209,255,.38));
+  }
+  .head .logo path{fill:currentColor}
+  .head h1{font-size:38px;font-weight:700;letter-spacing:1.6px;line-height:1.1;color:var(--text)}
+  .head h1 span{color:inherit}
+
+  .card{
+    background:linear-gradient(180deg,rgba(20,32,50,.92),rgba(12,20,32,.92));
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:22px 22px 20px;
+    margin-bottom:14px;
+    box-shadow:0 18px 50px -22px rgba(0,0,0,.9);
+  }
+
+  /* ---- 主读数 ---- */
+  .readout{
+    display:flex;align-items:baseline;justify-content:center;gap:8px;margin-bottom:6px;
+  }
+  .readout .num{
+    font-size:clamp(62px,8.6vw,132px);
+    font-weight:700;line-height:1;letter-spacing:-2px;
+    font-variant-numeric:tabular-nums;
+    color:var(--accent);
+    transition:color .25s ease;
+    text-shadow:0 0 44px currentColor;
+  }
+  .readout .unit{font-size:23px;font-weight:600;color:var(--muted);letter-spacing:1px}
+
+  .tag{
+    text-align:center;font-size:15px;letter-spacing:2px;
+    color:var(--muted);margin-bottom:20px;min-height:18px;
+    transition:color .3s;
+  }
+
+  /* ---- 刻度条 ---- */
+  .track{
+    position:relative;height:16px;border-radius:9px;background:#16253a;
+    overflow:hidden;box-shadow:inset 0 2px 6px rgba(0,0,0,.6);
+  }
+  .fill{
+    position:absolute;inset:0 auto 0 0;width:0%;border-radius:9px;
+    background:var(--accent);transition:width .1s linear,background .3s ease;
+  }
+  .fill::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(255,255,255,.35),transparent 55%);
+    border-radius:9px;
+  }
+  .scale{
+    display:flex;justify-content:space-between;margin-top:7px;
+    font-size:13px;color:#5b7189;font-variant-numeric:tabular-nums;
+  }
+
+  /* ---- 历史曲线 ---- */
+  .wave-wrap{
+    position:relative;height:128px;margin-top:18px;border-radius:12px;
+    background:#0b1624;border:1px solid #17283d;overflow:hidden;
+  }
+  #wave{display:block;width:100%;height:100%}
+
+  /* ---- 平滑度 ---- */
+  .smooth-row{
+    display:flex;align-items:center;gap:8px;margin-top:16px;
+    font-size:14px;color:var(--muted);letter-spacing:.5px;flex-wrap:wrap;
+  }
+  .smooth-row .lbl{margin-right:2px;white-space:nowrap}
+  .pill{
+    padding:8px 18px;border-radius:999px;font-size:14px;font-weight:600;
+    background:transparent;border:1px solid #25384f;color:#8fa6bd;
+    cursor:pointer;transition:all .16s;font-family:inherit;
+  }
+  .pill:hover{border-color:#3a5878;color:#cfe2f5}
+  .pill.active{
+    background:rgba(90,209,255,.15);border-color:rgba(90,209,255,.6);
+    color:var(--accent);box-shadow:0 0 12px rgba(90,209,255,.2);
+  }
+
+  /* ---- 按钮 ---- */
+  .controls{
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px;
+  }
+  button{
+    font-family:inherit;font-size:15.5px;font-weight:600;letter-spacing:.5px;
+    padding:12px 24px;border-radius:11px;border:1px solid transparent;
+    cursor:pointer;transition:all .16s ease;color:#06121f;background:var(--accent);
+  }
+  button:hover{filter:brightness(1.12);transform:translateY(-1px)}
+  button:active{transform:translateY(0)}
+  button.ghost{background:transparent;border-color:#25384f;color:#9db3c9}
+  button.ghost:hover{border-color:#3a5878;color:#d5e6f7;filter:none}
+  button:disabled{opacity:.45;cursor:not-allowed;transform:none;filter:none}
+  button.mini{padding:9px 16px;font-size:13.5px;border-radius:10px}
+
+  /* 停止按钮：红色更醒目 */
+  #stopBtn{
+    background:linear-gradient(180deg,#ff6b6b,#e03131);
+    color:#fff;border-color:rgba(255,107,107,.4);
+    box-shadow:0 10px 24px -12px rgba(224,49,49,.95);
+  }
+  #stopBtn:hover{filter:brightness(1.08);border-color:rgba(255,107,107,.7)}
+  #stopBtn:disabled{background:#3a4756;color:#8fa6bd;border-color:transparent;box-shadow:none}
+
+  .calib{
+    flex:1;min-width:170px;display:flex;align-items:center;gap:10px;
+    font-size:14px;color:var(--muted);letter-spacing:.5px;
+  }
+  .calib input[type=range]{
+    -webkit-appearance:none;appearance:none;flex:1;height:5px;border-radius:3px;
+    background:linear-gradient(90deg,#1f3350,#33547a);outline:none;cursor:pointer;
+  }
+  .calib input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:15px;height:15px;border-radius:50%;
+    background:var(--accent);border:3px solid #0d1725;
+    box-shadow:0 0 8px rgba(90,209,255,.7);cursor:pointer;
+  }
+  .calib input[type=range]::-moz-range-thumb{
+    width:11px;height:11px;border-radius:50%;background:var(--accent);
+    border:3px solid #0d1725;cursor:pointer;
+  }
+  .calib b{color:var(--accent);font-variant-numeric:tabular-nums;min-width:32px;text-align:right}
+
+  /* ---- 统计 ---- */
+  .stats{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+    margin-top:16px;padding-top:16px;border-top:1px dashed var(--line);
+  }
+  .stats .item{text-align:center;font-size:13.5px;color:var(--muted);letter-spacing:.8px}
+  .stats .item b{
+    display:block;font-size:23px;font-weight:700;margin-top:6px;
+    font-variant-numeric:tabular-nums;
+  }
+  .stats .item:nth-child(1) b{color:#ff6b6b}
+  .stats .item:nth-child(2) b{color:#3ddc97}
+  .stats .item:nth-child(3) b{color:#ffd166}
+
+  /* ---- 记录区 ---- */
+  .rec-head{
+    display:flex;align-items:center;gap:8px;margin-bottom:13px;flex-wrap:wrap;
+  }
+  .rec-head .title{
+    font-size:14px;color:var(--muted);letter-spacing:1.5px;font-weight:600;
+    flex:1;min-width:110px;
+  }
+  .table-wrap{
+    max-height:min(62vh,640px);min-height:230px;overflow-y:auto;border-radius:12px;
+    border:1px solid var(--line);background:#0c1624;
+  }
+  .rec-tools{
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    margin-bottom:12px;padding-bottom:12px;border-bottom:1px dashed var(--line);
+  }
+  .rec-tools .lbl{
+    font-size:13.5px;color:var(--muted);letter-spacing:.8px;white-space:nowrap;
+  }
+  select{
+    font-family:inherit;font-size:14px;font-weight:600;padding:9px 12px;
+    border-radius:9px;background:#0e1a2a;color:#cfe2f5;border:1px solid #25384f;
+    cursor:pointer;outline:none;transition:border-color .16s,box-shadow .16s;
+  }
+  select:hover{border-color:#3a5878}
+  select:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(90,209,255,.15)}
+  .rec-count{font-style:normal;color:var(--accent);font-weight:700}
+  .table-wrap::-webkit-scrollbar{width:8px}
+  .table-wrap::-webkit-scrollbar-thumb{background:#25384f;border-radius:4px}
+  .table-wrap::-webkit-scrollbar-track{background:transparent}
+  table{width:100%;border-collapse:collapse;font-size:14.5px}
+  thead th{
+    position:sticky;top:0;background:#101c2c;color:var(--muted);
+    font-weight:600;font-size:13px;letter-spacing:1px;
+    padding:11px 12px;text-align:left;border-bottom:1px solid var(--line);
+    z-index:1;
+  }
+  tbody td{
+    padding:10px 12px;border-bottom:1px solid rgba(30,47,69,.45);
+    color:#cfe2f5;font-variant-numeric:tabular-nums;
+  }
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:rgba(90,209,255,.05)}
+  tbody .empty{
+    text-align:center;color:#5b7189;padding:28px 0;font-size:14px;
+  }
+  .db-cell{font-weight:700}
+
+  .hint{
+    font-size:13.5px;color:#6b83a0;line-height:1.8;margin-top:14px;text-align:center;
+  }
+
+  .dot{
+    display:inline-block;width:7px;height:7px;border-radius:50%;
+    background:#3f5872;margin-right:6px;vertical-align:middle;transition:background .3s;
+  }
+  .dot.live{background:#3ddc97;box-shadow:0 0 8px #3ddc97;animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  /* ==========================================================
+     响应式适配（放在最后，保证能覆盖上面的基础样式）
+     ========================================================== */
+
+  /* ---- 平板电脑 / 小笔记本 ---- */
+  @media (max-width:1180px){
+    body{padding:22px 16px 40px}
+    .layout{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px}
+    .head .logo{width:46px;height:46px}
+    .head h1{font-size:33px;letter-spacing:1px}
+    .card{padding:20px 20px 18px}
+    .readout .num{font-size:clamp(60px,8.4vw,110px)}
+    .wave-wrap{height:116px}
+  }
+
+  /* ---- 平板竖屏 / 手机：改为单栏 ---- */
+  @media (max-width:880px){
+    body{padding:18px 14px 34px}
+    .layout{grid-template-columns:minmax(0,1fr)}
+    .col-side .card{flex:none}
+    .col-side .table-wrap{flex:none;min-height:200px;max-height:min(56vh,480px)}
+    .head{margin-bottom:18px}
+    .head .logo{width:42px;height:42px}
+    .readout .num{font-size:clamp(58px,15vw,110px)}
+    .table-wrap{min-height:190px;max-height:min(56vh,480px)}
+  }
+
+  /* ---- 手机 ---- */
+  @media (max-width:520px){
+    body{padding:16px 10px 30px}
+    .head{gap:9px;margin-bottom:16px}
+    .head .logo{width:38px;height:38px}
+    .head h1{font-size:28px;letter-spacing:.5px}
+    .card{padding:16px 14px 15px;border-radius:16px}
+    .readout .num{font-size:clamp(54px,17vw,88px)}
+    .readout .unit{font-size:19px}
+    .tag{font-size:14.5px;margin-bottom:16px;letter-spacing:1px}
+    .wave-wrap{height:96px;margin-top:14px}
+    .smooth-row{gap:6px;font-size:13.5px}
+    .stats{gap:6px}
+    .stats .item{font-size:13px;letter-spacing:.4px}
+    .stats .item b{font-size:20px}
+    .controls{gap:8px}
+    .controls button{flex:1;min-width:0;padding:12px 14px}
+    .calib{flex-basis:100%;min-width:0}
+    .rec-head{gap:6px}
+    .rec-head .title{flex:1 1 100%}
+    .rec-tools{gap:6px}
+    .rec-tools .lbl{flex:0 0 auto}
+    .rec-tools select,.rec-tools button{flex:1;min-width:0}
+    table{font-size:13.5px}
+    thead th,tbody td{padding:9px 9px}
+    thead th:nth-child(1),tbody td:nth-child(1){width:34px}
+    thead th:nth-child(2),tbody td:nth-child(2){width:78px;white-space:nowrap}
+    thead th:nth-child(3),tbody td:nth-child(3){width:62px}
+  }
+
+  /* ---- 触屏设备：加大点击区域，便于手指操作 ---- */
+  @media (pointer:coarse){
+    button{padding:13px 24px}
+    button.mini{padding:10px 16px}
+    .pill{padding:9px 16px}
+    select{padding:10px 12px}
+    .calib input[type=range]{height:7px}
+    .calib input[type=range]::-webkit-slider-thumb{width:20px;height:20px}
+  }
+
+  /* ==========================================================
+     全屏显示（教室一体机适配）
+     ========================================================== */
+  #fsBtn{
+    position:fixed;top:16px;right:18px;z-index:60;
+    display:flex;align-items:center;gap:9px;
+    padding:11px 18px;font-size:14px;font-weight:600;letter-spacing:.5px;
+    background:rgba(18,30,47,.9);color:#cfe2f5;
+    border:1px solid #25384f;border-radius:12px;
+    box-shadow:0 14px 34px -18px rgba(0,0,0,.95);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  }
+  #fsBtn:hover{border-color:#3f5f83;color:#fff;transform:translateY(-1px);filter:none}
+  #fsBtn .ico{width:19px;height:19px;flex:none}
+  #fsBtn .ico-exit{display:none}
+  body.fs #fsBtn .ico-enter{display:none}
+  body.fs #fsBtn .ico-exit{display:block}
+  body.fs #fsBtn{border-color:rgba(90,209,255,.55);color:var(--accent)}
+
+  /* 大屏（平板横屏及以上）全屏时：撑满屏幕，读数与波形尽量放大 */
+  @media (min-width:881px){
+    body.fs{padding:16px 22px 18px}
+    body.fs .app{max-width:none;min-height:calc(100vh - 34px);display:flex;flex-direction:column}
+    body.fs .head{margin-bottom:16px}
+    body.fs .head .logo{width:52px;height:52px}
+    body.fs .head h1{font-size:34px}
+
+    body.fs .layout{flex:1;min-height:0}
+    body.fs .col-main{display:flex;flex-direction:column}
+    body.fs .col-main .card{flex:1;display:flex;flex-direction:column;margin-bottom:0}
+    body.fs .col-side .table-wrap{max-height:none}
+    body.fs .table-wrap{min-height:280px}
+
+    body.fs .readout .num{font-size:clamp(84px,9.2vw,220px)}
+    body.fs .readout .unit{font-size:26px}
+    body.fs .tag{font-size:16px;margin-bottom:18px}
+    body.fs .track{height:22px}
+    body.fs .scale{font-size:14px}
+    body.fs .wave-wrap{flex:1;min-height:150px}
+    body.fs .stats .item{font-size:14px}
+    body.fs .stats .item b{font-size:30px}
+    body.fs .hint{margin-top:10px}
+  }
+
+  /* 手机上全屏按钮只留图标，避免遮住标题 */
+  @media (max-width:520px){
+    #fsBtn{top:10px;right:10px;padding:9px 12px;gap:0}
+    #fsBtn .lbl{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- 全屏按钮（教室一体机方便操作） -->
+<button id="fsBtn" type="button" aria-pressed="false" title="全屏显示（F）">
+  <svg class="ico ico-enter" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <svg class="ico ico-exit" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <span class="lbl" id="fsLbl">全屏显示</span>
+</button>
+
+<div class="app">
+
+  <div class="head">
+    <svg class="logo" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+      <path d="M857 680.3c2.3-3.6 4.1-7.8 5.2-12.6 1.2-4.8 1.7-10.7 1.7-17.6v-9.3c0-8.4-1.2-16.5-3.7-24.3-2.5-7.8-6.5-14.7-12.2-20.7s-13-10.8-21.9-14.4-19.7-5.4-32.4-5.4H736v256h53.9c25.9 0 44.7-6 56.4-18 11.8-12 17.6-29.2 17.6-51.8v-14.4c0-13.7-2.2-24.4-6.6-32.4s-11.2-13.9-20.6-18c9.2-4.7 15.9-10.4 20.3-17.1z m-31 89.1c-0.5 5.3-1.9 9.8-4.3 13.7-2.3 3.8-5.8 6.8-10.3 9-4.5 2.2-10.8 3.2-18.8 3.2h-17.1v-82H793c7.2 0 13.1 0.8 17.5 2.3 4.4 1.6 7.9 4 10.5 7.4 2.3 3.4 3.9 7.4 4.7 12.2 0.8 4.8 1.2 10.4 1.2 16.9-0.1 6.3-0.4 12.1-0.9 17.3z m-6-97.6c-4.5 6.1-13.4 9.2-26.6 9.2h-17.8v-70.5h16.3c13.2 0 22.3 2.9 27.3 8.6 5 5.8 7.6 14.4 7.6 25.9 0 11.8-2.3 20.7-6.8 26.8zM661.2 665.5h-0.8c-4.8-5.9-10.4-10.5-17-13.7-6.6-3.2-14.1-4.8-22.5-4.8-10.6 0-18.6 1.5-23.9 4.6-11.5 5.9-18 14.9-19.7 26.7-0.8 6.2-1.3 15.8-1.3 28.9V776c0 10 0.6 17.9 1.7 23.9 1.1 5.9 2.9 10.9 5.5 15 7 11.4 19.4 17.1 37.4 17.1 5.3 0 9.9-0.5 13.8-1.4 3.9-1 7.4-2.3 10.5-3.9s5.9-3.6 8.4-5.9 5.2-4.7 8-7.3v16.4H704V576h-42.8v89.5z m0 107.7c0 6.7-2 12.1-5.9 16.2-3.9 4.2-9.1 6.2-15.5 6.2-7.3 0-12.6-2.3-15.9-6.8-3.4-4.5-5-10.5-5-17.8v-66.3c0-5.7 1.5-10.7 4.4-15 2.9-4.3 8.5-6.4 16.6-6.4 6.2 0 11.3 1.8 15.3 5.5 4.1 3.7 6.1 8.4 6.1 14.1v70.3zM352 168c-101.5 0-184 82.5-184 184v192c0 93.3 69.8 170.6 160 182.4V784H192c-13.2 0-24 10.8-24 24s10.8 24 24 24h320c13.2 0 24-10.8 24-24s-10.8-24-24-24H376v-57.6c90.2-11.8 160-89.1 160-182.4V352c0-101.5-82.5-184-184-184z m0 512c-75 0-136-61-136-136h272c0 75-61 136-136 136z m136-184H216V352c0-75 61-136 136-136s136 61 136 136v144zM604.3 414.2c4.7 4.7 10.8 7 17 7s12.3-2.3 17-7c34.3-34.3 34.3-90.1 0-124.4-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9c15.6 15.6 15.6 41 0 56.6-9.5 9.4-9.5 24.5-0.1 33.9z"/>
+      <path d="M706.1 221.9c-9.4-9.4-24.6-9.4-33.9 0s-9.4 24.6 0 33.9c25.7 25.7 39.8 59.8 39.8 96.2s-14.1 70.5-39.8 96.2c-9.4 9.4-9.4 24.6 0 33.9 4.7 4.7 10.8 7 17 7s12.3-2.3 17-7C740.9 447.3 760 401.2 760 352s-19.1-95.3-53.9-130.1z"/>
+    </svg>
+    <h1>分贝<span>计</span></h1>
+  </div>
+
+  <div class="layout">
+
+  <!-- ============ 左：主面板 ============ -->
+  <div class="col col-main">
+  <div class="card">
+
+    <div class="readout">
+      <div class="num" id="dbNum">--</div>
+      <div class="unit">dB</div>
+    </div>
+
+    <div class="tag" id="tag">
+      <span class="dot" id="dot"></span>点击下方按钮开始测量
+    </div>
+
+    <div class="track">
+      <div class="fill" id="fill"></div>
+    </div>
+    <div class="scale">
+      <span>0</span><span>20</span><span>40</span><span>60</span>
+      <span>80</span><span>100</span><span>120</span>
+    </div>
+
+    <div class="wave-wrap">
+      <canvas id="wave"></canvas>
+    </div>
+
+    <!-- 平滑度 -->
+    <div class="smooth-row">
+      <span class="lbl">读数平滑度</span>
+      <button class="pill" data-window="0.2">快速</button>
+      <button class="pill active" data-window="0.6">标准</button>
+      <button class="pill" data-window="1.5">稳定</button>
+      <span style="color:#5b7189;font-size:13.5px;">（越稳定，数值变化越平缓）</span>
+    </div>
+
+    <!-- 控制按钮 -->
+    <div class="controls">
+      <button id="startBtn">开始测量</button>
+      <button id="stopBtn" disabled>停止</button>
+      <div class="calib">
+        <span>校准</span>
+        <input type="range" id="calib" min="80" max="110" step="1" value="92">
+        <b id="calibVal">92</b>
+      </div>
+    </div>
+
+    <!-- 统计 -->
+    <div class="stats">
+      <div class="item">本次最大<b id="statMax">--</b></div>
+      <div class="item">本次最小<b id="statMin">--</b></div>
+      <div class="item">记录平均<b id="statAvg">--</b></div>
+    </div>
+
+  </div>
+  </div>
+
+  <!-- ============ 右：数据记录 ============ -->
+  <div class="col col-side">
+  <div class="card">
+    <div class="rec-head">
+      <span class="title">📋 数据记录 <em class="rec-count" id="recCount">0</em></span>
+      <button id="recordBtn" class="mini">记录当前值</button>
+      <button id="clearBtn" class="ghost mini">清空</button>
+    </div>
+
+    <div class="rec-tools">
+      <span class="lbl">导出格式</span>
+      <select id="exportFormat" title="选择导出文件的格式">
+        <option value="csv">CSV 表格 (.csv)</option>
+        <option value="xlsx">Excel 表格 (.xlsx)</option>
+        <option value="json">JSON 数据 (.json)</option>
+      </select>
+      <button id="exportBtn" class="ghost mini">导出数据表</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:44px">#</th>
+            <th style="width:92px">时间</th>
+            <th style="width:78px">分贝</th>
+            <th>环境描述</th>
+          </tr>
+        </thead>
+        <tbody id="recBody">
+          <tr><td colspan="4" class="empty">还没有记录，点击上方「记录当前值」按钮</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  </div>
+
+  </div>
+
+  <div class="hint" id="hint">
+    需要麦克风权限，允许后即可开始测量。
+  </div>
+
+</div>
+
+<script>
+/* ==========================================================
+   常量
+   ========================================================== */
+const RANGE_MAX = 120;      // 显示量程上限 dB
+const HISTORY_N = 240;      // 历史柱数量（约 24 秒 @10Hz）
+const HIST_HZ   = 10;       // 历史采样频率
+
+/* ==========================================================
+   状态
+   ========================================================== */
+let audioCtx  = null;
+let analyser  = null;
+let buf       = null;
+let stream    = null;
+let rafId     = null;
+let running   = false;
+let demoMode  = false;
+
+let calibOffset = 92;
+let displayDb   = 0;
+
+/* 平滑：用「能量滑动平均」代替直接对 dB 平滑，
+   这样读数更接近人耳感知，且不会剧烈跳动 */
+let windowSec = 0.6;        // 平滑时间窗
+const powerBuf = [];        // { t, p }
+
+/* 统计 */
+let peakDb   = 0;
+let minDb    = Infinity;
+let startSec = -1;
+
+/* 历史 */
+const history = new Float32Array(HISTORY_N);
+let histIdx   = 0;
+let lastHistT = 0;
+
+/* 记录 */
+let records = [];
+
+/* 演示模式 */
+let demoRms = 0.01;
+
+/* ==========================================================
+   DOM
+   ========================================================== */
+const dbNum    = document.getElementById('dbNum');
+const tagEl    = document.getElementById('tag');
+const dotEl    = document.getElementById('dot');
+const fillEl   = document.getElementById('fill');
+const startBtn = document.getElementById('startBtn');
+const stopBtn  = document.getElementById('stopBtn');
+const recordBtn= document.getElementById('recordBtn');
+const clearBtn = document.getElementById('clearBtn');
+const exportBtn= document.getElementById('exportBtn');
+const exportFormat = document.getElementById('exportFormat');
+const recCount = document.getElementById('recCount');
+const recBody  = document.getElementById('recBody');
+const statMax  = document.getElementById('statMax');
+const statMin  = document.getElementById('statMin');
+const statAvg  = document.getElementById('statAvg');
+const calib    = document.getElementById('calib');
+const calibVal = document.getElementById('calibVal');
+const hintEl   = document.getElementById('hint');
+const fsBtn    = document.getElementById('fsBtn');
+const fsLbl    = document.getElementById('fsLbl');
+
+/* ==========================================================
+   Canvas
+   ========================================================== */
+const waveCanvas = document.getElementById('wave');
+const wctx = waveCanvas.getContext('2d');
+let DPR = 1, CW = 0, CH = 0;
+
+function sizeWave(){
+  const r = waveCanvas.getBoundingClientRect();
+  if(!r.width || !r.height) return;
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  CW = r.width;
+  CH = r.height;
+  waveCanvas.width  = Math.round(CW * DPR);
+  waveCanvas.height = Math.round(CH * DPR);
+  wctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+window.addEventListener('resize', sizeWave);
+if(window.ResizeObserver) new ResizeObserver(sizeWave).observe(waveCanvas);
+
+/* ==========================================================
+   工具
+   ========================================================== */
+const clamp = (v,a,b)=>Math.min(b,Math.max(a,v));
+
+function colorFor(db){
+  if(db < 30) return '#3ddc97';
+  if(db < 45) return '#7ee787';
+  if(db < 55) return '#ffd166';
+  if(db < 65) return '#ffa94d';
+  if(db < 80) return '#ff6b6b';
+  return '#e03131';
+}
+function labelFor(db){
+  if(db < 30) return '非常安静';
+  if(db < 45) return '安静舒适';
+  if(db < 55) return '一般环境';
+  if(db < 65) return '有些嘈杂';
+  if(db < 80) return '很吵 · 影响学习';
+  if(db < 95) return '非常吵 · 损伤听力';
+  return '难以忍受';
+}
+
+/* ==========================================================
+   功率缓冲（核心平滑逻辑）
+   ========================================================== */
+function pushPower(t, p){
+  powerBuf.push({ t, p });
+  const cutoff = t - windowSec;
+  let i = 0;
+  while(i < powerBuf.length && powerBuf[i].t < cutoff) i++;
+  if(i > 0) powerBuf.splice(0, i);
+}
+
+function avgPower(){
+  if(powerBuf.length === 0) return 0;
+  let s = 0;
+  for(let i = 0; i < powerBuf.length; i++) s += powerBuf[i].p;
+  return s / powerBuf.length;
+}
+
+/* ==========================================================
+   启动 / 停止
+   ========================================================== */
+async function startMic(){
+  // 必须在用户手势中创建 AudioContext（兼容 iOS）
+  if(!audioCtx){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC){ showError('当前浏览器不支持 Web Audio API'); return; }
+    audioCtx = new AC();
+  }
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+
+  resetStats();
+
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    enterDemoMode('无法访问麦克风接口');
+    return;
+  }
+
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio:{
+        echoCancellation : false,
+        noiseSuppression : false,
+        autoGainControl  : false
+      }
+    });
+
+    const src = audioCtx.createMediaStreamSource(stream);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0;
+    src.connect(analyser);
+
+    buf = new Float32Array(analyser.fftSize);
+
+    demoMode = false;
+    running  = true;
+    uiRunning(true, '麦克风已开启');
+    if(!rafId) rafId = requestAnimationFrame(loop);
+
+  }catch(err){
+    let msg = '麦克风不可用';
+    if(err.name === 'NotAllowedError')       msg = '麦克风权限被拒绝，请在浏览器中允许';
+    else if(err.name === 'NotFoundError')    msg = '没有检测到麦克风设备';
+    else if(err.name === 'NotReadableError') msg = '麦克风被其他程序占用';
+    else msg = '麦克风错误：' + (err.message || err.name);
+    enterDemoMode(msg);
+  }
+}
+
+function enterDemoMode(reason){
+  demoMode = true;
+  running  = true;
+  demoRms  = 0.01;
+  uiRunning(true, '演示模式');
+  hintEl.innerHTML = '⚠️ ' + reason +
+    '<br>当前处于 <b style="color:#ffd166">演示模式</b>，数值为模拟数据。';
+  if(!rafId) rafId = requestAnimationFrame(loop);
+}
+
+function stopMic(){
+  running = false;
+  if(rafId){ cancelAnimationFrame(rafId); rafId = null; }
+  if(stream){ stream.getTracks().forEach(t => t.stop()); stream = null; }
+  analyser = null;
+  powerBuf.length = 0;
+
+  uiRunning(false, '已停止测量');
+  dbNum.textContent = '--';
+  dbNum.style.color = 'var(--accent)';
+  fillEl.style.width = '0%';
+  drawWave();
+}
+
+function showError(msg){
+  hintEl.innerHTML = '❌ ' + msg;
+}
+
+function resetStats(){
+  peakDb   = 0;
+  minDb    = Infinity;
+  startSec = -1;
+  displayDb = 0;
+  powerBuf.length = 0;
+  updateStatsUI();
+}
+
+/* ==========================================================
+   UI 状态
+   ========================================================== */
+function uiRunning(on, tip){
+  startBtn.disabled = on;
+  stopBtn.disabled  = !on;
+  recordBtn.disabled = !on;
+  dotEl.classList.toggle('live', on);
+  if(tip){
+    tagEl.innerHTML = '<span class="dot ' + (on ? 'live' : '') + '"></span>' + tip;
+  }
+}
+
+/* ==========================================================
+   主循环
+   ========================================================== */
+function loop(ts){
+  rafId = requestAnimationFrame(loop);
+  if(!running) return;
+
+  const nowSec = ts / 1000;
+  if(startSec < 0) startSec = nowSec;
+
+  let power = 0;
+
+  if(!demoMode && analyser){
+    analyser.getFloatTimeDomainData(buf);
+    let sum = 0;
+    for(let i = 0; i < buf.length; i++){
+      const v = buf[i];
+      sum += v * v;
+    }
+    power = sum / buf.length;          // 均方值 = 功率
+  }else{
+    // 演示模式：平滑随机游走
+    demoRms += (0.01 - demoRms) * 0.02 + (Math.random() - 0.5) * 0.0016;
+    demoRms = clamp(demoRms, 0.0004, 0.06);
+    power = demoRms * demoRms;
+  }
+
+  pushPower(nowSec, power);
+  const avgP = avgPower();
+
+  let db = 10 * Math.log10(avgP + 1e-12) + calibOffset;
+  db = clamp(db, 0, RANGE_MAX);
+  displayDb = db;
+
+  /* ---- 统计 ---- */
+  if(db > peakDb) peakDb = db;
+  if(nowSec - startSec > 0.5 && db < minDb) minDb = db;
+
+  /* ---- 更新读数（每帧） ---- */
+  const c = colorFor(db);
+  dbNum.textContent = db.toFixed(1);
+  dbNum.style.color = c;
+
+  fillEl.style.width      = clamp(db / RANGE_MAX, 0, 1) * 100 + '%';
+  fillEl.style.background = c;
+
+  tagEl.innerHTML = '<span class="dot live"></span>' +
+                    '<span style="color:' + c + '">' + labelFor(db) + '</span>';
+
+  updateStatsUI();
+
+  /* ---- 历史曲线（10Hz 采样） ---- */
+  if(nowSec - lastHistT > 1 / HIST_HZ){
+    lastHistT = nowSec;
+    history[histIdx] = db;
+    histIdx = (histIdx + 1) % HISTORY_N;
+    drawWave();
+  }
+}
+
+/* ==========================================================
+   统计 UI
+   ========================================================== */
+function updateStatsUI(){
+  statMax.textContent = peakDb > 0 ? peakDb.toFixed(1) : '--';
+  statMin.textContent = isFinite(minDb) ? minDb.toFixed(1) : '--';
+
+  if(records.length > 0){
+    const sum = records.reduce((a, r) => a + r.db, 0);
+    statAvg.textContent = (sum / records.length).toFixed(1);
+  }else{
+    statAvg.textContent = '--';
+  }
+}
+
+/* ==========================================================
+   绘制历史波形
+   ========================================================== */
+function drawWave(){
+  if(!CW || !CH) sizeWave();
+  wctx.clearRect(0, 0, CW, CH);
+
+  /* 参考线 */
+  wctx.font = '12px -apple-system, system-ui, sans-serif';
+  wctx.textBaseline = 'bottom';
+  [30, 60, 90].forEach(v => {
+    const y = CH - (v / RANGE_MAX) * CH;
+    wctx.beginPath();
+    wctx.moveTo(0, y + .5);
+    wctx.lineTo(CW, y + .5);
+    wctx.strokeStyle = 'rgba(90,209,255,0.09)';
+    wctx.lineWidth = 1;
+    wctx.stroke();
+
+    wctx.fillStyle = 'rgba(125,147,171,0.42)';
+    wctx.fillText(v + '', 5, y - 3);
+  });
+
+  /* 柱状历史 */
+  const bw = CW / HISTORY_N;
+  for(let i = 0; i < HISTORY_N; i++){
+    const idx = (histIdx + i) % HISTORY_N;
+    const v = history[idx];
+    if(v <= 0) continue;
+
+    const h = Math.max(1.5, (v / RANGE_MAX) * CH);
+    const alpha = 0.28 + 0.72 * (i / HISTORY_N);
+
+    wctx.globalAlpha = alpha;
+    wctx.fillStyle = colorFor(v);
+    wctx.fillRect(i * bw, CH - h, Math.max(bw - 1, 1), h);
+  }
+  wctx.globalAlpha = 1;
+}
+
+/* ==========================================================
+   记录功能
+   ========================================================== */
+function addRecord(){
+  if(!running) return;
+
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const ss = String(now.getSeconds()).padStart(2,'0');
+
+  const db = +displayDb.toFixed(1);
+
+  records.push({
+    idx  : records.length + 1,
+    time : hh + ':' + mm + ':' + ss,
+    db   : db,
+    label: labelFor(db)
+  });
+
+  renderRecords();
+  updateStatsUI();
+}
+
+function renderRecords(){
+  if(recCount) recCount.textContent = records.length;
+
+  if(records.length === 0){
+    recBody.innerHTML =
+      '<tr><td colspan="4" class="empty">还没有记录，点击上方「记录当前值」按钮</td></tr>';
+    return;
+  }
+
+  recBody.innerHTML = records.map(r => `
+    <tr>
+      <td style="color:#4a5f78">${r.idx}</td>
+      <td style="color:#8fa6bd">${r.time}</td>
+      <td class="db-cell" style="color:${colorFor(r.db)}">${r.db.toFixed(1)}</td>
+      <td style="color:#7d93ab">${r.label}</td>
+    </tr>
+  `).join('');
+
+  /* 自动滚到底部 */
+  const wrap = recBody.closest('.table-wrap');
+  if(wrap) wrap.scrollTop = wrap.scrollHeight;
+}
+
+function clearRecords(){
+  if(records.length === 0) return;
+  if(!confirm('确定要清空全部 ' + records.length + ' 条记录吗？')) return;
+  records = [];
+  renderRecords();
+  updateStatsUI();
+}
+
+/* ---- 公共：统计与下载 ---- */
+function statsOf(){
+  if(records.length === 0) return null;
+  let sum = 0, max = -Infinity, min = Infinity;
+  records.forEach(r => {
+    sum += r.db;
+    if(r.db > max) max = r.db;
+    if(r.db < min) min = r.db;
+  });
+  return { count: records.length, avg: sum / records.length, max, min };
+}
+
+function timeStamp(){
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}` +
+         `_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+}
+
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a   = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* ---- CSV ---- */
+function buildCSV(){
+  const s = statsOf();
+  const q = v => '"' + String(v).replace(/"/g, '""') + '"';
+
+  let csv = '序号,时间,分贝值(dB),环境描述\n';
+  records.forEach(r => {
+    csv += `${r.idx},${r.time},${r.db.toFixed(1)},${q(r.label)}\n`;
+  });
+
+  csv += '\n统计项,数值\n';
+  csv += `记录条数,${s.count}\n`;
+  csv += `平均分贝,${s.avg.toFixed(1)}\n`;
+  csv += `最大分贝,${s.max.toFixed(1)}\n`;
+  csv += `最小分贝,${s.min.toFixed(1)}\n`;
+  csv += `导出时间,${q(new Date().toLocaleString('zh-CN'))}\n`;
+  return csv;
+}
+
+/* ---- JSON ---- */
+function buildJSON(){
+  const s = statsOf();
+  return JSON.stringify({
+    title      : '分贝计测量记录',
+    exportedAt : new Date().toLocaleString('zh-CN'),
+    stats      : {
+      记录条数 : s.count,
+      平均分贝 : +s.avg.toFixed(1),
+      最大分贝 : +s.max.toFixed(1),
+      最小分贝 : +s.min.toFixed(1)
+    },
+    records: records.map(r => ({
+      序号     : r.idx,
+      时间     : r.time,
+      分贝值   : r.db,
+      环境描述 : r.label
+    }))
+  }, null, 2);
+}
+
+/* ---- 极简 ZIP（存储式，无压缩）：用于打包 .xlsx ---- */
+const CRC_TABLE = (function(){
+  const t = new Uint32Array(256);
+  for(let n = 0; n < 256; n++){
+    let c = n;
+    for(let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+
+function crc32(bytes){
+  let c = 0xFFFFFFFF;
+  for(let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+function zipStore(entries){
+  const enc = new TextEncoder();
+  const parts = [], central = [];
+  let offset = 0;
+
+  entries.forEach(en => {
+    const nameBytes = enc.encode(en.name);
+    const data = typeof en.data === 'string' ? enc.encode(en.data) : en.data;
+    const crc  = crc32(data);
+    const size = data.length;
+
+    const local = new Uint8Array(30 + nameBytes.length);
+    const lv = new DataView(local.buffer);
+    lv.setUint32(0,  0x04034b50, true);   // 本地文件头签名
+    lv.setUint16(4,  20, true);           // 解压所需版本
+    lv.setUint16(6,  0x0800, true);       // 文件名 UTF-8
+    lv.setUint16(8,  0, true);            // 0 = 存储（不压缩）
+    lv.setUint16(10, 0, true);            // 修改时间
+    lv.setUint16(12, 0x21, true);         // 修改日期（1980-01-01）
+    lv.setUint32(14, crc, true);
+    lv.setUint32(18, size, true);
+    lv.setUint32(22, size, true);
+    lv.setUint16(26, nameBytes.length, true);
+    lv.setUint16(28, 0, true);
+    local.set(nameBytes, 30);
+
+    const cen = new Uint8Array(46 + nameBytes.length);
+    const cv = new DataView(cen.buffer);
+    cv.setUint32(0,  0x02014b50, true);   // 中央目录头签名
+    cv.setUint16(4,  20, true);
+    cv.setUint16(6,  20, true);
+    cv.setUint16(8,  0x0800, true);
+    cv.setUint16(10, 0, true);
+    cv.setUint16(12, 0, true);
+    cv.setUint16(14, 0x21, true);
+    cv.setUint32(16, crc, true);
+    cv.setUint32(20, size, true);
+    cv.setUint32(24, size, true);
+    cv.setUint16(28, nameBytes.length, true);
+    cv.setUint16(30, 0, true);
+    cv.setUint16(32, 0, true);
+    cv.setUint16(34, 0, true);
+    cv.setUint16(36, 0, true);
+    cv.setUint32(38, 0, true);
+    cv.setUint32(42, offset, true);
+    cen.set(nameBytes, 46);
+
+    parts.push(local, data);
+    central.push(cen);
+    offset += local.length + size;
+  });
+
+  let cenSize = 0;
+  central.forEach(c => { cenSize += c.length; });
+
+  const end = new Uint8Array(22);
+  const ev = new DataView(end.buffer);
+  ev.setUint32(0,  0x06054b50, true);     // 中央目录结束记录
+  ev.setUint16(8,  entries.length, true);
+  ev.setUint16(10, entries.length, true);
+  ev.setUint32(12, cenSize, true);
+  ev.setUint32(16, offset, true);
+
+  return new Blob(parts.concat(central, [end]),
+    { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+/* ---- Excel (.xlsx) ---- */
+function colLetter(i){
+  let s = '';
+  i++;
+  while(i > 0){
+    const m = (i - 1) % 26;
+    s = String.fromCharCode(65 + m) + s;
+    i = Math.floor((i - 1) / 26);
+  }
+  return s;
+}
+
+function xmlEsc(v){
+  return String(v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+}
+
+function buildXLSX(){
+  const s = statsOf();
+
+  const rows = [
+    ['分贝计测量记录'],
+    ['导出时间：' + new Date().toLocaleString('zh-CN')],
+    [],
+    ['序号', '时间', '分贝值(dB)', '环境描述']
+  ];
+  records.forEach(r => rows.push([r.idx, r.time, +r.db.toFixed(1), r.label]));
+  rows.push([]);
+  rows.push(['统计项', '数值']);
+  rows.push(['记录条数', s.count]);
+  rows.push(['平均分贝', +s.avg.toFixed(1)]);
+  rows.push(['最大分贝', +s.max.toFixed(1)]);
+  rows.push(['最小分贝', +s.min.toFixed(1)]);
+
+  const sheetData = rows.map((cells, ri) => {
+    const r = ri + 1;
+    const cs = cells.map((v, ci) => {
+      if(v === null || v === undefined || v === '') return '';
+      const ref = colLetter(ci) + r;
+      if(typeof v === 'number' && isFinite(v)) return `<c r="${ref}"><v>${v}</v></c>`;
+      return `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
+    }).join('');
+    return `<row r="${r}">${cs}</row>`;
+  }).join('');
+
+  const sheetXml =
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+      '<cols>' +
+        '<col min="1" max="1" width="8"  customWidth="1"/>' +
+        '<col min="2" max="2" width="12" customWidth="1"/>' +
+        '<col min="3" max="3" width="14" customWidth="1"/>' +
+        '<col min="4" max="4" width="26" customWidth="1"/>' +
+      '</cols>' +
+      '<sheetData>' + sheetData + '</sheetData>' +
+    '</worksheet>';
+
+  const contentTypes =
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+      '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+    '</Types>';
+
+  const rootRels =
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+    '</Relationships>';
+
+  const workbook =
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' +
+      'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+      '<sheets><sheet name="分贝记录" sheetId="1" r:id="rId1"/></sheets>' +
+    '</workbook>';
+
+  const workbookRels =
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+    '</Relationships>';
+
+  return zipStore([
+    { name:'[Content_Types].xml',       data: contentTypes },
+    { name:'_rels/.rels',               data: rootRels },
+    { name:'xl/workbook.xml',           data: workbook },
+    { name:'xl/_rels/workbook.xml.rels', data: workbookRels },
+    { name:'xl/worksheets/sheet1.xml',  data: sheetXml }
+  ]);
+}
+
+/* ---- 导出入口：按所选格式输出数据表 ---- */
+function exportData(){
+  if(records.length === 0){
+    alert('还没有记录数据，先点「记录当前值」吧');
+    return;
+  }
+
+  const fmt   = exportFormat ? exportFormat.value : 'csv';
+  const stamp = timeStamp();
+
+  if(fmt === 'xlsx'){
+    downloadBlob(buildXLSX(), `分贝记录_${stamp}.xlsx`);
+  }else if(fmt === 'json'){
+    const blob = new Blob([buildJSON()], { type:'application/json;charset=utf-8' });
+    downloadBlob(blob, `分贝记录_${stamp}.json`);
+  }else{
+    const blob = new Blob(['\ufeff' + buildCSV()], { type:'text/csv;charset=utf-8' });
+    downloadBlob(blob, `分贝记录_${stamp}.csv`);
+  }
+}
+
+/* ==========================================================
+   事件绑定
+   ========================================================== */
+startBtn.addEventListener('click', startMic);
+stopBtn.addEventListener('click', stopMic);
+recordBtn.addEventListener('click', addRecord);
+clearBtn.addEventListener('click', clearRecords);
+exportBtn.addEventListener('click', exportData);
+
+/* ==========================================================
+   全屏显示 / 退出全屏（教室一体机）
+   ========================================================== */
+function fsElement(){
+  return document.fullscreenElement ||
+         document.webkitFullscreenElement ||
+         document.msFullscreenElement || null;
+}
+
+function fsSupported(){
+  const el = document.documentElement;
+  return !!(el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen);
+}
+
+async function toggleFullscreen(){
+  const el = document.documentElement;
+  try{
+    if(fsElement()){
+      if(document.exitFullscreen)            await document.exitFullscreen();
+      else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+      else if(document.msExitFullscreen)     document.msExitFullscreen();
+    }else{
+      if(el.requestFullscreen)               await el.requestFullscreen();
+      else if(el.webkitRequestFullscreen)    el.webkitRequestFullscreen();
+      else if(el.msRequestFullscreen)        el.msRequestFullscreen();
+    }
+  }catch(err){
+    hintEl.innerHTML = '⚠️ 无法切换到全屏，可直接按 <b>F11</b> 键。';
+  }
+}
+
+function syncFullscreenUI(){
+  const on = !!fsElement();
+  document.body.classList.toggle('fs', on);
+  if(fsLbl) fsLbl.textContent = on ? '退出全屏' : '全屏显示';
+  fsBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  fsBtn.title = on ? '退出全屏（Esc / F）' : '全屏显示（F）';
+
+  /* 尺寸变化后重绘波形 */
+  requestAnimationFrame(() => { sizeWave(); drawWave(); });
+  setTimeout(() => { sizeWave(); drawWave(); }, 260);
+}
+
+['fullscreenchange', 'webkitfullscreenchange', 'msfullscreenchange'].forEach(ev => {
+  document.addEventListener(ev, syncFullscreenUI);
+});
+
+fsBtn.addEventListener('click', toggleFullscreen);
+
+/* 快捷键：F 切换全屏（Esc 由浏览器原生退出） */
+document.addEventListener('keydown', e => {
+  const t = e.target;
+  if(t && /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName)) return;
+  if(e.ctrlKey || e.metaKey || e.altKey) return;
+  if(e.key === 'f' || e.key === 'F'){
+    e.preventDefault();
+    toggleFullscreen();
+  }
+});
+
+/* 不支持的浏览器（如 iOS Safari）直接隐藏按钮 */
+if(!fsSupported()) fsBtn.style.display = 'none';
+
+/* 平滑度切换 */
+document.querySelectorAll('.pill[data-window]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.pill[data-window]')
+      .forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    windowSec = +btn.dataset.window;
+  });
+});
+
+/* 校准 */
+calib.addEventListener('input', e => {
+  calibOffset = +e.target.value;
+  calibVal.textContent = calibOffset;
+});
+
+/* 页面隐藏暂停渲染 */
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden){
+    if(rafId){ cancelAnimationFrame(rafId); rafId = null; }
+  }else if(running && !rafId){
+    rafId = requestAnimationFrame(loop);
+  }
+});
+
+/* ==========================================================
+   初始化
+   ========================================================== */
+sizeWave();
+drawWave();
+renderRecords();
+updateStatsUI();
+syncFullscreenUI();
+</script>
+</body>
+</html>
