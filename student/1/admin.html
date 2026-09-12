@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/webp" href="jzzxlogo.webp">
+<title>珠海市九洲中学团委纪检管理系统 · 管理后台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f5f7fa;--card:#fff;--border:#e5e9f0;--border-soft:#eef1f6;
+  --text:#1e293b;--dim:#64748b;--primary:#2563eb;
+  --red:#ef4444;--red-bg:#fef2f2;--red-bd:#fecaca;
+  --orange:#f97316;--orange-bg:#fff7ed;--orange-bd:#fed7aa;
+  --green:#059669;--green-bg:#ecfdf5;--green-bd:#a7f3d0;
+  --shadow:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh;padding:18px 14px 40px}
+.wrap{max-width:1180px;margin:0 auto}
+.topbar{display:flex;align-items:center;gap:12px;justify-content:center;
+  padding:16px 20px;background:var(--card);border:1px solid var(--border);
+  border-radius:14px;box-shadow:var(--shadow);margin-bottom:16px}
+.topbar .logo{width:44px;height:44px;flex-shrink:0;object-fit:contain;display:block}
+.topbar h1{font-size:19px;font-weight:800;line-height:1.35}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.panel h2{font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.panel h2 .dot{width:6px;height:6px;border-radius:50%;background:var(--primary)}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:13px;color:var(--dim);margin-bottom:6px;font-weight:500}
+input[type=text],input[type=password],input[type=number],select{
+  width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);
+  background:#fff;color:var(--text);font-size:14px;outline:none;font-family:inherit;
+  transition:border-color .2s,box-shadow .2s}
+input:hover,select:hover{border-color:#93c5fd}
+input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+input::placeholder{color:#94a3b8}
+.row{display:flex;gap:12px}
+.row .field{flex:1}
+.btn{width:100%;padding:11px;border:none;border-radius:12px;background:var(--primary);
+  color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s}
+.btn:hover{background:#1d4ed8}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-ghost{border:1px solid var(--border);background:#fff;color:var(--dim);
+  font-size:13px;font-weight:600;padding:7px 16px;border-radius:10px;
+  cursor:pointer;font-family:inherit;transition:.2s}
+.btn-ghost:hover{color:var(--text);border-color:#93c5fd;background:#f0f7ff}
+.msg{margin-top:10px;font-size:13px;min-height:18px;color:var(--dim)}
+.msg.error{color:var(--red)}
+.msg.success{color:var(--green)}
+.toolbar{display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;margin-bottom:16px;font-size:14px;color:var(--dim)}
+.toolbar b{color:var(--primary)}
+.table-scroll{overflow-x:auto;border-radius:12px;border:1px solid var(--border);
+  -webkit-overflow-scrolling:touch}
+/* 小屏提示：表格可左右滑动 */
+.scroll-hint{display:none;font-size:12px;color:#94a3b8;margin-bottom:8px}
+/* 保存按钮行 */
+.save-row{display:flex;gap:10px;margin-top:14px}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:1000px}
+th{background:#f8fafc;color:#334155;font-weight:600;padding:10px 8px;
+  text-align:center;font-size:12px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:6px 8px;border-bottom:1px solid var(--border-soft);text-align:center;vertical-align:middle}
+td.cls{font-weight:600;color:var(--primary);background:#f0f7ff;white-space:nowrap}
+tbody tr:hover td{background:#f8fafc}
+tbody tr:hover td.cls{background:#dbeafe}
+th.grp-inspect,td.grp-inspect{background:rgba(239,68,68,.04)}
+th.grp-hygiene,td.grp-hygiene{background:rgba(249,115,22,.04)}
+th.grp-bonus,td.grp-bonus{background:rgba(16,185,129,.04)}
+tbody tr:hover td.grp-inspect{background:rgba(239,68,68,.09)}
+tbody tr:hover td.grp-hygiene{background:rgba(249,115,22,.09)}
+tbody tr:hover td.grp-bonus{background:rgba(16,185,129,.09)}
+td input{width:100%;min-width:62px;padding:7px 8px;border-radius:8px;
+  border:1px solid var(--border);background:#fff;color:var(--text);
+  font-size:13px;text-align:center;font-family:inherit;outline:none;transition:.2s}
+td input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(37,99,235,.12)}
+td input.num{min-width:64px}
+td input.note{text-align:left;min-width:180px}
+.badge{display:inline-block;background:#eff6ff;border:1px solid #bfdbfe;
+  color:var(--primary);font-size:12px;padding:3px 10px;border-radius:14px;
+  margin-right:6px;margin-top:4px}
+.badge.off{background:#f1f5f9;border-color:var(--border);color:#94a3b8}
+.info-line{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--dim)}
+.mgmt-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
+  gap:10px;margin-bottom:8px}
+.mgmt-stat{flex:1 1 260px;font-size:13px;color:var(--dim);line-height:1.6}
+.mgmt-stat b{color:var(--primary)}
+.mgmt-tip{font-size:12px;color:#94a3b8;line-height:1.7;margin-bottom:12px}
+.mgmt-tip strong{color:var(--dim)}
+table.mgmt-table{min-width:860px}
+.mg-cell{white-space:nowrap}
+.mg-cell.none{color:#cbd5e1}
+.mg-cell.has{background:rgba(16,185,129,.06)}
+tbody tr:hover td.mg-cell.has{background:rgba(16,185,129,.13)}
+.mg-sc{display:inline-block;font-size:11px;font-weight:600;padding:2px 6px;
+  border-radius:6px;background:#fff;border:1px solid var(--border);
+  color:#475569;margin-right:3px;font-family:inherit;line-height:1.5}
+/* 单项删除：分数标签本身即按钮 */
+button.mg-sc{cursor:pointer;transition:.15s}
+button.mg-sc:hover{filter:brightness(.97);box-shadow:0 1px 4px rgba(15,23,42,.15)}
+button.mg-sc:active{transform:translateY(1px)}
+.mg-x{font-style:normal;font-weight:700;margin-left:3px;opacity:.5}
+button.mg-sc:hover .mg-x{opacity:1}
+.mg-sc.red{color:var(--red);border-color:var(--red-bd);background:var(--red-bg)}
+.mg-sc.orange{color:var(--orange);border-color:var(--orange-bd);background:var(--orange-bg)}
+.mg-sc.green{color:var(--green);border-color:var(--green-bd);background:var(--green-bg)}
+.mg-del{width:22px;height:22px;border-radius:50%;border:1px solid var(--red-bd);
+  background:var(--red-bg);color:var(--red);cursor:pointer;font-size:13px;
+  line-height:1;margin-left:4px;vertical-align:middle;font-family:inherit;padding:0}
+.mg-del:hover{background:var(--red);color:#fff}
+.btn-ghost.mini{padding:4px 10px;font-size:12px;border-radius:8px}
+.footer{text-align:center;padding-top:14px;margin-top:6px;font-size:12px;color:var(--dim)}
+.footer a{color:var(--primary);text-decoration:none;font-weight:500}
+.footer a:hover{text-decoration:underline}
+/* ===== 登录（与实时看板保持一致的小卡片样式） ===== */
+.login-gate{position:fixed;inset:0;z-index:2000;padding:20px;
+  background:linear-gradient(135deg,#eff6ff,#f8fafc 55%,#ecfdf5);
+  display:flex;align-items:center;justify-content:center;overflow:auto}
+.login-card{width:min(420px,100%);background:#fff;border:1px solid var(--border);
+  border-radius:18px;padding:30px 26px 26px;box-shadow:0 20px 50px rgba(15,23,42,.12);text-align:center}
+.login-logo{display:flex;justify-content:center;margin-bottom:12px}
+.login-logo img{width:92px;height:92px;object-fit:contain;display:block}
+.login-card h1{font-size:19px;font-weight:800;line-height:1.45;margin-bottom:20px}
+.login-card .field{text-align:left;margin-bottom:12px}
+.login-card label{display:block;font-size:12px;color:var(--dim);margin-bottom:6px;font-weight:500}
+.login-card input{width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--border);
+  background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none;transition:.2s}
+.login-card input:hover{border-color:#93c5fd}
+.login-card input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.login-card input::placeholder{color:#94a3b8}
+.login-btn{width:100%;margin-top:6px;padding:12px;border:none;border-radius:12px;
+  background:var(--primary);color:#fff;font-size:15px;font-weight:700;cursor:pointer;
+  font-family:inherit;transition:background .2s}
+.login-btn:hover{background:#1d4ed8}
+.login-btn:disabled{opacity:.5;cursor:not-allowed}
+.login-msg{margin-top:10px;font-size:12px;min-height:18px;color:var(--dim);line-height:1.5}
+.login-msg.error{color:var(--red)}
+.login-back{display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  margin-top:16px;padding-top:14px;border-top:1px solid var(--border);
+  width:100%;font-size:13px;color:var(--dim);text-decoration:none;transition:.2s}
+.login-back:hover{color:var(--primary)}
+/* 返回箭头图标（随文字颜色变化） */
+.icon-back{width:1em;height:1em;flex-shrink:0;vertical-align:-0.12em}
+/* ===== 系统弹窗（替代浏览器原生 confirm） ===== */
+.dlg-mask{position:fixed;inset:0;z-index:3000;background:rgba(15,23,42,.5);
+  display:none;align-items:center;justify-content:center;padding:18px;
+  animation:dlgFade .16s ease-out}
+.dlg{width:min(430px,100%);background:#fff;border-radius:18px;overflow:hidden;
+  box-shadow:0 24px 60px rgba(15,23,42,.32);animation:dlgUp .22s cubic-bezier(.2,.9,.3,1.15)}
+@keyframes dlgFade{from{opacity:0}to{opacity:1}}
+@keyframes dlgUp{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+.dlg-head{display:flex;align-items:center;gap:12px;padding:20px 22px 0}
+.dlg-icon{width:40px;height:40px;flex-shrink:0;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;font-size:22px;font-weight:800;
+  background:#eff6ff;color:var(--primary)}
+.dlg-icon.danger{background:var(--red-bg);color:var(--red)}
+.dlg-head h3{font-size:17px;font-weight:800;line-height:1.35}
+.dlg-body{padding:12px 22px 2px;font-size:14px;color:var(--text);line-height:1.7}
+.dlg-body p{margin:0 0 6px}
+.dlg-body p:last-child{margin-bottom:0}
+.dlg-body b{color:var(--primary)}
+.dlg-where{font-weight:700;background:#f8fafc;border:1px solid var(--border);
+  border-radius:10px;padding:9px 12px;margin:8px 0;word-break:break-all}
+.dlg-note{color:var(--dim);font-size:12.5px;margin-top:8px}
+.dlg-foot{display:flex;gap:10px;padding:16px 22px 20px}
+.dlg-btn{flex:1;padding:11px;border-radius:12px;border:1px solid var(--border);background:#fff;
+  color:var(--dim);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:.18s}
+.dlg-btn:hover{background:#f8fafc;color:var(--text)}
+.dlg-btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.dlg-btn.primary:hover{background:#1d4ed8;color:#fff}
+.dlg-btn.danger{background:var(--red);border-color:var(--red);color:#fff}
+.dlg-btn.danger:hover{background:#dc2626;color:#fff}
+/* ===== 平板 ===== */
+@media (max-width:1024px){
+  body{padding:16px 12px 36px}
+  .topbar{padding:14px 16px}
+  .topbar h1{font-size:17px}
+  .topbar .logo{width:38px;height:38px}
+  .panel{padding:16px}
+  td input.note{min-width:150px}
+  table{min-width:940px}
+  table.mgmt-table{min-width:800px}
+}
+/* ===== 手机 ===== */
+@media (max-width:640px){
+  body{padding:12px 10px 30px}
+  .topbar{flex-direction:column;gap:8px;padding:12px 14px;text-align:center}
+  .topbar h1{font-size:15px;line-height:1.4}
+  .topbar .logo{width:34px;height:34px}
+  .panel{padding:14px 12px;border-radius:12px}
+  .panel h2{font-size:14px;line-height:1.5}
+  .row{flex-direction:column;gap:0}
+  .toolbar{flex-direction:column;align-items:stretch;gap:8px;font-size:13px;text-align:center}
+  .toolbar .btn-ghost{width:100%}
+  /* 16px 可避免 iOS 聚焦输入框时自动放大页面 */
+  input[type=text],input[type=password],input[type=number],select,
+  td input{font-size:16px}
+  td input{min-width:56px;padding:8px 6px}
+  td input.note{min-width:120px;font-size:15px}
+  table{min-width:720px;font-size:12px}
+  table.mgmt-table{min-width:660px}
+  th{padding:8px 6px;font-size:11px}
+  td{padding:5px 6px}
+  /* 班级列固定在左侧，左右滑动时知道在录哪个班（表头一并固定） */
+  thead th:first-child{position:sticky;left:0;z-index:3;box-shadow:1px 0 0 var(--border)}
+  td.cls{position:sticky;left:0;z-index:2;box-shadow:1px 0 0 var(--border)}
+  .mgmt-tip{font-size:11.5px}
+  .mgmt-head{flex-direction:column;align-items:stretch;gap:8px}
+  .mgmt-head .btn-ghost{width:100%}
+  .save-row{flex-direction:column}
+  .save-row .btn,.save-row .btn-ghost{width:100%;flex:none !important}
+  .scroll-hint{display:block}
+  .login-gate{padding:14px}
+  .login-card{padding:24px 18px 20px;border-radius:16px}
+  .login-card h1{font-size:17px}
+  .login-logo img{width:76px;height:76px}
+  .footer{font-size:13px}
+  .dlg-head{padding:18px 18px 0}
+  .dlg-body{padding:10px 18px 2px;font-size:13.5px}
+  .dlg-foot{padding:14px 18px 18px}
+  .dlg-where{font-size:12.5px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <img class="logo" src="jzzxlogo.webp" alt="珠海市九洲中学团委纪检管理系统">
+    <h1>珠海市九洲中学团委纪检管理系统 · 管理后台</h1>
+  </header>
+
+  <!-- 登录 -->
+  <div class="login-gate" id="loginGate">
+    <div class="login-card" id="loginCard">
+      <div class="login-logo"><img src="jzzxlogo.webp" alt="珠海市九洲中学团委纪检管理系统"></div>
+      <h1>珠海市九洲中学团委纪检管理系统<br>管理后台</h1>
+      <div class="field">
+        <label for="loginUser">账号</label>
+        <input type="text" id="loginUser" placeholder="请输入管理员账号（jzzxtw1 ~ jzzxtw6）" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="loginPass">密码</label>
+        <input type="password" id="loginPass" placeholder="密码与账号相同" autocomplete="current-password">
+      </div>
+      <button class="login-btn" id="loginBtn" type="button">登 录</button>
+      <div class="login-msg" id="loginMsg">仅限管理员账号（jzzxtw1 ~ jzzxtw6）登录，班主任 / 级长账号请到实时看板查看数据。</div>
+      <a class="login-back" href="YouthLeagueCommittee.html"><svg class="icon-back" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M702.1568 15.9744a54.76352 54.76352 0 0 1 76.75904-0.2048 53.08416 53.08416 0 0 1 0.2048 75.776L318.60736 547.30752a54.784 54.784 0 0 1-76.77952 0.2048 53.10464 53.10464 0 0 1-0.2048-75.776L702.1568 15.9744z" fill="currentColor"></path><path d="M779.14112 927.5392a53.10464 53.10464 0 0 1-0.2048 75.776 54.76352 54.76352 0 0 1-76.77952-0.2048L241.60256 547.34848a53.10464 53.10464 0 0 1 0.2048-75.776 54.80448 54.80448 0 0 1 76.77952 0.2048L779.14112 927.5392z" fill="currentColor"></path></svg><span>返回显示界面</span></a>
+    </div>
+  </div>
+
+  <!-- 面板 -->
+  <div id="panel" style="display:none">
+    <div class="toolbar">
+      <span>当前管理员：<b id="whoText">—</b></span>
+      <button class="btn-ghost" id="logoutBtn" type="button">退出登录</button>
+    </div>
+
+    <div class="panel">
+      <h2><span class="dot"></span>选择年级 / 周次 / 星期</h2>
+      <div class="row">
+        <div class="field">
+          <label for="selGrade">年级</label>
+          <select id="selGrade">
+            <option value="初一">初一级</option>
+            <option value="初二">初二级</option>
+            <option value="初三">初三级</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="selWeek">周次</label>
+          <select id="selWeek"></select>
+        </div>
+        <div class="field">
+          <label for="selDay">星期</label>
+          <select id="selDay"></select>
+        </div>
+      </div>
+      <div class="info-line" style="margin-top:6px">
+        <span>本周录入进度：</span>
+        <span id="dayBadges"></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="dot"></span>录入加减分与说明（扣分填正数，如扣 2 分填 2）</h2>
+      <div class="scroll-hint">← 左右滑动表格可查看全部列 →</div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:60px">班级</th>
+              <th class="grp-inspect" colspan="2">纪检扣分</th>
+              <th class="grp-hygiene" colspan="2">卫检扣分</th>
+              <th class="grp-bonus" colspan="2">加分</th>
+            </tr>
+            <tr>
+              <th></th>
+              <th class="grp-inspect">分数</th>
+              <th class="grp-inspect">说明</th>
+              <th class="grp-hygiene">分数</th>
+              <th class="grp-hygiene">说明</th>
+              <th class="grp-bonus">分数</th>
+              <th class="grp-bonus">说明</th>
+            </tr>
+          </thead>
+          <tbody id="editBody"></tbody>
+        </table>
+      </div>
+      <div class="save-row">
+        <button class="btn" id="saveBtn" type="button" style="flex:2">保存到云端</button>
+        <button class="btn-ghost" id="resetBtn" type="button" style="flex:1">清空当前输入</button>
+      </div>
+      <div class="msg" id="saveMsg"></div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="dot"></span>本周已录入概况</h2>
+      <div id="summary" class="info-line">加载中…</div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="dot"></span>数据管理 · 删除错误记录</h2>
+      <div class="mgmt-head">
+        <div class="mgmt-stat" id="mgmtInfo">选择年级与周次后，可查看各班每天的录入情况并删除。</div>
+        <button class="btn-ghost" id="delWeekBtn" type="button">删除本年级本周全部数据</button>
+      </div>
+      <div class="mgmt-tip">
+        点击彩色标签上的 × 可<strong>单独删除</strong>纪检 / 卫检 / 加分某一项（其余两项保留）；
+        点击圆形 × 删除当天全部三项；“清空”删除该班本周记录。
+      </div>
+      <div class="scroll-hint">← 左右滑动表格可查看全部天 →</div>
+      <div class="table-scroll">
+        <table class="mgmt-table">
+          <thead>
+            <tr>
+              <th style="width:96px">班级</th>
+              <th>周一</th>
+              <th>周二</th>
+              <th>周三</th>
+              <th>周四</th>
+              <th>周五</th>
+              <th style="width:96px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="mgmtBody"></tbody>
+        </table>
+      </div>
+      <div class="msg" id="mgmtMsg"></div>
+    </div>
+
+    <div class="footer">
+      <a href="YouthLeagueCommittee.html"><svg class="icon-back" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M702.1568 15.9744a54.76352 54.76352 0 0 1 76.75904-0.2048 53.08416 53.08416 0 0 1 0.2048 75.776L318.60736 547.30752a54.784 54.784 0 0 1-76.77952 0.2048 53.10464 53.10464 0 0 1-0.2048-75.776L702.1568 15.9744z" fill="currentColor"></path><path d="M779.14112 927.5392a53.10464 53.10464 0 0 1-0.2048 75.776 54.76352 54.76352 0 0 1-76.77952-0.2048L241.60256 547.34848a53.10464 53.10464 0 0 1 0.2048-75.776 54.80448 54.80448 0 0 1 76.77952 0.2048L779.14112 927.5392z" fill="currentColor"></path></svg>返回实时看板</a>
+    </div>
+  </div>
+</div>
+
+<!-- 系统弹窗 -->
+<div class="dlg-mask" id="dlgMask">
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+    <div class="dlg-head">
+      <span class="dlg-icon" id="dlgIcon">!</span>
+      <h3 id="dlgTitle">确认操作</h3>
+    </div>
+    <div class="dlg-body" id="dlgBody"></div>
+    <div class="dlg-foot">
+      <button class="dlg-btn" id="dlgCancel" type="button">取消</button>
+      <button class="dlg-btn danger" id="dlgOk" type="button">确定删除</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ========== 配置 ========== */
+  var SUPABASE_URL = 'https://nmwtgxmqlmezcjtnxgqk.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5td3RneG1xbG1lemNqdG54Z3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4MzI2OTAsImV4cCI6MjEwMTQwODY5MH0.90TChC0s47NOGJlEkRNhD0uePRfcwdndK5SyeRRKgWo';
+
+  var TABLE = 'discipline_scores';
+  /* 管理账号（6 个），密码与账号相同；
+     班主任（jzzxtw701~716 等）与级长（jzzxtw700/800/900）为只读账号，无管理后台权限 */
+  var ADMIN_ACCOUNTS = ['jzzxtw1', 'jzzxtw2', 'jzzxtw3', 'jzzxtw4', 'jzzxtw5', 'jzzxtw6'];
+  var READONLY_RE = /^jzzxtw[789]\d{2}$/;
+  var CLASS_COUNT = 16;
+  var WEEK_COUNT = 22;
+  var DAYS = ['周一', '周二', '周三', '周四', '周五'];
+
+  /* 学期起始：2026-09-01 为第 1 周的第 1 天，之后每 7 天递增一周（与实时看板算法一致）
+     —— 每学期开学时只需改这一处 */
+  var TERM_START = { y: 2026, m: 9, d: 1 };
+
+  /* 根据当前日期计算所处周次（超出范围夹紧到 1 ~ WEEK_COUNT） */
+  function currentWeekIndex() {
+    var now = new Date();
+    var startMs = Date.UTC(TERM_START.y, TERM_START.m - 1, TERM_START.d);
+    var todayMs = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    var days = Math.floor((todayMs - startMs) / 86400000);
+    var idx = Math.floor(days / 7) + 1;
+    if (idx < 1) idx = 1;
+    if (idx > WEEK_COUNT) idx = WEEK_COUNT;
+    return idx;
+  }
+
+  /* 默认星期：周一=0…周五=4；周末（六/日）默认落到周五，方便补录最后一天的数据 */
+  function todayDayIndex() {
+    var wd = new Date().getDay();   /* 0=周日 … 6=周六 */
+    return (wd >= 1 && wd <= 5) ? wd - 1 : 4;
+  }
+
+  /* 今天是否是上课日（周六日不算，避免下拉里误标「今天」） */
+  function isSchoolDay() {
+    var wd = new Date().getDay();
+    return wd >= 1 && wd <= 5;
+  }
+
+  var THIS_WEEK = currentWeekIndex();
+
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  function $(id) { return document.getElementById(id); }
+
+  var currentUser = null;
+  var manageRecords = [];
+
+  function esc(s) {
+    var d = document.createElement('div');
+    d.textContent = s == null ? '' : String(s);
+    return d.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  /* ========== 初始化下拉框（默认定位到本周 / 今天，减少录错周次） ========== */
+  (function initSelects() {
+    var selWeek = $('selWeek');
+    for (var i = 1; i <= WEEK_COUNT; i++) {
+      var o = document.createElement('option');
+      o.value = i;
+      o.textContent = '第' + i + '周' + (i === THIS_WEEK ? '（本周）' : '');
+      selWeek.appendChild(o);
+    }
+    var selDay = $('selDay');
+    for (var j = 0; j < DAYS.length; j++) {
+      var od = document.createElement('option');
+      od.value = j;
+      od.textContent = DAYS[j] + ((isSchoolDay() && j === todayDayIndex()) ? '（今天）' : '');
+      selDay.appendChild(od);
+    }
+    selWeek.value = String(THIS_WEEK);
+    selDay.value = String(todayDayIndex());
+  })();
+
+  /* ========== 登录 ========== */
+  function saveLogin(u, p) {
+    try { localStorage.setItem('jz_saved_admin', JSON.stringify({ u: u, p: p })); } catch (e) { }
+  }
+
+  function getSavedLogin() {
+    try { return JSON.parse(localStorage.getItem('jz_saved_admin') || 'null'); } catch (e) { return null; }
+  }
+
+  function doLogin() {
+    var u = $('loginUser').value.trim();
+    var p = $('loginPass').value.trim();
+    var lower = u.toLowerCase();
+    var isAdmin = ADMIN_ACCOUNTS.indexOf(lower) >= 0;
+    var isReadonly = READONLY_RE.test(lower);
+
+    if (!isAdmin && !isReadonly) {
+      setMsg('loginMsg', '账号或密码错误，请重试', 'error');
+      return;
+    }
+    if (p !== u) {
+      setMsg('loginMsg', '密码错误，请重试', 'error');
+      return;
+    }
+    if (isReadonly) {
+      setMsg('loginMsg', '该账号为只读账号，无管理后台权限，请前往实时看板查看数据', 'error');
+      return;
+    }
+    saveLogin(u, p);
+    currentUser = u;
+    /* 标记本次浏览器会话已登录，并同步给实时看板，返回看板时可直接进入，无需再次登录 */
+    try { sessionStorage.setItem('jz_view_user', u); } catch (e) { }
+    try { localStorage.setItem('jz_saved_login', JSON.stringify({ u: u, p: p })); } catch (e) { }
+    showPanel();
+  }
+
+  function showPanel() {
+    $('loginGate').style.display = 'none';
+    $('panel').style.display = 'block';
+    $('whoText').textContent = currentUser;
+    loadExisting();
+    loadManage();
+  }
+
+  function setMsg(id, text, cls) {
+    var m = $(id);
+    m.textContent = text || '';
+    m.className = (id === 'loginMsg' ? 'login-msg' : 'msg') + (cls ? ' ' + cls : '');
+  }
+
+  /* ========== 系统弹窗（替代浏览器原生 confirm） ==========
+     askConfirm({title, html, note, okText, cancelText, tone}) → Promise<boolean> */
+  var dlgResolve = null;
+
+  function askConfirm(opts) {
+    opts = opts || {};
+    var danger = opts.tone === 'danger';
+    $('dlgIcon').className = 'dlg-icon' + (danger ? ' danger' : '');
+    $('dlgIcon').textContent = danger ? '!' : '?';
+    $('dlgTitle').textContent = opts.title || '确认操作';
+    $('dlgBody').innerHTML = (opts.html || '') +
+      (opts.note ? '<div class="dlg-note">' + opts.note + '</div>' : '');
+    $('dlgOk').textContent = opts.okText || '确定';
+    $('dlgOk').className = 'dlg-btn ' + (danger ? 'danger' : 'primary');
+    $('dlgCancel').textContent = opts.cancelText || '取消';
+    $('dlgMask').style.display = 'flex';
+    return new Promise(function (resolve) {
+      dlgResolve = resolve;
+      setTimeout(function () { $('dlgOk').focus(); }, 30);
+    });
+  }
+
+  function closeDialog(val) {
+    $('dlgMask').style.display = 'none';
+    var r = dlgResolve;
+    dlgResolve = null;
+    if (r) r(val);
+  }
+
+  $('dlgOk').addEventListener('click', function () { closeDialog(true); });
+  $('dlgCancel').addEventListener('click', function () { closeDialog(false); });
+  $('dlgMask').addEventListener('click', function (e) {
+    if (e.target === $('dlgMask')) closeDialog(false);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && $('dlgMask').style.display === 'flex') closeDialog(false);
+  });
+
+  /* ========== 构建录入表格 ========== */
+  function buildEditTable() {
+    var body = $('editBody');
+    body.innerHTML = '';
+    for (var i = 1; i <= CLASS_COUNT; i++) {
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td class="cls">' + i + '班</td>' +
+        '<td class="grp-inspect"><input type="number" min="0" step="0.5" class="num" data-no="' + i + '" data-k="inspect_score" placeholder="0"></td>' +
+        '<td class="grp-inspect"><input type="text" class="note" data-no="' + i + '" data-k="inspect_note" placeholder="如：张三迟到"></td>' +
+        '<td class="grp-hygiene"><input type="number" min="0" step="0.5" class="num" data-no="' + i + '" data-k="hygiene_score" placeholder="0"></td>' +
+        '<td class="grp-hygiene"><input type="text" class="note" data-no="' + i + '" data-k="hygiene_note" placeholder="如：教室地面有垃圾"></td>' +
+        '<td class="grp-bonus"><input type="number" min="0" step="0.5" class="num" data-no="' + i + '" data-k="bonus_score" placeholder="0"></td>' +
+        '<td class="grp-bonus"><input type="text" class="note" data-no="' + i + '" data-k="bonus_note" placeholder="如：板报评比一等奖"></td>';
+      body.appendChild(tr);
+    }
+    syncClassCells();
+  }
+
+  /* 班级列名称统一为 初x（x）班 */
+  function syncClassCells() {
+    var grade = $('selGrade').value;
+    var cells = document.querySelectorAll('#editBody td.cls');
+    for (var i = 0; i < cells.length; i++) {
+      cells[i].textContent = grade + '（' + (i + 1) + '）班';
+    }
+  }
+
+  function clearInputs() {
+    var inputs = document.querySelectorAll('#editBody input');
+    for (var i = 0; i < inputs.length; i++) inputs[i].value = '';
+  }
+
+  function collectInputs() {
+    var map = {};
+    var inputs = document.querySelectorAll('#editBody input');
+    for (var i = 0; i < inputs.length; i++) {
+      var inp = inputs[i];
+      var no = inp.getAttribute('data-no');
+      var k = inp.getAttribute('data-k');
+      if (!map[no]) map[no] = { class_no: Number(no) };
+      map[no][k] = inp.value;
+    }
+    return map;
+  }
+
+  function fillInputs(records) {
+    clearInputs();
+    for (var i = 0; i < records.length; i++) {
+      var r = records[i];
+      var no = Number(r.class_no);
+      setVal(no, 'inspect_score', r.inspect_score);
+      setVal(no, 'inspect_note', r.inspect_note);
+      setVal(no, 'hygiene_score', r.hygiene_score);
+      setVal(no, 'hygiene_note', r.hygiene_note);
+      setVal(no, 'bonus_score', r.bonus_score);
+      setVal(no, 'bonus_note', r.bonus_note);
+    }
+  }
+
+  function setVal(no, k, v) {
+    var el = document.querySelector('#editBody input[data-no="' + no + '"][data-k="' + k + '"]');
+    if (!el) return;
+    if (v === null || v === undefined) { el.value = ''; return; }
+    if (k.indexOf('score') >= 0) {
+      var n = Number(v);
+      el.value = (n === 0) ? '' : v;
+    } else {
+      el.value = v;
+    }
+  }
+
+  /* ========== 读取已有记录 ========== */
+  function loadExisting() {
+    var grade = $('selGrade').value;
+    var week = Number($('selWeek').value);
+    var day = Number($('selDay').value);
+
+    clearInputs();
+    setMsg('saveMsg', '读取中…', '');
+
+    sb.from(TABLE).select('*')
+      .eq('grade', grade)
+      .eq('week_index', week)
+      .eq('day_index', day)
+      .then(function (res) {
+        if (res.error) {
+          setMsg('saveMsg', '读取失败：' + res.error.message, 'error');
+        } else {
+          fillInputs(res.data || []);
+          setMsg('saveMsg', (res.data && res.data.length)
+            ? '已载入 ' + res.data.length + ' 个班的记录，可修改后保存'
+            : '该天暂无记录，请填写后保存', '');
+        }
+        loadSummary();
+      });
+  }
+
+  /* ========== 本周录入概况 ========== */
+  function loadSummary() {
+    var grade = $('selGrade').value;
+    var week = Number($('selWeek').value);
+    var box = $('summary');
+    var badges = $('dayBadges');
+
+    badges.innerHTML = '';
+    box.textContent = '统计中…';
+
+    sb.from(TABLE).select('day_index, class_no')
+      .eq('grade', grade)
+      .eq('week_index', week)
+      .then(function (res) {
+        if (res.error) {
+          box.textContent = '统计失败：' + res.error.message;
+          return;
+        }
+        var days = res.data || [];
+        var daySet = {};
+        for (var i = 0; i < days.length; i++) {
+          var d = days[i].day_index;
+          daySet[d] = (daySet[d] || 0) + 1;
+        }
+        for (var k = 0; k < DAYS.length; k++) {
+          var on = daySet[k] > 0;
+          var b = document.createElement('span');
+          b.className = 'badge' + (on ? '' : ' off');
+          b.textContent = DAYS[k] + (on ? ' ' + daySet[k] + '班' : ' 未录入');
+          badges.appendChild(b);
+        }
+        var totalDays = Object.keys(daySet).length;
+        box.innerHTML = '共 <b style="color:var(--primary)">' + totalDays + '</b> / ' + DAYS.length +
+          ' 天已录入，累计 ' + days.length + ' 条班级记录。';
+      });
+  }
+
+  /* ========== 数据管理（查看 / 删除） ========== */
+  /* 三个可单独删除的项目 */
+  var ITEM_LABEL = { inspect_score: '纪检扣分', hygiene_score: '卫检扣分', bonus_score: '加分' };
+  var ITEM_SHORT = { inspect_score: '纪', hygiene_score: '卫', bonus_score: '加' };
+  var ITEM_CLS = { inspect_score: 'red', hygiene_score: 'orange', bonus_score: 'green' };
+
+  function noteKeyOf(k) { return k.replace('_score', '_note'); }
+
+  /* 单个项目的标签（点击即删除该项，分数与说明一起清空，其余两项保留） */
+  function itemChip(k, r, no, day) {
+    var note = str(r[noteKeyOf(k)]);
+    var tip = '点击删除该班这天的「' + ITEM_LABEL[k] + '」' +
+      (note ? '（当前说明：' + note + '）' : '') + '，其余两项保留';
+    return '<button class="mg-sc ' + ITEM_CLS[k] + '" type="button"' +
+      ' data-no="' + no + '" data-day="' + day + '" data-k="' + k + '"' +
+      ' title="' + esc(tip) + '">' +
+      ITEM_SHORT[k] + compact(r[k]) + '<i class="mg-x">×</i></button>';
+  }
+
+  function recMap() {
+    var map = {};
+    for (var i = 0; i < manageRecords.length; i++) {
+      var r = manageRecords[i];
+      map[Number(r.class_no) + '_' + Number(r.day_index)] = r;
+    }
+    return map;
+  }
+
+  function compact(n) {
+    var v = Number(n) || 0;
+    return Number.isInteger(v) ? String(v) : v.toFixed(1);
+  }
+
+  function loadManage() {
+    var grade = $('selGrade').value;
+    var week = Number($('selWeek').value);
+    setMsg('mgmtMsg', '读取中…', '');
+    sb.from(TABLE).select('*')
+      .eq('grade', grade)
+      .eq('week_index', week)
+      .then(function (res) {
+        if (res.error) {
+          manageRecords = [];
+          setMsg('mgmtMsg', '读取失败：' + res.error.message, 'error');
+        } else {
+          manageRecords = res.data || [];
+        }
+        renderManage();
+      })
+      .catch(function (e) {
+        manageRecords = [];
+        setMsg('mgmtMsg', '读取异常：' + (e && e.message ? e.message : e), 'error');
+        renderManage();
+      });
+  }
+
+  function renderManage() {
+    var grade = $('selGrade').value;
+    var map = recMap();
+    var body = $('mgmtBody');
+    body.innerHTML = '';
+
+    var uploaded = 0;
+    for (var i = 1; i <= CLASS_COUNT; i++) {
+      var tr = document.createElement('tr');
+      var html = '<td class="cls">' + grade + '（' + i + '）班</td>';
+      for (var d = 0; d < DAYS.length; d++) {
+        var r = map[i + '_' + d];
+        if (r) {
+          uploaded++;
+          var tips = [];
+          if (r.inspect_note) tips.push('纪检：' + r.inspect_note);
+          if (r.hygiene_note) tips.push('卫检：' + r.hygiene_note);
+          if (r.bonus_note) tips.push('加分：' + r.bonus_note);
+          html += '<td class="mg-cell has"' + (tips.length ? ' title="' + esc(tips.join('；')) + '"' : '') + '>' +
+            itemChip('inspect_score', r, i, d) +
+            itemChip('hygiene_score', r, i, d) +
+            itemChip('bonus_score', r, i, d) +
+            '<button class="mg-del" type="button" data-no="' + i + '" data-day="' + d + '" title="删除该班这天全部三项记录">×</button>' +
+            '</td>';
+        } else {
+          html += '<td class="mg-cell none">—</td>';
+        }
+      }
+      html += '<td><button class="btn-ghost mini" type="button" data-delrow="' + i + '">清空</button></td>';
+      tr.innerHTML = html;
+      body.appendChild(tr);
+    }
+
+    var total = CLASS_COUNT * DAYS.length;
+    $('mgmtInfo').innerHTML = grade + ' · 第' + Number($('selWeek').value) + '周：已上传 <b>' +
+      uploaded + '</b> / ' + total + ' 条，未上传 ' + (total - uploaded) + ' 条。';
+    if ($('mgmtMsg').textContent === '读取中…') setMsg('mgmtMsg', '', '');
+  }
+
+  function removeRecords(items, okMsg, opts) {
+    opts = opts || {};
+    if (!items || items.length === 0) { setMsg('mgmtMsg', '没有可删除的记录', ''); return; }
+    var grade = $('selGrade').value;
+    var week = Number($('selWeek').value);
+
+    var run = function () {
+      setMsg('mgmtMsg', '删除中…', '');
+      var tasks = items.map(function (it) {
+        return sb.from(TABLE).delete()
+          .eq('grade', grade)
+          .eq('week_index', week)
+          .eq('class_no', it.class_no)
+          .eq('day_index', it.day_index);
+      });
+
+      Promise.all(tasks).then(function (results) {
+        var err = null;
+        for (var i = 0; i < results.length; i++) {
+          if (results[i] && results[i].error) { err = results[i].error; break; }
+        }
+        if (err) {
+          setMsg('mgmtMsg', '删除失败：' + err.message, 'error');
+          return;
+        }
+        setMsg('mgmtMsg', '✅ ' + okMsg, 'success');
+        loadManage();
+        loadExisting();
+      }).catch(function (e) {
+        setMsg('mgmtMsg', '删除异常：' + (e && e.message ? e.message : e), 'error');
+      });
+    };
+
+    if (opts.skipConfirm) { run(); return; }
+    askConfirm({
+      title: opts.title || '确认删除',
+      tone: 'danger',
+      html: opts.confirmText || ('确定删除所选 <b>' + items.length + '</b> 条记录吗？'),
+      note: opts.note || '此操作不可撤销',
+      okText: opts.okText || '确定删除'
+    }).then(function (ok) { if (ok) run(); });
+  }
+
+  /* 单独删除某一项（纪检扣分 / 卫检扣分 / 加分）：分数与说明一起清空，其余两项保留。
+     若清空后三项均为空，则整条记录一并删除，与“保存”逻辑保持一致。
+     删除成功后会同步清空上方登记面板的该项，方便重新输入再保存。 */
+  function deleteItem(no, day, k) {
+    var r = recMap()[no + '_' + day];
+    if (!r) { setMsg('mgmtMsg', '该记录已不存在，正在刷新…', ''); loadManage(); return; }
+
+    var grade = $('selGrade').value;
+    var week = Number($('selWeek').value);
+    var where = grade + '（' + no + '）班 · 第' + week + '周 ' + DAYS[day];
+    var label = ITEM_LABEL[k];
+
+    askConfirm({
+      title: '删除' + label,
+      tone: 'danger',
+      html: '确定删除以下记录中的<b>' + label + '</b>吗？' +
+        '<div class="dlg-where">' + esc(where) + '</div>',
+      note: '仅清空该项的分数与说明，另外两项保留，此操作不可撤销',
+      okText: '确定删除'
+    }).then(function (ok) {
+      if (!ok) return;
+
+      /* 删除后的剩余数据（该项清空，其余两项保留） */
+      var left = {
+        inspect_score: num(r.inspect_score),
+        hygiene_score: num(r.hygiene_score),
+        bonus_score: num(r.bonus_score)
+      };
+      var notes = {
+        inspect_note: str(r.inspect_note),
+        hygiene_note: str(r.hygiene_note),
+        bonus_note: str(r.bonus_note)
+      };
+      left[k] = 0;
+      notes[noteKeyOf(k)] = '';
+
+      var allEmpty = left.inspect_score === 0 && left.hygiene_score === 0 && left.bonus_score === 0 &&
+        notes.inspect_note === '' && notes.hygiene_note === '' && notes.bonus_note === '';
+
+      var q = function (builder) {
+        return builder.eq('grade', grade).eq('week_index', week)
+          .eq('class_no', no).eq('day_index', day);
+      };
+      var task = allEmpty
+        ? q(sb.from(TABLE).delete())
+        : q(sb.from(TABLE).update({
+          inspect_score: left.inspect_score, inspect_note: notes.inspect_note,
+          hygiene_score: left.hygiene_score, hygiene_note: notes.hygiene_note,
+          bonus_score: left.bonus_score, bonus_note: notes.bonus_note
+        }));
+
+      setMsg('mgmtMsg', '删除中…', '');
+      task.then(function (res) {
+        if (res && res.error) {
+          setMsg('mgmtMsg', '删除失败：' + res.error.message, 'error');
+          return;
+        }
+        setMsg('mgmtMsg', '✅ 已删除「' + where + '」的' + label +
+          '，请在上方登记面板重新输入后点击“保存到云端”。', 'success');
+
+        /* 上方登记面板同步：切到该天、清空该项，便于重新录入 */
+        $('selDay').value = String(day);
+        setVal(no, k, 0);
+        setVal(no, noteKeyOf(k), '');
+        loadExisting();   /* 内部会刷新录入面板与本周概况 */
+        loadManage();
+
+        var inp = document.querySelector('#editBody input[data-no="' + no + '"][data-k="' + k + '"]');
+        if (inp) {
+          if (inp.scrollIntoView) inp.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          inp.focus();
+        }
+      }).catch(function (e) {
+        setMsg('mgmtMsg', '删除异常：' + (e && e.message ? e.message : e), 'error');
+      });
+    });
+  }
+
+  function deleteCell(no, day) {
+    var r = recMap()[no + '_' + day];
+    if (!r) { setMsg('mgmtMsg', '该记录已不存在，正在刷新…', ''); loadManage(); return; }
+    var grade = $('selGrade').value;
+    var week = Number($('selWeek').value);
+    removeRecords([{ class_no: no, day_index: day }],
+      '已删除：' + grade + '（' + no + '）班 · 第' + week + '周 ' + DAYS[day] + ' 的全部三项记录',
+      {
+        title: '删除当天全部记录',
+        confirmText: '确定删除以下记录的全部三项（纪检 / 卫检 / 加分）吗？' +
+          '<div class="dlg-where">' + esc(grade + '（' + no + '）班 · 第' + week + '周 ' + DAYS[day]) + '</div>'
+      });
+  }
+
+  function deleteRow(no) {
+    var grade = $('selGrade').value;
+    var week = Number($('selWeek').value);
+    var map = recMap();
+    var items = [];
+    for (var d = 0; d < DAYS.length; d++) {
+      if (map[no + '_' + d]) items.push({ class_no: no, day_index: d });
+    }
+    if (items.length === 0) {
+      setMsg('mgmtMsg', grade + '（' + no + '）班第' + week + '周没有可删除的记录', '');
+      return;
+    }
+    removeRecords(items, '已清空：' + grade + '（' + no + '）班第' + week + '周共 ' + items.length + ' 条记录',
+      {
+        title: '清空该班本周记录',
+        confirmText: '确定删除以下班级本周的全部记录吗？' +
+          '<div class="dlg-where">' + esc(grade + '（' + no + '）班 · 第' + week + '周 共 ' + items.length + ' 天') + '</div>'
+      });
+  }
+
+  /* 删除本年级本周全部数据：系统弹窗两次确认，避免误删 */
+  function deleteWeek() {
+    var grade = $('selGrade').value;
+    var week = Number($('selWeek').value);
+    var items = [];
+    for (var i = 0; i < manageRecords.length; i++) {
+      items.push({
+        class_no: Number(manageRecords[i].class_no),
+        day_index: Number(manageRecords[i].day_index)
+      });
+    }
+    if (items.length === 0) {
+      setMsg('mgmtMsg', grade + ' · 第' + week + '周没有可删除的记录', '');
+      return;
+    }
+
+    askConfirm({
+      title: '危险操作，请确认',
+      tone: 'danger',
+      html: '<p>即将删除<strong>整个年级本周</strong>的全部数据：</p>' +
+        '<div class="dlg-where">' + esc(grade + ' · 第' + week + '周') + '</div>' +
+        '<p>共 <b>' + items.length + '</b> 条记录</p>',
+      note: '删除后无法恢复，请谨慎操作',
+      okText: '继续'
+    }).then(function (ok) {
+      if (!ok) { setMsg('mgmtMsg', '已取消删除，数据未做任何改动', ''); return; }
+      askConfirm({
+        title: '再次确认删除',
+        tone: 'danger',
+        html: '<p>真的要删除「' + esc(grade) + ' 第' + week + '周」的全部 <b>' + items.length +
+          '</b> 条数据吗？</p>',
+        note: '这是最后一次确认',
+        okText: '确认删除'
+      }).then(function (ok2) {
+        if (!ok2) { setMsg('mgmtMsg', '已取消删除，数据未做任何改动', ''); return; }
+        removeRecords(items, '已删除第' + week + '周 ' + grade + ' 全部 ' + items.length + ' 条记录',
+          { skipConfirm: true });
+      });
+    });
+  }
+
+  /* ========== 保存 ========== */
+  function num(v) {
+    var n = Number(v);
+    return (isNaN(n) || n < 0) ? 0 : n;
+  }
+  function str(v) {
+    return (v === null || v === undefined) ? '' : String(v).trim();
+  }
+
+  /* 分数超过该值时二次确认，防止误填夸张分数 */
+  var SCORE_WARN = 20;
+  var SCORE_KEYS = ['inspect_score', 'hygiene_score', 'bonus_score'];
+
+  /* 校验分数输入：必须是 0 或正数；返回错误说明数组 */
+  function validateScores(map, grade) {
+    var bad = [];
+    for (var i = 1; i <= CLASS_COUNT; i++) {
+      var row = map[i];
+      if (!row) continue;
+      for (var k = 0; k < SCORE_KEYS.length; k++) {
+        var key = SCORE_KEYS[k];
+        var raw = str(row[key]);
+        if (raw === '') continue;
+        var n = Number(raw);
+        if (isNaN(n) || n < 0) {
+          bad.push(grade + '（' + i + '）班 ' + ITEM_LABEL[key] + '「' + raw + '」');
+        }
+      }
+    }
+    return bad;
+  }
+
+  /* 收集超过阈值的分数项，供二次确认 */
+  function collectBigScores(map, grade) {
+    var big = [];
+    for (var i = 1; i <= CLASS_COUNT; i++) {
+      var row = map[i];
+      if (!row) continue;
+      for (var k = 0; k < SCORE_KEYS.length; k++) {
+        var key = SCORE_KEYS[k];
+        var n = num(row[key]);
+        if (n > SCORE_WARN) {
+          big.push(grade + '（' + i + '）班 · ' + ITEM_LABEL[key] + ' ' + compact(n) + ' 分');
+        }
+      }
+    }
+    return big;
+  }
+
+  function save() {
+    var grade = $('selGrade').value;
+    var week = Number($('selWeek').value);
+    var day = Number($('selDay').value);
+    var map = collectInputs();
+
+    /* 1) 非法分数拦截：避免把「2分」「２」等写法静默存成 0 分 */
+    var bad = validateScores(map, grade);
+    if (bad.length) {
+      setMsg('saveMsg', '有 ' + bad.length + ' 处分数填写不正确（请填 0 或正数）：' +
+        bad.slice(0, 3).map(esc).join('；') + (bad.length > 3 ? ' 等' : '') +
+        '。已停止保存，请修改后再试。', 'error');
+      var m = /（(\d+)）班/.exec(bad[0]);
+      if (m) {
+        var inp = document.querySelector('#editBody input[data-no="' + m[1] + '"]');
+        if (inp) {
+          if (inp.scrollIntoView) inp.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          inp.focus();
+        }
+      }
+      return;
+    }
+
+    /* 2) 分数偏大时二次确认 */
+    var big = collectBigScores(map, grade);
+    if (big.length) {
+      askConfirm({
+        title: '分数偏大，请确认',
+        tone: 'danger',
+        html: '<p>有 <b>' + big.length + '</b> 处分数大于 ' + SCORE_WARN + ' 分：</p>' +
+          '<div class="dlg-where">' + big.slice(0, 6).map(esc).join('<br>') +
+          (big.length > 6 ? '<br>…等 ' + big.length + ' 处' : '') + '</div>' +
+          '<p>若为误填请返回修改；确认无误再继续保存。</p>',
+        note: '保存后仍可在下方“数据管理”中删除错误记录',
+        okText: '确认无误，继续保存'
+      }).then(function (ok) {
+        if (ok) commitSave(map, grade, week, day);
+      });
+      return;
+    }
+
+    commitSave(map, grade, week, day);
+  }
+
+  function commitSave(map, grade, week, day) {
+    var toUpsert = [];
+    var toDelete = [];
+
+    for (var i = 1; i <= CLASS_COUNT; i++) {
+      var row = map[i] || {};
+      var ins = num(row.inspect_score);
+      var hyg = num(row.hygiene_score);
+      var bon = num(row.bonus_score);
+      var insN = str(row.inspect_note);
+      var hygN = str(row.hygiene_note);
+      var bonN = str(row.bonus_note);
+
+      if (ins === 0 && hyg === 0 && bon === 0 &&
+          insN === '' && hygN === '' && bonN === '') {
+        toDelete.push(i);
+      } else {
+        toUpsert.push({
+          grade: grade,
+          class_no: i,
+          week_index: week,
+          day_index: day,
+          inspect_score: ins,
+          inspect_note: insN,
+          hygiene_score: hyg,
+          hygiene_note: hygN,
+          bonus_score: bon,
+          bonus_note: bonN
+        });
+      }
+    }
+
+    var btn = $('saveBtn');
+    btn.disabled = true;
+    setMsg('saveMsg', '保存中…', '');
+
+    var tasks = [];
+
+    if (toUpsert.length > 0) {
+      tasks.push(sb.from(TABLE).upsert(toUpsert, {
+        onConflict: 'grade,class_no,week_index,day_index'
+      }));
+    }
+    if (toDelete.length > 0) {
+      tasks.push(sb.from(TABLE).delete()
+        .eq('grade', grade)
+        .eq('week_index', week)
+        .eq('day_index', day)
+        .in('class_no', toDelete));
+    }
+
+    if (tasks.length === 0) {
+      btn.disabled = false;
+      setMsg('saveMsg', '没有需要保存的内容', '');
+      return;
+    }
+
+    Promise.all(tasks).then(function (results) {
+      var err = null;
+      for (var i = 0; i < results.length; i++) {
+        if (results[i] && results[i].error) { err = results[i].error; break; }
+      }
+      btn.disabled = false;
+      if (err) {
+        setMsg('saveMsg', '保存失败：' + err.message, 'error');
+        return;
+      }
+      setMsg('saveMsg',
+        '✅ 保存成功：' + grade + ' · 第' + week + '周 · ' + DAYS[day] +
+        '（写入 ' + toUpsert.length + ' 条，清除 ' + toDelete.length + ' 条）', 'success');
+      loadSummary();
+      loadManage();
+    }).catch(function (e) {
+      btn.disabled = false;
+      setMsg('saveMsg', '保存异常：' + (e && e.message ? e.message : e), 'error');
+    });
+  }
+
+  /* ========== 事件绑定 ========== */
+  $('loginBtn').addEventListener('click', doLogin);
+  $('loginPass').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') doLogin();
+  });
+  $('logoutBtn').addEventListener('click', function () {
+    /* 只退出管理后台本身（登录框会带出上次账号密码），
+       不动实时看板记住的账号，避免影响班主任下次打开看板 */
+    location.reload();
+  });
+  $('selGrade').addEventListener('change', function () { syncClassCells(); loadExisting(); loadManage(); });
+  $('selWeek').addEventListener('change', function () { loadExisting(); loadManage(); });
+  $('selDay').addEventListener('change', loadExisting);
+  $('saveBtn').addEventListener('click', save);
+  $('delWeekBtn').addEventListener('click', deleteWeek);
+  $('mgmtBody').addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t) return;
+    /* 标签内可能点到 <i class="mg-x">，向上找到按钮 */
+    var btn = (t.tagName === 'BUTTON') ? t
+      : (t.parentNode && t.parentNode.tagName === 'BUTTON' ? t.parentNode : null);
+    if (!btn) return;
+    var day = btn.getAttribute('data-day');
+    var no = Number(btn.getAttribute('data-no'));
+    var k = btn.getAttribute('data-k');
+    if (day !== null && k) { deleteItem(no, Number(day), k); return; }
+    if (day !== null) { deleteCell(no, Number(day)); return; }
+    var row = btn.getAttribute('data-delrow');
+    if (row !== null) deleteRow(Number(row));
+  });
+  $('resetBtn').addEventListener('click', function () {
+    askConfirm({
+      title: '清空当前输入',
+      tone: 'danger',
+      html: '确定清空当前页面所有输入吗？',
+      note: '不会删除云端已保存的数据',
+      okText: '确定清空'
+    }).then(function (ok) { if (ok) clearInputs(); });
+  });
+
+  /* ========== 启动 ========== */
+  buildEditTable();
+  /* 记住上次登录的账号密码，直接回填 */
+  var savedAdmin = getSavedLogin();
+  if (savedAdmin && savedAdmin.u) {
+    $('loginUser').value = savedAdmin.u;
+    $('loginPass').value = savedAdmin.p || savedAdmin.u;
+  }
+  $('loginBtn').focus();
+})();
+</script>
+</body>
+</html>

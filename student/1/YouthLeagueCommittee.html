@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/webp" href="jzzxlogo.webp">
+<title>珠海市九洲中学团委纪检管理系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f5f7fa;--card:#fff;--border:#e5e9f0;--border-soft:#eef1f6;
+  --text:#1e293b;--dim:#64748b;--primary:#2563eb;
+  --red:#ef4444;--red-bg:#fef2f2;--red-bd:#fecaca;
+  --orange:#f97316;--orange-bg:#fff7ed;--orange-bd:#fed7aa;
+  --green:#059669;--green-bg:#ecfdf5;--green-bd:#a7f3d0;
+  --shadow:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh;padding:18px 14px 40px}
+.wrap{max-width:1320px;margin:0 auto}
+.topbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
+  gap:14px;padding:16px 20px;background:var(--card);border:1px solid var(--border);
+  border-radius:14px;box-shadow:var(--shadow);margin-bottom:16px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .logo{width:48px;height:48px;flex-shrink:0;object-fit:contain;display:block}
+.brand h1{font-size:22px;font-weight:800;letter-spacing:.3px}
+.tabs{display:flex;gap:4px;background:#f1f5f9;padding:4px;border-radius:40px}
+.tabs button{border:none;background:transparent;color:var(--dim);font-family:inherit;
+  font-size:14px;font-weight:600;padding:8px 20px;border-radius:30px;cursor:pointer;transition:.2s}
+.tabs button:hover{color:var(--text);background:#e2e8f0}
+.tabs button.active{background:var(--primary);color:#fff;box-shadow:0 2px 6px rgba(37,99,235,.28)}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:16px 20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.panel-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--primary)}
+.panel-head h2{font-size:17px;font-weight:700}
+.panel-head .sub{font-size:13px;color:var(--dim);margin-left:auto}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:1px solid var(--border);background:#fff;color:var(--dim);
+  font-size:13px;font-weight:500;padding:6px 13px;border-radius:14px;cursor:pointer;
+  transition:.2s;font-family:inherit;white-space:nowrap}
+.chips button:hover{color:var(--primary);border-color:#bfdbfe;background:#f0f7ff}
+.chips button.active{background:var(--primary);color:#fff;border-color:var(--primary);
+  box-shadow:0 2px 5px rgba(37,99,235,.25)}
+.chips button.this-week::after{content:'本周';font-size:10px;line-height:1;margin-left:4px;
+  padding:2px 4px;border-radius:6px;background:#dbeafe;color:var(--primary);vertical-align:2px}
+.chips button.this-week.active::after{background:rgba(255,255,255,.25);color:#fff}
+.chart-tools{display:flex;gap:6px;flex-wrap:wrap}
+.tool-btn{border:1px solid var(--border);background:#fff;color:var(--dim);font-size:12px;
+  font-weight:600;padding:5px 12px;border-radius:14px;cursor:pointer;font-family:inherit;transition:.2s}
+.tool-btn:hover{color:var(--primary);border-color:#bfdbfe;background:#f0f7ff}
+.tool-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;
+  box-shadow:0 2px 5px rgba(37,99,235,.25)}
+.top-banner{background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1px solid #fcd34d;
+  border-radius:14px;padding:18px 24px;margin-bottom:16px;display:flex;align-items:center;
+  gap:16px;flex-wrap:wrap;box-shadow:0 2px 6px rgba(245,158,11,.08)}
+.top-banner .crown{display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.top-banner .crown svg{width:52px;height:52px;display:block}
+.top-banner .info{display:flex;flex-direction:column;gap:2px}
+.top-banner .lbl{font-size:12px;color:#92400e;font-weight:500;letter-spacing:.5px}
+.top-banner .val{font-size:22px;font-weight:800;color:#b45309}
+.top-banner .score{margin-left:auto;font-size:28px;font-weight:800;color:#d97706}
+.top-banner .score small{font-size:14px;font-weight:600;margin-left:2px}
+.chart-box{position:relative;height:320px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px}
+.class-card{position:relative;background:#fff;border:1px solid var(--border);
+  border-radius:12px;padding:12px 10px;cursor:pointer;transition:.2s;text-align:center}
+.class-card:hover{border-color:#93c5fd;box-shadow:0 4px 12px rgba(37,99,235,.12);transform:translateY(-2px)}
+.cc-name{font-size:12px;color:var(--dim);font-weight:600}
+.cc-total{font-size:22px;font-weight:800;margin:4px 0}
+.cc-total.up{color:var(--green)}
+.cc-total.down{color:var(--orange)}
+.cc-sub{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:4px}
+.tag{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap}
+.tag.red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
+.tag.orange{background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-bd)}
+.tag.green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
+.cc-empty{display:inline-block;font-size:10px;color:#94a3b8;
+  background:#f1f5f9;padding:1px 7px;border-radius:8px;margin-bottom:5px}
+.cc-empty svg{vertical-align:-1px;margin-right:3px}
+.footer{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;
+  padding:18px 0;font-size:15px;color:var(--dim)}
+.footer a{color:var(--primary);text-decoration:none;font-weight:600;font-size:15px}
+.footer a:hover{text-decoration:underline}
+.footer .icon-sync{vertical-align:-2px;margin-right:6px}
+/* ===== 登录 ===== */
+.login-gate{position:fixed;inset:0;z-index:2000;padding:20px;
+  background:linear-gradient(135deg,#eff6ff,#f8fafc 55%,#ecfdf5);
+  display:flex;align-items:center;justify-content:center;overflow:auto}
+.login-card{width:min(420px,100%);background:#fff;border:1px solid var(--border);
+  border-radius:18px;padding:30px 26px 26px;box-shadow:0 20px 50px rgba(15,23,42,.12);text-align:center}
+.login-logo{display:flex;justify-content:center;margin-bottom:12px}
+.login-logo img{width:92px;height:92px;object-fit:contain;display:block}
+.login-card h1{font-size:19px;font-weight:800;line-height:1.45;margin-bottom:20px}
+.login-card .field{text-align:left;margin-bottom:12px}
+.login-card label{display:block;font-size:12px;color:var(--dim);margin-bottom:6px;font-weight:500}
+.login-card input{width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--border);
+  background:#fff;color:var(--text);font-size:14px;font-family:inherit;outline:none;transition:.2s}
+.login-card input:hover{border-color:#93c5fd}
+.login-card input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.login-card input::placeholder{color:#94a3b8}
+.login-btn{width:100%;margin-top:6px;padding:12px;border:none;border-radius:12px;
+  background:var(--primary);color:#fff;font-size:15px;font-weight:700;cursor:pointer;
+  font-family:inherit;transition:background .2s}
+.login-btn:hover{background:#1d4ed8}
+.login-msg{margin-top:10px;font-size:13px;min-height:18px;color:var(--dim);line-height:1.5}
+.login-msg.error{color:var(--red)}
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);display:flex;
+  align-items:center;justify-content:center;z-index:1000;padding:18px}
+.modal{width:min(680px,100%);max-height:86vh;overflow:auto;background:#fff;
+  border-radius:16px;box-shadow:0 25px 60px rgba(15,23,42,.3)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;
+  padding:16px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;
+  background:#fff;z-index:2;border-radius:16px 16px 0 0}
+.modal-head h3{font-size:16px;font-weight:700}
+.modal-head button{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);
+  background:#fff;color:var(--dim);font-size:18px;cursor:pointer;line-height:1;transition:.2s}
+.modal-head button:hover{color:var(--red);border-color:var(--red-bd);background:var(--red-bg)}
+.modal-body{padding:16px 22px 22px}
+.day-block{margin-bottom:14px}
+.day-title{font-size:13px;font-weight:700;padding-bottom:6px;margin-bottom:8px;
+  border-bottom:1px solid var(--border-soft);display:flex;align-items:center;justify-content:space-between}
+.day-title .day-sum{font-size:12px;color:var(--dim);font-weight:500}
+.item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;
+  margin-bottom:6px;font-size:13px}
+.item.red{background:var(--red-bg);border:1px solid var(--red-bd)}
+.item.orange{background:var(--orange-bg);border:1px solid var(--orange-bd)}
+.item.green{background:var(--green-bg);border:1px solid var(--green-bd)}
+.item .tag-lbl{font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;
+  flex-shrink:0;white-space:nowrap;background:#fff}
+.item.red .tag-lbl{color:var(--red)}
+.item.orange .tag-lbl{color:var(--orange)}
+.item.green .tag-lbl{color:var(--green)}
+.item .score{font-weight:800;font-size:14px;flex-shrink:0;min-width:38px;text-align:right}
+.item.red .score{color:var(--red)}
+.item.orange .score{color:var(--orange)}
+.item.green .score{color:var(--green)}
+.item .desc{color:var(--text);line-height:1.5;flex:1;word-break:break-word}
+.item .desc.muted{color:#94a3b8;font-style:italic}
+.day-empty{padding:10px 12px;background:#f8fafc;border:1px dashed var(--border);
+  border-radius:9px;font-size:12px;color:var(--dim);text-align:center}
+.modal-score{margin-top:14px;text-align:center;font-size:14px;padding:12px;
+  border-radius:10px;background:#eff6ff;border:1px solid #bfdbfe;color:var(--primary);font-weight:600}
+.modal-score b{font-size:18px;color:#1d4ed8}
+/* ===== 平板 ===== */
+@media (max-width:1024px){
+  .wrap{max-width:100%}
+  .brand h1{font-size:19px}
+  .chart-box{height:290px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:9px}
+  .top-banner .score{font-size:24px}
+  .modal{width:min(620px,100%)}
+}
+/* ===== 手机 ===== */
+@media (max-width:700px){
+  body{padding:12px 10px 30px}
+  .topbar{flex-direction:column;align-items:stretch;gap:10px;padding:12px 14px}
+  .brand h1{font-size:16px}
+  .brand .logo{width:36px;height:36px}
+  .tabs{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px}
+  .tabs button{padding:8px 14px;font-size:13px}
+  .panel-head{gap:8px;margin-bottom:12px}
+  .panel-head h2{font-size:16px}
+  .panel-head .sub{margin-left:0;width:100%;font-size:12px}
+  .chips button{font-size:12px;padding:5px 11px}
+  .chart-tools{width:100%}
+  .tool-btn{font-size:11px;padding:5px 10px}
+  .chart-box{height:260px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(106px,1fr));gap:8px}
+  .cc-total{font-size:18px}
+  .cc-name{font-size:11px}
+  .class-card{padding:10px 8px}
+  .tag{font-size:9px;padding:2px 5px}
+  .top-banner{padding:14px 16px;gap:12px;flex-direction:column;align-items:flex-start}
+  .top-banner .val{font-size:18px}
+  .top-banner .score{font-size:22px;margin-left:0}
+  .top-banner .crown svg{width:38px;height:38px}
+  .panel{padding:14px 12px}
+  .footer{font-size:14px;gap:14px;padding:14px 0}
+  .overlay{padding:10px}
+  .modal{max-height:92vh;border-radius:14px}
+  .modal-head{padding:13px 16px;border-radius:14px 14px 0 0}
+  .modal-body{padding:12px 14px 16px}
+  .item{flex-wrap:wrap;gap:8px;font-size:12.5px;padding:8px 10px}
+  .item .desc{flex:1 1 100%}
+  .day-title{font-size:13px}
+  .modal-score{font-size:13px}
+  .modal-score b{font-size:17px}
+  .login-card{padding:26px 20px 22px}
+}
+/* ===== 小屏手机 ===== */
+@media (max-width:420px){
+  .brand h1{font-size:15px}
+  .grid{grid-template-columns:repeat(3,1fr)}
+  .cc-sub{gap:3px}
+  .top-banner .score{font-size:20px}
+}
+</style>
+</head>
+<body>
+<!-- 登录（需先登录才能查看数据） -->
+<div class="login-gate" id="loginGate">
+  <div class="login-card">
+    <div class="login-logo"><img src="jzzxlogo.webp" alt="珠海市九洲中学团委纪检管理系统"></div>
+    <h1>珠海市九洲中学团委纪检管理系统</h1>
+    <div class="field">
+      <label for="gateUser">账号</label>
+      <input type="text" id="gateUser" placeholder="如：jzzxtw701（初一7班）" autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="gatePass">密码</label>
+      <input type="password" id="gatePass" placeholder="请输入密码" autocomplete="current-password">
+    </div>
+    <button class="login-btn" id="gateBtn" type="button">登 录</button>
+    <div class="login-msg" id="gateMsg"></div>
+  </div>
+</div>
+
+<div class="wrap" id="appWrap" style="display:none">
+  <header class="topbar">
+    <div class="brand">
+      <img class="logo" src="jzzxlogo.webp" alt="珠海市九洲中学团委纪检管理系统">
+      <div>
+        <h1>珠海市九洲中学团委纪检管理系统</h1>
+      </div>
+    </div>
+    <div class="tabs" id="gradeTabs"></div>
+  </header>
+
+  <section class="panel">
+    <div class="panel-head">
+      <span class="dot"></span>
+      <h2>选择周次</h2>
+      <span class="sub" id="weekSub">共 22 周</span>
+    </div>
+    <div class="chips" id="weekChips"></div>
+  </section>
+
+  <div class="top-banner">
+    <div class="crown"><svg t="1789132018844" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2939" width="200" height="200"><path d="M621.0048 807.9872h-71.3728v-110.7968H463.4624v110.7968H392.0896c-28.5696 0-51.712 23.1424-51.712 51.712s23.1424 51.712 51.712 51.712h228.9664c28.5696 0 51.712-23.1424 51.712-51.712s-23.1936-51.712-51.7632-51.712z" fill="#FF6C73" p-id="2940"></path><path d="M506.5216 738.4064v64.8192c0 13.4656 10.9056 24.3712 24.3712 24.3712h83.8656s17.5616 4.4032 17.5616 27.2384c0 19.6608-22.9376 20.8384-57.7536 20.8384H404.48c-22.528 0-44.9024-4.0448-64.1024-15.9744 11.1616 32.1024 23.04 48.4864 147.5072 48.4864s187.392-0.256 184.832-48.4864-126.5152-59.2384-126.5152-59.2384l-4.4544-72.2432-35.2256 10.1888z" fill="#FF4E51" p-id="2941"></path><path d="M621.0048 931.84H392.0896c-39.7824 0-72.192-32.3584-72.192-72.192 0-39.7824 32.3584-72.192 72.192-72.192h50.8928v-90.3168c0-11.3152 9.1648-20.48 20.48-20.48h86.1696c11.3152 0 20.48 9.1648 20.48 20.48v90.3168h50.8928c39.7824 0 72.192 32.3584 72.192 72.192 0 39.8336-32.3584 72.192-72.192 72.192z m-228.9152-103.3728c-17.2032 0-31.232 14.0288-31.232 31.232 0 17.2032 14.0288 31.232 31.232 31.232h228.9664c17.2032 0 31.232-14.0288 31.232-31.232 0-17.2032-14.0288-31.232-31.232-31.232h-71.3728c-11.3152 0-20.48-9.1648-20.48-20.48v-90.3168h-45.2096v90.3168c0 11.3152-9.1648 20.48-20.48 20.48H392.0896z" fill="#211D38" p-id="2942"></path><path d="M237.9776 502.528h34.048V234.1888H171.3152c-36.8128 0-66.6624 29.8496-66.6624 66.6624v68.352c0 73.6256 59.6992 133.3248 133.3248 133.3248zM785.2032 502.528h-34.048V234.1888h100.7104c36.8128 0 66.6624 29.8496 66.6624 66.6624v68.352c0 73.6256-59.6992 133.3248-133.3248 133.3248z" fill="#FF6C73" p-id="2943"></path><path d="M167.1168 242.176v193.4336s-29.3888-7.1168-52.2752-44.3904c15.5136 52.6336 41.4208 97.3824 99.1232 101.3248-5.0176-95.4368-5.0176-250.3168-5.0176-250.3168h-41.8304zM871.168 242.8416v125.5424c0 35.2256-20.4288 84.2752-53.8624 96.0512-5.2224 26.9824-7.168 35.7888-7.168 35.7888S911.36 459.008 911.36 371.5072V266.24l-40.192-23.3984z" fill="#FF4E51" p-id="2944"></path><path d="M272.0768 523.008h-34.048c-84.8384 0-153.8048-69.0176-153.8048-153.8048V300.8512c0-48.0768 39.1168-87.1424 87.1424-87.1424h100.7104c11.3152 0 20.48 9.1648 20.48 20.48v268.3392c0 11.3152-9.216 20.48-20.48 20.48zM171.3152 254.6688c-25.4464 0-46.1824 20.736-46.1824 46.1824v68.352c0 62.208 50.6368 112.8448 112.8448 112.8448h13.568V254.6688H171.3152zM785.2032 523.008h-34.048c-11.3152 0-20.48-9.1648-20.48-20.48V234.1888c0-11.3152 9.1648-20.48 20.48-20.48h100.7104c48.0768 0 87.1424 39.1168 87.1424 87.1424v68.352c0 84.7872-68.9664 153.8048-153.8048 153.8048z m-13.568-40.96h13.568c62.208 0 112.8448-50.6368 112.8448-112.8448V300.8512c0-25.4464-20.736-46.1824-46.1824-46.1824h-80.2304v227.3792z" fill="#211D38" p-id="2945"></path><path d="M506.5216 729.0368c-163.1744 0-295.424-132.2496-295.424-295.424V166.0416c0-24.8832 20.1728-45.1072 45.1072-45.1072h500.6336c24.8832 0 45.1072 20.1728 45.1072 45.1072v267.5712c0 163.1232-132.2496 295.424-295.424 295.424z" fill="#FAC573" p-id="2946"></path><path d="M737.8432 138.7008v307.2c0 58.8288-43.5712 215.1424-215.9104 226.56-172.3392 11.3664-221.184-53.6576-246.8352-83.968 38.4 64.768 103.7824 144.0768 246.8352 144.0768s295.424-130.4064 295.424-293.1712V143.3088l-79.5136-4.608z" fill="#EF981A" p-id="2947"></path><path d="M506.5216 749.5168c-174.1824 0-315.904-141.7216-315.904-315.904V166.0416c0-36.1472 29.44-65.5872 65.5872-65.5872h500.6336c36.1472 0 65.5872 29.44 65.5872 65.5872v267.52c0 174.2336-141.7216 315.9552-315.904 315.9552zM256.2048 141.4144c-13.568 0-24.6272 11.0592-24.6272 24.6272v267.52c0 151.6032 123.3408 274.944 274.944 274.944s274.944-123.3408 274.944-274.944V166.0416c0-13.568-11.0592-24.6272-24.6272-24.6272H256.2048z" fill="#211D38" p-id="2948"></path><path d="M533.8624 268.032l20.1216 40.704a30.38208 30.38208 0 0 0 22.9376 16.64l44.9536 6.5536c24.9856 3.6352 34.9696 34.3552 16.896 51.968l-32.512 31.6928a30.55616 30.55616 0 0 0-8.7552 26.9824l7.68 44.7488c4.2496 24.8832-21.8624 43.8784-44.1856 32.1024l-40.192-21.1456c-8.8576-4.6592-19.456-4.6592-28.3648 0l-40.192 21.1456c-22.3744 11.7248-48.4864-7.2192-44.1856-32.1024l7.68-44.7488c1.6896-9.8816-1.5872-19.968-8.7552-26.9824l-32.512-31.6928c-18.0736-17.6128-8.0896-48.3328 16.896-51.968l44.9536-6.5536c9.9328-1.4336 18.4832-7.68 22.9376-16.64l20.1216-40.704c11.008-22.6816 43.3152-22.6816 54.4768 0z" fill="#FF6C73" p-id="2949"></path><path d="M492.6976 268.9536l32.2048 65.9456a44.55424 44.55424 0 0 0 33.3312 24.5248l42.9056 6.6048-47.4112 54.272 12.0832 57.4976-42.0864-17.2032a32.27136 32.27136 0 0 0-25.9584 0.6656l-56.1152 26.3168-15.36-27.136-14.3872 44.1344 27.8016 12.7488 74.8544-26.7776 74.1888 32.4608 14.0288-89.344 45.1072-80.0768-93.9008-44.8512-47.36-57.7024-13.9264 17.92z" fill="#FF4E51" p-id="2950"></path><path d="M575.1296 543.488c-8.0896 0-16.2304-1.9456-23.7568-5.888l-40.192-21.1456c-2.9184-1.536-6.4-1.536-9.2672 0L461.7216 537.6c-17.3056 9.1136-37.8368 7.6288-53.6576-3.8912s-23.552-30.5664-20.2752-49.8176l7.68-44.7488c0.5632-3.2256-0.512-6.5536-2.8672-8.8576l-32.512-31.6928a50.6368 50.6368 0 0 1-12.9024-52.224 50.64704 50.64704 0 0 1 41.1136-34.6624l44.9536-6.5536a10.0352 10.0352 0 0 0 7.5264-5.4784l20.1216-40.7552c8.6528-17.5104 26.1632-28.416 45.6704-28.416s37.0176 10.9056 45.6704 28.416l20.1216 40.704c1.4336 2.9696 4.2496 4.9664 7.5264 5.4784l44.9536 6.5536c19.3536 2.816 35.072 16.0768 41.1136 34.6624a50.6368 50.6368 0 0 1-12.9024 52.224l-32.512 31.6928c-2.3552 2.304-3.4304 5.5808-2.8672 8.8576l7.68 44.7488c3.2768 19.2512-4.4544 38.3488-20.2752 49.8176a50.5344 50.5344 0 0 1-29.952 9.8304z m-68.608-69.1712c8.1408 0 16.2816 1.9456 23.7056 5.8368l40.192 21.1456c4.9664 2.6112 9.0112 0.3584 10.496-0.768 1.4848-1.0752 4.9152-4.2496 3.9936-9.7792l-7.68-44.7488a51.0976 51.0976 0 0 1 14.6432-45.1072l32.512-31.6928c3.9936-3.8912 3.1232-8.448 2.5088-10.24-0.5632-1.792-2.5088-5.9904-8.0384-6.8096l-44.9536-6.5536a50.87232 50.87232 0 0 1-38.3488-27.8528l-20.1216-40.704c-2.4576-5.0176-7.0656-5.5808-8.96-5.5808s-6.4512 0.5632-8.96 5.5808l-20.1216 40.704a50.87232 50.87232 0 0 1-38.3488 27.8528l-44.9536 6.5024c-5.5296 0.8192-7.4752 5.0176-8.0384 6.8096-0.5632 1.792-1.4848 6.3488 2.5088 10.24l32.512 31.6928a50.816 50.816 0 0 1 14.6432 45.1072l-7.68 44.7488c-0.9216 5.5296 2.4576 8.6528 3.9936 9.7792 1.4848 1.0752 5.5808 3.3792 10.496 0.768l40.192-21.1456c7.5264-3.84 15.6672-5.7856 23.808-5.7856z" fill="#211D38" p-id="2951"></path><path d="M387.6352 167.2704h-30.1056a12.8 12.8 0 0 1 0-25.6h30.1056a12.8 12.8 0 0 1 0 25.6zM244.6336 452.352a12.8 12.8 0 0 1-12.8-12.8V177.1008c0-19.5584 15.9232-35.4304 35.4304-35.4304h42.2912a12.8 12.8 0 0 1 0 25.6H267.264c-5.4272 0-9.8304 4.4032-9.8304 9.8304v262.4512c0 7.1168-5.7344 12.8-12.8 12.8zM136.8064 381.184a12.8 12.8 0 0 1-12.8-12.8V303.616a12.8 12.8 0 0 1 25.6 0v64.768a12.8 12.8 0 0 1-12.8 12.8zM835.7376 381.184a12.8 12.8 0 0 1-12.8-12.8V303.616a12.8 12.8 0 0 1 25.6 0v64.768a12.8 12.8 0 0 1-12.8 12.8zM439.8592 370.688c-6.1952 0-11.6224-4.5056-12.6464-10.8032-1.1264-6.9632 3.6352-13.5168 10.6496-14.6432l2.2016-0.3584a49.64352 49.64352 0 0 0 35.0208-23.9104c3.584-6.0928 11.4176-8.0896 17.5104-4.5568 6.0928 3.584 8.1408 11.4176 4.5568 17.5104a75.24352 75.24352 0 0 1-53.0432 36.1984l-2.2016 0.3584c-0.7168 0.1536-1.3824 0.2048-2.048 0.2048z" fill="#FFFFFF" p-id="2952"></path><path d="M911.36 146.688m-32 0a32 32 0 1 0 64 0 32 32 0 1 0-64 0Z" fill="#F9C47B" p-id="2953"></path><path d="M157.9008 822.8864m-32 0a32 32 0 1 0 64 0 32 32 0 1 0-64 0Z" fill="#F9C47B" p-id="2954"></path><path d="M267.6736 755.4048a16.9472 16.9472 0 0 1-6.4-2.4576C197.376 711.68 173.312 665.0368 172.3392 663.04a16.7168 16.7168 0 0 1 7.424-22.4768c8.2432-4.1472 18.2784-0.8704 22.4768 7.3728 0.3584 0.7168 21.7088 41.0624 77.2608 76.9024a16.7424 16.7424 0 1 1-11.8272 30.5664z" fill="#E2E5F1" p-id="2955"></path><path d="M810.1376 846.7968c-25.5488 0-46.336-20.7872-46.336-46.336s20.7872-46.336 46.336-46.336c25.5488 0 46.336 20.7872 46.336 46.336s-20.7872 46.336-46.336 46.336z m0-64.9216c-10.24 0-18.5344 8.3456-18.5344 18.5344s8.3456 18.5344 18.5344 18.5344 18.5344-8.3456 18.5344-18.5344-8.2944-18.5344-18.5344-18.5344z" fill="#97B5FF" p-id="2956"></path></svg></div>
+    <div class="info">
+      <div class="lbl" id="topLabel">本周最高分班级</div>
+      <div class="val" id="topClass">—</div>
+    </div>
+    <div class="score" id="topScore">—</div>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head">
+      <span class="dot"></span>
+      <h2 id="chartTitle">本周总分</h2>
+      <div class="chart-tools">
+        <button class="tool-btn" id="sortBtn" type="button">按分数排序</button>
+        <button class="tool-btn" id="exportBtn" type="button">导出图片</button>
+      </div>
+      <span class="sub">总分 = 100 − 纪检扣分 − 卫检扣分 + 加分 · 柱色越亮表示排名越靠前</span>
+    </div>
+    <div class="chart-box"><canvas id="scoreChart"></canvas></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <span class="dot"></span>
+      <h2>班级明细</h2>
+      <span class="sub">点击卡片查看本周每日明细</span>
+    </div>
+    <div class="grid" id="classGrid"></div>
+  </section>
+
+  <footer class="footer">
+    <span id="status">加载中…</span>
+    <a href="admin.html" id="adminLink">管理后台</a>
+    <a href="#" id="logoutLink">退出登录</a>
+  </footer>
+</div>
+
+<div class="overlay" id="overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">班级明细</h3>
+      <button id="modalX" type="button">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var SUPABASE_URL = 'https://nmwtgxmqlmezcjtnxgqk.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5td3RneG1xbG1lemNqdG54Z3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4MzI2OTAsImV4cCI6MjEwMTQwODY5MH0.90TChC0s47NOGJlEkRNhD0uePRfcwdndK5SyeRRKgWo';
+
+  var TABLE = 'discipline_scores';
+  var GRADES = ['初一', '初二', '初三'];
+  var GRADE_LABEL = { '初一': '初一级', '初二': '初二级', '初三': '初三级' };
+  var CLASS_COUNT = 16;
+  /* 班级统一名称：初x（x）班 */
+  function classLabel(no) { return state.grade + '（' + no + '）班'; }
+  var WEEK_COUNT = 22;
+  var DAYS = ['周一', '周二', '周三', '周四', '周五'];
+  var BASE = 100;
+
+  /* 账号规则（密码与账号相同）
+     管理员：jzzxtw1 ~ jzzxtw6
+     级长：jzzxtw700（初一）/ jzzxtw800（初二）/ jzzxtw900（初三）
+     班主任：jzzxtw701~716、jzzxtw801~816、jzzxtw901~916（年级位7/8/9 + 两位班号） */
+  var GRADE_CODE = { '7': '初一', '8': '初二', '9': '初三' };
+  var ADMIN_ACCOUNTS = ['jzzxtw1', 'jzzxtw2', 'jzzxtw3', 'jzzxtw4', 'jzzxtw5', 'jzzxtw6'];
+
+  function parseAccount(acc) {
+    var u = String(acc || '').trim().toLowerCase();
+    if (!u) return null;
+    if (ADMIN_ACCOUNTS.indexOf(u) >= 0) {
+      return { acc: u, role: 'admin', grade: null, classNo: null };
+    }
+    var m = /^jzzxtw([789])(\d{2})$/.exec(u);
+    if (!m) return null;
+    var n = Number(m[2]);
+    if (n === 0) return { acc: u, role: 'grade', grade: GRADE_CODE[m[1]], classNo: null };
+    if (n >= 1 && n <= CLASS_COUNT) {
+      return { acc: u, role: 'cls', grade: GRADE_CODE[m[1]], classNo: n };
+    }
+    return null;
+  }
+
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* 学期起始：2026-09-01 为第 1 周的第 1 天，之后每 7 天递增一周 */
+  var TERM_START = { y: 2026, m: 9, d: 1 };
+
+  /* 根据当前日期自动计算所处周次（超出范围则夹紧到 1 ~ WEEK_COUNT） */
+  function currentWeekIndex() {
+    var now = new Date();
+    var startMs = Date.UTC(TERM_START.y, TERM_START.m - 1, TERM_START.d);
+    var todayMs = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    var days = Math.floor((todayMs - startMs) / 86400000);
+    if (!isFinite(days) || days < 0) days = 0;
+    var w = Math.floor(days / 7) + 1;
+    if (w < 1) w = 1;
+    if (w > WEEK_COUNT) w = WEEK_COUNT;
+    return w;
+  }
+
+  var THIS_WEEK = currentWeekIndex();
+
+  var state = {
+    grade: localStorage.getItem('jz_grade') || '初一',
+    /* 默认直接显示当前所处的周次，无需用户手动点击 */
+    week: THIS_WEEK,
+    records: []
+  };
+  if (GRADES.indexOf(state.grade) < 0) state.grade = '初一';
+  if (!(state.week >= 1 && state.week <= WEEK_COUNT)) state.week = THIS_WEEK;
+
+  var chart = null;
+  var user = null;
+  /* 图表仅保留柱形图，是否需要按分数从高到低排序 */
+  var sortByScore = false;
+  /* “未录入”小图标 */
+  var ICON_WARN = '<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="11" height="11"><path d="M941.632 737.536L602.24 192c-24-43.136-52.8-64-89.6-64-36.864 0-67.264 20.864-89.728 62.4l-339.328 547.136c-24.064 41.6-25.6 78.4-6.464 110.464 19.2 31.936 52.8 48 99.264 48h672.384c46.464 0 80-16 99.328-48 17.536-32.064 16-68.8-6.464-110.464zM511.936 832C475.776 832 448 802.112 448 768c0-36.224 29.888-64 64-64 36.16 0 63.872 29.888 63.872 64 2.112 34.112-27.712 64-63.936 64z m45.824-241.216a45.824 45.824 0 0 1-91.52 0L448 377.152C448 345.216 477.248 320 512 320c34.752 0 64 25.216 64 57.152l-18.24 213.632z" fill="#E78B1F"></path></svg>';
+
+  /* “已同步云端”图标 */
+  var ICON_SYNC = '<svg class="icon-sync" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="17" height="17" aria-hidden="true"><path d="M955.733333 512c0 245.077333-198.656 443.733333-443.733333 443.733333S68.266667 757.077333 68.266667 512 266.922667 68.266667 512 68.266667s443.733333 198.656 443.733333 443.733333z" fill="#11AA66"></path><path d="M512 102.4C285.7984 102.4 102.4 285.7984 102.4 512s183.3984 409.6 409.6 409.6 409.6-183.3984 409.6-409.6S738.2016 102.4 512 102.4zM34.133333 512C34.133333 248.081067 248.081067 34.133333 512 34.133333s477.866667 213.947733 477.866667 477.866667-213.947733 477.866667-477.866667 477.866667S34.133333 775.918933 34.133333 512z" fill="#11AA66"></path><path d="M787.114667 339.285333a51.2 51.2 0 0 1 0 72.362667l-307.2 307.2a51.2 51.2 0 0 1-72.362667 0l-170.666667-170.666667a51.2 51.2 0 0 1 72.362667-72.362666L443.733333 610.235733l271.018667-271.018666a51.2 51.2 0 0 1 72.362667 0z" fill="#FFFFFF"></path></svg>';
+
+  function round2(n) { return Math.round(n * 100) / 100; }
+  function fmtNum(n) { var v = round2(n); return Number.isInteger(v) ? String(v) : v.toFixed(1); }
+  function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+  function setStatus(t, isHtml) {
+    var el = $('status');
+    if (isHtml) el.innerHTML = t; else el.textContent = t;
+  }
+
+  /* ========== 登录 ========== */
+  function setGateMsg(text, cls) {
+    var m = $('gateMsg');
+    m.textContent = text || '';
+    m.className = 'login-msg' + (cls ? ' ' + cls : '');
+  }
+
+  function saveLogin(u, p) {
+    try { localStorage.setItem('jz_saved_login', JSON.stringify({ u: u, p: p })); } catch (e) { }
+  }
+
+  function getSavedLogin() {
+    try { return JSON.parse(localStorage.getItem('jz_saved_login') || 'null'); } catch (e) { return null; }
+  }
+
+  function doLogin() {
+    var raw = $('gateUser').value.trim();
+    var pass = $('gatePass').value.trim();
+    var info = parseAccount(raw);
+    if (!info) {
+      setGateMsg('账号不存在，请检查后重新输入（如：jzzxtw701）', 'error');
+      return;
+    }
+    if (pass !== raw) {
+      setGateMsg('密码错误（密码与账号相同）', 'error');
+      return;
+    }
+    saveLogin(raw, pass);
+    /* 标记本次浏览器会话已登录（管理后台返回 / 刷新页面时无需重新登录） */
+    try { sessionStorage.setItem('jz_view_user', raw); } catch (e) { }
+    try { sessionStorage.removeItem('jz_logged_out'); } catch (e) { }
+    startApp(info);
+  }
+
+  function startApp(info) {
+    user = info;
+    if (user.grade) state.grade = user.grade;
+    if (GRADES.indexOf(state.grade) < 0) state.grade = '初一';
+
+    $('loginGate').style.display = 'none';
+    $('appWrap').style.display = 'block';
+
+    renderGradeTabs();
+    renderWeekChips();
+    loadWeek();
+  }
+
+  function renderGradeTabs() {
+    var box = $('gradeTabs');
+    box.innerHTML = '';
+    GRADES.forEach(function (g) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = GRADE_LABEL[g];
+      if (g === state.grade) b.classList.add('active');
+      b.addEventListener('click', function () {
+        state.grade = g;
+        localStorage.setItem('jz_grade', g);
+        renderGradeTabs();
+        loadWeek();
+      });
+      box.appendChild(b);
+    });
+  }
+
+  function renderWeekChips() {
+    var box = $('weekChips');
+    box.innerHTML = '';
+    for (var i = 1; i <= WEEK_COUNT; i++) {
+      (function (idx) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = '第' + idx + '周';
+        if (idx === state.week) b.classList.add('active');
+        /* 标记本周，便于一眼识别 */
+        if (idx === THIS_WEEK) b.classList.add('this-week');
+        b.addEventListener('click', function () {
+          state.week = idx;
+          renderWeekChips();
+          loadWeek();
+        });
+        box.appendChild(b);
+      })(i);
+    }
+    $('weekSub').textContent = '共 ' + WEEK_COUNT + ' 周 · 本周为第 ' + THIS_WEEK + ' 周';
+  }
+
+  function loadWeek() {
+    setStatus('加载中…');
+    sb.from(TABLE).select('*')
+      .eq('grade', state.grade)
+      .eq('week_index', state.week)
+      .then(function (res) {
+        if (res.error) {
+          state.records = [];
+          setStatus('⚠️ 加载失败：' + res.error.message);
+        } else {
+          state.records = res.data || [];
+          if (state.records.length) {
+            setStatus(ICON_SYNC + '已同步云端 · 本周共 ' + state.records.length + ' 条记录', true);
+          } else {
+            setStatus('本周暂无录入数据');
+          }
+        }
+        renderAll();
+      })
+      .catch(function (e) {
+        state.records = [];
+        setStatus('⚠️ 加载失败：' + (e && e.message ? e.message : e));
+        renderAll();
+      });
+  }
+
+  function calcClass(no) {
+    var inspect = 0, hygiene = 0, bonus = 0, days = 0;
+    for (var i = 0; i < state.records.length; i++) {
+      var r = state.records[i];
+      if (Number(r.class_no) !== no) continue;
+      inspect += Number(r.inspect_score) || 0;
+      hygiene += Number(r.hygiene_score) || 0;
+      bonus += Number(r.bonus_score) || 0;
+      days++;
+    }
+    return {
+      no: no,
+      inspect: round2(inspect),
+      hygiene: round2(hygiene),
+      bonus: round2(bonus),
+      total: round2(BASE - inspect - hygiene + bonus),
+      days: days
+    };
+  }
+
+  function buildList() {
+    var list = [];
+    for (var i = 1; i <= CLASS_COUNT; i++) list.push(calcClass(i));
+    return list;
+  }
+
+  function renderTopBanner(list) {
+    $('topLabel').textContent = '第' + state.week + '周最高分班级';
+
+    /* 只统计本周有录入记录的班级，避免未录入的班级按 100 分误当第一名 */
+    var scored = list.filter(function (x) { return x.days > 0; });
+    if (!scored.length) {
+      $('topClass').textContent = '本周暂无录入数据';
+      $('topScore').textContent = '—';
+      return;
+    }
+
+    var best = scored[0];
+    for (var i = 1; i < scored.length; i++) {
+      if (scored[i].total > best.total) best = scored[i];
+    }
+    $('topClass').textContent = classLabel(best.no);
+    $('topScore').innerHTML = best.total.toFixed(1) + '<small>分</small>';
+  }
+
+  function renderChart(list) {
+    var data = list.slice();
+    /* 按分数排序（高→低），否则保持班级顺序 */
+    if (sortByScore) {
+      data.sort(function (a, b) { return (b.total - a.total) || (a.no - b.no); });
+    }
+    var labels = data.map(function (x) { return x.no + '班'; });
+    var values = data.map(function (x) { return x.total; });
+    var minV = Math.min.apply(null, values.concat([BASE]));
+
+    /* 排名着色：名次越靠前颜色越亮，名次靠后越淡（同分同名次）
+       未录入的班级固定 100 分，不参与排名，统一用淡灰
+       第1名金、第2名深蓝、第3名亮蓝、其余淡蓝、未录入淡灰 */
+    var ranked = data.filter(function (x) { return x.days > 0; }).slice();
+    ranked.sort(function (a, b) { return (b.total - a.total) || (a.no - b.no); });
+    var rankOf = {};
+    var lastTotal = null, lastRank = 0;
+    for (var r = 0; r < ranked.length; r++) {
+      var rk = (lastTotal !== null && ranked[r].total === lastTotal) ? lastRank : r + 1;
+      rankOf[ranked[r].no] = rk;
+      lastTotal = ranked[r].total;
+      lastRank = rk;
+    }
+    var RANK_COLORS = ['#f59e0b', '#2563eb', '#60a5fa', '#93c5fd'];
+    var PLAIN_COLOR = '#cbd5e1';
+    var bestIdx = -1;
+    var colors = data.map(function (x, i) {
+      var rk = rankOf[x.no];
+      if (rk === 1 && bestIdx < 0) bestIdx = i;   /* 窄屏只标注第1名 */
+      return rk ? RANK_COLORS[Math.min(rk, RANK_COLORS.length) - 1] : PLAIN_COLOR;
+    });
+    var dataset = {
+      data: values,
+      backgroundColor: colors,
+      hoverBackgroundColor: '#6366f1',
+      borderRadius: 6,
+      barPercentage: 0.68,
+      categoryPercentage: 0.84
+    };
+
+    var ctx = $('scoreChart').getContext('2d');
+    if (chart) { chart.destroy(); chart = null; }
+
+    /* 窄屏（手机）：柱子多、字号小，只标注最高分的数值，其余靠点按提示 */
+    var narrow = (window.innerWidth || 1024) < 560;
+
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [dataset]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 22 } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(15,23,42,.92)',
+            titleColor: '#fff',
+            bodyColor: '#cbd5e1',
+            padding: 10,
+            callbacks: {
+              title: function (items) {
+                return classLabel(items[0].label.replace('班', ''));
+              },
+              label: function (c) {
+                var rk = rankOf[data[c.dataIndex].no];
+                return '总分 ' + c.parsed.y.toFixed(2) + ' 分' +
+                  (rk ? ' · 第' + rk + '名' : ' · 本周未录入');
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            min: Math.max(0, Math.floor((minV - 6) / 5) * 5),
+            grid: { color: 'rgba(148,163,184,.15)' },
+            ticks: { color: '#64748b', font: { size: narrow ? 10 : 11 } }
+          },
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: '#334155',
+              maxRotation: narrow ? 60 : 0,
+              font: { size: narrow ? 9 : 11, weight: '600' }
+            }
+          }
+        },
+        animation: { duration: 450 }
+      },
+      plugins: [{
+        id: 'barValue',
+        afterDatasetsDraw: function (c) {
+          if (bestIdx < 0) return;
+          var ctx2 = c.ctx;
+          var values = c.data.datasets[0].data;
+          c.getDatasetMeta(0).data.forEach(function (bar, i) {
+            if (narrow && i !== bestIdx) return;
+            ctx2.save();
+            ctx2.textAlign = 'center';
+            ctx2.textBaseline = 'bottom';
+            ctx2.font = '700 11px -apple-system,"PingFang SC","Microsoft YaHei",sans-serif';
+            ctx2.fillStyle = '#2563eb';
+            ctx2.fillText(values[i].toFixed(1), bar.x, bar.y - 5);
+            ctx2.restore();
+          });
+        }
+      }]
+    });
+  }
+
+  function renderGrid(list) {
+    var box = $('classGrid');
+    box.innerHTML = '';
+    list.forEach(function (item) {
+      var card = document.createElement('div');
+      card.className = 'class-card';
+      var cls = item.total > BASE ? 'up' : (item.total < BASE ? 'down' : '');
+      var html = '';
+      if (!item.days) html += '<div class="cc-empty">' + ICON_WARN + '未录入</div>';
+      html += '<div class="cc-name">' + classLabel(item.no) + '</div>';
+      html += '<div class="cc-total ' + cls + '">' + item.total.toFixed(1) + '</div>';
+      html += '<div class="cc-sub">' +
+        '<span class="tag red">纪 -' + fmtNum(item.inspect) + '</span>' +
+        '<span class="tag orange">卫 -' + fmtNum(item.hygiene) + '</span>' +
+        '<span class="tag green">加 +' + fmtNum(item.bonus) + '</span>' +
+        '</div>';
+      card.innerHTML = html;
+      card.addEventListener('click', function () { openModal(item.no); });
+      box.appendChild(card);
+    });
+  }
+
+  function openModal(no) {
+    $('modalTitle').textContent =
+      classLabel(no) + ' · 第' + state.week + '周 加减分明细';
+
+    var tIns = 0, tHyg = 0, tBon = 0;
+    var html = '';
+
+    DAYS.forEach(function (dayName, idx) {
+      var r = null;
+      for (var i = 0; i < state.records.length; i++) {
+        if (Number(state.records[i].class_no) === no &&
+            Number(state.records[i].day_index) === idx) { r = state.records[i]; break; }
+      }
+      var ins = r ? (Number(r.inspect_score) || 0) : 0;
+      var hyg = r ? (Number(r.hygiene_score) || 0) : 0;
+      var bon = r ? (Number(r.bonus_score) || 0) : 0;
+      var insN = r ? (r.inspect_note || '') : '';
+      var hygN = r ? (r.hygiene_note || '') : '';
+      var bonN = r ? (r.bonus_note || '') : '';
+      if (r) { tIns += ins; tHyg += hyg; tBon += bon; }
+
+      html += '<div class="day-block">';
+      html += '<div class="day-title"><span>' + dayName + '</span>';
+      if (r) {
+        var daySum = BASE - ins - hyg + bon;
+        html += '<span class="day-sum">当日得分 ' + daySum.toFixed(1) + '</span>';
+      }
+      html += '</div>';
+
+      var hasContent = false;
+      if (ins > 0) {
+        hasContent = true;
+        html += '<div class="item red"><span class="tag-lbl">纪检扣分</span>' +
+          '<span class="score">-' + fmtNum(ins) + '</span>' +
+          '<span class="desc' + (insN ? '' : ' muted') + '">' + (insN ? esc(insN) : '（未填写说明）') + '</span></div>';
+      }
+      if (hyg > 0) {
+        hasContent = true;
+        html += '<div class="item orange"><span class="tag-lbl">卫检扣分</span>' +
+          '<span class="score">-' + fmtNum(hyg) + '</span>' +
+          '<span class="desc' + (hygN ? '' : ' muted') + '">' + (hygN ? esc(hygN) : '（未填写说明）') + '</span></div>';
+      }
+      if (bon > 0) {
+        hasContent = true;
+        html += '<div class="item green"><span class="tag-lbl">加分</span>' +
+          '<span class="score">+' + fmtNum(bon) + '</span>' +
+          '<span class="desc' + (bonN ? '' : ' muted') + '">' + (bonN ? esc(bonN) : '（未填写说明）') + '</span></div>';
+      }
+      if (!hasContent) {
+        html += '<div class="day-empty">— 当天暂无记录 —</div>';
+      }
+      html += '</div>';
+    });
+
+    var total = round2(BASE - tIns - tHyg + tBon);
+    html += '<div class="modal-score">本周总分 = 100 − ' + fmtNum(tIns) + ' − ' + fmtNum(tHyg) +
+      ' + ' + fmtNum(tBon) + ' = <b>' + total.toFixed(1) + '</b> 分</div>';
+
+    $('modalBody').innerHTML = html;
+    $('overlay').style.display = 'flex';
+  }
+
+  function closeModal() { $('overlay').style.display = 'none'; }
+
+  function renderAll() {
+    var list = buildList();
+    $('chartTitle').textContent = GRADE_LABEL[state.grade] + ' · 第' + state.week + '周 各班级总分';
+    renderTopBanner(list);
+    renderChart(list);
+    renderGrid(list);
+  }
+
+  $('modalX').addEventListener('click', closeModal);
+  $('overlay').addEventListener('click', function (e) {
+    if (e.target === $('overlay')) closeModal();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  /* ========== 启动 ========== */
+  $('gateBtn').addEventListener('click', doLogin);
+  $('gateUser').addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
+  $('gatePass').addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
+  $('logoutLink').addEventListener('click', function (e) {
+    e.preventDefault();
+    /* 结束登录态回到登录界面；保留 jz_saved_login，登录框会自动带出上次账号与密码 */
+    try { sessionStorage.removeItem('jz_view_user'); } catch (err) { }
+    try { sessionStorage.setItem('jz_logged_out', '1'); } catch (err) { }
+    location.reload();
+  });
+
+  /* 图表工具：按分数排序 */
+  function syncChartTools() {
+    var s = $('sortBtn');
+    s.textContent = sortByScore ? '恢复班级顺序' : '按分数排序';
+    s.className = 'tool-btn' + (sortByScore ? ' active' : '');
+  }
+
+  $('sortBtn').addEventListener('click', function () {
+    sortByScore = !sortByScore;
+    syncChartTools();
+    renderAll();
+  });
+
+  /* 导出图片：按当前排序方式（班级顺序 / 分数顺序）导出各班总分图 */
+  function exportStamp() {
+    var d = new Date();
+    var p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) +
+      ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+
+  function exportChartImage() {
+    var src = $('scoreChart');
+    if (!chart || !src || !src.width || !src.height) {
+      setStatus('图表尚未生成，无法导出，请稍后再试');
+      return;
+    }
+    var dpr = window.devicePixelRatio || 1;
+    var scale = Math.min(2, Math.max(1.5, dpr));
+    var pad = 26, headH = 96;
+    var w = src.clientWidth || 900;
+    var h = src.clientHeight || 320;
+    var FONT = ' -apple-system,"PingFang SC","Microsoft YaHei",sans-serif';
+
+    var cv = document.createElement('canvas');
+    cv.width = Math.round((w + pad * 2) * scale);
+    cv.height = Math.round((h + headH + pad) * scale);
+    var g = cv.getContext('2d');
+    g.scale(scale, scale);
+
+    g.fillStyle = '#ffffff';
+    g.fillRect(0, 0, w + pad * 2, h + headH + pad);
+
+    /* 文字过宽时自动缩小字号，避免窄屏导出被截断 */
+    function fitText(text, x, y, maxW, size, weight, color) {
+      var s = size;
+      do {
+        g.font = weight + ' ' + s + 'px' + FONT;
+        if (g.measureText(text).width <= maxW || s <= 9) break;
+        s -= 0.5;
+      } while (true);
+      g.fillStyle = color;
+      g.fillText(text, x, y);
+    }
+
+    var innerW = w;
+    fitText(GRADE_LABEL[state.grade] + ' · 第' + state.week + '周 各班总分' +
+      (sortByScore ? '（按分数排序）' : '（按班级顺序）'), pad, 34, innerW, 19, '800', '#1e293b');
+    fitText('总分 = 100 − 纪检扣分 − 卫检扣分 + 加分', pad, 57, innerW, 12, '500', '#64748b');
+    fitText('柱色越亮表示排名越靠前（未录入班级为淡灰色） · 导出时间 ' + exportStamp(),
+      pad, 76, innerW, 12, '500', '#94a3b8');
+
+    g.drawImage(src, pad, headH, w, h);
+
+    var name = '九洲中学_' + GRADE_LABEL[state.grade] + '_第' + state.week + '周_各班总分_' +
+      (sortByScore ? '按分数' : '按班级') + '.png';
+    try {
+      var a = document.createElement('a');
+      a.download = name;
+      a.href = cv.toDataURL('image/png');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setStatus('已导出图片：' + name);
+    } catch (e) {
+      setStatus('导出失败：' + (e && e.message ? e.message : e));
+    }
+  }
+
+  $('exportBtn').addEventListener('click', exportChartImage);
+
+  /* 窗口尺寸变化（手机横竖屏切换等）：重绘图表以适配刻度字号 */
+  var resizeTimer = null;
+  window.addEventListener('resize', function () {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      if (chart) renderChart(buildList());
+    }, 220);
+  });
+
+  syncChartTools();
+
+  /* 登录态：
+     1) 本次会话已登录（含从管理后台返回）→ 直接进看板；
+     2) 上次登录过且未主动“退出登录” → 用记住的账号自动进看板；
+     3) 其余情况显示登录界面，并自动带出上次的账号与密码，登录一次后无需再输入。 */
+  var autoInfo = null;
+  var loggedOut = false;
+  var savedLogin = null;
+  try { savedLogin = getSavedLogin(); } catch (e) { }
+  try { loggedOut = sessionStorage.getItem('jz_logged_out') === '1'; } catch (e) { }
+  try { autoInfo = parseAccount(sessionStorage.getItem('jz_view_user')); } catch (e) { }
+
+  if (!autoInfo && !loggedOut && savedLogin && savedLogin.u && savedLogin.p === savedLogin.u) {
+    autoInfo = parseAccount(savedLogin.u);
+  }
+
+  if (autoInfo) {
+    startApp(autoInfo);
+  } else {
+    /* 回填上次的账号与密码 */
+    if (savedLogin && savedLogin.u) {
+      $('gateUser').value = savedLogin.u;
+      $('gatePass').value = savedLogin.p || savedLogin.u;
+    }
+    $('gateBtn').focus();
+  }
+})();
+</script>
+</body>
+</html>
