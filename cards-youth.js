@@ -18,8 +18,8 @@
 window.CARDS_YOUTH = {
     cards: [
         {
-            title: '团委纪检管理系统',
-            desc: '面向团委学生处的纪检管理工具，支持日常检查记录、班级量化评比与数据汇总统计，让团委工作更规范高效。',
+            title: '珠海市九洲中学团委纪检管理系统',
+            desc: '面向珠海市九洲中学团委的纪检管理工具，支持日常检查记录、班级量化评比与数据汇总统计，让团委工作更规范高效。',
             date: '2026.09.12',
             version: 'v1.0',
             file: 'student/1/YouthLeagueCommittee.html',
