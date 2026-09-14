@@ -58,7 +58,7 @@ input::placeholder{color:#94a3b8}
 .scroll-hint{display:none;font-size:12px;color:#94a3b8;margin-bottom:8px}
 /* 保存按钮行 */
 .save-row{display:flex;gap:10px;margin-top:14px}
-table{width:100%;border-collapse:collapse;font-size:13px;min-width:1000px}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:1090px}
 th{background:#f8fafc;color:#334155;font-weight:600;padding:10px 8px;
   text-align:center;font-size:12px;border-bottom:1px solid var(--border);white-space:nowrap}
 td{padding:6px 8px;border-bottom:1px solid var(--border-soft);text-align:center;vertical-align:middle}
@@ -110,6 +110,28 @@ button.mg-sc:hover .mg-x{opacity:1}
   line-height:1;margin-left:4px;vertical-align:middle;font-family:inherit;padding:0}
 .mg-del:hover{background:var(--red);color:#fff}
 .btn-ghost.mini{padding:4px 10px;font-size:12px;border-radius:8px}
+/* ===== 每个班级单独保存（避免整表填完忘记保存） ===== */
+td.save-cell{white-space:nowrap}
+.btn-save-one{padding:7px 14px;border-radius:9px;border:1px solid var(--primary);
+  background:var(--primary);color:#fff;font-size:12px;font-weight:700;font-family:inherit;
+  cursor:pointer;transition:.18s;white-space:nowrap;
+  box-shadow:0 1px 3px rgba(37,99,235,.28)}
+.btn-save-one:hover{background:#1d4ed8;border-color:#1d4ed8;color:#fff;
+  box-shadow:0 2px 8px rgba(29,78,216,.32)}
+.btn-save-one:active{transform:translateY(1px)}
+.btn-save-one.pending{background:var(--orange);border-color:var(--orange);color:#fff;
+  box-shadow:0 1px 5px rgba(249,115,22,.4)}
+.btn-save-one.pending::before{content:'';display:inline-block;width:6px;height:6px;
+  border-radius:50%;background:#fff;margin-right:5px;vertical-align:1px}
+.btn-save-one.done{background:var(--green);border-color:var(--green);color:#fff;
+  box-shadow:0 1px 5px rgba(5,150,105,.35)}
+.btn-save-one:disabled{opacity:.6;cursor:not-allowed}
+/* 有未保存输入的行：左侧橙色标记 */
+tbody tr.dirty td{background:rgba(249,115,22,.05)}
+tbody tr.dirty td.cls{background:#fff7ed;box-shadow:inset 3px 0 0 var(--orange)}
+.dirty-hint{margin-top:12px;font-size:12.5px;color:var(--orange);min-height:17px;line-height:1.6}
+.dirty-hint b{color:#ea580c}
+.th-date{display:block;font-size:11px;color:#94a3b8;font-weight:500;margin-top:2px}
 .footer{text-align:center;padding-top:14px;margin-top:6px;font-size:12px;color:var(--dim)}
 .footer a{color:var(--primary);text-decoration:none;font-weight:500}
 .footer a:hover{text-decoration:underline}
@@ -179,7 +201,7 @@ button.mg-sc:hover .mg-x{opacity:1}
   .topbar .logo{width:38px;height:38px}
   .panel{padding:16px}
   td input.note{min-width:150px}
-  table{min-width:940px}
+  table{min-width:1030px}
   table.mgmt-table{min-width:800px}
 }
 /* ===== 手机 ===== */
@@ -198,7 +220,7 @@ button.mg-sc:hover .mg-x{opacity:1}
   td input{font-size:16px}
   td input{min-width:56px;padding:8px 6px}
   td input.note{min-width:120px;font-size:15px}
-  table{min-width:720px;font-size:12px}
+  table{min-width:800px;font-size:12px}
   table.mgmt-table{min-width:660px}
   th{padding:8px 6px;font-size:11px}
   td{padding:5px 6px}
@@ -277,6 +299,9 @@ button.mg-sc:hover .mg-x{opacity:1}
         </div>
       </div>
       <div class="info-line" style="margin-top:6px">
+        <span id="cycleInfo">—</span>
+      </div>
+      <div class="info-line" style="margin-top:6px">
         <span>本周录入进度：</span>
         <span id="dayBadges"></span>
       </div>
@@ -284,18 +309,21 @@ button.mg-sc:hover .mg-x{opacity:1}
 
     <div class="panel">
       <h2><span class="dot"></span>录入加减分与说明（扣分填正数，如扣 2 分填 2）</h2>
+      <div class="mgmt-tip">
+        每行末尾的<strong>「保存」</strong>只保存该班这一天的数据，填完一个班就能立刻存好，不必等整张表填完。
+      </div>
       <div class="scroll-hint">← 左右滑动表格可查看全部列 →</div>
       <div class="table-scroll">
         <table>
           <thead>
             <tr>
-              <th style="width:60px">班级</th>
+              <th style="width:60px" rowspan="2">班级</th>
               <th class="grp-inspect" colspan="2">纪检扣分</th>
               <th class="grp-hygiene" colspan="2">卫检扣分</th>
               <th class="grp-bonus" colspan="2">加分</th>
+              <th style="width:88px" rowspan="2">操作</th>
             </tr>
             <tr>
-              <th></th>
               <th class="grp-inspect">分数</th>
               <th class="grp-inspect">说明</th>
               <th class="grp-hygiene">分数</th>
@@ -307,6 +335,7 @@ button.mg-sc:hover .mg-x{opacity:1}
           <tbody id="editBody"></tbody>
         </table>
       </div>
+      <div class="dirty-hint" id="dirtyHint"></div>
       <div class="save-row">
         <button class="btn" id="saveBtn" type="button" style="flex:2">保存到云端</button>
         <button class="btn-ghost" id="resetBtn" type="button" style="flex:1">清空当前输入</button>
@@ -326,6 +355,7 @@ button.mg-sc:hover .mg-x{opacity:1}
         <button class="btn-ghost" id="delWeekBtn" type="button">删除本年级本周全部数据</button>
       </div>
       <div class="mgmt-tip">
+        统计周期为<strong>「上周五 + 本周一 ~ 本周四」</strong>（表格中已标注每列日期）；
         点击彩色标签上的 × 可<strong>单独删除</strong>纪检 / 卫检 / 加分某一项（其余两项保留）；
         点击圆形 × 删除当天全部三项；“清空”删除该班本周记录。
       </div>
@@ -333,13 +363,13 @@ button.mg-sc:hover .mg-x{opacity:1}
       <div class="table-scroll">
         <table class="mgmt-table">
           <thead>
-            <tr>
+            <tr id="mgmtHead">
               <th style="width:96px">班级</th>
+              <th>上周五</th>
               <th>周一</th>
               <th>周二</th>
               <th>周三</th>
               <th>周四</th>
-              <th>周五</th>
               <th style="width:96px">操作</th>
             </tr>
           </thead>
@@ -386,37 +416,96 @@ button.mg-sc:hover .mg-x{opacity:1}
   var READONLY_RE = /^jzzxtw[789]\d{2}$/;
   var CLASS_COUNT = 16;
   var WEEK_COUNT = 22;
-  var DAYS = ['周一', '周二', '周三', '周四', '周五'];
 
-  /* 学期起始：2026-09-01 为第 1 周的第 1 天，之后每 7 天递增一周（与实时看板算法一致）
-     —— 每学期开学时只需改这一处 */
-  var TERM_START = { y: 2026, m: 9, d: 1 };
+  /* ===== 学期与周次 =====
+     第 1 周 = 开学日所在的那个自然周（周一 ~ 周日）：
+     2026-09-01（周二）→ 第 1 周 = 8/31 ~ 9/6，第 2 周 = 9/7 ~ 9/13，以此类推。
+     —— 每学期开学时只需改 TERM_START_DAY 这一处 */
+  var TERM_START_DAY = { y: 2026, m: 9, d: 1 };
+
+  /* 第 1 周的周一（UTC 毫秒）：所有周次 / 日期的计算基准 */
+  var WEEK1_MONDAY_MS = (function () {
+    var t = Date.UTC(TERM_START_DAY.y, TERM_START_DAY.m - 1, TERM_START_DAY.d);
+    var dow = new Date(t).getUTCDay();          /* 0=周日 … 6=周六 */
+    return t - (dow === 0 ? 6 : dow - 1) * 86400000;
+  })();
+
+  function weekMondayMs(week) { return WEEK1_MONDAY_MS + (week - 1) * 7 * 86400000; }
 
   /* 根据当前日期计算所处周次（超出范围夹紧到 1 ~ WEEK_COUNT） */
   function currentWeekIndex() {
     var now = new Date();
-    var startMs = Date.UTC(TERM_START.y, TERM_START.m - 1, TERM_START.d);
     var todayMs = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
-    var days = Math.floor((todayMs - startMs) / 86400000);
+    var days = Math.floor((todayMs - WEEK1_MONDAY_MS) / 86400000);
+    if (!isFinite(days) || days < 0) days = 0;
     var idx = Math.floor(days / 7) + 1;
     if (idx < 1) idx = 1;
     if (idx > WEEK_COUNT) idx = WEEK_COUNT;
     return idx;
   }
 
-  /* 默认星期：周一=0…周五=4；周末（六/日）默认落到周五，方便补录最后一天的数据 */
-  function todayDayIndex() {
-    var wd = new Date().getDay();   /* 0=周日 … 6=周六 */
-    return (wd >= 1 && wd <= 5) ? wd - 1 : 4;
+  /* ===== 统计周 = 上周五 + 本周一 ~ 本周四（学校团委口径） =====
+     数据库仍按“事情真实发生的自然周”存储，便于追溯：
+       上周五        → week_index = N-1, day_index = 4
+       本周一 ~ 周四 → week_index = N,   day_index = 0 ~ 3 */
+  var WEEK_SLOTS = [
+    { label: '上周五', weekOffset: -1, dayIndex: 4 },
+    { label: '周一', weekOffset: 0, dayIndex: 0 },
+    { label: '周二', weekOffset: 0, dayIndex: 1 },
+    { label: '周三', weekOffset: 0, dayIndex: 2 },
+    { label: '周四', weekOffset: 0, dayIndex: 3 }
+  ];
+
+  /* 第 1 周没有“上周五”（那一天在开学之前） */
+  function slotsOf(week) { return week <= 1 ? WEEK_SLOTS.slice(1) : WEEK_SLOTS; }
+
+  /* 统计周里第 slotIdx 个位置对应的存储坐标 */
+  function slotTarget(week, slotIdx) {
+    var s = slotsOf(week)[slotIdx];
+    if (!s) return { week_index: week, day_index: 0, label: '周一' };
+    return { week_index: week + s.weekOffset, day_index: s.dayIndex, label: s.label };
   }
 
-  /* 今天是否是上课日（周六日不算，避免下拉里误标「今天」） */
-  function isSchoolDay() {
-    var wd = new Date().getDay();
-    return wd >= 1 && wd <= 5;
+  /* 存储坐标落在统计周里的第几个位置（不属于该周则返回 -1） */
+  function slotIndexOf(week, week_index, day_index) {
+    var slots = slotsOf(week);
+    for (var i = 0; i < slots.length; i++) {
+      if ((week + slots[i].weekOffset) === Number(week_index) &&
+          slots[i].dayIndex === Number(day_index)) return i;
+    }
+    return -1;
+  }
+
+  /* 该位置的日期文案，如 9/18 */
+  function slotDateText(week, slotIdx) {
+    var s = slotsOf(week)[slotIdx];
+    if (!s) return '';
+    var d = new Date(weekMondayMs(week + s.weekOffset) + s.dayIndex * 86400000);
+    return (d.getUTCMonth() + 1) + '/' + d.getUTCDate();
+  }
+
+  /* 统计周期文案，如 9月18日（上周五）～ 9月24日（周四） */
+  function cycleRangeText(week) {
+    var slots = slotsOf(week);
+    var pick = function (s) {
+      var d = new Date(weekMondayMs(week + s.weekOffset) + s.dayIndex * 86400000);
+      return (d.getUTCMonth() + 1) + '月' + d.getUTCDate() + '日（' + s.label + '）';
+    };
+    return pick(slots[0]) + '～' + pick(slots[slots.length - 1]);
   }
 
   var THIS_WEEK = currentWeekIndex();
+
+  /* 默认录入目标：今天产生的数据该落到“第几周的哪个位置”。
+     周五（以及周六日补录）的数据属于下一周的“上周五” */
+  function entryTarget() {
+    var wd = new Date().getDay();      /* 0=周日 … 6=周六 */
+    if (wd === 0 || wd === 5 || wd === 6) {
+      return { week: Math.min(THIS_WEEK + 1, WEEK_COUNT), slot: 0 };
+    }
+    return { week: THIS_WEEK, slot: wd };
+  }
+  var ENTRY = entryTarget();
 
   var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   function $(id) { return document.getElementById(id); }
@@ -430,24 +519,57 @@ button.mg-sc:hover .mg-x{opacity:1}
     return d.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
-  /* ========== 初始化下拉框（默认定位到本周 / 今天，减少录错周次） ========== */
+  /* ========== 星期（统计周内的位置）下拉框：上周五 + 周一 ~ 周四 ========== */
+  function buildDaySelect(prefer) {
+    var week = Number($('selWeek').value);
+    var slots = slotsOf(week);
+    var sel = $('selDay');
+    var keepIdx = -1;
+    if (typeof prefer === 'string') {
+      for (var k = 0; k < slots.length; k++) {
+        if (slots[k].label === prefer) { keepIdx = k; break; }
+      }
+    } else if (typeof prefer === 'number') {
+      keepIdx = prefer;
+    }
+    sel.innerHTML = '';
+    for (var i = 0; i < slots.length; i++) {
+      var o = document.createElement('option');
+      o.value = i;
+      o.textContent = slots[i].label + '（' + slotDateText(week, i) + '）' +
+        ((week === ENTRY.week && i === ENTRY.slot) ? ' · 今天' : '');
+      sel.appendChild(o);
+    }
+    if (keepIdx < 0 || keepIdx >= slots.length) keepIdx = 0;
+    sel.value = String(keepIdx);
+  }
+
+  /* 统计周期提示 */
+  function updateCycleInfo() {
+    var week = Number($('selWeek').value);
+    $('cycleInfo').textContent = '第 ' + week + ' 周统计周期（上周五 + 本周一 ~ 周四）：' + cycleRangeText(week);
+  }
+
+  /* 当前选中的位置 */
+  function curSlot() {
+    var week = Number($('selWeek').value);
+    return slotTarget(week, Number($('selDay').value));
+  }
+
+  /* ========== 初始化下拉框（默认定位到“今天该录入的位置”，减少录错周次） ========== */
   (function initSelects() {
     var selWeek = $('selWeek');
     for (var i = 1; i <= WEEK_COUNT; i++) {
       var o = document.createElement('option');
       o.value = i;
-      o.textContent = '第' + i + '周' + (i === THIS_WEEK ? '（本周）' : '');
+      o.textContent = '第' + i + '周' +
+        (i === THIS_WEEK ? '（本周）' : '') +
+        ((i === ENTRY.week && i !== THIS_WEEK) ? '（当前录入）' : '');
       selWeek.appendChild(o);
     }
-    var selDay = $('selDay');
-    for (var j = 0; j < DAYS.length; j++) {
-      var od = document.createElement('option');
-      od.value = j;
-      od.textContent = DAYS[j] + ((isSchoolDay() && j === todayDayIndex()) ? '（今天）' : '');
-      selDay.appendChild(od);
-    }
-    selWeek.value = String(THIS_WEEK);
-    selDay.value = String(todayDayIndex());
+    selWeek.value = String(ENTRY.week);
+    buildDaySelect(ENTRY.slot);
+    updateCycleInfo();
   })();
 
   /* ========== 登录 ========== */
@@ -551,10 +673,60 @@ button.mg-sc:hover .mg-x{opacity:1}
         '<td class="grp-hygiene"><input type="number" min="0" step="0.5" class="num" data-no="' + i + '" data-k="hygiene_score" placeholder="0"></td>' +
         '<td class="grp-hygiene"><input type="text" class="note" data-no="' + i + '" data-k="hygiene_note" placeholder="如：教室地面有垃圾"></td>' +
         '<td class="grp-bonus"><input type="number" min="0" step="0.5" class="num" data-no="' + i + '" data-k="bonus_score" placeholder="0"></td>' +
-        '<td class="grp-bonus"><input type="text" class="note" data-no="' + i + '" data-k="bonus_note" placeholder="如：板报评比一等奖"></td>';
+        '<td class="grp-bonus"><input type="text" class="note" data-no="' + i + '" data-k="bonus_note" placeholder="如：板报评比一等奖"></td>' +
+        '<td class="save-cell"><button class="btn-save-one" type="button" data-save="' + i + '" title="只保存本班这一天的数据">保存</button></td>';
       body.appendChild(tr);
     }
+    /* 输入即标记为「未保存」，该行末尾的按钮会变黄提醒 */
+    body.addEventListener('input', function (e) {
+      var t = e.target;
+      if (!t || t.tagName !== 'INPUT') return;
+      var no = t.getAttribute('data-no');
+      if (no) markDirty(Number(no), true);
+    });
     syncClassCells();
+    clearDirty();
+  }
+
+  /* ========== 未保存提醒 ========== */
+  var dirty = {};
+
+  function rowSaveBtn(no) {
+    return document.querySelector('#editBody button[data-save="' + no + '"]');
+  }
+
+  function markDirty(no, on) {
+    if (on) dirty[no] = true; else delete dirty[no];
+    var inp = document.querySelector('#editBody input[data-no="' + no + '"]');
+    var tr = (inp && inp.closest) ? inp.closest('tr') : null;
+    if (tr) {
+      if (dirty[no]) tr.classList.add('dirty'); else tr.classList.remove('dirty');
+    }
+    var btn = rowSaveBtn(no);
+    if (btn && !btn.classList.contains('done')) {
+      if (dirty[no]) btn.classList.add('pending'); else btn.classList.remove('pending');
+    }
+    updateDirtyHint();
+  }
+
+  function clearDirty() {
+    for (var k in dirty) { if (Object.prototype.hasOwnProperty.call(dirty, k)) delete dirty[k]; }
+    var trs = document.querySelectorAll('#editBody tr.dirty');
+    for (var i = 0; i < trs.length; i++) trs[i].classList.remove('dirty');
+    var btns = document.querySelectorAll('#editBody .btn-save-one.pending');
+    for (var j = 0; j < btns.length; j++) btns[j].classList.remove('pending');
+    updateDirtyHint();
+  }
+
+  function hasDirty() { return Object.keys(dirty).length > 0; }
+
+  function updateDirtyHint() {
+    var n = Object.keys(dirty).length;
+    var el = $('dirtyHint');
+    if (!el) return;
+    el.innerHTML = n
+      ? '⚠️ 有 <b>' + n + '</b> 个班级的输入尚未保存：可点该行末尾的「保存」单独存这一班，或点下方「保存到云端」全部保存。'
+      : '';
   }
 
   /* 班级列名称统一为 初x（x）班 */
@@ -569,6 +741,7 @@ button.mg-sc:hover .mg-x{opacity:1}
   function clearInputs() {
     var inputs = document.querySelectorAll('#editBody input');
     for (var i = 0; i < inputs.length; i++) inputs[i].value = '';
+    clearDirty();
   }
 
   function collectInputs() {
@@ -614,63 +787,88 @@ button.mg-sc:hover .mg-x{opacity:1}
   function loadExisting() {
     var grade = $('selGrade').value;
     var week = Number($('selWeek').value);
-    var day = Number($('selDay').value);
+    var slotIdx = Number($('selDay').value);
+    var t = slotTarget(week, slotIdx);
 
     clearInputs();
     setMsg('saveMsg', '读取中…', '');
 
     sb.from(TABLE).select('*')
       .eq('grade', grade)
-      .eq('week_index', week)
-      .eq('day_index', day)
+      .eq('week_index', t.week_index)
+      .eq('day_index', t.day_index)
       .then(function (res) {
         if (res.error) {
           setMsg('saveMsg', '读取失败：' + res.error.message, 'error');
         } else {
           fillInputs(res.data || []);
           setMsg('saveMsg', (res.data && res.data.length)
-            ? '已载入 ' + res.data.length + ' 个班的记录，可修改后保存'
+            ? '已载入 ' + res.data.length + ' 个班的记录（' + t.label + ' ' + slotDateText(week, slotIdx) + '），可修改后保存'
             : '该天暂无记录，请填写后保存', '');
         }
         loadSummary();
       });
   }
 
+  /* ========== 统计周数据读取：上周五 + 本周一 ~ 周四 ========== */
+  function fetchCycle(grade, week, cb) {
+    var thisWeek = sb.from(TABLE).select('*')
+      .eq('grade', grade)
+      .eq('week_index', week)
+      .in('day_index', [0, 1, 2, 3]);
+    var lastFriday = (week > 1)
+      ? sb.from(TABLE).select('*')
+        .eq('grade', grade)
+        .eq('week_index', week - 1)
+        .eq('day_index', 4)
+      : Promise.resolve({ data: [], error: null });
+
+    Promise.all([thisWeek, lastFriday]).then(function (rs) {
+      var err = (rs[0] && rs[0].error) || (rs[1] && rs[1].error);
+      if (err) { cb(err, []); return; }
+      cb(null, (rs[0].data || []).concat((rs[1] && rs[1].data) || []));
+    }).catch(function (e) { cb(e, []); });
+  }
+
+  /* 把一条记录翻译成“第X周的哪一天（日期）” */
+  function slotText(week, week_index, day_index) {
+    var si = slotIndexOf(week, week_index, day_index);
+    if (si < 0) return '第' + week_index + '周 第' + (Number(day_index) + 1) + '天';
+    return slotsOf(week)[si].label + '（' + slotDateText(week, si) + '）';
+  }
+
   /* ========== 本周录入概况 ========== */
   function loadSummary() {
     var grade = $('selGrade').value;
     var week = Number($('selWeek').value);
+    var slots = slotsOf(week);
     var box = $('summary');
     var badges = $('dayBadges');
 
     badges.innerHTML = '';
     box.textContent = '统计中…';
 
-    sb.from(TABLE).select('day_index, class_no')
-      .eq('grade', grade)
-      .eq('week_index', week)
-      .then(function (res) {
-        if (res.error) {
-          box.textContent = '统计失败：' + res.error.message;
-          return;
-        }
-        var days = res.data || [];
-        var daySet = {};
-        for (var i = 0; i < days.length; i++) {
-          var d = days[i].day_index;
-          daySet[d] = (daySet[d] || 0) + 1;
-        }
-        for (var k = 0; k < DAYS.length; k++) {
-          var on = daySet[k] > 0;
-          var b = document.createElement('span');
-          b.className = 'badge' + (on ? '' : ' off');
-          b.textContent = DAYS[k] + (on ? ' ' + daySet[k] + '班' : ' 未录入');
-          badges.appendChild(b);
-        }
-        var totalDays = Object.keys(daySet).length;
-        box.innerHTML = '共 <b style="color:var(--primary)">' + totalDays + '</b> / ' + DAYS.length +
-          ' 天已录入，累计 ' + days.length + ' 条班级记录。';
-      });
+    fetchCycle(grade, week, function (err, rows) {
+      if (err) {
+        box.textContent = '统计失败：' + (err.message || err);
+        return;
+      }
+      var daySet = {};
+      for (var i = 0; i < rows.length; i++) {
+        var si = slotIndexOf(week, rows[i].week_index, rows[i].day_index);
+        if (si >= 0) daySet[si] = (daySet[si] || 0) + 1;
+      }
+      for (var k = 0; k < slots.length; k++) {
+        var on = daySet[k] > 0;
+        var b = document.createElement('span');
+        b.className = 'badge' + (on ? '' : ' off');
+        b.textContent = slots[k].label + (on ? ' ' + daySet[k] + '班' : ' 未录入');
+        badges.appendChild(b);
+      }
+      var totalDays = Object.keys(daySet).length;
+      box.innerHTML = '第 ' + week + ' 周（' + cycleRangeText(week) + '）共 <b style="color:var(--primary)">' +
+        totalDays + '</b> / ' + slots.length + ' 天已录入，累计 ' + rows.length + ' 条班级记录。';
+    });
   }
 
   /* ========== 数据管理（查看 / 删除） ========== */
@@ -693,10 +891,12 @@ button.mg-sc:hover .mg-x{opacity:1}
   }
 
   function recMap() {
+    var week = Number($('selWeek').value);
     var map = {};
     for (var i = 0; i < manageRecords.length; i++) {
       var r = manageRecords[i];
-      map[Number(r.class_no) + '_' + Number(r.day_index)] = r;
+      var si = slotIndexOf(week, r.week_index, r.day_index);
+      if (si >= 0) map[Number(r.class_no) + '_' + si] = r;
     }
     return map;
   }
@@ -710,36 +910,38 @@ button.mg-sc:hover .mg-x{opacity:1}
     var grade = $('selGrade').value;
     var week = Number($('selWeek').value);
     setMsg('mgmtMsg', '读取中…', '');
-    sb.from(TABLE).select('*')
-      .eq('grade', grade)
-      .eq('week_index', week)
-      .then(function (res) {
-        if (res.error) {
-          manageRecords = [];
-          setMsg('mgmtMsg', '读取失败：' + res.error.message, 'error');
-        } else {
-          manageRecords = res.data || [];
-        }
-        renderManage();
-      })
-      .catch(function (e) {
+    fetchCycle(grade, week, function (err, rows) {
+      if (err) {
         manageRecords = [];
-        setMsg('mgmtMsg', '读取异常：' + (e && e.message ? e.message : e), 'error');
-        renderManage();
-      });
+        setMsg('mgmtMsg', '读取失败：' + (err.message || err), 'error');
+      } else {
+        manageRecords = rows;
+      }
+      renderManage();
+    });
   }
 
   function renderManage() {
     var grade = $('selGrade').value;
+    var week = Number($('selWeek').value);
+    var slots = slotsOf(week);
     var map = recMap();
     var body = $('mgmtBody');
+    var head = $('mgmtHead');
+
+    head.innerHTML = '<th style="width:96px">班级</th>' +
+      slots.map(function (s, i) {
+        return '<th>' + s.label + '<span class="th-date">' + slotDateText(week, i) + '</span></th>';
+      }).join('') +
+      '<th style="width:96px">操作</th>';
+
     body.innerHTML = '';
 
     var uploaded = 0;
     for (var i = 1; i <= CLASS_COUNT; i++) {
       var tr = document.createElement('tr');
       var html = '<td class="cls">' + grade + '（' + i + '）班</td>';
-      for (var d = 0; d < DAYS.length; d++) {
+      for (var d = 0; d < slots.length; d++) {
         var r = map[i + '_' + d];
         if (r) {
           uploaded++;
@@ -762,8 +964,8 @@ button.mg-sc:hover .mg-x{opacity:1}
       body.appendChild(tr);
     }
 
-    var total = CLASS_COUNT * DAYS.length;
-    $('mgmtInfo').innerHTML = grade + ' · 第' + Number($('selWeek').value) + '周：已上传 <b>' +
+    var total = CLASS_COUNT * slots.length;
+    $('mgmtInfo').innerHTML = grade + ' · 第' + week + '周（' + cycleRangeText(week) + '）：已上传 <b>' +
       uploaded + '</b> / ' + total + ' 条，未上传 ' + (total - uploaded) + ' 条。';
     if ($('mgmtMsg').textContent === '读取中…') setMsg('mgmtMsg', '', '');
   }
@@ -772,14 +974,13 @@ button.mg-sc:hover .mg-x{opacity:1}
     opts = opts || {};
     if (!items || items.length === 0) { setMsg('mgmtMsg', '没有可删除的记录', ''); return; }
     var grade = $('selGrade').value;
-    var week = Number($('selWeek').value);
 
     var run = function () {
       setMsg('mgmtMsg', '删除中…', '');
       var tasks = items.map(function (it) {
         return sb.from(TABLE).delete()
           .eq('grade', grade)
-          .eq('week_index', week)
+          .eq('week_index', it.week_index)
           .eq('class_no', it.class_no)
           .eq('day_index', it.day_index);
       });
@@ -820,7 +1021,7 @@ button.mg-sc:hover .mg-x{opacity:1}
 
     var grade = $('selGrade').value;
     var week = Number($('selWeek').value);
-    var where = grade + '（' + no + '）班 · 第' + week + '周 ' + DAYS[day];
+    var where = grade + '（' + no + '）班 · 第' + week + '周 ' + slotText(week, r.week_index, r.day_index);
     var label = ITEM_LABEL[k];
 
     askConfirm({
@@ -851,8 +1052,8 @@ button.mg-sc:hover .mg-x{opacity:1}
         notes.inspect_note === '' && notes.hygiene_note === '' && notes.bonus_note === '';
 
       var q = function (builder) {
-        return builder.eq('grade', grade).eq('week_index', week)
-          .eq('class_no', no).eq('day_index', day);
+        return builder.eq('grade', grade).eq('week_index', Number(r.week_index))
+          .eq('class_no', no).eq('day_index', Number(r.day_index));
       };
       var task = allEmpty
         ? q(sb.from(TABLE).delete())
@@ -869,7 +1070,7 @@ button.mg-sc:hover .mg-x{opacity:1}
           return;
         }
         setMsg('mgmtMsg', '✅ 已删除「' + where + '」的' + label +
-          '，请在上方登记面板重新输入后点击“保存到云端”。', 'success');
+          '，请在上方登记面板重新输入后点击该行末尾的「保存」或下方「保存到云端」。', 'success');
 
         /* 上方登记面板同步：切到该天、清空该项，便于重新录入 */
         $('selDay').value = String(day);
@@ -894,22 +1095,25 @@ button.mg-sc:hover .mg-x{opacity:1}
     if (!r) { setMsg('mgmtMsg', '该记录已不存在，正在刷新…', ''); loadManage(); return; }
     var grade = $('selGrade').value;
     var week = Number($('selWeek').value);
-    removeRecords([{ class_no: no, day_index: day }],
-      '已删除：' + grade + '（' + no + '）班 · 第' + week + '周 ' + DAYS[day] + ' 的全部三项记录',
+    var what = slotText(week, r.week_index, r.day_index);
+    removeRecords([{ class_no: no, week_index: Number(r.week_index), day_index: Number(r.day_index) }],
+      '已删除：' + grade + '（' + no + '）班 · 第' + week + '周 ' + what + ' 的全部三项记录',
       {
         title: '删除当天全部记录',
         confirmText: '确定删除以下记录的全部三项（纪检 / 卫检 / 加分）吗？' +
-          '<div class="dlg-where">' + esc(grade + '（' + no + '）班 · 第' + week + '周 ' + DAYS[day]) + '</div>'
+          '<div class="dlg-where">' + esc(grade + '（' + no + '）班 · 第' + week + '周 ' + what) + '</div>'
       });
   }
 
   function deleteRow(no) {
     var grade = $('selGrade').value;
     var week = Number($('selWeek').value);
+    var slots = slotsOf(week);
     var map = recMap();
     var items = [];
-    for (var d = 0; d < DAYS.length; d++) {
-      if (map[no + '_' + d]) items.push({ class_no: no, day_index: d });
+    for (var d = 0; d < slots.length; d++) {
+      var r = map[no + '_' + d];
+      if (r) items.push({ class_no: no, week_index: Number(r.week_index), day_index: Number(r.day_index) });
     }
     if (items.length === 0) {
       setMsg('mgmtMsg', grade + '（' + no + '）班第' + week + '周没有可删除的记录', '');
@@ -918,7 +1122,7 @@ button.mg-sc:hover .mg-x{opacity:1}
     removeRecords(items, '已清空：' + grade + '（' + no + '）班第' + week + '周共 ' + items.length + ' 条记录',
       {
         title: '清空该班本周记录',
-        confirmText: '确定删除以下班级本周的全部记录吗？' +
+        confirmText: '确定删除以下班级本周（' + cycleRangeText(week) + '）的全部记录吗？' +
           '<div class="dlg-where">' + esc(grade + '（' + no + '）班 · 第' + week + '周 共 ' + items.length + ' 天') + '</div>'
       });
   }
@@ -931,6 +1135,7 @@ button.mg-sc:hover .mg-x{opacity:1}
     for (var i = 0; i < manageRecords.length; i++) {
       items.push({
         class_no: Number(manageRecords[i].class_no),
+        week_index: Number(manageRecords[i].week_index),
         day_index: Number(manageRecords[i].day_index)
       });
     }
@@ -943,7 +1148,7 @@ button.mg-sc:hover .mg-x{opacity:1}
       title: '危险操作，请确认',
       tone: 'danger',
       html: '<p>即将删除<strong>整个年级本周</strong>的全部数据：</p>' +
-        '<div class="dlg-where">' + esc(grade + ' · 第' + week + '周') + '</div>' +
+        '<div class="dlg-where">' + esc(grade + ' · 第' + week + '周（' + cycleRangeText(week) + '）') + '</div>' +
         '<p>共 <b>' + items.length + '</b> 条记录</p>',
       note: '删除后无法恢复，请谨慎操作',
       okText: '继续'
@@ -977,46 +1182,67 @@ button.mg-sc:hover .mg-x{opacity:1}
   var SCORE_WARN = 20;
   var SCORE_KEYS = ['inspect_score', 'hygiene_score', 'bonus_score'];
 
-  /* 校验分数输入：必须是 0 或正数；返回错误说明数组 */
-  function validateScores(map, grade) {
+  /* 校验单个班级的分数输入：必须是 0 或正数；返回错误说明数组 */
+  function scoreBadOf(row, no, grade) {
     var bad = [];
-    for (var i = 1; i <= CLASS_COUNT; i++) {
-      var row = map[i];
-      if (!row) continue;
-      for (var k = 0; k < SCORE_KEYS.length; k++) {
-        var key = SCORE_KEYS[k];
-        var raw = str(row[key]);
-        if (raw === '') continue;
-        var n = Number(raw);
-        if (isNaN(n) || n < 0) {
-          bad.push(grade + '（' + i + '）班 ' + ITEM_LABEL[key] + '「' + raw + '」');
-        }
+    if (!row) return bad;
+    for (var k = 0; k < SCORE_KEYS.length; k++) {
+      var key = SCORE_KEYS[k];
+      var raw = str(row[key]);
+      if (raw === '') continue;
+      var n = Number(raw);
+      if (isNaN(n) || n < 0) {
+        bad.push(grade + '（' + no + '）班 ' + ITEM_LABEL[key] + '「' + raw + '」');
       }
     }
     return bad;
   }
 
-  /* 收集超过阈值的分数项，供二次确认 */
-  function collectBigScores(map, grade) {
-    var big = [];
+  /* 校验整张表 */
+  function validateScores(map, grade) {
+    var bad = [];
     for (var i = 1; i <= CLASS_COUNT; i++) {
-      var row = map[i];
-      if (!row) continue;
-      for (var k = 0; k < SCORE_KEYS.length; k++) {
-        var key = SCORE_KEYS[k];
-        var n = num(row[key]);
-        if (n > SCORE_WARN) {
-          big.push(grade + '（' + i + '）班 · ' + ITEM_LABEL[key] + ' ' + compact(n) + ' 分');
-        }
+      bad = bad.concat(scoreBadOf(map[i], i, grade));
+    }
+    return bad;
+  }
+
+  /* 收集单个班级中超过阈值的分数项，供二次确认 */
+  function bigScoresOf(row, no, grade) {
+    var big = [];
+    if (!row) return big;
+    for (var k = 0; k < SCORE_KEYS.length; k++) {
+      var key = SCORE_KEYS[k];
+      var n = num(row[key]);
+      if (n > SCORE_WARN) {
+        big.push(grade + '（' + no + '）班 · ' + ITEM_LABEL[key] + ' ' + compact(n) + ' 分');
       }
     }
     return big;
   }
 
+  /* 收集整张表中超过阈值的分数项 */
+  function collectBigScores(map, grade) {
+    var big = [];
+    for (var i = 1; i <= CLASS_COUNT; i++) {
+      big = big.concat(bigScoresOf(map[i], i, grade));
+    }
+    return big;
+  }
+
+  /* 定位到某班的某个输入框（校验失败时使用） */
+  function focusCell(no, k) {
+    var sel = '#editBody input[data-no="' + no + '"]' + (k ? '[data-k="' + k + '"]' : '');
+    var inp = document.querySelector(sel);
+    if (!inp) return;
+    if (inp.scrollIntoView) inp.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    inp.focus();
+  }
+
   function save() {
     var grade = $('selGrade').value;
     var week = Number($('selWeek').value);
-    var day = Number($('selDay').value);
+    var slotIdx = Number($('selDay').value);
     var map = collectInputs();
 
     /* 1) 非法分数拦截：避免把「2分」「２」等写法静默存成 0 分 */
@@ -1026,13 +1252,7 @@ button.mg-sc:hover .mg-x{opacity:1}
         bad.slice(0, 3).map(esc).join('；') + (bad.length > 3 ? ' 等' : '') +
         '。已停止保存，请修改后再试。', 'error');
       var m = /（(\d+)）班/.exec(bad[0]);
-      if (m) {
-        var inp = document.querySelector('#editBody input[data-no="' + m[1] + '"]');
-        if (inp) {
-          if (inp.scrollIntoView) inp.scrollIntoView({ block: 'center', behavior: 'smooth' });
-          inp.focus();
-        }
-      }
+      if (m) focusCell(m[1], null);
       return;
     }
 
@@ -1049,15 +1269,17 @@ button.mg-sc:hover .mg-x{opacity:1}
         note: '保存后仍可在下方“数据管理”中删除错误记录',
         okText: '确认无误，继续保存'
       }).then(function (ok) {
-        if (ok) commitSave(map, grade, week, day);
+        if (ok) commitSave(map, grade, week, slotIdx);
       });
       return;
     }
 
-    commitSave(map, grade, week, day);
+    commitSave(map, grade, week, slotIdx);
   }
 
-  function commitSave(map, grade, week, day) {
+  function commitSave(map, grade, week, slotIdx) {
+    var t = slotTarget(week, slotIdx);
+    var where = '第' + week + '周 · ' + t.label + '（' + slotDateText(week, slotIdx) + '）';
     var toUpsert = [];
     var toDelete = [];
 
@@ -1077,8 +1299,8 @@ button.mg-sc:hover .mg-x{opacity:1}
         toUpsert.push({
           grade: grade,
           class_no: i,
-          week_index: week,
-          day_index: day,
+          week_index: t.week_index,
+          day_index: t.day_index,
           inspect_score: ins,
           inspect_note: insN,
           hygiene_score: hyg,
@@ -1103,8 +1325,8 @@ button.mg-sc:hover .mg-x{opacity:1}
     if (toDelete.length > 0) {
       tasks.push(sb.from(TABLE).delete()
         .eq('grade', grade)
-        .eq('week_index', week)
-        .eq('day_index', day)
+        .eq('week_index', t.week_index)
+        .eq('day_index', t.day_index)
         .in('class_no', toDelete));
     }
 
@@ -1125,12 +1347,107 @@ button.mg-sc:hover .mg-x{opacity:1}
         return;
       }
       setMsg('saveMsg',
-        '✅ 保存成功：' + grade + ' · 第' + week + '周 · ' + DAYS[day] +
+        '✅ 保存成功：' + grade + ' · ' + where +
         '（写入 ' + toUpsert.length + ' 条，清除 ' + toDelete.length + ' 条）', 'success');
+      clearDirty();
       loadSummary();
       loadManage();
     }).catch(function (e) {
       btn.disabled = false;
+      setMsg('saveMsg', '保存异常：' + (e && e.message ? e.message : e), 'error');
+    });
+  }
+
+  /* ========== 单个班级保存（每行末尾的「保存」按钮）
+     填完一个班就能立刻存好，不用等整张表填完，避免忘记保存 */
+  function saveClass(no) {
+    var grade = $('selGrade').value;
+    var week = Number($('selWeek').value);
+    var slotIdx = Number($('selDay').value);
+    var t = slotTarget(week, slotIdx);
+    var map = collectInputs();
+    var row = map[no] || {};
+
+    var bad = scoreBadOf(row, no, grade);
+    if (bad.length) {
+      setMsg('saveMsg', '分数填写不正确（请填 0 或正数）：' + bad.map(esc).join('；') +
+        '。已停止保存，请修改后再试。', 'error');
+      focusCell(no, 'inspect_score');
+      return;
+    }
+
+    var big = bigScoresOf(row, no, grade);
+    if (big.length) {
+      askConfirm({
+        title: '分数偏大，请确认',
+        tone: 'danger',
+        html: '<p>' + grade + '（' + no + '）班有 <b>' + big.length + '</b> 处分数大于 ' + SCORE_WARN + ' 分：</p>' +
+          '<div class="dlg-where">' + big.map(esc).join('<br>') + '</div>',
+        note: '若为误填请返回修改',
+        okText: '确认无误，继续保存'
+      }).then(function (ok) {
+        if (ok) commitRowSave(no, grade, week, slotIdx, row);
+      });
+      return;
+    }
+
+    commitRowSave(no, grade, week, slotIdx, row);
+  }
+
+  function commitRowSave(no, grade, week, slotIdx, row) {
+    var t = slotTarget(week, slotIdx);
+    var where = '第' + week + '周 · ' + t.label + '（' + slotDateText(week, slotIdx) + '）';
+    var ins = num(row.inspect_score);
+    var hyg = num(row.hygiene_score);
+    var bon = num(row.bonus_score);
+    var insN = str(row.inspect_note);
+    var hygN = str(row.hygiene_note);
+    var bonN = str(row.bonus_note);
+    var empty = (ins === 0 && hyg === 0 && bon === 0 && insN === '' && hygN === '' && bonN === '');
+
+    var btn = rowSaveBtn(no);
+    if (btn) { btn.disabled = true; btn.textContent = '保存中…'; }
+
+    var task = empty
+      ? sb.from(TABLE).delete()
+        .eq('grade', grade).eq('class_no', no)
+        .eq('week_index', t.week_index).eq('day_index', t.day_index)
+      : sb.from(TABLE).upsert([{
+        grade: grade,
+        class_no: no,
+        week_index: t.week_index,
+        day_index: t.day_index,
+        inspect_score: ins,
+        inspect_note: insN,
+        hygiene_score: hyg,
+        hygiene_note: hygN,
+        bonus_score: bon,
+        bonus_note: bonN
+      }], { onConflict: 'grade,class_no,week_index,day_index' });
+
+    task.then(function (res) {
+      if (btn) { btn.disabled = false; btn.textContent = '保存'; }
+      if (res && res.error) {
+        setMsg('saveMsg', '保存失败：' + res.error.message, 'error');
+        return;
+      }
+      markDirty(no, false);
+      if (btn) {
+        btn.classList.add('done');
+        btn.textContent = '✓ 已保存';
+        setTimeout(function () {
+          btn.classList.remove('done');
+          btn.textContent = '保存';
+          /* 这段时间内若又改了输入，恢复黄色未保存提示 */
+          if (dirty[no]) btn.classList.add('pending');
+        }, 1600);
+      }
+      setMsg('saveMsg', '✅ 已保存 ' + grade + '（' + no + '）班 · ' + where +
+        (empty ? '（三项均为空，已清除该班记录）' : ''), 'success');
+      loadSummary();
+      loadManage();
+    }).catch(function (e) {
+      if (btn) { btn.disabled = false; btn.textContent = '保存'; }
       setMsg('saveMsg', '保存异常：' + (e && e.message ? e.message : e), 'error');
     });
   }
@@ -1145,9 +1462,63 @@ button.mg-sc:hover .mg-x{opacity:1}
        不动实时看板记住的账号，避免影响班主任下次打开看板 */
     location.reload();
   });
-  $('selGrade').addEventListener('change', function () { syncClassCells(); loadExisting(); loadManage(); });
-  $('selWeek').addEventListener('change', function () { loadExisting(); loadManage(); });
-  $('selDay').addEventListener('change', loadExisting);
+  /* 有未保存内容时切换年级 / 周次 / 星期会丢失输入，先确认 */
+  function confirmDiscard() {
+    if (!hasDirty()) return Promise.resolve(true);
+    return askConfirm({
+      title: '有未保存的修改',
+      tone: 'danger',
+      html: '当前有 <b>' + Object.keys(dirty).length + '</b> 个班级的输入尚未保存，' +
+        '<p>继续切换会丢弃这些未保存的内容。</p>',
+      note: '可先点每行末尾的「保存」或下方「保存到云端」',
+      okText: '继续切换',
+      cancelText: '返回保存'
+    });
+  }
+
+  /* 下拉框切换统一处理：有未保存内容时先提示 */
+  function guardSelect(id, onChange) {
+    var el = $(id);
+    var last = el.value;
+    /* 打开下拉时同步一次基准值（下拉值可能被程序改过，例如删除记录后自动切天） */
+    el.addEventListener('focus', function () { last = el.value; });
+    el.addEventListener('change', function () {
+      var next = el.value;
+      var prev = last;
+      confirmDiscard().then(function (ok) {
+        if (!ok) { el.value = prev; return; }
+        last = next;
+        onChange(prev);
+      });
+    });
+  }
+
+  guardSelect('selGrade', function () { syncClassCells(); loadExisting(); loadManage(); });
+  guardSelect('selWeek', function (prevWeek) {
+    /* 切周后尽量停留在同一个“星期”，避免录错天 */
+    var keep = slotTarget(Number(prevWeek), Number($('selDay').value)).label;
+    buildDaySelect(keep);
+    updateCycleInfo();
+    loadExisting();
+    loadManage();
+  });
+  guardSelect('selDay', loadExisting);
+
+  /* 每行末尾的「保存」：只保存该班这一天的数据 */
+  $('editBody').addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || t.tagName !== 'BUTTON') return;
+    var no = t.getAttribute('data-save');
+    if (no !== null) saveClass(Number(no));
+  });
+
+  /* 关页面前提醒未保存 */
+  window.addEventListener('beforeunload', function (e) {
+    if (!hasDirty()) return;
+    e.preventDefault();
+    e.returnValue = '';
+  });
+
   $('saveBtn').addEventListener('click', save);
   $('delWeekBtn').addEventListener('click', deleteWeek);
   $('mgmtBody').addEventListener('click', function (e) {
