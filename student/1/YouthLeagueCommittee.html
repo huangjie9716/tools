@@ -62,6 +62,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .top-banner .score{margin-left:auto;font-size:28px;font-weight:800;color:#d97706}
 .top-banner .score small{font-size:14px;font-weight:600;margin-left:2px}
 .chart-box{position:relative;height:320px}
+.cycle-line{font-size:12.5px;color:var(--dim);margin:-4px 0 12px;
+  background:#f8fafc;border:1px solid var(--border-soft);border-radius:9px;padding:7px 11px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px}
 .class-card{position:relative;background:#fff;border:1px solid var(--border);
   border-radius:12px;padding:12px 10px;cursor:pointer;transition:.2s;text-align:center}
@@ -165,6 +167,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   .chips button{font-size:12px;padding:5px 11px}
   .chart-tools{width:100%}
   .tool-btn{font-size:11px;padding:5px 10px}
+  .cycle-line{font-size:11.5px;padding:6px 9px;margin:-2px 0 10px}
   .chart-box{height:260px}
   .grid{grid-template-columns:repeat(auto-fill,minmax(106px,1fr));gap:8px}
   .cc-total{font-size:18px}
@@ -255,6 +258,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       </div>
       <span class="sub">总分 = 100 − 纪检扣分 − 卫检扣分 + 加分 · 柱色越亮表示排名越靠前</span>
     </div>
+    <div class="cycle-line" id="cycleLine">统计周期：—</div>
     <div class="chart-box"><canvas id="scoreChart"></canvas></div>
   </section>
 
@@ -262,7 +266,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <div class="panel-head">
       <span class="dot"></span>
       <h2>班级明细</h2>
-      <span class="sub">点击卡片查看本周每日明细</span>
+      <span class="sub">点击卡片查看本周期（上周五 ~ 本周四）每日明细</span>
     </div>
     <div class="grid" id="classGrid"></div>
   </section>
@@ -299,13 +303,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   /* 班级统一名称：初x（x）班 */
   function classLabel(no) { return state.grade + '（' + no + '）班'; }
   var WEEK_COUNT = 22;
-  var DAYS = ['周一', '周二', '周三', '周四', '周五'];
   var BASE = 100;
 
-  /* 账号规则（密码与账号相同）
-     管理员：jzzxtw1 ~ jzzxtw6
-     级长：jzzxtw700（初一）/ jzzxtw800（初二）/ jzzxtw900（初三）
-     班主任：jzzxtw701~716、jzzxtw801~816、jzzxtw901~916（年级位7/8/9 + 两位班号） */
+ 
   var GRADE_CODE = { '7': '初一', '8': '初二', '9': '初三' };
   var ADMIN_ACCOUNTS = ['jzzxtw1', 'jzzxtw2', 'jzzxtw3', 'jzzxtw4', 'jzzxtw5', 'jzzxtw6'];
 
@@ -328,20 +328,64 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   var $ = function (id) { return document.getElementById(id); };
 
-  /* 学期起始：2026-09-01 为第 1 周的第 1 天，之后每 7 天递增一周 */
-  var TERM_START = { y: 2026, m: 9, d: 1 };
+  /* ===== 学期与周次 =====
+     第 1 周 = 开学日所在的那个自然周（周一 ~ 周日）：
+     2026-09-01（周二）→ 第 1 周 = 8/31 ~ 9/6，第 2 周 = 9/7 ~ 9/13，以此类推。
+     —— 每学期开学时只需改 TERM_START_DAY 这一处 */
+  var TERM_START_DAY = { y: 2026, m: 9, d: 1 };
+
+  /* 第 1 周的周一（UTC 毫秒）：所有周次 / 日期的计算基准 */
+  var WEEK1_MONDAY_MS = (function () {
+    var t = Date.UTC(TERM_START_DAY.y, TERM_START_DAY.m - 1, TERM_START_DAY.d);
+    var dow = new Date(t).getUTCDay();          /* 0=周日 … 6=周六 */
+    return t - (dow === 0 ? 6 : dow - 1) * 86400000;
+  })();
+
+  function weekMondayMs(week) { return WEEK1_MONDAY_MS + (week - 1) * 7 * 86400000; }
 
   /* 根据当前日期自动计算所处周次（超出范围则夹紧到 1 ~ WEEK_COUNT） */
   function currentWeekIndex() {
     var now = new Date();
-    var startMs = Date.UTC(TERM_START.y, TERM_START.m - 1, TERM_START.d);
     var todayMs = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
-    var days = Math.floor((todayMs - startMs) / 86400000);
+    var days = Math.floor((todayMs - WEEK1_MONDAY_MS) / 86400000);
     if (!isFinite(days) || days < 0) days = 0;
     var w = Math.floor(days / 7) + 1;
     if (w < 1) w = 1;
     if (w > WEEK_COUNT) w = WEEK_COUNT;
     return w;
+  }
+
+  /* ===== 统计周 = 上周五 + 本周一 ~ 本周四（学校团委口径） =====
+     数据库仍按“事情真实发生的自然周”存储：
+       上周五        → week_index = N-1, day_index = 4
+       本周一 ~ 周四 → week_index = N,   day_index = 0 ~ 3 */
+  var WEEK_SLOTS = [
+    { label: '上周五', weekOffset: -1, dayIndex: 4 },
+    { label: '周一', weekOffset: 0, dayIndex: 0 },
+    { label: '周二', weekOffset: 0, dayIndex: 1 },
+    { label: '周三', weekOffset: 0, dayIndex: 2 },
+    { label: '周四', weekOffset: 0, dayIndex: 3 }
+  ];
+
+  /* 第 1 周没有“上周五”（那一天在开学之前） */
+  function slotsOf(week) { return week <= 1 ? WEEK_SLOTS.slice(1) : WEEK_SLOTS; }
+
+  /* 该位置的日期文案，如 9/18 */
+  function slotDateText(week, slotIdx) {
+    var s = slotsOf(week)[slotIdx];
+    if (!s) return '';
+    var d = new Date(weekMondayMs(week + s.weekOffset) + s.dayIndex * 86400000);
+    return (d.getUTCMonth() + 1) + '/' + d.getUTCDate();
+  }
+
+  /* 统计周期文案，如 9月18日（上周五）～ 9月24日（周四） */
+  function cycleRangeText(week) {
+    var slots = slotsOf(week);
+    var pick = function (s) {
+      var d = new Date(weekMondayMs(week + s.weekOffset) + s.dayIndex * 86400000);
+      return (d.getUTCMonth() + 1) + '月' + d.getUTCDate() + '日（' + s.label + '）';
+    };
+    return pick(slots[0]) + '～' + pick(slots[slots.length - 1]);
   }
 
   var THIS_WEEK = currentWeekIndex();
@@ -462,28 +506,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
   function loadWeek() {
     setStatus('加载中…');
-    sb.from(TABLE).select('*')
-      .eq('grade', state.grade)
-      .eq('week_index', state.week)
-      .then(function (res) {
-        if (res.error) {
-          state.records = [];
-          setStatus('⚠️ 加载失败：' + res.error.message);
-        } else {
-          state.records = res.data || [];
-          if (state.records.length) {
-            setStatus(ICON_SYNC + '已同步云端 · 本周共 ' + state.records.length + ' 条记录', true);
-          } else {
-            setStatus('本周暂无录入数据');
-          }
-        }
-        renderAll();
-      })
-      .catch(function (e) {
+    var grade = state.grade, week = state.week;
+    /* 统计周 = 上周五 + 本周一 ~ 周四，分两次取数后合并 */
+    var thisWeek = sb.from(TABLE).select('*')
+      .eq('grade', grade)
+      .eq('week_index', week)
+      .in('day_index', [0, 1, 2, 3]);
+    var lastFriday = (week > 1)
+      ? sb.from(TABLE).select('*')
+        .eq('grade', grade)
+        .eq('week_index', week - 1)
+        .eq('day_index', 4)
+      : Promise.resolve({ data: [], error: null });
+
+    Promise.all([thisWeek, lastFriday]).then(function (rs) {
+      var err = (rs[0] && rs[0].error) || (rs[1] && rs[1].error);
+      if (err) {
         state.records = [];
-        setStatus('⚠️ 加载失败：' + (e && e.message ? e.message : e));
-        renderAll();
-      });
+        setStatus('⚠️ 加载失败：' + (err.message || err));
+      } else {
+        state.records = (rs[0].data || []).concat((rs[1] && rs[1].data) || []);
+        if (state.records.length) {
+          setStatus(ICON_SYNC + '已同步云端 · 第' + week + '周共 ' + state.records.length +
+            ' 条记录（' + cycleRangeText(week) + '）', true);
+        } else {
+          setStatus('第' + week + '周暂无录入数据');
+        }
+      }
+      renderAll();
+    }).catch(function (e) {
+      state.records = [];
+      setStatus('⚠️ 加载失败：' + (e && e.message ? e.message : e));
+      renderAll();
+    });
   }
 
   function calcClass(no) {
@@ -518,7 +573,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     /* 只统计本周有录入记录的班级，避免未录入的班级按 100 分误当第一名 */
     var scored = list.filter(function (x) { return x.days > 0; });
     if (!scored.length) {
-      $('topClass').textContent = '本周暂无录入数据';
+      $('topClass').textContent = '本周期暂无录入数据';
       $('topScore').textContent = '—';
       return;
     }
@@ -601,7 +656,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
               label: function (c) {
                 var rk = rankOf[data[c.dataIndex].no];
                 return '总分 ' + c.parsed.y.toFixed(2) + ' 分' +
-                  (rk ? ' · 第' + rk + '名' : ' · 本周未录入');
+                  (rk ? ' · 第' + rk + '名' : ' · 本周期未录入');
               }
             }
           }
@@ -670,14 +725,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     $('modalTitle').textContent =
       classLabel(no) + ' · 第' + state.week + '周 加减分明细';
 
+    var slots = slotsOf(state.week);
     var tIns = 0, tHyg = 0, tBon = 0;
     var html = '';
 
-    DAYS.forEach(function (dayName, idx) {
+    slots.forEach(function (slot, idx) {
+      var wi = state.week + slot.weekOffset;
       var r = null;
       for (var i = 0; i < state.records.length; i++) {
         if (Number(state.records[i].class_no) === no &&
-            Number(state.records[i].day_index) === idx) { r = state.records[i]; break; }
+            Number(state.records[i].week_index) === wi &&
+            Number(state.records[i].day_index) === slot.dayIndex) { r = state.records[i]; break; }
       }
       var ins = r ? (Number(r.inspect_score) || 0) : 0;
       var hyg = r ? (Number(r.hygiene_score) || 0) : 0;
@@ -688,7 +746,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       if (r) { tIns += ins; tHyg += hyg; tBon += bon; }
 
       html += '<div class="day-block">';
-      html += '<div class="day-title"><span>' + dayName + '</span>';
+      html += '<div class="day-title"><span>' + slot.label +
+        '（' + slotDateText(state.week, idx) + '）</span>';
       if (r) {
         var daySum = BASE - ins - hyg + bon;
         html += '<span class="day-sum">当日得分 ' + daySum.toFixed(1) + '</span>';
@@ -721,8 +780,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     });
 
     var total = round2(BASE - tIns - tHyg + tBon);
-    html += '<div class="modal-score">本周总分 = 100 − ' + fmtNum(tIns) + ' − ' + fmtNum(tHyg) +
-      ' + ' + fmtNum(tBon) + ' = <b>' + total.toFixed(1) + '</b> 分</div>';
+    html += '<div class="modal-score">第' + state.week + '周总分（' + cycleRangeText(state.week) + '）= 100 − ' +
+      fmtNum(tIns) + ' − ' + fmtNum(tHyg) + ' + ' + fmtNum(tBon) +
+      ' = <b>' + total.toFixed(1) + '</b> 分</div>';
 
     $('modalBody').innerHTML = html;
     $('overlay').style.display = 'flex';
@@ -733,6 +793,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   function renderAll() {
     var list = buildList();
     $('chartTitle').textContent = GRADE_LABEL[state.grade] + ' · 第' + state.week + '周 各班级总分';
+    $('cycleLine').textContent = '第 ' + state.week + ' 周统计周期（上周五 + 本周一 ~ 周四）：' +
+      cycleRangeText(state.week);
     renderTopBanner(list);
     renderChart(list);
     renderGrid(list);
@@ -787,7 +849,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     }
     var dpr = window.devicePixelRatio || 1;
     var scale = Math.min(2, Math.max(1.5, dpr));
-    var pad = 26, headH = 96;
+    var pad = 26, headH = 118;
     var w = src.clientWidth || 900;
     var h = src.clientHeight || 320;
     var FONT = ' -apple-system,"PingFang SC","Microsoft YaHei",sans-serif';
@@ -816,9 +878,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     var innerW = w;
     fitText(GRADE_LABEL[state.grade] + ' · 第' + state.week + '周 各班总分' +
       (sortByScore ? '（按分数排序）' : '（按班级顺序）'), pad, 34, innerW, 19, '800', '#1e293b');
-    fitText('总分 = 100 − 纪检扣分 − 卫检扣分 + 加分', pad, 57, innerW, 12, '500', '#64748b');
+    fitText('统计周期：' + cycleRangeText(state.week), pad, 57, innerW, 12, '500', '#64748b');
+    fitText('总分 = 100 − 纪检扣分 − 卫检扣分 + 加分', pad, 78, innerW, 12, '500', '#64748b');
     fitText('柱色越亮表示排名越靠前（未录入班级为淡灰色） · 导出时间 ' + exportStamp(),
-      pad, 76, innerW, 12, '500', '#94a3b8');
+      pad, 99, innerW, 12, '500', '#94a3b8');
 
     g.drawImage(src, pad, headH, w, h);
 
