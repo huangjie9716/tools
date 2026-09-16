@@ -11,6 +11,7 @@ window.CARDS_ANALYSIS = [
         href: 'analysis/AddGradeDirector.html',
         action: 'modal',
         actionText: '选择版本进入',
+        video: '',
         guides: [
             { label: '下载指南', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/AddGuide.pptx' }
         ]
@@ -24,6 +25,7 @@ window.CARDS_ANALYSIS = [
         href: 'analysis/2/ResultAnalysis.html',
         action: 'link',
         actionText: '立即使用',
+        video: '',
         templates: [
             { label: '下载数据模板', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/ResultData.xlsx' }
         ],
@@ -40,6 +42,7 @@ window.CARDS_ANALYSIS = [
         href: 'analysis/3/PredictAnalysis.html',
         action: 'link',
         actionText: '立即使用',
+        video: '',
         templates: [
             { label: '数据模板1', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/PredictData1.xlsx' },
             { label: '数据模板2', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/PredictData2.xlsx' }
@@ -57,6 +60,7 @@ window.CARDS_ANALYSIS = [
         href: 'analysis/4/TestAnalysis.html',
         action: 'link',
         actionText: '立即使用',
+        video: '',
         templates: [
             { label: '下载数据模板', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/TestData.xlsx' }
         ],
