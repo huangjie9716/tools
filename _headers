@@ -1,0 +1,46 @@
+# Netlify 缓存策略（此文件必须放在发布目录根下）
+
+# ── 静态资源：命中缓存后，回访者几乎不再产生流量 ──
+# 注意：文件名是固定的，所以用 7 天而不是 1 年。
+# 如果你希望改成 1 年 immutable（最省流），请在引用处加版本号，
+# 例如 href="style.css?v=20260916"，改内容时同步改版本号即可。
+/*.css
+  Cache-Control: public, max-age=604800
+/*.js
+  Cache-Control: public, max-age=604800
+/*.json
+  Cache-Control: public, max-age=604800
+
+# 子目录中的静态资源（工具页面各自的 css/js）
+/*/*.css
+  Cache-Control: public, max-age=604800
+/*/*.js
+  Cache-Control: public, max-age=604800
+/*/*/*.css
+  Cache-Control: public, max-age=604800
+/*/*/*.js
+  Cache-Control: public, max-age=604800
+/*/*/*/*.css
+  Cache-Control: public, max-age=604800
+/*/*/*/*.js
+  Cache-Control: public, max-age=604800
+
+# ── 图片：体积大、几乎不变，缓存久一点 ──
+/*.webp
+  Cache-Control: public, max-age=604800
+/*.png
+  Cache-Control: public, max-age=604800
+/*.jpg
+  Cache-Control: public, max-age=604800
+/*.svg
+  Cache-Control: public, max-age=604800
+
+# 站点图标：基本不会变，长期缓存
+/favicon.svg
+  Cache-Control: public, max-age=31536000, immutable
+
+# ── HTML：始终校验，保证更新后刷新即可见 ──
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+/
+  Cache-Control: public, max-age=0, must-revalidate
