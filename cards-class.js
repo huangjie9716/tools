@@ -11,6 +11,7 @@ window.CARDS_CLASS = [
         href: 'class/1/ReciteGame.html',
         action: 'link',
         actionText: '立即使用',
+        video: '',
         templates: [
             { label: '图片库', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/picture.zip' },
             { label: '音乐库', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/music.zip' },
@@ -26,6 +27,7 @@ window.CARDS_CLASS = [
         href: 'class/2/SeatChange.html',
         action: 'link',
         actionText: '立即使用',
+        video: '',
         templates: [
             { label: '学生数据模板', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/SeatChangeData.xlsx' }
         ]
@@ -39,6 +41,7 @@ window.CARDS_CLASS = [
         href: 'class/3/GeneralAnalysis.html',
         action: 'link',
         actionText: '立即使用',
+        video: '',
         templates: [
             { label: '数据模板1', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/GeneralAnalysisData1.xlsx' },
             { label: '数据模板2', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/GeneralAnalysisData2.xlsx' },
@@ -54,5 +57,6 @@ window.CARDS_CLASS = [
         href: 'class/4/CertificatesGeneration.html',
         action: 'link',
         actionText: '立即使用',
+        video: '',
     }
 ];
