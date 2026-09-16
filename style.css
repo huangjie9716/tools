@@ -580,8 +580,9 @@
         transition: color 0.2s ease;
         /* 标题最多两行，保证同排卡片高度一致 */
         display: -webkit-box;
-        -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
         overflow: hidden;
         min-height: 2.9em;
     }
