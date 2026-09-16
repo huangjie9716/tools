@@ -670,8 +670,7 @@ MathJax = {
     <script src="video.js"></script>
     <!-- 模拟软件资源 -->
     <script src="simulate.js"></script>
-    <!-- 习题资源 -->
-    <script src="question.js"></script>
+    <!-- 习题资源（question.js，约 390KB）：改为按需加载，首次查看习题时才下载，见 openExerciseModal -->
 
     <!-- ====================== 主逻辑脚本 ====================== -->
     <script>
@@ -838,11 +837,9 @@ MathJax = {
             const coverImages = window.coverImages || {};
             const videoLinks = window.videoLinks || {};
             const simLinks = window.simLinks || {};
-            const exerciseData = window.exerciseData || {};
 
             const hasVideo = !!videoLinks[expName];
             const hasSim = !!simLinks[expName];
-            const hasExercise = !!exerciseData[expName];
             const coverUrl = coverImages[expName] || '';
 
             let coverHtml = '';
@@ -867,7 +864,7 @@ MathJax = {
                             <button class="btn btn-sim" data-exp="${expName}" ${!hasSim ? 'disabled' : ''}>
                                 🖥️ 模拟软件
                             </button>
-                            <button class="btn btn-exercise" data-exp="${expName}" ${!hasExercise ? 'disabled' : ''}>
+                            <button class="btn btn-exercise" data-exp="${expName}">
                                 📝 习题资源
                             </button>
                         </div>
@@ -891,7 +888,8 @@ MathJax = {
                     window.open(simLinks[btn.dataset.exp], '_blank');
                 }
             })
-            container.querySelectorAll('.btn-exercise:not([disabled])').forEach(btn=>{
+            // 习题数据按需加载，因此按钮始终可点：无题目的实验会在弹窗内提示
+            container.querySelectorAll('.btn-exercise').forEach(btn=>{
                 btn.onclick = ()=>{
                     openExerciseModal(btn.dataset.exp);
                 }
@@ -987,9 +985,36 @@ MathJax = {
             closeModal(videoModal);
         }
 
-        function openExerciseModal(expName){
+        // 习题数据（question.js）按需加载：只在首次查看习题时下载，浏览实验不耗这部分流量
+        let exerciseDataPromise = null;
+        function loadExerciseData(){
+            if (window.exerciseData) return Promise.resolve(window.exerciseData);
+            if (!exerciseDataPromise) {
+                exerciseDataPromise = new Promise(function(resolve, reject){
+                    const script = document.createElement('script');
+                    script.src = 'question.js';
+                    script.onload = function(){ resolve(window.exerciseData || {}); };
+                    script.onerror = function(){ reject(new Error('习题数据加载失败，请检查网络后重试')); };
+                    document.head.appendChild(script);
+                });
+            }
+            return exerciseDataPromise;
+        }
+
+        async function openExerciseModal(expName){
             exerciseModalTitle.textContent = `📝 ${expName} 习题`;
-            const data = window.exerciseData && window.exerciseData[expName];
+            openModal(exerciseModal);
+            exerciseContent.innerHTML = '<div style="padding:20px;color:#666;">习题加载中…</div>';
+
+            let allExerciseData = null;
+            try {
+                allExerciseData = await loadExerciseData();
+            } catch (loadErr) {
+                exerciseContent.innerHTML = '<p style="color:#c00;">' + loadErr.message + '</p>';
+                return;
+            }
+
+            const data = allExerciseData[expName];
             if(data && data.questions && data.questions.length > 0){
                 let html = '';
                 data.questions.forEach((q, index) => {
@@ -1061,11 +1086,10 @@ MathJax = {
                 exerciseContent.innerHTML = '<p style="color:#666;">该实验暂无习题资源</p>';
             }
             if (window.MathJax && MathJax.typesetPromise) {
-    MathJax.typesetPromise().catch(function(err) {
-        console.log('MathJax渲染出错:', err);
-    });
-}
-            openModal(exerciseModal);
+                MathJax.typesetPromise().catch(function(err) {
+                    console.log('MathJax渲染出错:', err);
+                });
+            }
         }
         function closeExerciseModal(){
             closeModal(exerciseModal);
