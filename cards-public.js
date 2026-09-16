@@ -11,6 +11,7 @@ window.CARDS_PUBLIC = [
         href: 'opencourse/1/RollCall.html',
         action: 'link',
         actionText: '立即使用',
+        video: '',
         templates: [
             { label: '学生数据模板', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/studentinfo2.xlsx' }
         ]
@@ -24,6 +25,7 @@ window.CARDS_PUBLIC = [
         href: 'opencourse/2/RollCall2.html',
         action: 'link',
         actionText: '立即使用',
+        video: '',
          templates: [
             { label: '学生数据模板', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/studentinfo2.xlsx' }
         ]
@@ -37,6 +39,7 @@ window.CARDS_PUBLIC = [
         href: 'opencourse/3/RollCall3.html',
         action: 'link',
         actionText: '立即使用',
+        video: '',
          templates: [
             { label: '学生数据模板', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/studentinfo2.xlsx' }
         ]
@@ -50,6 +53,7 @@ window.CARDS_PUBLIC = [
         href: 'opencourse/4/RollCall4.html',
         action: 'link',
         actionText: '立即使用',
+        video: '',
          templates: [
             { label: '学生数据模板', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/studentinfo2.xlsx' }
         ]
@@ -63,5 +67,6 @@ window.CARDS_PUBLIC = [
         href: 'opencourse/5/CountDown.html',
         action: 'link',
         actionText: '立即使用',
+        video: '',
     }
 ];
