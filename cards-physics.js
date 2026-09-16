@@ -11,6 +11,7 @@
 //   actionText 按钮文字
 //   templates  数据模板下载 [{label, url}]
 //   guides     操作指南下载 [{label, url}]
+//   video      操作指南视频链接（点击卡片“操作指南”按钮全屏弹窗播放，留空则显示“制作中”）
 // ============================================================
 window.CARDS_PHYSICS = [
     {
@@ -21,7 +22,8 @@ window.CARDS_PHYSICS = [
         file: 'physics/1/PhysicsClassGame.html',
         href: 'physics/1/PhysicsClassGame.html',
         action: 'link',
-        actionText: '立即使用'
+        actionText: '立即使用',
+        video: ''
     },
     {
         title: '初中物理实验资源库',
@@ -31,7 +33,8 @@ window.CARDS_PHYSICS = [
         file: 'physics/2/PhysicsExperiment.html',
         href: 'physics/2/PhysicsExperiment.html',
         action: 'link',
-        actionText: '立即使用'
+        actionText: '立即使用',
+        video: ''
     },
      {
         title: '笑傲江湖',
@@ -41,7 +44,8 @@ window.CARDS_PHYSICS = [
         file: 'physics/3/FormulaGame.html',
         href: 'physics/3/FormulaGame.html',
         action: 'link',
-        actionText: '立即使用'
+        actionText: '立即使用',
+        video: ''
     },
     {
         title: '珠海市九洲中学2025级学生物理小组积分可视化系统',
@@ -51,6 +55,7 @@ window.CARDS_PHYSICS = [
         file: 'physics/4/GroupPointsVisualization.html',
         href: 'physics/4/GroupPointsVisualization.html',
         action: 'link',
-        actionText: '立即使用'
+        actionText: '立即使用',
+        video: ''
     }
 ];
