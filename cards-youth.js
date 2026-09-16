@@ -14,6 +14,7 @@
 //   actionText 按钮文字
 //   templates  数据模板下载 [{label, url}]
 //   guides     操作指南下载 [{label, url}]
+//   video      操作指南视频链接（点击卡片“操作指南”按钮全屏弹窗播放，留空则显示“制作中”）
 // ============================================================
 window.CARDS_YOUTH = {
     cards: [
@@ -25,7 +26,8 @@ window.CARDS_YOUTH = {
             file: 'student/1/YouthLeagueCommittee.html',
             href: 'student/1/YouthLeagueCommittee.html',
             action: 'link',
-            actionText: '立即使用'
+            actionText: '立即使用',
+            video: ''
         }
     ],
     placeholder: null
