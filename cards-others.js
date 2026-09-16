@@ -13,7 +13,8 @@ window.CARDS_OTHERS = {
                 file: 'others/chinese/AncientPoem.html',
                 href: 'others/chinese/AncientPoem.html',
                 action: 'link',
-                actionText: '立即使用'
+                actionText: '立即使用',
+                video: ''
             }
         ]
     },
@@ -27,7 +28,8 @@ window.CARDS_OTHERS = {
                 file: 'others/math/MathFormula.html',
                 href: 'others/math/MathFormula.html',
                 action: 'link',
-                actionText: '立即使用'
+                actionText: '立即使用',
+                video: ''
             }
         ]
     },
@@ -45,7 +47,8 @@ window.CARDS_OTHERS = {
                 file: 'others/chemistry/ChemistryLab.html',
                 href: 'others/chemistry/ChemistryLab.html',
                 action: 'link',
-                actionText: '立即使用'
+                actionText: '立即使用',
+                video: ''
             }
         ]
     },
@@ -59,7 +62,8 @@ window.CARDS_OTHERS = {
                 file: 'others/politics/study/PoliticsStudy.html',
                 href: 'others/politics/study/PoliticsStudy.html',
                 action: 'link',
-                actionText: '立即使用'
+                actionText: '立即使用',
+                video: ''
             }
         ]
     },
