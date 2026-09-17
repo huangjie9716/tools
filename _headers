@@ -1,29 +1,36 @@
 # Netlify 缓存策略（此文件必须放在发布目录根下）
 
-# ── 静态资源：命中缓存后，回访者几乎不再产生流量 ──
-# 注意：文件名是固定的，所以用 7 天而不是 1 年。
-# 如果你希望改成 1 年 immutable（最省流），请在引用处加版本号，
-# 例如 href="style.css?v=20260916"，改内容时同步改版本号即可。
+# ── CSS / JS / JSON：每次访问都向服务器校验 ──
+# 为什么不用 max-age=604800（7 天强缓存）：
+#   这些文件名是固定的，一旦给了强缓存，浏览器在有效期内根本不会再发请求，
+#   即使你把新文件部署上去，老访客看到的仍是旧样式/旧数据（除非改文件名或加 ?v=）。
+#   改成 must-revalidate 后，浏览器每次都发一个带 If-None-Match 的校验请求：
+#   文件没变 → 服务器只回 304（无正文，几乎不耗流量）；文件变了 → 直接拿到新版。
+#   即「上传即生效」，也不会再出现线上文件是新的、访客看到的却是旧的这种情况。
 /*.css
-  Cache-Control: public, max-age=604800
+  Cache-Control: public, max-age=0, must-revalidate
 /*.js
-  Cache-Control: public, max-age=604800
+  Cache-Control: public, max-age=0, must-revalidate
 /*.json
-  Cache-Control: public, max-age=604800
+  Cache-Control: public, max-age=0, must-revalidate
 
 # 子目录中的静态资源（工具页面各自的 css/js）
 /*/*.css
-  Cache-Control: public, max-age=604800
+  Cache-Control: public, max-age=0, must-revalidate
 /*/*.js
-  Cache-Control: public, max-age=604800
+  Cache-Control: public, max-age=0, must-revalidate
 /*/*/*.css
-  Cache-Control: public, max-age=604800
+  Cache-Control: public, max-age=0, must-revalidate
 /*/*/*.js
-  Cache-Control: public, max-age=604800
+  Cache-Control: public, max-age=0, must-revalidate
 /*/*/*/*.css
-  Cache-Control: public, max-age=604800
+  Cache-Control: public, max-age=0, must-revalidate
 /*/*/*/*.js
-  Cache-Control: public, max-age=604800
+  Cache-Control: public, max-age=0, must-revalidate
+/*/*/*/*/*.css
+  Cache-Control: public, max-age=0, must-revalidate
+/*/*/*/*/*.js
+  Cache-Control: public, max-age=0, must-revalidate
 
 # ── 图片：体积大、几乎不变，缓存久一点 ──
 /*.webp
