@@ -121,7 +121,12 @@
             gap: 10px;
         }
         .select-btn {
-            padding: 9px 18px;
+            height: 46px;                       /* 固定高度，与搜索框保持一致 */
+            padding: 0 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.2;
             border-radius: 7px;
             border: 1.5px solid #cbd5e1;
             background: #ffffff;
@@ -140,10 +145,27 @@
             background: #f0f7ff;
         }
 
+        /* 搜索区：与“选择书册”同一行、同一高度 */
+        .search-inline {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-left: auto;          /* 靠右显示，与书册按钮形成一行的整体布局 */
+            flex: 1 1 320px;
+            min-width: 260px;
+            justify-content: flex-end;
+        }
+        .search-inline .filter-label {
+            min-width: unset;
+            margin-bottom: 0;
+        }
+
         .search-input {
-            flex: 1;
-            max-width: 420px;
-            padding: 10px 16px;
+            flex: 1 1 auto;
+            min-width: 160px;
+            max-width: 380px;
+            height: 46px;               /* 与 .select-btn 等高 */
+            padding: 0 16px;
             border-radius: 8px;
             border: 1.5px solid #cbd5e1;
             background: #ffffff;
@@ -430,19 +452,20 @@
             margin: 0 auto;             /* 水平居中 */
         }
 
-        /* 图片缩放容器与右上角控件 */
+        /* 图片缩放容器与右上角控件（控件放在图片右上角外侧，避免遮挡图片内容） */
         .img-zoom-wrap {
             position: relative;
             display: block;
             line-height: 0;
+            padding-top: 38px;          /* 为图片上方外侧的缩放控件预留一条空白区域 */
         }
         .img-zoom-wrap img {
             line-height: 0;
         }
         .img-zoom-controls {
             position: absolute;
-            top: 8px;
-            right: 8px;
+            top: 0;
+            right: 0;
             z-index: 6;
             display: flex;
             align-items: center;
@@ -544,6 +567,19 @@
                 min-width: unset;
                 margin-bottom:8px;
             }
+            /* 窄屏下搜索框换行独占一行，仍然保持宽度自适应 */
+            .search-inline {
+                flex-direction: column;
+                align-items: flex-start;
+                justify-content: flex-start;
+                margin-left: 0;
+                width: 100%;
+                min-width: 0;
+            }
+            .search-inline .search-input {
+                width: 100%;
+                max-width: none;
+            }
         }
         @media (max-width: 768px) {
             .main-title {
@@ -617,15 +653,16 @@ MathJax = {
             <label class="filter-label">📚 选择书册</label>
             <div class="btn-group-select" id="bookBtnBox">
             </div>
+            <!-- 搜索框与“选择书册”同行显示，高度一致 -->
+            <div class="search-inline" id="searchRow">
+                <label class="filter-label" for="searchInput">🔎 搜索实验</label>
+                <input type="text" id="searchInput" class="search-input" placeholder="输入关键词搜索实验">
+            </div>
         </div>
         <div class="filter-row">
             <label class="filter-label">📖 选择章节</label>
             <div class="btn-group-select" id="chapterBtnBox">
             </div>
-        </div>
-        <div class="filter-row" id="searchRow">
-            <label class="filter-label">🔎 搜索实验</label>
-            <input type="text" id="searchInput" class="search-input" placeholder="输入关键词搜索实验">
         </div>
     </div>
 
@@ -1192,15 +1229,15 @@ MathJax = {
         const ZOOM_MAX = 3;     // 最大缩放比例
         const ZOOM_STEP = 1.25; // 每次点击的缩放步长（梯度）
 
-        // 生成“图片 + 右上角缩放控件”的整体 HTML
+        // 生成“图片 + 图片右上角外侧缩放控件”的整体 HTML
         function buildZoomImageHtml(src, alt, styleAttr){
             const styleStr = styleAttr ? ` style="${styleAttr}"` : '';
             return ''
                 + '<div class="img-zoom-wrap" data-zoom="1" data-basew="">'
-                +   '<div class="img-zoom-controls">'
-                +     '<button type="button" class="img-zoom-btn img-zoom-out" title="缩小图片">−</button>'
+                +   '<div class="img-zoom-controls" title="鼠标停留在图片上，滚动滚轮即可放大 / 缩小">'
+                +     '<button type="button" class="img-zoom-btn img-zoom-out" title="缩小图片（滚轮向下）">−</button>'
                 +     '<span class="img-zoom-percent">100%</span>'
-                +     '<button type="button" class="img-zoom-btn img-zoom-in" title="放大图片">＋</button>'
+                +     '<button type="button" class="img-zoom-btn img-zoom-in" title="放大图片（滚轮向上）">＋</button>'
                 +   '</div>'
                 + `<img src="${src}" alt="${alt}" loading="lazy" draggable="false"${styleStr}>`
                 + '</div>';
@@ -1350,6 +1387,36 @@ MathJax = {
             const dir = btn.classList.contains('img-zoom-in') ? 'in' : 'out';
             zoomImage(wrap, img, dir);
         });
+
+        // 鼠标光标停留在图片上时，滚动滚轮即可放大 / 缩小图片
+        const WHEEL_ZOOM_STEP = 1.12;   // 每格滚轮的缩放幅度（比按钮点击更细腻）
+        exerciseContent.addEventListener('wheel', function(e){
+            if(!e.target || !e.target.closest) return;
+            const wrap = e.target.closest('.img-zoom-wrap');
+            if(!wrap) return;
+            const img = wrap.querySelector('img');
+            if(!img || !img.naturalWidth) return;
+
+            let baseW = parseFloat(wrap.dataset.basew);
+            if(!(baseW > 0)){
+                baseW = measureBaseWidth(wrap, img);
+                if(!(baseW > 0)) return;
+                wrap.dataset.basew = String(baseW);
+            }
+
+            const cur = parseFloat(wrap.dataset.zoom) || 1;
+            // 滚轮向上：放大；滚轮向下：缩小
+            const next = (e.deltaY < 0) ? cur * WHEEL_ZOOM_STEP : cur / WHEEL_ZOOM_STEP;
+            const z = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, next));
+            // 已到缩放上下限时不再拦截滚轮，让页面可以继续正常滚动
+            if(Math.abs(z - cur) < 0.001) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+            applyImageZoom(wrap, img, z);
+            // 与按钮缩放一致，记住本次比例，下次打开自动恢复
+            setStoredZoom(img.currentSrc || img.src, parseFloat(wrap.dataset.zoom) || 1);
+        }, { passive: false });
 
         // ================================================================
         // 长按拖动滚动（适合教室大屏 / Seewo）：平时为普通箭头鼠标，
