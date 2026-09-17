@@ -5,7 +5,7 @@ window.CARDS_ANALYSIS = [
     {
         title: '增值评价分析系统',
         desc: '基于学生成长数据，科学衡量教学增值效果。提供年级、班级、学科三种分析视角。',
-        date: '2026.08.26',
+        date: '2026.09.16',
         version: 'v1.4',
         file: 'analysis/AddGradeDirector.html',
         href: 'analysis/AddGradeDirector.html',
