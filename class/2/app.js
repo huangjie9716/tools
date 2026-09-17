@@ -265,9 +265,15 @@
                 return raw.split(/[,，\s]+/).map(p => parseInt(p)).filter(n => !isNaN(n) && n > 0);
             }
 
+            // 读取大组数（容错：非法值时回退到 4）
+            function getGroupCount() {
+                const gc = +groupCountSelect.value;
+                return Number.isFinite(gc) && gc >= 2 ? gc : 4;
+            }
+
             function updateLayoutSummary() {
                 const cols = parseColumns();
-                const gc = +groupCountSelect.value;
+                const gc = getGroupCount();
                 const wing = wingSeatToggle.value === 'yes';
                 state.wingEnabled = wing;
                 if (!cols || cols.length !== gc) {
@@ -311,11 +317,12 @@
                 state.totalSeats = totalSeats;
             }
             groupCountSelect.addEventListener('change', () => {
-                const gc = +groupCountSelect.value;
+                const gc = getGroupCount();
                 if (parseColumns().length !== gc) {
                     if (gc === 4) columnsPerGroupInput.value = '1,3,3,1';
                     else if (gc === 3) columnsPerGroupInput.value = '2,3,2';
                     else if (gc === 2) columnsPerGroupInput.value = '4,4';
+                    else if (gc >= 7) columnsPerGroupInput.value = Array(gc).fill(1).join(',');
                     else columnsPerGroupInput.value = Array(gc).fill(2).join(',');
                 }
                 updateLayoutSummary();
@@ -336,6 +343,10 @@
                 updateLayoutSummary(); });
             $('#btnPreset3').addEventListener('click', () => { groupCountSelect.value = '3';
                 columnsPerGroupInput.value = '2,3,2';
+                updateLayoutSummary(); });
+            // 单人单桌：8 大组，每组 1 列（1-1-1-1-1-1-1-1）
+            $('#btnPreset4').addEventListener('click', () => { groupCountSelect.value = '8';
+                columnsPerGroupInput.value = Array(8).fill(1).join(',');
                 updateLayoutSummary(); });
 
             // ============================================================
@@ -535,7 +546,7 @@
                 if (!pool.length) { showToast('无可排座学生', 'error'); return null; }
 
                 const cols = parseColumns();
-                const gc = +groupCountSelect.value;
+                const gc = getGroupCount();
                 if (!cols || cols.length !== gc) { showToast('列数配置错误', 'error'); return null; }
                 state.groupCount = gc;
                 state.columnsPerGroup = cols;
@@ -755,7 +766,9 @@
                 legendArea.style.display = 'flex';
                 const plan = state.seatingPlan;
                 const maxRow = Math.max(...plan.rowsPerColumn);
-                let html = '<div class="seating-grid">';
+                const totalCols = plan.columnsPerGroup.reduce((a, b) => a + b, 0);
+                const compactCls = (totalCols > 9 || plan.groupCount >= 6) ? ' compact' : '';
+                let html = `<div class="seating-grid${compactCls}">`;
                 plan.groups.forEach((group, gIdx) => {
                     html += `<div class="group-block" data-group="${gIdx}">`;
                     group.columns.forEach((col, cIdx) => {
@@ -1057,7 +1070,13 @@
                 if (layoutCfg) {
                     state.groupCount = layoutCfg.groupCount || 4;
                     state.columnsPerGroup = layoutCfg.columnsPerGroup || [1, 3, 3, 1];
-                    groupCountSelect.value = state.groupCount;
+                    const hasOption = Array.from(groupCountSelect.options).some(o => +o.value === +state.groupCount);
+                    if (hasOption) {
+                        groupCountSelect.value = String(state.groupCount);
+                    } else {
+                        state.groupCount = 4;
+                        groupCountSelect.value = '4';
+                    }
                     columnsPerGroupInput.value = state.columnsPerGroup.join(',');
                     if (layoutCfg.wingEnabled) {
                         wingSeatToggle.value = 'yes';
