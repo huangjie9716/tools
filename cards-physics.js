@@ -23,7 +23,7 @@ window.CARDS_PHYSICS = [
         href: 'physics/1/PhysicsClassGame.html',
         action: 'link',
         actionText: '立即使用',
-        video: ''
+        video: 'https://www.bilibili.com/video/BV1pHeu6UEci/?spm_id_from=333.1387.homepage.video_card.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27'
     },
     {
         title: '初中物理实验资源库',
@@ -34,7 +34,7 @@ window.CARDS_PHYSICS = [
         href: 'physics/2/PhysicsExperiment.html',
         action: 'link',
         actionText: '立即使用',
-        video: ''
+        video: 'https://www.bilibili.com/video/BV1HHeu6UEg6/?spm_id_from=333.1387.homepage.video_card.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27'
     },
      {
         title: '笑傲江湖',
@@ -45,7 +45,7 @@ window.CARDS_PHYSICS = [
         href: 'physics/3/FormulaGame.html',
         action: 'link',
         actionText: '立即使用',
-        video: ''
+        video: 'https://www.bilibili.com/video/BV1cHeu6mErw/?spm_id_from=333.1387.homepage.video_card.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27'
     },
     {
         title: '珠海市九洲中学2025级学生物理小组积分可视化系统',
