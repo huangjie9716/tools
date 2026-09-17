@@ -14,37 +14,60 @@
 /*.json
   Cache-Control: public, max-age=0, must-revalidate
 
-# 子目录中的静态资源（工具页面各自的 css/js）
-/*/*.css
+# 说明：Netlify 的 * 会跨 / 匹配（已实测：/*.webp 命中了 /student/1/jzzxlogo.webp），
+# 所以上面的 /*.css、/*.js 已经覆盖了所有子目录，不需要再写 /*/*.css 这类逐层规则。
+# 一条规则就能管全站，新增目录也不用再维护。
+# 另外：没有命中任何规则的文件，Netlify 默认给 public, max-age=0, must-revalidate（已实测）。
+# ⚠ 规则是「从上往下，第一条命中即生效」，所以越具体的路径必须写在越前面！
+
+# ── 站点图标（必须写在 /*.png、/*.svg 之前，否则会被通用规则先命中）──
+# 千万不要用长期强缓存：一旦浏览器拿到过坏结果（例如文件还没上传时的 404 / HTML 页），
+# 这个坏结果会被锁死，标签页就永远是地球图标，怎么刷新都没用。图标只有几 KB，每次校验即可。
+/favicon.svg
   Cache-Control: public, max-age=0, must-revalidate
-/*/*.js
+/favicon.ico
   Cache-Control: public, max-age=0, must-revalidate
-/*/*/*.css
+/favicon-32.png
   Cache-Control: public, max-age=0, must-revalidate
-/*/*/*.js
-  Cache-Control: public, max-age=0, must-revalidate
-/*/*/*/*.css
-  Cache-Control: public, max-age=0, must-revalidate
-/*/*/*/*.js
-  Cache-Control: public, max-age=0, must-revalidate
-/*/*/*/*/*.css
-  Cache-Control: public, max-age=0, must-revalidate
-/*/*/*/*/*.js
+/apple-touch-icon.png
   Cache-Control: public, max-age=0, must-revalidate
 
-# ── 图片：体积大、几乎不变，缓存久一点 ──
+# ── 字体 / 音视频 / 文档：当前仓库里还没有，先备好，将来加文件不用再改这里 ──
+# （字体文件名通常带版本号，可以长缓存；若你会手动同名替换，改成 must-revalidate）
+/*.woff2
+  Cache-Control: public, max-age=604800
+/*.woff
+  Cache-Control: public, max-age=604800
+/*.ttf
+  Cache-Control: public, max-age=604800
+/*.otf
+  Cache-Control: public, max-age=604800
+/*.mp4
+  Cache-Control: public, max-age=604800
+/*.webm
+  Cache-Control: public, max-age=604800
+/*.mp3
+  Cache-Control: public, max-age=604800
+/*.pdf
+  Cache-Control: public, max-age=604800
+
+# ── 位图：体积大、几乎不变，缓存久一点 ──
+# 注意：同名替换要等最多 7 天才生效；想立刻生效就换文件名（或加 ?v=）
 /*.webp
   Cache-Control: public, max-age=604800
 /*.png
   Cache-Control: public, max-age=604800
 /*.jpg
   Cache-Control: public, max-age=604800
-/*.svg
+/*.jpeg
+  Cache-Control: public, max-age=604800
+/*.gif
   Cache-Control: public, max-age=604800
 
-# 站点图标：基本不会变，长期缓存
-/favicon.svg
-  Cache-Control: public, max-age=31536000, immutable
+# SVG 单独处理：全站 30 个、总共才 88KB，而且多是界面图标
+# （analysis/1/*/img/*.svg、physics/3/favicon.svg），7 天不更新会很明显，所以让它每次校验
+/*.svg
+  Cache-Control: public, max-age=0, must-revalidate
 
 # ── HTML：始终校验，保证更新后刷新即可见 ──
 /*.html
