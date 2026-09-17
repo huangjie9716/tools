@@ -13,8 +13,8 @@
     <meta property="og:description" content="由一线教师打造，覆盖学科教学、班级管理、成绩分析与公开课互动等多元场景，无需安装、即开即用。">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="apple-touch-icon" href="favicon.svg">
-    <!-- ?v= 版本号：_headers 里 css/js 缓存 7 天，改样式后必须同步改版本号，否则老访客看到的是旧样式 -->
-    <link rel="stylesheet" href="style.css?v=20260917">
+    <!-- ?v= 版本号：仅在需要绕过访客本地缓存时改动（_headers 已让 css/js 每次向服务器校验，一般无需再改） -->
+    <link rel="stylesheet" href="style.css?v=20260917b">
 </head>
 <body>
     <!-- SVG icon defs: shared icons are defined once and referenced with <use> -->
@@ -71,7 +71,7 @@
                 <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="width:0.9em;height:0.9em;vertical-align:-0.1em;margin-right:0.25em;display:inline-block;">
                     <path d="M896.384 494.634667A21.461333 21.461333 0 0 1 917.333333 469.333333a21.333333 21.333333 0 0 1 21.290667 22.826667A427.093333 427.093333 0 0 1 725.333333 881.493333C521.258667 999.338667 260.309333 929.408 142.506667 725.333333a434.773333 434.773333 0 0 1-5.674667-10.154666L119.466667 786.645333a19.669333 19.669333 0 0 1-24.917334 14.378667 22.058667 22.058667 0 0 1-15.061333-26.112l29.482667-121.557333a19.669333 19.669333 0 0 1 24.917333-14.378667l120.021333 35.242667c11.050667 3.242667 17.792 14.933333 15.061334 26.112a19.669333 19.669333 0 0 1-24.917334 14.378666l-70.101333-20.565333 5.504 9.856A384 384 0 0 0 704 844.544a384.341333 384.341333 0 0 0 192.384-349.866667zM128 490.88a21.333333 21.333333 0 1 1-42.325333-4.053333C94.634667 349.312 170.368 216.576 298.666667 142.506667a425.941333 425.941333 0 0 1 373.333333-26.026667 424.618667 424.618667 0 0 1 196.266667 160.682667l17.493333-72.277334a19.669333 19.669333 0 0 1 24.96-14.378666c11.008 3.242667 17.792 14.933333 15.061333 26.112l-29.482666 121.557333a19.669333 19.669333 0 0 1-24.917334 14.378667l-120.021333-35.242667a22.058667 22.058667 0 0 1-15.104-26.112 19.669333 19.669333 0 0 1 24.917333-14.378667l69.077334 20.266667a381.738667 381.738667 0 0 0-174.208-141.056 383.189333 383.189333 0 0 0-336.042667 23.424C204.8 245.930667 136.32 367.445333 128 490.88z" fill="#1296db"/>
                 </svg>
-                最近更新：2026.09.12
+                最近更新：2026.09.17
             </span>
             <span class="contact-badge" id="contactBadge" role="button" tabindex="0" title="点击查看联系方式">
                 <svg viewBox="0 0 1213 1024" xmlns="http://www.w3.org/2000/svg" style="width:0.9em;height:0.9em;vertical-align:-0.1em;margin-right:0.25em;display:inline-block;">
@@ -501,13 +501,13 @@
     <!-- 不再引入 Supabase SDK（约 56KB），改用原生 fetch 直连 PostgREST 接口 -->
 
         <!-- 功能卡片数据（按类别拆分） -->
-    <script src="cards-physics.js?v=20260917"></script>
-    <script src="cards-others.js?v=20260917"></script>
-    <script src="cards-public.js?v=20260917"></script>
-    <script src="cards-class.js?v=20260917"></script>
-    <script src="cards-youth.js?v=20260917"></script>
-    <script src="cards-academic.js?v=20260917"></script>
-    <script src="cards-analysis.js?v=20260917"></script>
+    <script src="cards-physics.js?v=20260917b"></script>
+    <script src="cards-others.js?v=20260917b"></script>
+    <script src="cards-public.js?v=20260917b"></script>
+    <script src="cards-class.js?v=20260917b"></script>
+    <script src="cards-youth.js?v=20260917b"></script>
+    <script src="cards-academic.js?v=20260917b"></script>
+    <script src="cards-analysis.js?v=20260917b"></script>
 <script>
         // ============================================================
         // Supabase 配置（仅需 REST 接口，不加载 SDK，省 ~56KB 流量）
@@ -753,29 +753,20 @@
             }
 
             // ============================================================
-            // 侧边栏导航切换（同步 URL hash，支持刷新保持 / 分享 / 前进后退）
+            // 侧边栏导航切换（不往 URL 写 hash，地址栏始终是干净的站点地址）
             // ============================================================
             var navItems = document.querySelectorAll('.sidebar-nav .nav-item');
             var contentPanels = document.querySelectorAll('.content-panel');
 
-            // 改写地址栏 hash 但不触发浏览器原生锚点跳转（file:// 等环境静默失败）
-            function syncHashQuietly(hash) {
+            // 清除地址栏 hash（replaceState 不会触发滚动、不留下历史记录，file:// 下静默失败）
+            function clearHashQuietly() {
+                if (!location.hash) return;
                 try {
-                    history.replaceState(null, '', hash || (location.pathname + location.search));
+                    history.replaceState(null, '', location.pathname + location.search);
                 } catch (e) { /* 忽略 */ }
             }
 
-            // 把目标面板定位到吸顶导航栏正下方，让分享链接的落点可预期
-            function scrollToPanel(panelId) {
-                var panel = document.getElementById(panelId);
-                if (!panel || !panel.classList.contains('content-panel')) return;
-                var navbar = document.getElementById('navbar');
-                var offset = (navbar ? navbar.offsetHeight : 0) + 12;
-                var top = panel.getBoundingClientRect().top + window.pageYOffset - offset;
-                window.scrollTo(0, top > 0 ? top : 0);
-            }
-
-            function switchPanel(panelId, options) {
+            function switchPanel(panelId) {
                 var target = panelId ? document.getElementById(panelId) : null;
                 if (!target || !target.classList.contains('content-panel')) return;
 
@@ -800,10 +791,8 @@
                     }
                 }
 
-                // 同步地址栏（replaceState 不会触发滚动，也不会堆栈）
-                if (!options || options.silent !== true) {
-                    syncHashQuietly('#' + panelId);
-                }
+                // 不往地址栏写 #panel-xxx
+                clearHashQuietly();
 
                 // 切到留言板时刷新留言（回到第一页）
                 if (panelId === 'panel-message-board') {
@@ -817,16 +806,9 @@
                 });
             });
 
-            // 浏览器前进后退或手动改 hash 时同步面板
-            window.addEventListener('hashchange', function() {
-                var hash = (location.hash || '').replace(/^#/, '');
-                if (hash && document.getElementById(hash)) {
-                    switchPanel(hash, { silent: true });
-                    // 面板由隐藏变可见后浏览器会自己补跳一次锚点，
-                    // 这里统一改成“贴着吸顶导航栏”，避免落到半截位置
-                    scrollToPanel(hash);
-                }
-            });
+            // 地址栏里不留任何 #panel-xxx（含手动输入/粘贴旧链接的情况）。
+            // 只做清理，不会依据 hash 切换分类；replaceState 不会再次触发 hashchange，无循环。
+            window.addEventListener('hashchange', clearHashQuietly);
 
             // ============================================================
             // 学科子标签切换
@@ -1276,20 +1258,13 @@
                 updateVisitCount();
             }
 
-            // 依据 URL hash 恢复上次浏览的分类（支持刷新保持与链接分享）
-            var initialPanelId = (location.hash || '').replace(/^#/, '');
-            if (initialPanelId && document.getElementById(initialPanelId)) {
-                // 先摘掉 hash，避免浏览器在面板由 display:none 变为可见后
-                // 触发“原生锚点二次跳转”，把页面滚到导航栏之外（看着像排版错乱）
-                syncHashQuietly('');
-                switchPanel(initialPanelId, { silent: true });
-                syncHashQuietly('#' + initialPanelId);
-                scrollToPanel(initialPanelId);
-            } else {
-                var activePanel = document.querySelector('.content-panel.active');
-                if (activePanel && activePanel.id === 'panel-message-board') {
-                    loadMessages(1);
-                }
+            // 地址栏不保留 #panel-xxx：即使带着旧链接的 hash 进来，也只显示默认分类，
+            // 并把 hash 从地址栏清掉（不会再依据 hash 切换面板）
+            clearHashQuietly();
+
+            var activePanel = document.querySelector('.content-panel.active');
+            if (activePanel && activePanel.id === 'panel-message-board') {
+                loadMessages(1);
             }
 
         })();
