@@ -85,11 +85,12 @@
         <section class="panel hidden" id="panelStep3">
             <div class="panel-header">
                 <h2>座位布局配置</h2>
-                <p class="hint">设定大组数量和每组列数，并可选讲台两侧的"飞机位"学生</p>
+                <p class="hint">设定大组数量和每组列数（大组数支持 2~8；每组列数可全部填 1，即为"单人单桌"布局），并可选讲台两侧的"飞机位"学生</p>
             </div>
 
             <div class="preset-bar">
                 <span class="preset-label">推荐布局：</span>
+                <button class="btn btn-outline btn-sm" id="btnPreset4" title="8 个大组，每组 1 列：1-1-1-1-1-1-1-1（单人单桌）">单人单桌</button>
                 <button class="btn btn-outline btn-sm" id="btnPreset1">1-3-3-1</button>
                 <button class="btn btn-outline btn-sm" id="btnPreset2">2-2-2-2</button>
                 <button class="btn btn-outline btn-sm" id="btnPreset3">2-3-2</button>
@@ -99,7 +100,7 @@
                 <div class="field field-small">
                     <label for="groupCountSelect">大组数</label>
                     <select id="groupCountSelect" class="select">
-                        <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option>
+                        <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
                     </select>
                 </div>
                 <div class="field field-grow">
