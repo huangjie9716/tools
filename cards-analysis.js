@@ -11,7 +11,7 @@ window.CARDS_ANALYSIS = [
         href: 'analysis/AddGradeDirector.html',
         action: 'modal',
         actionText: '选择版本进入',
-        video: '',
+        video: 'https://www.bilibili.com/video/BV1kneu6JEeE/?spm_id_from=333.1387.homepage.video_card.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27',
         guides: [
             { label: '下载指南', url: 'https://github.com/huangjie9716/tools/releases/download/v1.0/AddGuide.pptx' }
         ]
