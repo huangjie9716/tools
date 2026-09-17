@@ -174,7 +174,9 @@
         transition: background-color 0.2s ease, color 0.2s ease;
     }
 
-    /* 手机端显示短文案（完整信息点击弹窗查看） */
+    /* 联系方式徽章：纯展示，不弹窗、不可点击。
+       三档文案：默认（桌面）显示完整版；平板 ≤900px 显示中等版；手机 ≤600px 显示紧凑版。 */
+    .contact-badge .badge-mid,
     .contact-badge .badge-short {
         display: none;
     }
@@ -606,7 +608,10 @@
         transition: color 0.2s ease;
     }
 
-    .tool-meta span {
+    /* 只作用于直接子元素（.tool-date / .tool-version）。
+       注意：不能写成 `.tool-meta span`——那是后代选择器，会把内层的
+       .tool-date-text 也套上背景+边框+圆角，手机上会看到“椭圆套椭圆”。 */
+    .tool-meta > span {
         background: var(--border-light);
         padding: 0.1rem 0.6rem;
         border-radius: 12px;
@@ -784,24 +789,6 @@
         border: none;
         padding: 0;
         font-family: inherit;
-    }
-
-    /* 小型提示弹窗（如联系方式） */
-    .modal-content-sm {
-        max-width: 420px;
-        text-align: center;
-    }
-
-    .modal-content-sm .subtitle {
-        margin-bottom: 0.7rem;
-    }
-
-    .contact-line {
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: var(--primary);
-        line-height: 1.9;
-        transition: color 0.2s ease;
     }
 
     .modal-close:hover {
@@ -1371,6 +1358,16 @@
             gap: 0.3rem 0.8rem;
         }
 
+        /* 联系方式徽章：平板档文案（完整版在窄屏放不下） */
+        .contact-badge .badge-full,
+        .contact-badge .badge-short {
+            display: none;
+        }
+
+        .contact-badge .badge-mid {
+            display: inline;
+        }
+
         .visit-number {
             font-size: 1rem;
         }
@@ -1439,12 +1436,9 @@
             font-size: 1.15rem;
         }
 
-        /* 联系徽章收缩为短文案，点击后弹窗查看完整信息 */
-        .contact-badge {
-            cursor: pointer;
-        }
-
-        .contact-badge .badge-full {
+        /* 联系方式徽章：手机档文案 */
+        .contact-badge .badge-full,
+        .contact-badge .badge-mid {
             display: none;
         }
 
@@ -1764,7 +1758,7 @@
 .navbar,
 .sidebar,
 .tool-card,
-.tool-meta span,
+.tool-meta > span,
 .subject-tab,
 .message-card,
 .mailbox-form,
