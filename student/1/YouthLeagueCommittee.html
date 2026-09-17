@@ -59,6 +59,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .top-banner .info{display:flex;flex-direction:column;gap:2px}
 .top-banner .lbl{font-size:12px;color:#92400e;font-weight:500;letter-spacing:.5px}
 .top-banner .val{font-size:22px;font-weight:800;color:#b45309}
+/* 并列班级较多时缩小字号，避免横幅过长 */
+.top-banner .val.long{font-size:17px;line-height:1.45}
 .top-banner .score{margin-left:auto;font-size:28px;font-weight:800;color:#d97706}
 .top-banner .score small{font-size:14px;font-weight:600;margin-left:2px}
 .chart-box{position:relative;height:320px}
@@ -80,11 +82,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .cc-empty{display:inline-block;font-size:10px;color:#94a3b8;
   background:#f1f5f9;padding:1px 7px;border-radius:8px;margin-bottom:5px}
 .cc-empty svg{vertical-align:-1px;margin-right:3px}
+/* “本周期未扣分”小标签：同年级当天有录入，只是这个班没有扣分 */
+.cc-empty.no-deduct{color:var(--green);background:var(--green-bg)}
 .footer{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;
   padding:18px 0;font-size:15px;color:var(--dim)}
 .footer a{color:var(--primary);text-decoration:none;font-weight:600;font-size:15px}
 .footer a:hover{text-decoration:underline}
 .footer .icon-sync{vertical-align:-2px;margin-right:6px}
+/* 版本标记：便于确认浏览器加载的是哪一份文件（可删） */
+.footer .ver{font-size:11px;color:#94a3b8}
 /* ===== 登录 ===== */
 .login-gate{position:fixed;inset:0;z-index:2000;padding:20px;
   background:linear-gradient(135deg,#eff6ff,#f8fafc 55%,#ecfdf5);
@@ -275,6 +281,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     <span id="status">加载中…</span>
     <a href="admin.html" id="adminLink">管理后台</a>
     <a href="#" id="logoutLink">退出登录</a>
+    <span class="ver" id="verTag">未扣分口径 v2026-09-17</span>
   </footer>
 </div>
 
@@ -302,6 +309,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
   var CLASS_COUNT = 16;
   /* 班级统一名称：初x（x）班 */
   function classLabel(no) { return state.grade + '（' + no + '）班'; }
+  /* 多个班级组合显示：初一（1）、（2）、（7）班（班号从小到大） */
+  function classGroupLabel(nos) {
+    var arr = (nos || []).slice().sort(function (a, b) { return a - b; });
+    if (!arr.length) return '—';
+    if (arr.length === 1) return classLabel(arr[0]);
+    return state.grade + '（' + arr.join('）、（') + '）班';
+  }
   var WEEK_COUNT = 22;
   var BASE = 100;
 
@@ -369,6 +383,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
   /* 第 1 周没有“上周五”（那一天在开学之前） */
   function slotsOf(week) { return week <= 1 ? WEEK_SLOTS.slice(1) : WEEK_SLOTS; }
+
+  /* 存储坐标（week_index + day_index）落在统计周期里的第几个位置，不属于则返回 -1 */
+  function slotIndexOf(week, week_index, day_index) {
+    var w = Number(week);
+    var slots = slotsOf(w);
+    for (var i = 0; i < slots.length; i++) {
+      if ((w + slots[i].weekOffset) === Number(week_index) &&
+          slots[i].dayIndex === Number(day_index)) return i;
+    }
+    return -1;
+  }
 
   /* 该位置的日期文案，如 9/18 */
   function slotDateText(week, slotIdx) {
@@ -541,15 +566,37 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     });
   }
 
-  function calcClass(no) {
-    var inspect = 0, hygiene = 0, bonus = 0, days = 0;
+  /* ===== “未录入 / 未扣分”口径 =====
+     统计周期里某个位置（某周某天）只要该年级有任意班级录入过，
+     那么当天没有记录的班级就视为「未扣分」（按 0 扣分计入总分的 100 分），而不是「未录入」；
+     只有整个统计周期该年级一条记录都没有时，才按「未录入」处理。
+     flags[i] = true 表示该位置该年级已录入过。 */
+  function gradeDayFlags(week) {
+    var flags = slotsOf(Number(week)).map(function () { return false; });
+    for (var i = 0; i < state.records.length; i++) {
+      var si = slotIndexOf(week, state.records[i].week_index, state.records[i].day_index);
+      if (si >= 0) flags[si] = true;
+    }
+    return flags;
+  }
+
+  function calcClass(no, dayFlags) {
+    var inspect = 0, hygiene = 0, bonus = 0, days = 0, counted = 0;
+    var own = {};
     for (var i = 0; i < state.records.length; i++) {
       var r = state.records[i];
       if (Number(r.class_no) !== no) continue;
+      /* 分数累加不受位置映射影响，保持与原逻辑一致 */
       inspect += Number(r.inspect_score) || 0;
       hygiene += Number(r.hygiene_score) || 0;
       bonus += Number(r.bonus_score) || 0;
       days++;
+      var si = slotIndexOf(state.week, r.week_index, r.day_index);
+      if (si >= 0) own[si] = true;
+    }
+    for (var s = 0; s < dayFlags.length; s++) {
+      /* 本班当天有记录，或同年级当天有记录（本班即视为未扣分）→ 都计入统计 */
+      if (own[s] || dayFlags[s]) counted++;
     }
     return {
       no: no,
@@ -557,23 +604,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       hygiene: round2(hygiene),
       bonus: round2(bonus),
       total: round2(BASE - inspect - hygiene + bonus),
-      days: days
+      days: days,        /* 本班自己录入的天数 */
+      counted: counted   /* 计入统计的天数（含被视为“未扣分”的天） */
     };
   }
 
   function buildList() {
+    var flags = gradeDayFlags(state.week);
     var list = [];
-    for (var i = 1; i <= CLASS_COUNT; i++) list.push(calcClass(i));
+    for (var i = 1; i <= CLASS_COUNT; i++) list.push(calcClass(i, flags));
     return list;
   }
 
   function renderTopBanner(list) {
     $('topLabel').textContent = '第' + state.week + '周最高分班级';
 
-    /* 只统计本周有录入记录的班级，避免未录入的班级按 100 分误当第一名 */
-    var scored = list.filter(function (x) { return x.days > 0; });
+    /* “本周期未扣分”的班级按 100 分正常参与评比；
+       只有整个周期该年级都没有录入数据（counted = 0）时才不参与，避免误当第一名 */
+    var scored = list.filter(function (x) { return x.counted > 0; });
     if (!scored.length) {
       $('topClass').textContent = '本周期暂无录入数据';
+      $('topClass').className = 'val';
       $('topScore').textContent = '—';
       return;
     }
@@ -582,7 +633,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     for (var i = 1; i < scored.length; i++) {
       if (scored[i].total > best.total) best = scored[i];
     }
-    $('topClass').textContent = classLabel(best.no);
+    /* 同为最高分的班级全部列出，班号从小到大，如 初一（1）、（2）、（7）班 */
+    var bestNos = scored.filter(function (x) { return x.total === best.total; })
+      .map(function (x) { return x.no; });
+    $('topClass').textContent = classGroupLabel(bestNos);
+    $('topClass').className = 'val' + (bestNos.length > 3 ? ' long' : '');
     $('topScore').innerHTML = best.total.toFixed(1) + '<small>分</small>';
   }
 
@@ -597,9 +652,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     var minV = Math.min.apply(null, values.concat([BASE]));
 
     /* 排名着色：名次越靠前颜色越亮，名次靠后越淡（同分同名次）
-       未录入的班级固定 100 分，不参与排名，统一用淡灰
-       第1名金、第2名深蓝、第3名亮蓝、其余淡蓝、未录入淡灰 */
-    var ranked = data.filter(function (x) { return x.days > 0; }).slice();
+       第1名金、第2名深蓝、第3名亮蓝、其余淡蓝
+       “本周期未扣分”的班级按 100 分正常参与排名；
+       只有整个周期该年级都未录入时才算未录入，统一用淡灰 */
+    var ranked = data.filter(function (x) { return x.counted > 0; }).slice();
     ranked.sort(function (a, b) { return (b.total - a.total) || (a.no - b.no); });
     var rankOf = {};
     var lastTotal = null, lastRank = 0;
@@ -654,9 +710,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
                 return classLabel(items[0].label.replace('班', ''));
               },
               label: function (c) {
-                var rk = rankOf[data[c.dataIndex].no];
-                return '总分 ' + c.parsed.y.toFixed(2) + ' 分' +
-                  (rk ? ' · 第' + rk + '名' : ' · 本周期未录入');
+                var it = data[c.dataIndex];
+                var rk = rankOf[it.no];
+                if (!rk) return '总分 ' + c.parsed.y.toFixed(2) + ' 分 · 本周期未录入';
+                return '总分 ' + c.parsed.y.toFixed(2) + ' 分 · 第' + rk + '名' +
+                  (it.days ? '' : '（本周期未扣分）');
               }
             }
           }
@@ -707,7 +765,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       card.className = 'class-card';
       var cls = item.total > BASE ? 'up' : (item.total < BASE ? 'down' : '');
       var html = '';
-      if (!item.days) html += '<div class="cc-empty">' + ICON_WARN + '未录入</div>';
+      if (!item.counted) html += '<div class="cc-empty">' + ICON_WARN + '未录入</div>';
+      else if (!item.days) html += '<div class="cc-empty no-deduct">本周期未扣分</div>';
       html += '<div class="cc-name">' + classLabel(item.no) + '</div>';
       html += '<div class="cc-total ' + cls + '">' + item.total.toFixed(1) + '</div>';
       html += '<div class="cc-sub">' +
@@ -726,6 +785,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       classLabel(no) + ' · 第' + state.week + '周 加减分明细';
 
     var slots = slotsOf(state.week);
+    var dayFlags = gradeDayFlags(state.week);
     var tIns = 0, tHyg = 0, tBon = 0;
     var html = '';
 
@@ -774,7 +834,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
           '<span class="desc' + (bonN ? '' : ' muted') + '">' + (bonN ? esc(bonN) : '（未填写说明）') + '</span></div>';
       }
       if (!hasContent) {
-        html += '<div class="day-empty">— 当天暂无记录 —</div>';
+        /* 同年级当天有录入、本班却没有记录 → 视为未扣分，而不是未录入 */
+        html += '<div class="day-empty">' +
+          (dayFlags[idx] ? '— 当天无扣分记录，视为未扣分 —' : '— 当天暂无记录 —') + '</div>';
       }
       html += '</div>';
     });
@@ -880,7 +942,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
       (sortByScore ? '（按分数排序）' : '（按班级顺序）'), pad, 34, innerW, 19, '800', '#1e293b');
     fitText('统计周期：' + cycleRangeText(state.week), pad, 57, innerW, 12, '500', '#64748b');
     fitText('总分 = 100 − 纪检扣分 − 卫检扣分 + 加分', pad, 78, innerW, 12, '500', '#64748b');
-    fitText('柱色越亮表示排名越靠前（未录入班级为淡灰色） · 导出时间 ' + exportStamp(),
+    fitText('柱色越亮表示排名越靠前（本周期未录入班级为淡灰色） · 导出时间 ' + exportStamp(),
       pad, 99, innerW, 12, '500', '#94a3b8');
 
     g.drawImage(src, pad, headH, w, h);
