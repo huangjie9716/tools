@@ -324,6 +324,38 @@
             gap: 7px;
         }
 
+        /* 多列 / 单人单桌布局：自动紧凑显示，避免横向溢出 */
+        .seating-grid.compact {
+            gap: 12px;
+        }
+
+        .seating-grid.compact .group-block {
+            gap: 6px;
+            padding: 3px 4px;
+        }
+
+        .seating-grid.compact .column {
+            gap: 6px;
+        }
+
+        .seating-grid.compact .seat-cell {
+            width: 66px;
+            height: 52px;
+        }
+
+        .seating-grid.compact .seat-name {
+            font-size: 0.74rem;
+        }
+
+        .seating-grid.compact .seat-id {
+            font-size: 0.6rem;
+        }
+
+        .seating-grid.compact .wing-seat {
+            width: 66px;
+            height: 52px;
+        }
+
         .seat-cell {
             width: 80px;
             height: 60px;
