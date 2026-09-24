@@ -423,6 +423,18 @@
             return val;
         }
 
+        // ---- T值判定结论（统一口径，学生与班级统计共用） ----
+        // T > 2：显著进步；1 < T ≤ 2：有进步；-1 ≤ T ≤ 1：正常/平稳；
+        // -2 ≤ T < -1：有退步；T < -2：退步明显
+        function getTConclusion(t) {
+            const val = (typeof t === 'number' && isFinite(t)) ? t : 0;
+            if (val > 2) return { text: '显著进步', cls: 'concl-excellent' };
+            if (val > 1) return { text: '有进步', cls: 'concl-good' };
+            if (val >= -1) return { text: '正常/平稳', cls: 'concl-normal' };
+            if (val >= -2) return { text: '有退步', cls: 'concl-warn' };
+            return { text: '退步明显', cls: 'concl-bad' };
+        }
+
         // ---- 班级排序函数（数字升序） ----
         function sortClassesNumerically(classes) {
             return classes.sort((a, b) => {
@@ -559,10 +571,7 @@
                 { key: 'residual', label: '进步分(残差)', cls: 'col-residual' },
                 { key: 'residualStd', label: '残差标准差', cls: 'col-residstd' },
                 { key: 'tValue', label: '个人T值', cls: 'col-tvalue' },
-                { key: 'overTwo', label: '超两标', cls: 'col-flag' },
-                { key: 'overOne', label: '超一标', cls: 'col-flag' },
-                { key: 'belowOne', label: '退一标', cls: 'col-flag' },
-                { key: 'belowTwo', label: '退两标', cls: 'col-flag' }
+                { key: 'conclusion', label: '判定结论', cls: 'col-conclusion' }
             ];
 
             let theadHtml = '<tr>';
@@ -572,7 +581,7 @@
             theadHtml += '</tr>';
             resultHead.innerHTML = theadHtml;
 
-            // 填充数据（重点列着色：T值 >0 绿 / <0 红；超两标、超一标绿；退一标、退两标红）
+            // 填充数据（T值按判定结论显示为彩色块，右侧给出结论文字）
             const tbody = resultBody;
             tbody.innerHTML = '';
             displayData.forEach(row => {
@@ -580,14 +589,13 @@
                 headers.forEach(h => {
                     const td = document.createElement('td');
                     const v = row[h.key];
-                    td.textContent = formatValue(h.key, v);
                     if (h.key === 'tValue') {
-                        if (v > 0) td.className = 'cell-green';
-                        else if (v < 0) td.className = 'cell-red';
-                    } else if (h.key === 'overTwo' || h.key === 'overOne') {
-                        td.className = v === 1 ? 'cell-green' : 'cell-muted';
-                    } else if (h.key === 'belowOne' || h.key === 'belowTwo') {
-                        td.className = v === 1 ? 'cell-red' : 'cell-muted';
+                        td.innerHTML = `<span class="t-flag ${getTConclusion(v).cls}">${formatValue('tValue', v)}</span>`;
+                    } else if (h.key === 'conclusion') {
+                        const concl = getTConclusion(row.tValue);
+                        td.innerHTML = `<span class="concl-text ${concl.cls}">${concl.text}</span>`;
+                    } else {
+                        td.textContent = formatValue(h.key, v);
                     }
                     tr.appendChild(td);
                 });
@@ -672,6 +680,7 @@
             tbody.innerHTML = '';
             sorted.forEach(row => {
                 const tr = document.createElement('tr');
+                const classConcl = getTConclusion(row.classT);
                 const cells = [
                     { text: String(row.class), cls: '' },
                     { text: String(row.count), cls: '' },
@@ -682,11 +691,18 @@
                     { text: String(row.overOne), cls: row.overOne > 0 ? 'cell-green' : 'cell-muted', flag: 'overOne', count: row.overOne },
                     { text: String(row.belowOne), cls: row.belowOne > 0 ? 'cell-red' : 'cell-muted', flag: 'belowOne', count: row.belowOne },
                     { text: String(row.belowTwo), cls: row.belowTwo > 0 ? 'cell-red' : 'cell-muted', flag: 'belowTwo', count: row.belowTwo },
-                    { text: row.classT.toFixed(3), cls: row.classT > 0 ? 'cell-green' : (row.classT < 0 ? 'cell-red' : '') }
+                    { text: row.classT.toFixed(3), badge: classConcl.cls },
+                    { text: classConcl.text, textCls: classConcl.cls, cls: 'col-conclusion' }
                 ];
                 cells.forEach(c => {
                     const td = document.createElement('td');
-                    td.textContent = c.text;
+                    if (c.badge) {
+                        td.innerHTML = `<span class="t-flag ${c.badge}">${c.text}</span>`;
+                    } else if (c.textCls) {
+                        td.innerHTML = `<span class="concl-text ${c.textCls}">${c.text}</span>`;
+                    } else {
+                        td.textContent = c.text;
+                    }
                     if (c.cls) td.className = c.cls;
                     if (c.flag && c.count > 0) {
                         td.classList.add('cell-clickable');
@@ -1182,10 +1198,7 @@
                 '进步分（残差）': r.residual,
                 '残差标准差': r.residualStd,
                 '个人T值': r.tValue,
-                '超两标': r.overTwo,
-                '超一标': r.overOne,
-                '退一标': r.belowOne,
-                '退两标': r.belowTwo
+                '判定结论': getTConclusion(r.tValue).text
             }));
             const ws = XLSX.utils.json_to_sheet(exportArr);
             const colWidths = [];
@@ -1221,13 +1234,14 @@
                 '超一标人数': r.overOne,
                 '退一标人数': r.belowOne,
                 '退两标人数': r.belowTwo,
-                '班级T值': r.classT
+                '班级T值': r.classT,
+                '判定结论': getTConclusion(r.classT).text
             }));
             const ws = XLSX.utils.json_to_sheet(exportArr);
             ws['!cols'] = [
                 { wch: 14 }, { wch: 8 }, { wch: 18 }, { wch: 18 },
                 { wch: 16 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
-                { wch: 12 }, { wch: 14 }
+                { wch: 12 }, { wch: 14 }, { wch: 14 }
             ];
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, '班级统计');
