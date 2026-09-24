@@ -559,7 +559,9 @@
             var response = await fetch(SUPABASE_REST + path, {
                 method: opts.method || 'GET',
                 headers: headers,
-                body: opts.body
+                body: opts.body,
+                // 需要读数据库最新值的地方可以传 cache: 'no-store'，绕开浏览器缓存
+                cache: opts.cache || 'default'
             });
             var text = await response.text();
             var data = null;
@@ -742,32 +744,46 @@
             // ============================================================
             // 访问计数器
             // ============================================================
+            // 从接口返回里取出次数：RPC 返回 [{count:n}]（或裸数字），直接查表返回 [{count:n}]
+            function parseVisitCount(payload) {
+                if (typeof payload === 'number') return payload;
+                var row = Array.isArray(payload) ? payload[0] : payload;
+                if (row && typeof row.count === 'number') return row.count;
+                return null;
+            }
+
+            // 原实现是「先读当前值 → 再 PATCH 写回 +1」，有两个毛病：
+            //   1) 不是原子操作，多人同时打开会互相覆盖，丢计数；
+            //   2) 写回失败时前端看不出来 —— 曾出现 PATCH 被网关以 401 拒绝，
+            //      页面却照样把「读到的值 + 1」显出来，于是永久卡死在同一个数字。
+            // 改成调用数据库函数 increment_site_visit()：一次请求由数据库原子地 +1 并返回新值，
+            // 显示的即是数据库真值，写没写进去一目了然。
             async function updateVisitCount() {
                 var el = document.getElementById('visit-count');
                 if (!el) return;
                 try {
-                    // 读取当前次数
-                    var read = await supabaseFetch('site_visits?id=eq.1&select=count');
-                    var row = read.data && read.data[0];
-                    if (!row || typeof row.count !== 'number') {
-                        el.textContent = '--';
-                        return;
+                    var res = await supabaseFetch('rpc/increment_site_visit', {
+                        method: 'POST',
+                        body: '{}'
+                    });
+                    var next = parseVisitCount(res.data);
+                    if (next === null) throw new Error('接口返回格式异常');
+                    el.textContent = next;
+                } catch (err) {
+                    // 自增失败不再假装成功：退一步只显示数据库里的现有值，
+                    // 并在控制台留下原因，方便日后排查。
+                    if (window.console && console.warn) {
+                        console.warn('[访问计数] 自增失败：', (err && err.message) || err);
                     }
-                    var current = row.count;
                     try {
-                        // 写回 +1（不返回数据，减少响应体）
-                        await supabaseFetch('site_visits?id=eq.1', {
-                            method: 'PATCH',
-                            headers: { 'Prefer': 'return=minimal' },
-                            body: JSON.stringify({ count: current + 1 })
+                        var read = await supabaseFetch('site_visits?id=eq.1&select=count', {
+                            cache: 'no-store'
                         });
-                        el.textContent = current + 1;
-                    } catch (writeErr) {
-                        // 无写权限时仍显示读取到的值
-                        el.textContent = current;
+                        var current = parseVisitCount(read.data);
+                        el.textContent = (current === null) ? '--' : current;
+                    } catch (_) {
+                        el.textContent = '--';
                     }
-                } catch (_) {
-                    el.textContent = '--';
                 }
             }
 
