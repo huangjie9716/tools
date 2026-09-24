@@ -79,7 +79,13 @@
         <div class="chart-wrapper" id="chartWrapper">
             <div class="flex-between">
                 <div class="chart-title">📉 累计比显著性分析曲线图 <small id="chartSubtitle">请选择班级</small></div>
-                <button class="btn-download" id="downloadChartBtn">下载当前图表</button>
+                <div class="chart-head-actions">
+                    <div class="axis-toggle" id="yScaleToggle" role="group" aria-label="纵轴量程模式" title="统一量程：以当前学科全部班级的 T 值范围固定纵轴，保证同一班级在任何入口下刻度一致；自适应量程：按当前显示的曲线自动调整纵轴">
+                        <button type="button" class="axis-toggle-btn active" data-mode="unified">统一量程</button>
+                        <button type="button" class="axis-toggle-btn" data-mode="auto">自适应量程</button>
+                    </div>
+                    <button class="btn-download" id="downloadChartBtn">下载当前图表</button>
+                </div>
             </div>
             <div class="compare-panel" id="comparePanel">
                 <span class="label"><span class="label-icon"><svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M384.19 960.26H193.9c-70.42 0-127.71-57.27-127.71-127.67V193.93c0-70.4 57.29-127.67 127.71-127.67h190.24c17.67 0 32 14.33 32 32s-14.33 32-32 32H193.9c-35.13 0-63.71 28.56-63.71 63.67V832.6c0 35.11 28.58 63.67 63.71 63.67h190.29c17.67 0 32 14.33 32 32s-14.33 31.99-32 31.99z m448.25 0H642.16c-17.67 0-32-14.33-32-32s14.33-32 32-32h190.29c35.13 0 63.71-28.56 63.71-63.67V193.93c0-35.11-28.58-63.67-63.71-63.67H642.2c-17.67 0-32-14.33-32-32s14.33-32 32-32h190.24c70.42 0 127.71 57.27 127.71 127.67V832.6c0.01 70.39-57.29 127.66-127.71 127.66zM511.33 159.33c-17.67 0-32-14.33-32-32v-32c0-17.67 14.33-32 32-32s32 14.33 32 32v32c0 17.68-14.32 32-32 32z m0 669.53c-17.67 0-32-14.33-32-32V727.3c0-17.67 14.33-32 32-32s32 14.33 32 32v69.56c0 17.67-14.32 32-32 32z m0-167.38c-17.67 0-32-14.33-32-32v-69.56c0-17.67 14.33-32 32-32s32 14.33 32 32v69.56c0 17.67-14.32 32-32 32z m0-167.38c-17.67 0-32-14.33-32-32v-69.56c0-17.67 14.33-32 32-32s32 14.33 32 32v69.56c0 17.67-14.32 32-32 32z m0-167.38c-17.67 0-32-14.33-32-32v-69.56c0-17.67 14.33-32 32-32s32 14.33 32 32v69.56c0 17.67-14.32 32-32 32z m0 631.96c-17.67 0-32-14.33-32-32v-32c0-17.67 14.33-32 32-32s32 14.33 32 32v32c0 17.67-14.32 32-32 32z" fill="#2c2c2c"></path><path d="M283.05 626.05c-8.19 0-16.38-3.12-22.63-9.37-12.5-12.5-12.5-32.76 0-45.25l63.31-63.31-59.16-59.16c-12.5-12.5-12.5-32.76 0-45.25 12.5-12.5 32.76-12.5 45.25 0l81.78 81.78c12.5 12.5 12.5 32.76 0 45.25l-85.94 85.94c-6.23 6.25-14.42 9.37-22.61 9.37z m460.07 0c-8.19 0-16.38-3.12-22.63-9.37l-85.94-85.94c-12.5-12.5-12.5-32.76 0-45.25l81.78-81.78c12.5-12.5 32.76-12.5 45.25 0 12.5 12.5 12.5 32.76 0 45.25l-59.16 59.16 63.31 63.31c12.5 12.5 12.5 32.76 0 45.25-6.23 6.25-14.42 9.37-22.61 9.37z" fill="#2c2c2c"></path></svg></span>对比班级：</span>
@@ -90,6 +96,33 @@
             <div id="chartContainer">
                 <div class="no-data" id="noChartMsg"><span class="icon">📈</span><p>选择班级后显示曲线</p></div>
                 <canvas id="tChart" style="display:none;"></canvas>
+            </div>
+            <div class="chart-notes" id="chartNotes">
+                <div class="notes-title">曲线解读方法</div>
+                <div class="notes-grid">
+                    <div class="notes-block">
+                        <div class="notes-subtitle">X 轴：全体累积百分比排名</div>
+                        <ul class="notes-list">
+                            <li>左侧 (0%)：顶尖生（Top 0%，高分起点）</li>
+                            <li>右侧 (100%)：低分段（Bottom 100%，低分终点）</li>
+                        </ul>
+                    </div>
+                    <div class="notes-block">
+                        <div class="notes-subtitle">Y 轴：表现显著性水平</div>
+                        <ul class="notes-list">
+                            <li>高值 (&gt; 2)：显著优势（实得人数 &gt; 预期）</li>
+                            <li>低值 (&lt; -2)：显著劣势（实得人数 &lt; 预期）</li>
+                        </ul>
+                    </div>
+                    <div class="notes-block">
+                        <div class="notes-subtitle">形态分析</div>
+                        <ul class="notes-list">
+                            <li>左侧隆起：尖子生（优生）群体表现强劲</li>
+                            <li>中段隆起：中等生群体表现强劲</li>
+                            <li>整体较高：整体表现普遍优于区域平均</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
