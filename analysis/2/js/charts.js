@@ -47,11 +47,11 @@
             }
             ctx2.restore();
         };
-        drawLine(0, '#2a8a4a', [], 4, null);
-        drawLine(2, 'rgba(200,60,60,0.7)', [6,5], 2, '+2');
-        drawLine(-2, 'rgba(200,60,60,0.7)', [6,5], 2, '-2');
-        drawLine(1, 'rgba(50,120,200,0.5)', [4,4], 1.5, '+1');
-        drawLine(-1, 'rgba(50,120,200,0.5)', [4,4], 1.5, '-1');
+        drawLine(0, 'rgba(42,138,74,0.85)', [], 2.5, null);
+        drawLine(2, 'rgba(200,60,60,0.6)', [7,5], 1.6, '+2');
+        drawLine(-2, 'rgba(200,60,60,0.6)', [7,5], 1.6, '-2');
+        drawLine(1, 'rgba(50,120,200,0.3)', [5,5], 1.2, '+1');
+        drawLine(-1, 'rgba(50,120,200,0.3)', [5,5], 1.2, '-1');
     }
 
     /** 在图表左上角绘制带底色圆角标题 */
@@ -80,8 +80,11 @@
         ctx2.restore();
     }
 
-    /** 在零线上下填充半透明色块（绿色为正、红色为负） */
-    function fillZeroAreas(chart, metaIndex) {
+    /**
+     * 在零线上下填充半透明色块（绿色为正、红色为负）
+     * @param {number} [alpha] 填充透明度，默认 0.08（两种视图共用，保证外观一致）
+     */
+    function fillZeroAreas(chart, metaIndex, alpha) {
         const yScale = chart.scales.y;
         const xScale = chart.scales.x;
         if (!yScale || !xScale) return;
@@ -90,6 +93,7 @@
         if (!meta || !meta.data || meta.data.length === 0) return;
         const points = meta.data.map(d => ({ x: d.x, y: d.y }));
         const yZero = yScale.getPixelForValue(0);
+        const fillAlpha = (typeof alpha === 'number') ? alpha : 0.06;
 
         // 正区域（曲线在零线上方）
         ctx2.save();
@@ -108,7 +112,7 @@
         }
         if (started) { const last = points[points.length-1]; ctx2.lineTo(last.x, yZero); }
         ctx2.closePath();
-        ctx2.fillStyle = 'rgba(0, 180, 80, 0.12)';
+        ctx2.fillStyle = 'rgba(0, 180, 80, ' + fillAlpha + ')';
         ctx2.fill();
         ctx2.restore();
 
@@ -129,15 +133,24 @@
         }
         if (started) { const last = points[points.length-1]; ctx2.lineTo(last.x, yZero); }
         ctx2.closePath();
-        ctx2.fillStyle = 'rgba(200, 60, 60, 0.12)';
+        ctx2.fillStyle = 'rgba(200, 60, 60, ' + fillAlpha + ')';
         ctx2.fill();
         ctx2.restore();
     }
 
-    /** 根据 T 值数据计算 Y 轴上下界（含 ±1、±2、±3 参考线留白） */
+    /**
+     * 根据 T 值数据计算 Y 轴上下界（含 ±1、±2、±3 参考线留白）
+     * 说明：无论数据如何，结果始终至少覆盖 ±3，保证参考线位置稳定。
+     */
     function computeYRange(data) {
-        let minT = Math.min(...data);
-        let maxT = Math.max(...data);
+        let minT = 0, maxT = 0, hasValue = false;
+        for (let i = 0; i < data.length; i++) {
+            const v = data[i];
+            if (typeof v !== 'number' || !isFinite(v)) continue;
+            if (!hasValue) { minT = maxT = v; hasValue = true; continue; }
+            if (v < minT) minT = v;
+            if (v > maxT) maxT = v;
+        }
         const range = maxT - minT;
         const padding = Math.max(0.5, range * 0.25);
         let yMin = Math.min(-3, minT - padding);
@@ -145,6 +158,38 @@
         yMin = Math.min(yMin, -2.5);
         yMax = Math.max(yMax, 2.5);
         return { yMin, yMax };
+    }
+
+    /** 收集当前学科下全部班级的 T 值（用于“统一量程”） */
+    function collectAllClassTValues() {
+        const all = [];
+        if (!S.globalSegments || S.globalSegments.length === 0) return all;
+        Object.keys(S.classData).forEach(cls => {
+            const clsData = S.classData[cls];
+            if (!clsData || !clsData.rows || clsData.rows.length === 0) return;
+            const tValues = Data.computeTValues(S.globalSegments, clsData.rows, clsData.totalN);
+            for (let i = 0; i < tValues.length; i++) all.push(tValues[i]);
+        });
+        return all;
+    }
+
+    /**
+     * 解析纵轴量程
+     * - unified（默认）：始终按当前学科“全部班级”的 T 值范围取值，
+     *   这样同一个班级在“单班级视图”与“全校对比视图”中的纵轴刻度完全一致；
+     * - auto：按传入的当前可见曲线的 T 值范围取值。
+     * @param {Array<Array<number>>} seriesTValues 当前可见曲线的 T 值序列
+     */
+    function resolveYRange(seriesTValues) {
+        if (S.yAxisMode === 'unified') {
+            const all = collectAllClassTValues();
+            if (all.length > 0) return computeYRange(all);
+        }
+        const flat = [];
+        (seriesTValues || []).forEach(series => {
+            for (let i = 0; i < series.length; i++) flat.push(series[i]);
+        });
+        return computeYRange(flat);
     }
 
     /** 累计比率线性横轴：以 0% ~ 100% 等间隔显示刻度 */
@@ -168,14 +213,15 @@
 
     /**
      * 单班级 T 值曲线图
-     * @param {Array} classRows   班级分数段行
-     * @param {Array} tValues     T 值序列
+     * 说明：横轴与多班级对比图保持一致，均为“全校累计比率”，
+     *      因此同一班级在两种入口下的曲线完全一致。
+     * @param {Array} tValues     T 值序列（与 S.globalSegments 一一对应）
      * @param {string} className  班级名
      */
-    function renderSingleChart(classRows, tValues, className) {
+    function renderSingleChart(tValues, className) {
         if (S.chartInstance) { S.chartInstance.destroy(); S.chartInstance = null; }
-        const { yMin, yMax } = computeYRange(tValues);
-        const xyData = tValues.map((t, i) => ({ x: classRows[i].ratio, y: t }));
+        const { yMin, yMax } = resolveYRange([tValues]);
+        const xyData = tValues.map((t, i) => ({ x: S.globalSegments[i].ratio, y: t }));
         const ctx = S.dom.tChartCanvas.getContext('2d');
 
         const bgPlugin = {
@@ -196,18 +242,17 @@
             type: 'line',
             data: {
                 datasets: [{
-                    label: className + ' T值',
+                    // 点线样式与多班级对比图保持一致，避免同一班级在两个入口下外观不同
+                    label: className,
                     data: xyData,
                     borderColor: '#1a3a6b',
-                    backgroundColor: 'rgba(26,58,107,0.08)',
-                    borderWidth: 3,
-                    pointBackgroundColor: '#1a3a6b',
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    pointRadius: 4,
-                    pointHoverRadius: 8,
+                    backgroundColor: '#1a3a6b22',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 5,
+                    pointHitRadius: 12,
                     tension: 0.4,
-                    interpolation: 'monotone',
+                    cubicInterpolationMode: 'monotone',
                     fill: false,
                 }]
             },
@@ -215,153 +260,8 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: { duration: 0 },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return 'T = ' + context.parsed.y.toFixed(3);
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: ratioXScale('班级累计比率'),
-                    y: {
-                        title: { display: true, text: 'T 值', font: { size: 12, weight: '500' } },
-                        min: yMin,
-                        max: yMax,
-                        ticks: { stepSize: 1 },
-                        grid: {
-                            color: function(context) {
-                                const val = context.tick.value;
-                                if (val === 0) return 'rgba(42,138,74,0.8)';
-                                if (val === 2 || val === -2) return 'rgba(200,60,60,0.3)';
-                                if (val === 1 || val === -1) return 'rgba(50,120,200,0.2)';
-                                return 'rgba(0,0,0,0.06)';
-                            },
-                            lineWidth: function(context) {
-                                const val = context.tick.value;
-                                if (val === 0) return 3;
-                                if (val === 2 || val === -2) return 1.5;
-                                return 1;
-                            }
-                        }
-                    }
-                }
-            },
-            plugins: [bgPlugin]
-        });
-    }
-
-    /**
-     * 多班级对比图（全校视图）
-     * @param {Array} classNames 勾选对比的班级名列表
-     */
-    function renderMultiClassChart(classNames) {
-        const datasets = [];
-        classNames.forEach((cls, idx) => {
-            const clsData = S.classData[cls];
-            if (!clsData) return;
-            const tValues = Data.computeTValues(S.globalSegments, clsData.rows, clsData.totalN);
-            const color = S.COLORS[idx % S.COLORS.length];
-            datasets.push({
-                label: cls,
-                data: tValues.map((t, i) => ({ x: S.globalSegments[i].ratio, y: t })),
-                borderColor: color,
-                backgroundColor: color + '22',
-                borderWidth: 2.8,
-                pointRadius: 2,
-                pointHoverRadius: 6,
-                tension: 0.4,
-                interpolation: 'monotone',
-                fill: false,
-            });
-        });
-
-        if (S.chartInstance) { S.chartInstance.destroy(); S.chartInstance = null; }
-
-        let allT = [];
-        datasets.forEach(ds => allT = allT.concat(ds.data.map(p => p.y)));
-        if (allT.length === 0) return;
-        const { yMin, yMax } = computeYRange(allT);
-
-        const ctx = S.dom.tChartCanvas.getContext('2d');
-
-        const multiBgPlugin = {
-            id: 'multiBgFill',
-            beforeDraw: function(chart) {
-                const dsCount = chart.data.datasets.length;
-                for (let idx = 0; idx < dsCount; idx++) {
-                    // 保持原始绘制效果：每个数据集独立填充，透明度更低
-                    const yScale = chart.scales.y;
-                    const xScale = chart.scales.x;
-                    if (!yScale || !xScale) return;
-                    const ctx2 = chart.ctx;
-                    const meta = chart.getDatasetMeta(idx);
-                    if (!meta || !meta.data || meta.data.length === 0) continue;
-                    const points = meta.data.map(d => ({ x: d.x, y: d.y }));
-                    const yZero = yScale.getPixelForValue(0);
-
-                    // 正区域
-                    ctx2.save();
-                    ctx2.beginPath();
-                    ctx2.moveTo(points[0].x, yZero);
-                    let started = false;
-                    for (let i = 0; i < points.length; i++) {
-                        const p = points[i];
-                        if (p.y > yZero) {
-                            if (started) { ctx2.lineTo(p.x, yZero); started = false; }
-                            else { ctx2.lineTo(p.x, yZero); }
-                        } else {
-                            if (!started) { ctx2.lineTo(p.x, yZero); started = true; }
-                            ctx2.lineTo(p.x, p.y);
-                        }
-                    }
-                    if (started) { const last = points[points.length-1]; ctx2.lineTo(last.x, yZero); }
-                    ctx2.closePath();
-                    ctx2.fillStyle = 'rgba(0, 180, 80, 0.08)';
-                    ctx2.fill();
-                    ctx2.restore();
-
-                    // 负区域
-                    ctx2.save();
-                    ctx2.beginPath();
-                    ctx2.moveTo(points[0].x, yZero);
-                    started = false;
-                    for (let i = 0; i < points.length; i++) {
-                        const p = points[i];
-                        if (p.y <= yZero) {
-                            if (started) { ctx2.lineTo(p.x, yZero); started = false; }
-                            else { ctx2.lineTo(p.x, yZero); }
-                        } else {
-                            if (!started) { ctx2.lineTo(p.x, yZero); started = true; }
-                            ctx2.lineTo(p.x, p.y);
-                        }
-                    }
-                    if (started) { const last = points[points.length-1]; ctx2.lineTo(last.x, yZero); }
-                    ctx2.closePath();
-                    ctx2.fillStyle = 'rgba(200, 60, 60, 0.08)';
-                    ctx2.fill();
-                    ctx2.restore();
-                }
-            },
-            afterDraw: function(chart) {
-                const yScale = chart.scales.y;
-                const xScale = chart.scales.x;
-                if (!yScale || !xScale) return;
-                drawReferenceLines(chart.ctx, yScale, xScale);
-                drawTitleBadge(chart.ctx, yScale, xScale, `学科：${S.currentSubject}  |  全校班级对比`);
-            }
-        };
-
-        S.chartInstance = new Chart(ctx, {
-            type: 'line',
-            data: { datasets: datasets },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: { duration: 0 },
+                // 无数据点圆点后，沿 x 轴就近吸附即可弹出提示
+                interaction: { mode: 'index', intersect: false },
                 plugins: {
                     legend: {
                         position: 'top',
@@ -383,19 +283,103 @@
                         max: yMax,
                         ticks: { stepSize: 1 },
                         grid: {
-                            color: function(context) {
-                                const val = context.tick.value;
-                                if (val === 0) return 'rgba(42,138,74,0.8)';
-                                if (val === 2 || val === -2) return 'rgba(200,60,60,0.3)';
-                                if (val === 1 || val === -1) return 'rgba(50,120,200,0.2)';
-                                return 'rgba(0,0,0,0.06)';
-                            },
-                            lineWidth: function(context) {
-                                const val = context.tick.value;
-                                if (val === 0) return 3;
-                                if (val === 2 || val === -2) return 1.5;
-                                return 1;
+                            // 网格统一浅色：0 / ±1 / ±2 由参考线单独绘制，避免与网格线重复叠加
+                            color: 'rgba(0,0,0,0.05)',
+                            lineWidth: 1
+                        }
+                    }
+                }
+            },
+            plugins: [bgPlugin]
+        });
+    }
+
+    /**
+     * 多班级对比图（全校视图）
+     * @param {Array} classNames 勾选对比的班级名列表
+     */
+    function renderMultiClassChart(classNames) {
+        const datasets = [];
+        const seriesTValues = [];
+        classNames.forEach((cls, idx) => {
+            const clsData = S.classData[cls];
+            if (!clsData) return;
+            const tValues = Data.computeTValues(S.globalSegments, clsData.rows, clsData.totalN);
+            const color = S.COLORS[idx % S.COLORS.length];
+            seriesTValues.push(tValues);
+            datasets.push({
+                label: cls,
+                data: tValues.map((t, i) => ({ x: S.globalSegments[i].ratio, y: t })),
+                borderColor: color,
+                backgroundColor: color + '22',
+                borderWidth: 2,
+                pointRadius: 0,
+                pointHoverRadius: 5,
+                pointHitRadius: 12,
+                tension: 0.4,
+                cubicInterpolationMode: 'monotone',
+                fill: false,
+            });
+        });
+
+        if (S.chartInstance) { S.chartInstance.destroy(); S.chartInstance = null; }
+
+        if (datasets.length === 0) return;
+        const { yMin, yMax } = resolveYRange(seriesTValues);
+
+        const ctx = S.dom.tChartCanvas.getContext('2d');
+
+        const multiBgPlugin = {
+            id: 'multiBgFill',
+            beforeDraw: function(chart) {
+                // 每个数据集独立填充，与单班级视图共用 fillZeroAreas，保证两图外观一致
+                const dsCount = chart.data.datasets.length;
+                for (let idx = 0; idx < dsCount; idx++) {
+                    fillZeroAreas(chart, idx, 0.06);
+                }
+            },
+            afterDraw: function(chart) {
+                const yScale = chart.scales.y;
+                const xScale = chart.scales.x;
+                if (!yScale || !xScale) return;
+                drawReferenceLines(chart.ctx, yScale, xScale);
+                drawTitleBadge(chart.ctx, yScale, xScale, `学科：${S.currentSubject}  |  全校班级对比`);
+            }
+        };
+
+        S.chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: { datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 0 },
+                // 无数据点圆点后，沿 x 轴就近吸附即可弹出提示
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { font: { size: 12, weight: '500' }, padding: 12, usePointStyle: true, pointStyle: 'circle' }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + '  T = ' + context.parsed.y.toFixed(3);
                             }
+                        }
+                    }
+                },
+                scales: {
+                    x: ratioXScale('全校累计比率'),
+                    y: {
+                        title: { display: true, text: 'T 值', font: { size: 12, weight: '500' } },
+                        min: yMin,
+                        max: yMax,
+                        ticks: { stepSize: 1 },
+                        grid: {
+                            // 网格统一浅色：0 / ±1 / ±2 由参考线单独绘制，避免与网格线重复叠加
+                            color: 'rgba(0,0,0,0.05)',
+                            lineWidth: 1
                         }
                     }
                 }
