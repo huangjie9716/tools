@@ -51,11 +51,13 @@
             }
         } else {
             const clsData = S.classData[entity];
-            if (clsData && clsData.rows.length > 0) {
-                const rows = clsData.rows;
-                D.maxScore.textContent = rows[0].score;
-                D.minScore.textContent = rows[rows.length - 1].score;
-                D.segmentCount.textContent = rows.length;
+            // 班级分数段行是对齐“全校分数段”的，必须剔除 count 为 0 的行，
+            // 才能得到该班级自己的最高分 / 最低分 / 分数段数。
+            const validRows = (clsData && clsData.rows) ? clsData.rows.filter(r => r.count > 0) : [];
+            if (validRows.length > 0) {
+                D.maxScore.textContent = validRows[0].score;
+                D.minScore.textContent = validRows[validRows.length - 1].score;
+                D.segmentCount.textContent = validRows.length;
             } else {
                 D.maxScore.textContent = '—'; D.minScore.textContent = '—'; D.segmentCount.textContent = '—';
             }
@@ -276,15 +278,25 @@
         D.noDataMsg.style.display = 'none';
         D.resultTable.style.display = 'table';
 
-        D.chartSubtitle.textContent = `${S.currentSubject} · ${className} (${classTotalN}人) · 横轴: 班级累计比率`;
+        D.chartSubtitle.textContent = `${S.currentSubject} · ${className} (${classTotalN}人) · 横轴: 全校累计比率`;
         D.noChartMsg.style.display = 'none';
         D.tChartCanvas.style.display = 'block';
-        Charts.renderSingleChart(classRows, tValues, className);
+        Charts.renderSingleChart(tValues, className);
+    }
+
+    /** 切换纵轴量程模式后重绘当前曲线（不改动任何数据） */
+    function refreshChart() {
+        if (!S.globalSegments || S.globalSegments.length === 0) return;
+        if (S.currentEntity && S.currentEntity !== '全校') {
+            updateSingleView(S.currentEntity);
+        } else {
+            updateAllView();
+        }
     }
 
     window.UI = {
         resetAll, updateStatsForEntity, renderSubjects, renderClassTabs,
         selectSubject, selectEntity, initCheckboxes, updateCheckedClasses,
-        updateAllView, updateSingleView
+        updateAllView, updateSingleView, refreshChart
     };
 })();
