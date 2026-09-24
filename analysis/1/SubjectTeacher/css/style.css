@@ -347,6 +347,7 @@ tr:hover td {
 .col-residstd { width: 8%; }
 .col-tvalue { width: 7%; }
 .col-flag { width: 4%; }
+.col-conclusion { width: 10%; }
 
 /* ===== 增值评价建议名单面板 ===== */
 .advice-panel {
@@ -668,6 +669,39 @@ tr:hover td {
     color: #c0c8d0;
     font-weight: 400;
 }
+
+/* ===== T值彩色块与判定结论 ===== */
+.t-flag {
+    display: inline-block;
+    min-width: 56px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: center;
+    white-space: nowrap;
+}
+.concl-text {
+    font-weight: 600;
+    white-space: nowrap;
+}
+/* 显著进步：绿块 */
+.concl-excellent { background: #1e8e3e; }
+.concl-text.concl-excellent { background: none; color: #1e8e3e; }
+/* 有进步：蓝块 */
+.concl-good { background: #1a73e8; }
+.concl-text.concl-good { background: none; color: #1a73e8; }
+/* 正常/平稳：灰块 */
+.concl-normal { background: #6c757d; }
+.concl-text.concl-normal { background: none; color: #6c757d; }
+/* 有退步：黄块 */
+.concl-warn { background: #f5b400; }
+.concl-text.concl-warn { background: none; color: #d99600; }
+/* 退步明显：红块 */
+.concl-bad { background: #e0392b; }
+.concl-text.concl-bad { background: none; color: #e0392b; }
 
 /* ===== 视图切换卡片（横排） ===== */
 .view-cards {
