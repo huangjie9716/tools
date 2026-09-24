@@ -1765,3 +1765,341 @@
 .version-item {
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.2s ease;
 }
+
+/* ============================================================
+   更新日志（2026-09-24）
+   说明：本块为「更新日志」面板新增的样式，仅新增变量、
+        不覆盖原有规则，如不满意可整体删除回滚。
+   ============================================================ */
+
+:root {
+    /* 更新日志指示色（金色，与八分类均不重复） */
+    --color-changelog: #cbb26a;
+
+    /* 改动标签配色（浅色） */
+    --tag-new-bg: #ecfdf5;
+    --tag-new-fg: #047857;
+    --tag-new-bd: #a7f3d0;
+    --tag-opt-bg: #eff6ff;
+    --tag-opt-fg: #1d4ed8;
+    --tag-opt-bd: #bfdbfe;
+    --tag-fix-bg: #fff7ed;
+    --tag-fix-fg: #c2410c;
+    --tag-fix-bd: #fed7aa;
+    --tag-adj-bg: #f5f3ff;
+    --tag-adj-fg: #6d28d9;
+    --tag-adj-bd: #ddd6fe;
+    --tag-del-bg: #fef2f2;
+    --tag-del-fg: #b91c1c;
+    --tag-del-bd: #fecaca;
+    --tag-other-bg: #f1f5f9;
+    --tag-other-fg: #475569;
+    --tag-other-bd: #e2e8f0;
+}
+
+[data-theme="dark"] {
+    --color-changelog: #e0cd92;
+
+    --tag-new-bg: rgba(16, 185, 129, 0.14);
+    --tag-new-fg: #6ee7b7;
+    --tag-new-bd: rgba(16, 185, 129, 0.32);
+    --tag-opt-bg: rgba(59, 130, 246, 0.16);
+    --tag-opt-fg: #93c5fd;
+    --tag-opt-bd: rgba(59, 130, 246, 0.34);
+    --tag-fix-bg: rgba(249, 115, 22, 0.16);
+    --tag-fix-fg: #fdba74;
+    --tag-fix-bd: rgba(249, 115, 22, 0.34);
+    --tag-adj-bg: rgba(139, 92, 246, 0.16);
+    --tag-adj-fg: #c4b5fd;
+    --tag-adj-bd: rgba(139, 92, 246, 0.34);
+    --tag-del-bg: rgba(239, 68, 68, 0.16);
+    --tag-del-fg: #fca5a5;
+    --tag-del-bd: rgba(239, 68, 68, 0.34);
+    --tag-other-bg: rgba(148, 163, 184, 0.16);
+    --tag-other-fg: #cbd5e1;
+    --tag-other-bd: rgba(148, 163, 184, 0.3);
+}
+
+/* ① 侧边栏：更新日志与其它分类平级，不分隔线 */
+.sidebar-nav .nav-item.category-changelog.active {
+    color: var(--color-changelog);
+    background: rgba(203, 178, 106, 0.16);
+}
+.sidebar-nav .nav-item.category-changelog.active::before {
+    background: var(--color-changelog);
+}
+
+/* ② 面板容器 */
+.changelog-container {
+    max-width: 920px;
+}
+
+.changelog-loading,
+.changelog-empty {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding: 1rem 0;
+}
+
+/* ③ 顶部说明区（md 中的 # 标题 / > 引用 / 段落） */
+.changelog-lead {
+    margin-bottom: 1.1rem;
+}
+
+.changelog-lead-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 0.35rem;
+}
+
+.changelog-lead-text {
+    font-size: 0.84rem;
+    color: var(--text-secondary);
+    line-height: 1.8;
+}
+
+.changelog-quote {
+    padding: 0.55rem 0.95rem;
+    margin: 0.6rem 0;
+    border-left: 3px solid var(--primary-border);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    background: var(--primary-light);
+    font-size: 0.83rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+}
+
+.changelog-hr {
+    border: none;
+    border-top: 1px dashed var(--border);
+    margin: 1rem 0;
+}
+
+/* ④ 版本卡片 */
+.changelog-entry {
+    position: relative;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.15rem 1.05rem 1.4rem;
+    margin-bottom: 0.9rem;
+    animation: fadeIn 0.25s ease;
+}
+
+/* 卡片左侧分类色条 */
+.changelog-entry::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 1rem;
+    bottom: 1rem;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--color-changelog);
+}
+
+.changelog-entry:hover {
+    border-color: var(--primary-border);
+    box-shadow: var(--shadow-hover);
+}
+
+.changelog-entry-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.55rem;
+    margin-bottom: 0.6rem;
+}
+
+.changelog-date {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-main);
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums;
+}
+
+.changelog-entry-title {
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.changelog-version {
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    color: var(--primary);
+    background: var(--primary-light);
+    border: 1px solid var(--primary-border);
+}
+
+.changelog-latest {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    color: #8a6d1f;
+    background: rgba(203, 178, 106, 0.18);
+    border: 1px solid rgba(203, 178, 106, 0.42);
+}
+[data-theme="dark"] .changelog-latest {
+    color: #f0e3b2;
+    background: rgba(224, 205, 146, 0.16);
+    border-color: rgba(224, 205, 146, 0.36);
+}
+
+.changelog-sub {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin: 0.8rem 0 0.4rem;
+}
+
+.changelog-entry-desc {
+    font-size: 0.85rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+/* ⑤ 改动条目 */
+.changelog-changes {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.changelog-change {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    font-size: 0.85rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+}
+
+.changelog-text {
+    min-width: 0;
+}
+
+.changelog-text strong,
+.changelog-entry-desc strong,
+.changelog-quote strong {
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+.changelog-tag {
+    flex: 0 0 auto;
+    margin-top: 0.25rem;
+    padding: 0 0.45rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1.6;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.tag-new {
+    color: var(--tag-new-fg);
+    background: var(--tag-new-bg);
+    border-color: var(--tag-new-bd);
+}
+.tag-opt {
+    color: var(--tag-opt-fg);
+    background: var(--tag-opt-bg);
+    border-color: var(--tag-opt-bd);
+}
+.tag-fix {
+    color: var(--tag-fix-fg);
+    background: var(--tag-fix-bg);
+    border-color: var(--tag-fix-bd);
+}
+.tag-adj {
+    color: var(--tag-adj-fg);
+    background: var(--tag-adj-bg);
+    border-color: var(--tag-adj-bd);
+}
+.tag-del {
+    color: var(--tag-del-fg);
+    background: var(--tag-del-bg);
+    border-color: var(--tag-del-bd);
+}
+.tag-other {
+    color: var(--tag-other-fg);
+    background: var(--tag-other-bg);
+    border-color: var(--tag-other-bd);
+}
+
+/* ⑥ 行内代码 / 链接 */
+.changelog-text code,
+.changelog-entry-desc code,
+.changelog-lead-text code,
+.changelog-quote code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+    font-size: 0.86em;
+    padding: 0.05rem 0.32rem;
+    border-radius: 4px;
+    background: var(--border-light);
+    color: var(--text-main);
+    word-break: break-all;
+}
+
+.changelog-text a,
+.changelog-entry-desc a,
+.changelog-lead-text a,
+.changelog-quote a {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+/* ⑦ 加载失败提示 */
+.changelog-error {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 1rem 1.15rem;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--card-bg);
+    font-size: 0.84rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+}
+
+.changelog-error strong {
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.changelog-error-hint {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+/* ⑧ 窄屏适配 */
+@media (max-width: 600px) {
+    .changelog-entry {
+        padding: 0.85rem 0.9rem 0.9rem 1.15rem;
+    }
+
+    .changelog-date {
+        font-size: 0.88rem;
+    }
+
+    .changelog-change {
+        font-size: 0.8rem;
+        gap: 0.45rem;
+    }
+
+    .changelog-tag {
+        font-size: 0.68rem;
+    }
+}
+
