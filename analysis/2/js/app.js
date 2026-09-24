@@ -32,6 +32,7 @@
     D.clearAllBtn = document.getElementById('clearAllBtn');
     D.downloadTableBtn = document.getElementById('downloadTableBtn');
     D.downloadChartBtn = document.getElementById('downloadChartBtn');
+    D.yScaleToggle = document.getElementById('yScaleToggle');
     D.viewCardChart = document.getElementById('viewCardChart');
     D.viewCardTable = document.getElementById('viewCardTable');
     D.viewChartPanel = document.getElementById('viewChartPanel');
@@ -151,6 +152,14 @@
     D.downloadChartBtn.addEventListener('click', Download.chart);
     D.viewCardChart.addEventListener('click', function() { switchView('chart'); });
     D.viewCardTable.addEventListener('click', function() { switchView('table'); });
+    // 纵轴量程切换（统一量程 / 自适应量程）
+    D.yScaleToggle.addEventListener('click', function(e) {
+        const btn = e.target.closest('.axis-toggle-btn');
+        if (!btn || btn.classList.contains('active')) return;
+        D.yScaleToggle.querySelectorAll('.axis-toggle-btn').forEach(b => b.classList.toggle('active', b === btn));
+        S.yAxisMode = btn.dataset.mode === 'auto' ? 'auto' : 'unified';
+        UI.refreshChart();
+    });
     D.selectAllBtn.addEventListener('click', function() {
         D.checkboxGroup.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
         UI.updateCheckedClasses();
