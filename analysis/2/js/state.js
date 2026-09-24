@@ -26,6 +26,8 @@ window.AppState = {
     currentEntity: null,
     /** 全校对比中勾选的班级 */
     checkedClasses: [],
+    /** 纵轴量程模式：'unified' 统一量程（当前学科全部班级的 T 值范围） | 'auto' 自适应量程（当前显示的曲线） */
+    yAxisMode: 'unified',
     /** 当前 Chart.js 实例 */
     chartInstance: null,
     /** resize 防抖定时器 */
