@@ -109,10 +109,7 @@
             { key: 'residual', label: '进步分(残差)', cls: 'col-residual' },
             { key: 'residualStd', label: '残差标准差', cls: 'col-residstd' },
             { key: 'tValue', label: '个人T值', cls: 'col-tvalue' },
-            { key: 'overTwo', label: '超两标', cls: 'col-flag' },
-            { key: 'overOne', label: '超一标', cls: 'col-flag' },
-            { key: 'belowOne', label: '退一标', cls: 'col-flag' },
-            { key: 'belowTwo', label: '退两标', cls: 'col-flag' }
+            { key: 'conclusion', label: '判定结论', cls: 'col-conclusion' }
         ];
 
         let theadHtml = '<tr>';
@@ -122,7 +119,7 @@
         theadHtml += '</tr>';
         HT.el.resultHead.innerHTML = theadHtml;
 
-        // 填充数据（重点列着色：T值 >0 绿 / <0 红；超两标、超一标绿；退一标、退两标红）
+        // 填充数据（T值按判定结论显示为彩色块，右侧给出结论文字）
         const tbody = HT.el.resultBody;
         tbody.innerHTML = '';
         displayData.forEach(row => {
@@ -130,14 +127,13 @@
             headers.forEach(h => {
                 const td = document.createElement('td');
                 const v = row[h.key];
-                td.textContent = global.Utils.formatValue(h.key, v);
                 if (h.key === 'tValue') {
-                    if (v > 0) td.className = 'cell-green';
-                    else if (v < 0) td.className = 'cell-red';
-                } else if (h.key === 'overTwo' || h.key === 'overOne') {
-                    td.className = v === 1 ? 'cell-green' : 'cell-muted';
-                } else if (h.key === 'belowOne' || h.key === 'belowTwo') {
-                    td.className = v === 1 ? 'cell-red' : 'cell-muted';
+                    td.innerHTML = `<span class="t-flag ${global.Utils.getTConclusion(v).cls}">${global.Utils.formatValue('tValue', v)}</span>`;
+                } else if (h.key === 'conclusion') {
+                    const concl = global.Utils.getTConclusion(row.tValue);
+                    td.innerHTML = `<span class="concl-text ${concl.cls}">${concl.text}</span>`;
+                } else {
+                    td.textContent = global.Utils.formatValue(h.key, v);
                 }
                 tr.appendChild(td);
             });
@@ -366,10 +362,7 @@
             '进步分（残差）': r.residual,
             '残差标准差': r.residualStd,
             '个人T值': r.tValue,
-            '超两标': r.overTwo,
-            '超一标': r.overOne,
-            '退一标': r.belowOne,
-            '退两标': r.belowTwo
+            '判定结论': global.Utils.getTConclusion(r.tValue).text
         }));
         const ws = XLSX.utils.json_to_sheet(exportArr);
         const colWidths = [];
