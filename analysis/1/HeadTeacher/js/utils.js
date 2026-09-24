@@ -55,6 +55,18 @@
         return val;
     }
 
+    // ---- T值判定结论（统一口径） ----
+    // T > 2：显著进步；1 < T ≤ 2：有进步；-1 ≤ T ≤ 1：正常/平稳；
+    // -2 ≤ T < -1：有退步；T < -2：退步明显
+    function getTConclusion(t) {
+        const val = (typeof t === 'number' && isFinite(t)) ? t : 0;
+        if (val > 2) return { text: '显著进步', cls: 'concl-excellent' };
+        if (val > 1) return { text: '有进步', cls: 'concl-good' };
+        if (val >= -1) return { text: '正常/平稳', cls: 'concl-normal' };
+        if (val >= -2) return { text: '有退步', cls: 'concl-warn' };
+        return { text: '退步明显', cls: 'concl-bad' };
+    }
+
     // ---- 学生表格排序（与页面展示保持一致） ----
     function sortStudentRows(arr, sortField) {
         const sorted = [...arr];
@@ -73,6 +85,7 @@
         findKey,
         readFileAsArray,
         formatValue,
+        getTConclusion,
         sortStudentRows
     };
 
