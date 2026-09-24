@@ -40,26 +40,31 @@ function calcGroupTotal(group, fields) {
     return sum;
 }
 
-// 汇总「选中周次」的小组人均积分（总分 ÷ 成员数），保持「一组 ~ 十二组」顺序。
-// 按人均分比较可避免小组人数不同（4人/5人）造成的不公平。
+// 汇总「选中周次」的各小组积分，保持「一组 ~ 十二组」顺序。
+// 规则：
+//   1) 每周内先算「组内人均分」= 该周小组总分 ÷ 该周组内人数
+//      （小组人数 4/5 人不同，用组内人均分比较才公平）；
+//   2) 各选中周的人均分【累加】作为该组总积分（多选周次是累计，不再跨周取平均）。
+// 例如勾选第一周 + 第二周 → 一组总分 = 第一周人均分 + 第二周人均分。
 function collectGroupTotals(classData) {
     const map = new Map();
-    const weekObjs = [];
-    selectedSumWeeks.forEach(i => {
-        const w = getWeek(classData, i);
-        if (w) weekObjs.push(w);
-    });
-    for (const week of weekObjs) {
+    for (const i of selectedSumWeeks) {
+        const week = getWeek(classData, i);
+        if (!week) continue;
         for (const g of week.groups) {
-            if (!map.has(g.name)) map.set(g.name, { name: g.name, total: 0, members: 0 });
+            if (!map.has(g.name)) {
+                map.set(g.name, { name: g.name, total: 0, members: 0, score: 0, weeks: 0 });
+            }
             const entry = map.get(g.name);
-            entry.total += calcGroupTotal(g, week.fields);
-            entry.members += g.members.length;
+            const groupTotal = calcGroupTotal(g, week.fields);
+            const memberCount = g.members.length;
+            entry.total += groupTotal;                 // 原始总分（仅作参考）
+            entry.members += memberCount;              // 累计人数（仅作参考）
+            entry.score += memberCount ? groupTotal / memberCount : 0; // 每周人均分累加
+            entry.weeks += 1;
         }
     }
-    const result = Array.from(map.values());
-    result.forEach(e => { e.avg = e.members ? e.total / e.members : 0; });
-    return result;
+    return Array.from(map.values());
 }
 
 // 当前图表每根柱子对应的名次（仅排序模式下使用）
@@ -112,14 +117,14 @@ function renderChart(classData) {
 
     chartRanks = null;
     if (sortMode === 'score') {
-        const sorted = totals.slice().sort((a, b) => b.avg - a.avg);
+        const sorted = totals.slice().sort((a, b) => b.score - a.score);
         labels = sorted.map(t => t.name);
-        data = sorted.map(t => t.avg);
+        data = sorted.map(t => t.score);
         const medals = ['🥇', '🥈', '🥉'];
         chartRanks = sorted.map((t, i) => medals[i] || ('第' + (i + 1) + '名'));
     } else {
         labels = totals.map(t => t.name);
-        data = totals.map(t => t.avg);
+        data = totals.map(t => t.score);
     }
 
     const colors = ['#4dd0ff', '#5ec9ff', '#79c8ff', '#9aa5ff', '#c0a6ff',
@@ -138,7 +143,7 @@ function renderChart(classData) {
         data: {
             labels: labels,
             datasets: [{
-                label: '小组人均积分',
+                label: '小组人均积分（选中周累计）',
                 data: data,
                 backgroundColor: colors.slice(0, data.length),
                 borderColor: colors.slice(0, data.length).map(c => c),
@@ -162,7 +167,7 @@ function renderChart(classData) {
                     padding: 10,
                     callbacks: {
                         label: function(context) {
-                            return '人均积分: ' + context.parsed.y.toFixed(2) + ' 分';
+                            return '累计人均积分: ' + context.parsed.y.toFixed(2) + ' 分';
                         }
                     }
                 }
@@ -416,18 +421,18 @@ function render(classKey) {
     if (currentWeek >= TOTAL_WEEKS) currentWeek = 0;
 
     const totals = collectGroupTotals(classData);
-    const top = totals.reduce((a, b) => (b.avg > a.avg ? b : a), totals[0]);
+    const top = totals.reduce((a, b) => (b.score > a.score ? b : a), totals[0]);
     let avgSum = 0;
-    for (const t of totals) avgSum += t.avg;
+    for (const t of totals) avgSum += t.score;
     const avg = totals.length ? avgSum / totals.length : 0;
 
-    // 统计卡片（小组积分按成员人均分计算，避免人数不同不公平）
-    document.getElementById('topGroup').textContent = top ? top.name + '（' + top.avg.toFixed(2) + '分）' : '—';
+    // 统计卡片：小组积分 = 各选中周的人均分累加（每周先按组内人数折算，避免人数不同不公平）
+    document.getElementById('topGroup').textContent = top ? top.name + '（' + top.score.toFixed(2) + '分）' : '—';
     document.getElementById('avgScore').textContent = avg.toFixed(2) + ' 分';
     document.getElementById('groupCount').textContent = totals.length + ' 组';
 
-    // 图表标题：x班各小组人均积分对比
-    document.getElementById('chartTitle').textContent = classKey + '各小组人均积分对比';
+    // 图表标题：x班各小组人均积分对比（选中周累计）
+    document.getElementById('chartTitle').textContent = classKey + '各小组人均积分对比（选中周累计）';
 
     // 图表
     renderChart(classData);
