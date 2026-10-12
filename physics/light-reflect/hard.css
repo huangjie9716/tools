@@ -1,0 +1,121 @@
+/*
+  光的反射游戏实验室 · 困难模式样式（作用于 #hardScene）
+  入口：index.html
+*/
+
+/* ==================== 困难模式（hard_reflect） ==================== */
+#hardScene #game{ display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; -webkit-touch-callout: none; -webkit-user-drag: none; }
+#hardScene .hud{
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 16px min(var(--shell-inset, 250px), 46vw) 16px calc(20px + env(safe-area-inset-left, 0px)); pointer-events: none; z-index: 5;
+    gap: 12px; flex-wrap: wrap;
+  }
+#hardScene .stats{ display: flex; gap: 10px; }
+#hardScene .stat{
+    background: rgba(10, 20, 42, .7);
+    border: 1px solid rgba(120, 180, 255, .3);
+    border-radius: 999px; padding: 7px 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .4);
+    backdrop-filter: blur(8px);
+    display: flex; align-items: baseline; gap: 8px;
+  }
+#hardScene .stat .label{ font-size: clamp(12px, 1.55vw, 17px); color: #cfe3ff; font-weight: 700; letter-spacing: .5px; }
+#hardScene .stat .value{
+    font-size: clamp(15px, 2vw, 22px); font-weight: 700; color: #ffd166;
+    font-variant-numeric: tabular-nums; min-width: 2.2ch; text-align: right;
+  }
+#hardScene .stat .value.warn{ color: #ff5b6e; animation: hardPulse .5s infinite alternate; }
+#hardScene .stat .unit{ font-size: clamp(11px, 1.3vw, 14px); font-weight: 700; color: #cfe3ff; margin-left: -4px; }
+@keyframes hardPulse{ from { opacity: 1 } to { opacity: .3 } }
+#hardScene .controls{ display: flex; gap: 8px; flex-wrap: wrap; pointer-events: none; }
+#hardScene .controls button{ pointer-events: auto; }
+#hardScene button{
+    font-family: inherit; font-size: clamp(12px, 1.5vw, 16px); cursor: pointer;
+    padding: 10px 18px; border-radius: 999px;
+    min-height: 44px; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    background: rgba(24, 36, 62, .85);
+    border: 1px solid rgba(110, 170, 255, .28);
+    color: #b9d3f5; transition: all .15s ease;
+    backdrop-filter: blur(8px);
+  }
+#hardScene button:hover{ background: rgba(40, 70, 130, .95); color: #fff; border-color: #6cb6ff; transform: translateY(-1px); }
+#hardScene button:active{ transform: translateY(0); }
+#hardScene button.active{ background: rgba(60, 140, 255, .38); border-color: #6cb6ff; color: #fff; }
+#hardScene .overlay{
+    position: fixed; inset: 0; z-index: 20;
+    display: flex; flex-direction: column; align-items: center;
+    padding: clamp(14px, 3vh, 28px); overflow-y: auto;
+    background: radial-gradient(circle at 50% 45%, rgba(20, 36, 70, .93), rgba(5, 8, 16, .97));
+    backdrop-filter: blur(10px);
+    text-align: center; color: #dfeaff;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  }
+#hardScene .overlay.hidden{ display: none; }
+#hardScene h1{
+    font-size: clamp(30px, 4.4vw, 46px); font-weight: 900; letter-spacing: 2px;
+    background: linear-gradient(90deg, #6ee7ff, #a78bfa, #ff7eb3);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    margin-bottom: 10px;
+  }
+#hardScene .hs-panel{
+    width: min(760px, 90%); margin: auto; text-align: center; color: #dce9ff;
+    background: linear-gradient(160deg, rgba(22, 34, 64, .96), rgba(12, 18, 36, .96));
+    border: 1px solid rgba(110, 170, 255, .35); border-radius: 24px;
+    padding: 46px 42px 40px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .7), inset 0 1px 0 rgba(255, 255, 255, .08);
+  }
+#hardScene .lead{
+    margin: 0 0 16px; font-size: clamp(20px, 2.4vw, 26px); font-weight: 900;
+    letter-spacing: 4px; color: #dce9ff;
+  }
+#hardScene .rules{
+    list-style: none; text-align: left; max-width: none; width: 100%;
+    background: rgba(255, 255, 255, .04);
+    border: 1px solid rgba(120, 180, 255, .15);
+    border-radius: 16px; padding: 20px 24px; margin: 0 0 26px;
+    font-size: clamp(16px, 1.8vw, 19px); line-height: 2; color: #8ea9cc;
+  }
+#hardScene .rules li{ position: relative; padding-left: 24px; }
+#hardScene .rules li::before{
+    content: "▸"; position: absolute; left: 2px; top: 0;
+    color: #7dd3fc; font-weight: 700;
+  }
+#hardScene .rules b{ color: #7dd3fc; }
+#hardScene .rules .k{ color: #ffd166; font-weight: 700; }
+#hardScene .big-btn{
+    font-family: inherit; font-size: clamp(19px, 2.3vw, 24px); font-weight: 800; letter-spacing: 3px;
+    padding: 18px 56px; border-radius: 999px;
+    background: linear-gradient(120deg, #6fe0ff, #8ea8ff 55%, #c58bff);
+    border: none; color: #04101f; cursor: pointer;
+    box-shadow: 0 10px 30px rgba(110, 180, 255, .4), inset 0 1px 0 rgba(255, 255, 255, .6);
+    transition: all .18s ease;
+  }
+#hardScene .big-btn:hover{ transform: translateY(-2px) scale(1.03); box-shadow: 0 16px 40px rgba(110, 180, 255, .6); }
+#hardScene .big-btn:active{ transform: translateY(0) scale(.98); }
+#hardScene .final{ font-size: 18px; margin: 6px 0; color: #a8c4e8; }
+#hardScene .final b{ font-size: 46px; color: #ffd166; font-weight: 900; margin: 0 6px; }
+#hardScene .stars{ font-size: 38px; margin: 16px 0 4px; letter-spacing: 8px; }
+#hardScene .encourage{
+    margin-top: 18px; font-size: clamp(17px, 3vw, 22px); font-weight: 800; letter-spacing: 1px;
+    background: linear-gradient(90deg, #ffd166, #ff8c42, #ff5b7f);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: hardPop .45s ease;
+  }
+@keyframes hardPop{ from { transform: scale(.86); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+#hardScene .tip{ color: #6f8bb0; font-size: 14px; margin-top: 22px; }
+#hardScene .tip-banner{
+    position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 10px);
+    background: rgba(16, 24, 44, .9);
+    border: 1px solid rgba(255, 209, 102, .5);
+    color: #ffd166; font-size: 16px; font-weight: 700;
+    padding: 10px 22px; border-radius: 999px;
+    backdrop-filter: blur(8px);
+    pointer-events: none; z-index: 8; white-space: nowrap;
+    opacity: 0; visibility: hidden; transition: .25s ease;
+  }
+#hardScene .tip-banner.show{ opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+@media (min-width: 1100px){
+#hardScene .rules{ font-size: 17px; }
+#hardScene .tip-banner{ font-size: 18px; padding: 12px 26px; }
+}

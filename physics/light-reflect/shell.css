@@ -1,0 +1,118 @@
+/*
+  光的反射游戏实验室 · 外壳样式（选择界面 / 按钮 / 弹层 / 主题）
+  入口：index.html
+*/
+
+/* ==================== 外壳 ==================== */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    background: radial-gradient(circle at 50% 30%, #0b1224 0%, #04060d 70%);
+    font-family: "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+    -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 两个游戏的场景容器：同时只显示一个 */
+  .scene { display: none; width: 100%; height: 100%; }
+  #easyScene.active { display: grid; place-items: center; }
+  #hardScene.active { display: block; }
+
+  /* 全屏时舞台同样铺满，不留黑边 */
+
+  /* ---------- 选择模式 ---------- */
+  .select-screen {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; flex-direction: column;
+    padding: clamp(16px, 3vh, 34px) clamp(14px, 3vw, 32px);
+    overflow-y: auto;
+    text-align: center; color: #dfeaff;
+    background: radial-gradient(circle at 50% 40%, rgba(20,36,70,.94), rgba(4,6,13,.98));
+    touch-action: manipulation;
+  }
+  /* 空间够时整体居中，空间不够时可滚动且不裁掉顶部 */
+  .select-inner {
+    margin: auto; width: 100%; max-width: 780px;
+    display: flex; flex-direction: column; align-items: center;
+    gap: clamp(24px, 3.8vh, 38px);
+  }
+  .select-screen.hidden { display: none; }
+  .brand { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .brand-icon { width: clamp(110px, 15vw, 176px); height: auto; filter: drop-shadow(0 10px 26px rgba(80,170,255,.5)); }
+  .brand h1 {
+    font-size: clamp(26px, 4.4vw, 44px); font-weight: 900; letter-spacing: 3px; line-height: 1.2;
+    background: linear-gradient(90deg, #6ee7ff, #a78bfa, #ff7eb3);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .mode-list { display: flex; flex-wrap: wrap; gap: clamp(18px, 2.4vw, 28px); justify-content: center; }
+  .mode-card {
+    font-family: inherit; cursor: pointer; text-align: left;
+    width: min(340px, 88vw); padding: 24px 26px 22px; border-radius: 20px;
+    background: linear-gradient(160deg, rgba(26,40,72,.92), rgba(12,18,36,.95));
+    border: 1px solid rgba(110,170,255,.3); color: #cfe0ff;
+    box-shadow: 0 18px 44px rgba(0,0,0,.5); transition: .18s ease;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  }
+  .mode-card:hover { transform: translateY(-4px); border-color: #6cb6ff; box-shadow: 0 22px 52px rgba(60,140,255,.35); }
+  .mode-card .tag { display: block; font-size: clamp(19px, 2.2vw, 22px); font-weight: 900; letter-spacing: 2px; margin-bottom: 12px; color: #7fd0ff; }
+  .mode-card.hard .tag { color: #ffb37a; }
+  .mode-card .desc { display: block; font-size: clamp(13.5px, 1.5vw, 15.5px); line-height: 1.85; color: #a8bede; }
+  .mode-card .meta { display: block; margin-top: 16px; font-size: 13px; color: #7f9ac4; }
+  /* ---------- 外壳按钮：返回选择 + 全屏，都在右上角 ---------- */
+  .shell-bar {
+    position: fixed; z-index: 60;
+    top: calc(16px + env(safe-area-inset-top, 0px));
+    right: calc(20px + env(safe-area-inset-right, 0px));
+    display: flex; align-items: center; gap: 12px;
+  }
+  .shell-btn {
+    cursor: pointer; font-family: inherit;
+    font-size: 15px; font-weight: 700; min-height: 44px; padding: 12px 22px; border-radius: 12px;
+    background: rgba(16,26,48,.9); border: 1px solid rgba(110,170,255,.32); color: #cfe3ff;
+    backdrop-filter: blur(8px); transition: .15s ease;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  }
+  .shell-btn:hover { background: rgba(40,70,130,.95); color: #fff; border-color: #6cb6ff; }
+  .shell-btn.active { background: rgba(60, 140, 255, .38); border-color: #6cb6ff; color: #fff; }
+  .shell-btn.hidden { display: none; }
+  /* 次要按钮（结算页的“返回选择”） */
+  .ghost-btn {
+    font-family: inherit; cursor: pointer; font-weight: 700; letter-spacing: 2px;
+    padding: 14px 34px; border-radius: 999px; margin-left: 14px;
+    background: rgba(24, 36, 62, .85); color: #b9d3f5;
+    border: 1px solid rgba(110, 170, 255, .35);
+    font-size: clamp(15px, 1.7vw, 18px);
+    transition: .15s ease; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  }
+  .ghost-btn:hover { background: rgba(40, 70, 130, .95); color: #fff; border-color: #6cb6ff; }
+
+  /* 全屏不受支持（如 iPhone）时的提示 */
+  .ios-tip {
+    display: none; max-width: 620px; color: #7f9ac4;
+    font-size: clamp(12px, 1.4vw, 14px); line-height: 1.7;
+  }
+  .ios-tip.show { display: block; }
+
+  /* 暂停 / 玩法 弹层 */
+  .modal {
+    position: fixed; inset: 0; z-index: 70;
+    display: flex; flex-direction: column; align-items: center;
+    padding: clamp(14px, 3vh, 30px); overflow-y: auto;
+    background: rgba(3, 6, 14, .82); backdrop-filter: blur(8px);
+  }
+  .modal.hidden { display: none; }
+  .modal-card {
+    margin: auto; width: min(680px, 92%); text-align: center; color: #dce9ff;
+    background: linear-gradient(160deg, rgba(22,34,64,.97), rgba(12,18,36,.97));
+    border: 1px solid rgba(110,170,255,.35); border-radius: 22px;
+    padding: clamp(20px, 3.4vh, 38px) clamp(18px, 3vw, 34px);
+    box-shadow: 0 24px 70px rgba(0,0,0,.7);
+  }
+  .modal-title { font-size: clamp(20px, 2.6vw, 26px); font-weight: 900; letter-spacing: 4px; margin-bottom: 16px; }
+  .modal-body { text-align: left; color: #8ea9cc; font-size: clamp(14px, 1.6vw, 17px); line-height: 2; }
+  .modal-body ul { list-style: none; }
+  .modal-body li { position: relative; padding-left: 24px; }
+  .modal-body li::before { content: "▸"; position: absolute; left: 4px; top: 0; color: #7fd0ff; font-weight: 700; }
+  .modal-body b, .modal-body span { color: #7fd0ff; font-weight: 700; }
+  .modal-body .k { color: #ffd166; }
+  .modal-actions { margin-top: 22px; }
+  @media (min-width: 1100px) { .shell-btn { font-size: 17px; } }

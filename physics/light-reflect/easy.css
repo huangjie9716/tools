@@ -1,0 +1,111 @@
+/*
+  光的反射游戏实验室 · 简单模式样式（作用于 #easyScene）
+  入口：index.html
+*/
+
+/* ==================== 简单模式（easy_reflect） ==================== */
+#easyScene .stage{
+    position:relative;
+    width:100%;height:100%;
+    border-radius:0;
+    overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,.85), 0 0 0 1px rgba(120,180,255,.18),
+               inset 0 0 60px rgba(60,120,255,.06);
+    cursor:default;
+  }
+#easyScene canvas{display:block;width:100%;height:100%;touch-action:none;-webkit-touch-callout:none;-webkit-user-drag:none;}
+/* 简单模式独有的“显示角度”开关（左下角；被开始/结算面板盖住，游戏中才可见） */
+#btnEasyAngles{
+    position:fixed;z-index:9;
+    left:calc(20px + env(safe-area-inset-left, 0px));
+    bottom:calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+#easyScene .hud{
+    position:absolute;inset:0;pointer-events:none;
+    display:flex;justify-content:space-between;align-items:flex-start;
+    padding:14px min(var(--shell-inset, 250px), 46vw) 14px calc(18px + env(safe-area-inset-left, 0px));gap:10px;
+  }
+#easyScene .pill{
+    background:rgba(10,20,42,.7);
+    border:1px solid rgba(120,180,255,.3);
+    backdrop-filter:blur(8px);
+    border-radius:999px;
+    padding:7px 20px;
+    color:#cfe3ff;
+    font-size:clamp(12px,1.55vw,17px);
+    font-weight:700;letter-spacing:.5px;
+    white-space:nowrap;
+    box-shadow:0 6px 20px rgba(0,0,0,.4);
+  }
+#easyScene .hud-right{display:flex;align-items:center;gap:12px;}
+#easyScene .pill b{color:#ffd166;font-size:1.3em;margin-left:4px;}
+#easyScene .pill.warn{border-color:rgba(255,90,90,.7);color:#ff9a9a;animation:easyPulse .7s infinite alternate;}
+#easyScene .pill.warn b{color:#ff5252;}
+@keyframes easyPulse{from{box-shadow:0 0 0 rgba(255,60,60,0);}to{box-shadow:0 0 22px rgba(255,60,60,.65);}}
+#easyScene .hint{
+    position:absolute;left:50%;top:14px;transform:translateX(-50%);
+    color:#7f9ac4;font-size:clamp(11px,1.3vw,14px);
+    background:rgba(8,14,28,.55);border:1px solid rgba(90,140,220,.2);
+    padding:6px 16px;border-radius:999px;backdrop-filter:blur(6px);
+    pointer-events:none;white-space:nowrap;
+  }
+#easyScene .overlay{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+    padding:clamp(12px,2.4vh,26px);overflow-y:auto;
+    background:rgba(3,6,14,.78);backdrop-filter:blur(7px);
+    opacity:0;visibility:hidden;transition:.28s ease;z-index:10;
+  }
+#easyScene .overlay.show{opacity:1;visibility:visible;}
+#easyScene .panel{
+    width:min(760px,90%);margin:auto;text-align:center;color:#dce9ff;
+    background:linear-gradient(160deg,rgba(22,34,64,.96),rgba(12,18,36,.96));
+    border:1px solid rgba(110,170,255,.35);
+    border-radius:24px;padding:46px 42px 40px;
+    box-shadow:0 24px 70px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.08);
+    transform:translateY(10px);transition:.3s cubic-bezier(.2,.9,.3,1.4);
+  }
+#easyScene .overlay.show .panel{transform:translateY(0);}
+#easyScene .panel h1{
+    margin:0 0 16px;font-size:clamp(30px,4.4vw,46px);letter-spacing:3px;
+    background:linear-gradient(90deg,#7fd0ff,#b78bff,#ffd166);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+#easyScene .panel p{margin:0 0 26px;line-height:1.85;color:#a8bede;font-size:clamp(17px,2vw,22px);}
+#easyScene .lead{
+    margin:0 0 16px;font-size:clamp(20px,2.4vw,26px);font-weight:900;
+    letter-spacing:4px;color:#dce9ff;
+  }
+#easyScene .panel .tips{
+    text-align:left;display:inline-block;color:#8ea9cc;font-size:clamp(16px,1.8vw,19px);
+    line-height:2;margin:0 0 26px;
+  }
+#easyScene .panel ul.tips{list-style:none;padding:0;}
+#easyScene .panel ul.tips li{position:relative;padding-left:24px;}
+#easyScene .panel ul.tips li::before{
+    content:"▸";position:absolute;left:4px;top:0;
+    color:#7fd0ff;font-weight:700;
+  }
+#easyScene .panel .tips span{color:#7fd0ff;font-weight:700;}
+#easyScene .btn{
+    pointer-events:auto;cursor:pointer;border:none;
+    padding:18px 56px;border-radius:999px;
+    font-size:clamp(19px,2.3vw,24px);font-weight:800;letter-spacing:3px;
+    color:#04101f;
+    background:linear-gradient(120deg,#6fe0ff,#8ea8ff 55%,#c58bff);
+    box-shadow:0 10px 30px rgba(110,180,255,.4), inset 0 1px 0 rgba(255,255,255,.6);
+    transition:.18s;
+    font-family:inherit;
+  }
+#easyScene .btn:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 16px 40px rgba(110,180,255,.6);}
+#easyScene .btn:active{transform:translateY(0) scale(.98);}
+
+
+#easyScene .tip{
+    position:absolute;left:50%;top:60px;transform:translate(-50%,-8px);
+    background:rgba(10,20,42,.88);border:1px solid rgba(255,209,102,.5);
+    color:#ffd166;font-size:clamp(13px,1.5vw,16px);font-weight:700;
+    padding:8px 18px;border-radius:999px;backdrop-filter:blur(6px);
+    white-space:nowrap;pointer-events:none;
+    opacity:0;visibility:hidden;transition:.25s ease;z-index:11;
+  }
+#easyScene .tip.show{opacity:1;visibility:visible;transform:translate(-50%,0);}
