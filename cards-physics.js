@@ -47,6 +47,17 @@ window.CARDS_PHYSICS = [
         actionText: '立即使用',
         video: 'https://www.bilibili.com/video/BV1cHeu6mErw/?spm_id_from=333.1387.homepage.video_card.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27'
     },
+     {
+        title: '光的反射游戏实验室',
+        desc: '一个用游戏讲清“光的反射”的小实验室：拖动平面镜与激光笔，让反射光线击中怪物，在动手操作中直观看到光反射定律。',
+        date: '2026.10.12',
+        version: 'v1.0',
+        file: 'physics/light-reflect/light-reflect-game-lab.html',
+        href: 'physics/light-reflect/light-reflect-game-lab.html',
+        action: 'link',
+        actionText: '立即使用',
+        video: ''
+    },
     {
         title: '珠海市九洲中学2025级学生物理小组积分可视化系统',
         desc: '珠海市九洲中学2025级1班和2班专用，小组合作探究学习崭新模式',
