@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>光的反射游戏实验室</title>
+<meta name="description" content="光的反射游戏实验室：拖动平面镜与激光笔，让反射光线击中怪物，在游戏中观察入射角等于反射角，适合课堂演示与学生自主探究。">
+<meta name="theme-color" content="#0b1224">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="光的反射实验室">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%230F172A'/%3E%3Crect x='80' y='340' width='352' height='12' rx='3' fill='%235AC8FA'/%3E%3Crect x='80' y='352' width='352' height='40' fill='%235AC8FA' opacity='0.35'/%3E%3Cline x1='256' y1='100' x2='256' y2='340' stroke='%235AC8FA' stroke-width='12' stroke-dasharray='38,28' opacity='0.7'/%3E%3Cline x1='100' y1='140' x2='256' y2='340' stroke='%23FF3B30' stroke-width='22'/%3E%3Cline x1='256' y1='340' x2='412' y2='140' stroke='%23FF3B30' stroke-width='22'/%3E%3Ccircle cx='256' cy='340' r='26' fill='%2334C759'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="shell.css">
+<link rel="stylesheet" href="easy.css">
+<link rel="stylesheet" href="hard.css">
+<link rel="stylesheet" href="responsive.css">
+</head>
+<body>
+
+<div class="select-screen" id="selectScreen">
+  <div class="select-inner">
+  <div class="brand">
+    <svg class="brand-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-hidden="true">
+      <defs>
+        <radialGradient id="bgGrad" cx="50%" cy="50%" r="70%">
+          <stop offset="0%" stop-color="#1a2744"/>
+          <stop offset="100%" stop-color="#0F172A"/>
+        </radialGradient>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="6" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glowStrong" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="10" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <pattern id="hatch" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="10" stroke="#5AC8FA" stroke-width="1.5" opacity="0.4"/>
+        </pattern>
+      </defs>
+
+      <rect width="512" height="512" rx="80" ry="80" fill="url(#bgGrad)"/>
+
+      <!-- 反射面 -->
+      <rect x="80" y="340" width="352" height="12" rx="3" fill="#5AC8FA" filter="url(#glow)" opacity="0.9"/>
+      <rect x="80" y="352" width="352" height="40" fill="url(#hatch)" opacity="0.5"/>
+      <line x1="80" y1="392" x2="432" y2="392" stroke="#5AC8FA" stroke-width="2" opacity="0.3"/>
+
+      <!-- 法线（冰蓝色虚线） -->
+      <line x1="256" y1="100" x2="256" y2="340" stroke="#5AC8FA" stroke-width="2.5" stroke-dasharray="12,8" opacity="0.7"/>
+
+      <!-- 入射光线 -->
+      <line x1="100" y1="140" x2="256" y2="340" stroke="#FF3B30" stroke-width="5" filter="url(#glow)"/>
+      <g transform="translate(178,240) rotate(52)">
+        <polygon points="14,0 -7,-8 -7,8" fill="#FF3B30" filter="url(#glow)"/>
+      </g>
+
+      <!-- 反射光线 -->
+      <line x1="256" y1="340" x2="412" y2="140" stroke="#FF3B30" stroke-width="5" filter="url(#glow)"/>
+      <g transform="translate(334,240) rotate(-52)">
+        <polygon points="14,0 -7,-8 -7,8" fill="#FF3B30" filter="url(#glow)"/>
+      </g>
+
+      <!-- 入射点 -->
+      <circle cx="256" cy="340" r="10" fill="#34C759" filter="url(#glowStrong)"/>
+      <circle cx="256" cy="340" r="5" fill="#ffffff" opacity="0.8"/>
+    </svg>
+    <h1>光的反射游戏实验室</h1>
+  </div>
+  <div class="mode-list">
+    <button class="mode-card easy" type="button" data-mode="easy">
+      <span class="tag">简单模式</span>
+      <span class="desc">镜子固定在下方：拖动镜面改变倾角，或拖动激光笔改变入射角，让反射光击中怪物。</span>
+      <span class="meta" data-base="限时 60 秒 · 每只怪物 +10 分">限时 60 秒 · 每只怪物 +10 分</span>
+    </button>
+    <button class="mode-card hard" type="button" data-mode="hard">
+      <span class="tag">困难模式</span>
+      <span class="desc">自己动手画出平面镜，光可以连续多次反射，画对镜子的位置才能打到怪物。</span>
+      <span class="meta" data-base="限时 60 秒 · 每只怪物 +10 分">限时 60 秒 · 每只怪物 +10 分</span>
+    </button>
+  </div>
+  <p class="ios-tip" id="iosTip">iPhone / iPad 可在浏览器菜单里选择「添加到主屏幕」，之后就能全屏游玩。</p>
+  </div>
+</div>
+
+<div class="shell-bar" id="shellBar">
+  <button class="shell-btn hidden" id="btnHelp" type="button" aria-label="查看玩法说明">玩法</button>
+  <button class="shell-btn hidden" id="btnPause" type="button" aria-label="暂停游戏">暂停</button>
+  <button class="shell-btn hidden" id="btnBack" type="button" aria-label="返回模式选择">返回选择</button>
+  <button class="shell-btn" id="btnFull" type="button" aria-label="进入全屏">全屏</button>
+</div>
+
+<!-- 暂停 -->
+<div class="modal hidden" id="pauseModal">
+  <div class="modal-card">
+    <div class="modal-title">已 暂 停</div>
+    <div class="modal-body" style="text-align:center;color:#8fa9cc">计时与光线都已暂停<br>点击这里或右上角「继续」按钮恢复</div>
+    <div class="modal-actions"><button class="shell-btn" id="btnResume" type="button">继 续</button></div>
+  </div>
+</div>
+
+<!-- 玩法说明（游戏中随时可看） -->
+<div class="modal hidden" id="helpModal">
+  <div class="modal-card">
+    <div class="modal-title">玩 法 说 明</div>
+    <div class="modal-body" id="helpBody"></div>
+    <div class="modal-actions"><button class="shell-btn" id="btnHelpClose" type="button">继 续 游 戏</button></div>
+  </div>
+</div>
+
+<!-- 手机竖屏时提示横屏 -->
+<div class="rotate-hint" id="rotateHint">
+  <svg class="rot-icon" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M22 84a42 42 0 1 1 76-30" fill="none" stroke="#ffd166" stroke-width="6" stroke-linecap="round"/>
+    <polygon points="100,68 90,55 106,53" fill="#ffd166"/>
+    <rect x="40" y="34" width="40" height="66" rx="9" fill="none" stroke="#7fd0ff" stroke-width="5"/>
+    <circle cx="60" cy="94" r="3" fill="#7fd0ff"/>
+  </svg>
+  <div class="rot-title">请把手机横过来使用</div>
+  <div class="rot-desc">横屏才能完整看到游戏画面<br>转动手机后画面会自动适配</div>
+</div>
+
+<div class="scene" id="easyScene">
+<div class="stage">
+  <canvas id="cv"></canvas>
+
+  <div class="hud">
+    <div class="pill">得分<b id="score">0</b></div>
+    <div class="hud-right">
+      <div class="pill" id="timePill">时间<b id="time">60</b>s</div>
+    </div>
+  </div>
+  <div class="hint" id="hint">拖动激光笔 / 平面镜调整角度　·　点击激光笔开启激光</div>
+  <div class="tip" id="tip"></div>
+
+  <div class="overlay show" id="overlay">
+    <div class="panel">
+      <div class="lead">玩法说明</div>
+      <p>光遇到平面镜会发生反射——让反射光线击中怪物！</p>
+      <ul class="tips">
+        <li><span>点击</span> 激光笔 → 开启 / 关闭激光（一次只能开一支）</li>
+        <li><span>拖动</span> 激光笔 → 改变入射角</li>
+        <li><span>拖动</span> 平面镜 → 改变镜面倾角</li>
+        <li>限时 <span>60 秒</span>，每消灭一只怪物得 <span>10 分</span></li>
+        <li>镜面倾角有上限：打不到怪物时，请拖动激光笔调整入射角</li>
+      </ul>
+      <br>
+      <button class="btn" id="ovBtn">开始挑战</button>
+    </div>
+  </div>
+</div>
+  <button class="shell-btn" id="btnEasyAngles" type="button" aria-label="显示角度">显示角度：关</button>
+</div>
+
+<div class="scene" id="hardScene">
+<canvas id="game"></canvas>
+
+<div class="hud">
+  <div class="stats">
+    <div class="stat"><span class="label">得分</span><span class="value" id="scoreEl">0</span><span class="unit">分</span></div>
+    <div class="stat"><span class="label">时间</span><span class="value" id="timeEl">60</span><span class="unit">秒</span></div>
+  </div>
+  <div class="controls">
+    <button id="btnAngles">显示角度：关</button>
+    <button id="btnClear">清空镜子</button>
+    <button id="btnRestart">结束本局</button>
+  </div>
+</div>
+
+<div class="overlay" id="startScreen">
+  <div class="hs-panel">
+    <div class="lead">玩法说明</div>
+    <ul class="rules">
+      <li>让激光反射后击中怪物，每只 <b>+10 分</b></li>
+      <li>按住鼠标（或手指）<span class="k">拖动</span>，画出一面平面镜</li>
+      <li>镜子背面画着斜线，没有斜线的一面才是反射面</li>
+      <li>限时 <b>60 秒</b>，看看你能打中几只！</li>
+      <li>打开「显示角度」，观察 <b>入射角 = 反射角</b></li>
+    </ul>
+    <button class="big-btn" id="btnStart">开 始 游 戏</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="endScreen">
+  <div class="hs-panel">
+    <h1>时间到！</h1>
+    <div class="stars" id="starsEl">⭐⭐⭐</div>
+    <div class="final">总得分 <b id="finalScore">0</b> 分</div>
+    <div class="final" style="font-size:15px">共击中 <span id="finalHits">0</span> 只怪物</div>
+    <div class="final" style="font-size:15px" id="bestLine"></div>
+    <div class="encourage" id="encourageEl"></div>
+    <div style="margin-top:30px">
+      <button class="big-btn" id="btnAgain">再 来 一 局</button><button class="ghost-btn" id="btnEndBack">返回选择</button>
+    </div>
+    <div class="tip">想一想：镜子多转 10°，反射光会转多少度？</div>
+  </div>
+</div>
+
+<div class="tip-banner" id="tipBanner"></div>
+</div>
+
+<script src="shell.js"></script>
+<script src="easy.js"></script>
+<script src="hard.js"></script>
+</body>
+</html>
