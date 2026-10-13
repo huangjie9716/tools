@@ -1,0 +1,27 @@
+/* ===================================================================
+   覆盖层样式：错题回顾面板、彩带庆祝动画
+   =================================================================== */
+
+.mistakes-overlay { position: fixed; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center; background: rgba(2,6,23,0.9); padding: 20px; }
+.mistakes-overlay.show { display: flex; }
+.mistakes-panel { width: min(1200px, 96vw); height: 90vh; background: linear-gradient(135deg, #111827, #1e293b); border-radius: 24px; border: 1px solid rgba(255,255,255,0.12); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+.mistakes-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; position: relative; }
+.mistakes-header h2 { font-size: 1.6rem; color: #ffd200; margin: 0; }
+.mistakes-toggle { position: absolute; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; }
+.mistakes-tab { padding: 6px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+.mistakes-tab:hover { background: rgba(255,255,255,0.16); color: #fff; }
+.mistakes-tab.active { background: #ffd200; color: #1e293b; border-color: #ffd200; font-weight: bold; }
+.mistakes-close { padding: 8px 22px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer; font-size: 1rem; }
+.mistakes-close:hover { background: rgba(255,255,255,0.16); color: #fff; }
+.mistakes-list { flex: 1; overflow-y: auto; padding: 16px 24px; text-align: left; }
+.mistake-item { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; border-left: 4px solid #e94560; }
+.mistake-item .q-text { color: #f1f5f9; line-height: 1.7; }
+.mistake-item .q-options { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+.mistake-item .q-opt { color: #e2e8f0; font-size: 1rem; line-height: 1.5; }
+.mistake-item .q-opt.correct { color: #2ed573; font-weight: bold; }
+.mistake-item .q-result { color: #94a3b8; margin-top: 8px; font-size: 0.95rem; }
+.mistake-item img { display: block; max-width: 100% !important; max-height: clamp(90px, 20vh, 280px) !important; width: auto !important; height: auto !important; object-fit: contain; margin: 8px auto; border-radius: 6px; }
+.confetti-container { position: fixed; inset: 0; pointer-events: none; display: none; z-index: 99; overflow: hidden; }
+.confetti-container.show { display: block; }
+.confetti { position: absolute; animation: fall linear forwards; }
+@keyframes fall { 0% { transform: translateY(-30px) rotate(0deg); opacity: 1; } 100% { transform: translateY(110vh) rotate(720deg); opacity: 0; } }

@@ -1,0 +1,63 @@
+/* ===================================================================
+   交互特效样式：拖动滚动反馈、图片放大查看器、左滑下一题提示
+   =================================================================== */
+
+/* 按住拖动滚动时的反馈：禁止误选中文本、显示抓手光标 */
+body.dragging { cursor: grabbing !important; user-select: none; -webkit-user-select: none; }
+
+/* 题干 / 错题中的图片可点击放大 */
+.question-text img, .s-question-text img, .mistake-item img { cursor: zoom-in; }
+
+/* 图片放大查看器 */
+body.lightbox-open { overflow: hidden; }
+.img-viewer {
+  position: fixed; inset: 0; z-index: 9000; display: none;
+  align-items: center; justify-content: center;
+  background: rgba(2, 6, 23, 0.94);
+  padding: 24px; cursor: zoom-out;
+}
+.img-viewer.show { display: flex; }
+.img-viewer img {
+  max-width: calc(100vw - 48px); max-height: calc(100vh - 48px);
+  object-fit: contain; border-radius: 8px; cursor: default;
+  box-shadow: 0 12px 44px rgba(0, 0, 0, 0.65);
+  background: #0b1120;
+}
+.img-viewer-close {
+  position: fixed; top: 16px; right: 20px; z-index: 1;
+  width: 46px; height: 46px; border-radius: 50%; border: none; cursor: pointer;
+  background: rgba(255, 255, 255, 0.14); color: #fff; font-size: 1.6rem; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.img-viewer-close:hover { background: #e94560; color: #fff; transform: scale(1.06); }
+
+/* ================= 左滑进入下一题 ================= */
+/* 纵向手势仍用于滚动页面，横向手势留给“左滑下一题”（保留双指缩放） */
+.game-container { touch-action: pan-y pinch-zoom; }
+
+/* 手势进行中跟随手指出现的“下一题”提示 */
+.swipe-hint {
+  --sx: 0px;
+  --ss: 0.85;
+  position: fixed; left: 50%; top: 50%; z-index: 500;
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 34px; border-radius: 999px;
+  background: linear-gradient(135deg, #f7971e, #ffd200); color: #1e293b;
+  font-size: 1.6rem; font-weight: bold; letter-spacing: 3px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, -50%) translateX(var(--sx)) scale(var(--ss));
+  opacity: 0; pointer-events: none; white-space: nowrap;
+  transition: opacity 0.12s linear, transform 0.12s linear;
+}
+.swipe-hint.ready { box-shadow: 0 14px 44px rgba(255, 210, 0, 0.6); }
+.swipe-hint .arrow { font-size: 1.9rem; }
+
+/* 左滑触发成功后的轻微反馈（题干闪一下，表示已切换题目） */
+@keyframes swipeNextFlash { 0% { opacity: 0.3; } 100% { opacity: 1; } }
+body.swipe-firing .question-text,
+body.swipe-firing .s-question-text { animation: swipeNextFlash 0.3s ease; }
+
+/* 题干/选项中的图片默认不可拖拽：避免拖动时图片被拖出页面，也避免浏览器原生拖拽中断左滑手势 */
+.question-text img, .s-question-text img, .mistake-item img,
+.answer-btn img, .q-opt img { -webkit-user-drag: none; user-select: none; }

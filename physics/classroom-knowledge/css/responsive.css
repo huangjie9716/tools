@@ -1,0 +1,26 @@
+/* ===================================================================
+   响应式布局 + 全屏（fs-mode）适配
+   ★ 必须在 base/game/overlays 之后加载，否则会覆盖失败
+   =================================================================== */
+
+@media (max-width: 1200px) { .main-area { grid-template-columns: 1fr; } .player-panel, .question-area { min-height: auto; } .chapter-select-area { flex-direction: column; align-items: stretch; } .chapter-select-area .select-group { width: 100%; } .title-area { flex-direction: column; align-items: center; } .title-area .right { margin-top: 10px; } .s-answer-area { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .start-card { padding: 30px 20px; } .start-card h1 { font-size: 2.2rem; } .question-text { font-size: 1.6rem; } .answer-btn { font-size: 1.2rem; } }
+
+/* ================= 全屏支持 ================= */
+/* 让开始卡片内的“全屏”按钮能定位到卡片右上角 */
+.start-card { position: relative; }
+.result-top-actions { position: absolute; top: 18px; right: 18px; display: flex; gap: 10px; }
+.result-top-actions .result-home-btn { position: static; }
+.fs-btn.active { background: #ffd200; color: #1e293b; border-color: #ffd200; }
+
+/* 全屏模式（进入 documentElement 全屏后，自动加在 <body> 上）屏幕适配：
+   充分利用屏幕——去掉 1500px 宽度上限、侧栏加宽、面板按视口高度铺满 */
+body.fs-mode { background: #0b1120; }
+body.fs-mode .game-container { max-width: 100%; width: 100%; padding: 10px 18px; }
+body.fs-mode .main-area { grid-template-columns: 300px 1fr 300px; }
+body.fs-mode .single-area { max-width: 1500px; }
+body.fs-mode .player-panel,
+body.fs-mode .question-area { min-height: max(640px, calc(100vh - 128px)); }
+@media (max-width: 1300px) {
+  body.fs-mode .main-area { grid-template-columns: minmax(230px, 280px) 1fr minmax(230px, 280px); }
+}

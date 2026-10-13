@@ -1,0 +1,126 @@
+/* ===================================================================
+   游戏主体样式：双人答题面板、题干区、答题按钮、单人刷题区
+   =================================================================== */
+
+.player-panel, .question-area { background: rgba(255,255,255,0.08); border-radius: 18px; border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(4px); }
+.player-panel { padding: 18px 16px; min-height: 650px; display: flex; flex-direction: column; }
+.player-panel.correct-flash { animation: correctFlash 0.5s ease; }
+.player-panel.wrong-flash { animation: wrongFlash 0.5s ease; }
+@keyframes correctFlash { 0%,100% { background: rgba(255,255,255,0.08); } 50% { background: rgba(46,213,115,0.28); } }
+@keyframes wrongFlash { 0%,100% { background: rgba(255,255,255,0.08); } 50% { background: rgba(233,69,96,0.28); } }
+
+/* ==== 优化后的 player-head：一行布局 ==== */
+.player-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+.player-info-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.player-score-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  flex-shrink: 0;
+}
+.player-a .avatar { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+.player-b .avatar { background: linear-gradient(135deg, #f093fb, #f5576c); }
+.player-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+.player-a .player-name { color: #4facfe; }
+.player-b .player-name { color: #f093fb; }
+.score-label {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+.score-num {
+  font-size: 2rem;
+  font-weight: bold;
+  line-height: 1.2;
+}
+.player-a .score-num { color: #4facfe; }
+.player-b .score-num { color: #f093fb; }
+/* ==== 其余样式不变 ==== */
+
+.player-status { text-align: center; margin: 8px 0; min-height: 32px; font-size: 1.1rem; color: #ffd200; }
+.answer-area { margin-top: 6px; display: grid; gap: 10px; }
+/* 注意：transition 不能写 all —— font-size 由 --opt-zoom 变量驱动，
+   写成 all 会让 Chromium 把字号一直卡在旧值上（放大按钮会失效） */
+.answer-btn { width: 100%; padding: 14px 16px; border-radius: 14px; border: 2px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; cursor: pointer; text-align: left; font-size: clamp(calc(1.15rem * var(--opt-zoom, 1)), calc(1.55vw * var(--opt-zoom, 1)), calc(1.9rem * var(--opt-zoom, 1))); line-height: 1.4; transition: transform 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s; }
+.answer-btn sup, .answer-btn sub { font-size: 0.7em; line-height: 0; }
+.answer-btn:hover:not(:disabled) { transform: translateY(-2px); background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.35); }
+.answer-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.answer-btn.correct { background: rgba(46,213,115,0.23); border-color: #2ed573; color: #2ed573; }
+.answer-btn.wrong { background: rgba(233,69,96,0.23); border-color: #e94560; color: #ff7b8a; }
+/* 已选择但未公布对错（双人模式防偷看）：浅灰高亮选中项，其余选项变暗 */
+.answer-btn.selected,
+.answer-btn.selected:disabled { opacity: 1; background: rgba(226,232,240,0.85); border-color: #f1f5f9; color: #1e293b; font-weight: bold; }
+
+/* 右下角“＋ / －”字号缩放按钮（题干 1 对、左右选项区各 1 对、单人区 1 对） */
+.zoom-row { display: flex; justify-content: flex-end; gap: 8px; width: 100%; margin-top: 8px; }
+.zoom-btn {
+  width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.12);
+  color: #f1f5f9; font-size: 1.1rem; font-weight: bold; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s;
+}
+.zoom-btn:hover { background: rgba(255,255,255,0.24); border-color: #ffd200; color: #ffd200; transform: translateY(-1px); }
+/* 已到最大 / 最小字号：变暗且不可点，一眼看出还能不能继续调 */
+.zoom-btn:disabled, .zoom-btn:disabled:hover { opacity: 0.35; cursor: not-allowed; transform: none; background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.2); color: #94a3b8; }
+.record-wrap { margin-top: 14px; }
+.record-title { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-bottom: 6px; }
+.record-dots { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.record-dot { width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.14); }
+.record-dot.correct { background: #2ed573; }
+.record-dot.wrong { background: #e94560; }
+.question-area { padding: 22px 20px; min-height: 650px; display: flex; flex-direction: column; align-items: center; }
+.q-dots { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; justify-content: center; }
+.q-dot { width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); }
+.q-dot.current { background: #ffd200; border-color: #ffd200; animation: pulse 1s infinite; }
+.q-dot.done-correct { background: #2ed573; border-color: #2ed573; }
+.q-dot.done-wrong { background: #e94560; border-color: #e94560; }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+.question-type { background: linear-gradient(135deg, #f7971e, #ffd200); color: #1e293b; border-radius: 20px; padding: 6px 18px; font-size: 1.1rem; font-weight: bold; margin-bottom: 12px; }
+.mid-hint { display: none; }
+.question-text { font-size: clamp(1.2rem, 2.8vw, 2.4rem); line-height: 1.9; text-align: left; color: #f8fafc; min-height: 140px; display: block; margin-bottom: 16px; padding: 14px 8px; width: 100%; transition: font-size 0.2s ease; }
+.question-text img { display: block; max-width: 100% !important; max-height: clamp(200px, 42vh, 540px) !important; width: auto !important; height: auto !important; object-fit: contain; margin: 10px auto 6px; border-radius: 8px; }
+.question-text sup { font-size: 0.7em; vertical-align: super; }
+.question-text sub { font-size: 0.7em; vertical-align: sub; }
+.result-msg { width: 100%; min-height: 70px; border-radius: 12px; padding: 12px 16px; background: rgba(255,255,255,0.05); color: #e2e8f0; line-height: 1.7; margin-top: 8px; text-align: center; font-size: 1.1rem; }
+.next-btn { padding: 10px 26px; border: none; border-radius: 12px; background: linear-gradient(135deg, #f7971e, #ffd200); color: #1a1a2e; font-weight: bold; font-size: 1.1rem; cursor: pointer; display: none; transition: all 0.2s; }
+.next-btn.show { display: inline-block; }
+.next-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255,210,0,0.35); }
+/* 单人刷题模式 */
+.single-area { padding: 26px 20px; max-width: 1080px; margin: 0 auto; flex-direction: column; align-items: center; }
+.s-q-dots { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; justify-content: center; }
+.s-question-text { font-size: clamp(1.1rem, 2.2vw, 2.2rem); line-height: 1.9; color: #f8fafc; text-align: left; display: block; width: 100%; padding: 14px 8px; }
+.s-question-text img { display: block; max-width: 100% !important; max-height: clamp(200px, 42vh, 540px) !important; width: auto !important; height: auto !important; object-fit: contain; margin: 10px auto 6px; border-radius: 8px; }
+.s-question-text sup { font-size: 0.7em; vertical-align: super; }
+.s-question-text sub { font-size: 0.7em; vertical-align: sub; }
+.s-answer-area { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; margin-top: 20px; }
+.s-answer-area .answer-btn { font-size: clamp(calc(1rem * var(--opt-zoom, 1)), calc(1.5vw * var(--opt-zoom, 1)), calc(1.5rem * var(--opt-zoom, 1))); padding: 16px 18px; }
+.s-result-msg { width: 100%; min-height: 60px; border-radius: 12px; padding: 12px 16px; background: rgba(255,255,255,0.05); color: #e2e8f0; line-height: 1.7; margin-top: 16px; text-align: center; font-size: 1.15rem; }
+.s-track { margin-top: 12px; color: #94a3b8; font-size: 1.1rem; letter-spacing: 1px; }
+.s-track b { color: #ffd200; }
+.restart-wrap { display: flex; justify-content: center; gap: 16px; margin-top: 14px; }
+.restart-wrap button { padding: 10px 28px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer; font-size: 1rem; transition: all 0.2s; }
+.restart-wrap button:hover { background: rgba(255,255,255,0.14); color: #fff; }
