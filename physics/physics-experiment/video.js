@@ -1,0 +1,155 @@
+/**
+ * video.js
+ * 存放所有实验对应的视频资源（B站嵌入式播放器链接）
+ * 键：实验名称（必须与 bookData 中的名称完全一致）
+ * 值：B站播放器嵌入 URL（自动提取 BV 号）
+ * 
+ * 所有实验已完整配置，无需修改。
+ */
+
+var videoLinks = {
+    // ==================== 八年级上册 ====================
+    // 绪论
+    '重新沸腾的水': 'https://player.bilibili.com/player.html?bvid=BV1A1PSz6EVB&autoplay=1',
+    '转动的线圈': 'https://player.bilibili.com/player.html?bvid=BV1eb411i71x&autoplay=1',
+    '用放大镜观察物体': 'https://player.bilibili.com/player.html?bvid=BV1wywmeKEfm&autoplay=1',
+    '向下吹乒乓球': 'https://player.bilibili.com/player.html?bvid=BV1VZ4y1c7HY&autoplay=1',
+    // 第一章・机械运动
+    '测量小车运动的速度': 'https://player.bilibili.com/player.html?bvid=BV1yNPueKEiP&autoplay=1',
+    // 第二章・声现象
+    '研究声音的传播': 'https://player.bilibili.com/player.html?bvid=BV15541117oo&autoplay=1',
+    '钢尺振动': 'https://player.bilibili.com/player.html?bvid=BV1CT4y177Je&autoplay=1',
+    '观察声音的波形': 'https://player.bilibili.com/player.html?bvid=BV15ZkcYGEnf&autoplay=1',
+    '乒乓球被音叉弹起': 'https://player.bilibili.com/player.html?bvid=BV1yM41127Mr&autoplay=1',
+    '水瓶琴': 'https://player.bilibili.com/player.html?bvid=BV16e411p7xk&autoplay=1',
+    '鸟哨': 'https://player.bilibili.com/player.html?bvid=BV1z8411s7rN&autoplay=1',
+    '跨学科实践：制作隔音房间模型': 'https://player.bilibili.com/player.html?bvid=BV1zb4GedEHD&autoplay=1',
+    // 第三章・物态变化
+    '研究固体熔化时温度的变化规律': 'https://player.bilibili.com/player.html?bvid=BV1z1kcYJE1P&autoplay=1',
+    '塑料袋内的酒精': 'https://player.bilibili.com/player.html?bvid=BV1Y54y1r7DW&autoplay=1',
+    '探究水在沸腾前后温度变化的特点': 'https://player.bilibili.com/player.html?bvid=BV16CkcYDEtV&autoplay=1',
+    '烧开水用的小纸锅': 'https://player.bilibili.com/player.html?bvid=BV1mQo5BAESn&autoplay=1',
+    '电冰箱的工作原理': 'https://player.bilibili.com/player.html?bvid=BV1764y1P7Hi&autoplay=1',
+    '观察碘的物态变化': 'https://player.bilibili.com/player.html?bvid=BV1Q3o8B1Epf&autoplay=1',
+    '观察干冰的升华': 'https://player.bilibili.com/player.html?bvid=BV1Kk4y117V9&autoplay=1',
+    '霜的形成实验': 'https://player.bilibili.com/player.html?bvid=BV1RHnRzEEoW&autoplay=1',
+    '跨学科实践：厨房中的物态变化问题': 'https://player.bilibili.com/player.html?bvid=BV1ShSUYSEAf&autoplay=1',
+    // 第四章・光现象
+    '光沿直线传播': 'https://player.bilibili.com/player.html?bvid=BV1Ma4y1i7MK&autoplay=1',
+    '小孔成像': 'https://player.bilibili.com/player.html?bvid=BV1uS9DB8EB9&autoplay=1',
+    '甘肃敦煌的熔盐塔式光热电站': 'https://player.bilibili.com/player.html?bvid=BV1QoRaYxE1R&autoplay=1',
+    '探究光的反射定律': 'https://player.bilibili.com/player.html?bvid=BV1ri4y177Wv&autoplay=1',
+    '探究平面镜成像的特点': 'https://player.bilibili.com/player.html?bvid=BV1Wa4y1i75K&autoplay=1',
+    '研究光的折射现象': 'https://player.bilibili.com/player.html?bvid=BV1Jk4y1k7gZ&autoplay=1',
+    '观察光的色散': 'https://player.bilibili.com/player.html?bvid=BV1AU4y177PX&autoplay=1',
+    // 第五章・透镜及其应用
+    '两种透镜对光的作用': 'https://player.bilibili.com/player.html?bvid=BV1J3FAeAEzp&autoplay=1',
+    '自制照相机模型': 'https://player.bilibili.com/player.html?bvid=BV1h64y1z7QX&autoplay=1',
+    '观察投影仪的成像': 'https://player.bilibili.com/player.html?bvid=BV1jL411H7Q1&autoplay=1',
+    '探究凸透镜成像的规律': 'https://player.bilibili.com/player.html?bvid=BV1ro4y1f7pA&autoplay=1',
+    '跨学科实践：制作望远镜': 'https://player.bilibili.com/player.html?bvid=BV1jWVC6XE2F&autoplay=1',
+    // 第六章・质量与密度
+    '用托盘天平测量物体的质量': 'https://player.bilibili.com/player.html?bvid=BV1sq4y1w7RD&autoplay=1',
+    '探究物质的质量与体积的关系': 'https://player.bilibili.com/player.html?bvid=BV163YkzDEfL&autoplay=1',
+    '测量盐水的密度': 'https://player.bilibili.com/player.html?bvid=BV1CzkcYWEFo&autoplay=1',
+    '测量小石块的密度': 'https://player.bilibili.com/player.html?bvid=BV1CzkcYWEFo&autoplay=1',
+
+    // ==================== 八年级下册 ====================
+    // 第七章・力
+    '用弹簧测力计测量力': 'https://player.bilibili.com/player.html?bvid=BV1iYwZeWEb1&autoplay=1',
+    '探究重力的大小跟质量的关系': 'https://player.bilibili.com/player.html?bvid=BV1jk4y1k7R6&autoplay=1',
+    // 第八章・运动和力
+    '阻力对物体运动的影响': 'https://player.bilibili.com/player.html?bvid=BV1udPMeGEhL&autoplay=1',
+    '探究二力平衡的条件': 'https://player.bilibili.com/player.html?bvid=BV1KFPuezEUH&autoplay=1',
+    '探究滑动摩擦力的大小与哪些因素有关': 'https://player.bilibili.com/player.html?bvid=BV1Bi98BUEKm&autoplay=1',
+    '研究同一直线上二力的合成': 'https://player.bilibili.com/player.html?bvid=BV1YEdTBUEUj&autoplay=1',
+    // 第九章・压强
+    '压力和受力面积对海绵形变的影响': 'https://player.bilibili.com/player.html?bvid=BV1TfPMegEq5&autoplay=1',
+    '观察液体压强的特点': 'https://player.bilibili.com/player.html?bvid=BV1NgMd6pEwN&autoplay=1',
+    '探究液体压强与哪些因素有关': 'https://player.bilibili.com/player.html?bvid=BV1Ax4y1D7FH&autoplay=1',
+    '三峡船闸': 'https://player.bilibili.com/player.html?bvid=BV1wf4y1G7ci&autoplay=1',
+    '大气压的测量': 'https://player.bilibili.com/player.html?bvid=BV1eX4y1F7P7&autoplay=1',
+    '马德堡半球实验': 'https://player.bilibili.com/player.html?bvid=BV17G4y1g7Fn&autoplay=1',
+    '跨学科实践：制作简易活塞式抽水机': 'https://player.bilibili.com/player.html?bvid=BV1qxVC6HEAX&autoplay=1',
+    '用传感器研究气体压强与流速的关系': 'https://player.bilibili.com/player.html?bvid=BV1BVAyeXEt8&autoplay=1',
+    // 第十章・浮力
+    '观察浮力产生的原因': 'https://player.bilibili.com/player.html?bvid=BV1cb4y1C7rG&autoplay=1',
+    '测量浸没在水中的铝块所受的浮力': 'https://player.bilibili.com/player.html?bvid=BV1KP411U7BS&autoplay=1',
+    '探究浮力的大小与哪些因素有关': 'https://player.bilibili.com/player.html?bvid=BV1BGAyeWE5N&autoplay=1',
+    '探究浮力的大小与排开液体所受重力的关系': 'https://player.bilibili.com/player.html?bvid=BV1PnACeFEpS&autoplay=1',
+    '潜水艇的工作原理': 'https://player.bilibili.com/player.html?bvid=BV1bp421m7g5&autoplay=1',
+    '跨学科实践：制作微型密度计': 'https://player.bilibili.com/player.html?bvid=BV1GYVC62Eyj&autoplay=1',
+    // 第十一章・功和机械能
+    '研究物体的动能跟哪些因素有关': 'https://player.bilibili.com/player.html?bvid=BV1mV411H7ZX&autoplay=1',
+    '动能和势能的转化': 'https://player.bilibili.com/player.html?bvid=BV1nydrBfE9b&autoplay=1',
+    '魔瓶实验': 'https://player.bilibili.com/player.html?bvid=BV1dHWheYEdA&autoplay=1',
+    // 第十二章・简单机械
+    '探究杠杆的平衡条件': 'https://player.bilibili.com/player.html?bvid=BV1ca4y1i77e&autoplay=1',
+    '跨学科实践：制作简易杆秤': 'https://player.bilibili.com/player.html?bvid=BV1avVC6LEh3&autoplay=1',
+    '研究定滑轮和动滑轮的特点': 'https://player.bilibili.com/player.html?bvid=BV1YgLF68EGJ&autoplay=1',
+    '测量滑轮组的机械效率': 'https://player.bilibili.com/player.html?bvid=BV1nk4y1k7rj&autoplay=1',
+
+    // ==================== 九年级全一册 ====================
+    // 第十三章・内能（5个）
+    '比较不同物质吸收热量的情况': 'https://player.bilibili.com/player.html?bvid=BV11YowBoE2J&autoplay=1',
+    '气体扩散实验': 'https://player.bilibili.com/player.html?bvid=BV1Dt4y1y7j9&autoplay=1',
+    '墨水扩散快慢与温度的关系': 'https://player.bilibili.com/player.html?bvid=BV1uA411t7YU&autoplay=1',
+    '铅柱间的作用力': 'https://player.bilibili.com/player.html?bvid=BV1nJoHBuEDC&autoplay=1',
+    '做功改变空气的内能': 'https://player.bilibili.com/player.html?bvid=BV1ZC4y1F7KE&autoplay=1',
+    // 第十四章・内能的利用（4个）
+    '能量的转化与守恒': 'https://player.bilibili.com/player.html?bvid=BV1Jx411L7BC&autoplay=1',
+    '加热试管中的水': 'https://player.bilibili.com/player.html?bvid=BV16h411Z7L1&autoplay=1',
+    '热机工作原理': 'https://player.bilibili.com/player.html?bvid=BV1VM4m1y7NH&autoplay=1',
+    '跨学科实践：制作简易热机模型': 'https://player.bilibili.com/player.html?bvid=BV1bu9jBfEcf&autoplay=1',
+    // 第十五章・电流和电路（7个）
+    '电荷间的相互作用': 'https://player.bilibili.com/player.html?bvid=BV1Jp4y1C7bz&autoplay=1',
+    '验电器': 'https://player.bilibili.com/player.html?bvid=BV1kp4y117kP&autoplay=1',
+    '摩擦起电的原因': 'https://player.bilibili.com/player.html?bvid=BV1KU4y1H74L&autoplay=1',
+    '连接串联电路和并联电路': 'https://player.bilibili.com/player.html?bvid=BV1BY9TBHE16&autoplay=1',
+    '用电流表测量电流': 'https://player.bilibili.com/player.html?bvid=BV1HTDYBsEUD&autoplay=1',
+    '探究串联电路中各处电流的关系': 'https://player.bilibili.com/player.html?bvid=BV1nvDsBwExH&autoplay=1',
+    '探究并联电路中干路电流与各支路电流的关系': 'https://player.bilibili.com/player.html?bvid=BV1U1DzBQEqt&autoplay=1',
+    // 第十六章・电压 电阻（9个）
+    '电压的概念': 'https://player.bilibili.com/player.html?bvid=BV1ponPzpExj&autoplay=1',
+    '用电压表测量电压': 'https://player.bilibili.com/player.html?bvid=BV1UpDfBuEAT&autoplay=1',
+    '探究串联电路中用电器两端电压与电源两端电压的关系': 'https://player.bilibili.com/player.html?bvid=BV1ScQFBVEjU&autoplay=1',
+    '探究并联电路中各支路用电器两端电压与电源两端电压的关系': 'https://player.bilibili.com/player.html?bvid=BV1bcQFBVEXR&autoplay=1',
+    '用铅笔芯连接电路': 'https://player.bilibili.com/player.html?bvid=BV1RQgzzjEGV&autoplay=1',
+    '影响导体电阻大小的因素': 'https://player.bilibili.com/player.html?bvid=BV1pod4BsEZC&autoplay=1',
+    '超导体和半导体': 'https://player.bilibili.com/player.html?bvid=BV1xo4ez4Ehq&autoplay=1',
+    '练习使用滑动变阻器': 'https://player.bilibili.com/player.html?bvid=BV1RQgzzjESL&autoplay=1',
+    '跨学科实践：制作简易调光台灯': 'https://player.bilibili.com/player.html?bvid=BV14uQiBCEZH&autoplay=1',
+    // 第十七章・欧姆定律（3个）
+    '探究电阻一定时电流与电压的关系': 'https://player.bilibili.com/player.html?bvid=BV1icG16pEco&autoplay=1',
+    '探究电压一定时电流与电阻的关系': 'https://player.bilibili.com/player.html?bvid=BV1vcG16pEyc&autoplay=1',
+    '用电流表和电压表测量电阻': 'https://player.bilibili.com/player.html?bvid=BV1M7G16kE4W&autoplay=1',
+    // 第十八章・电功率（3个）
+    '小灯泡的电功率随电压变化': 'https://player.bilibili.com/player.html?bvid=BV1QML86VEoB&autoplay=1',
+    '跨学科实践：为家庭节约用电提建议': 'https://player.bilibili.com/player.html?bvid=BV1M94y1n7pH&autoplay=1',
+    '焦耳定律实验': 'https://player.bilibili.com/player.html?bvid=BV1BZndePEx5&autoplay=1',
+    // 第十九章・生活用电（5个）
+    '家庭电路中电流过大的原因': 'https://player.bilibili.com/player.html?bvid=BV11w4m1d7Hy&autoplay=1',
+    '安全用电': 'https://player.bilibili.com/player.html?bvid=BV14x4y1S7Yy&autoplay=1',
+    '家庭电路的基本组成': 'https://player.bilibili.com/player.html?bvid=BV1Hj421Z72v&autoplay=1',
+    '试电笔的使用': 'https://player.bilibili.com/player.html?bvid=BV1ci42127EN&autoplay=1',
+    '跨学科实践：为家庭电路做设计': 'https://player.bilibili.com/player.html?bvid=BV1nPVA65E7u&autoplay=1',
+    // 第二十章・电与磁（13个）
+    '研究磁体周围磁场的方向': 'https://player.bilibili.com/player.html?bvid=BV15rGC67Eph&autoplay=1',
+    '电流的磁效应': 'https://player.bilibili.com/player.html?bvid=BV1fEZPY8Exr&autoplay=1',
+    '探究通电螺线管外部磁场的方向': 'https://player.bilibili.com/player.html?bvid=BV15rGC67EdC&autoplay=1',
+    '安培定则': 'https://player.bilibili.com/player.html?bvid=BV1934y1f7v2&autoplay=1',
+    '制作简易的电磁起重机': 'https://player.bilibili.com/player.html?bvid=BV1Ut411d7nn&autoplay=1',
+    '电磁继电器': 'https://player.bilibili.com/player.html?bvid=BV16w4m1f7Rv&autoplay=1',
+    '通电导体棒在磁场中运动': 'https://player.bilibili.com/player.html?bvid=BV1jw411F7EX&autoplay=1',
+    '电动机工作原理': 'https://player.bilibili.com/player.html?bvid=BV182rUYcEqM&autoplay=1',
+    '扬声器的工作原理': 'https://player.bilibili.com/player.html?bvid=BV1YC4y1U77Z&autoplay=1',
+    '跨学科实践：制作简易直流电动机': 'https://player.bilibili.com/player.html?bvid=BV1b1Vw64EYu&autoplay=1',
+    '探究导体在磁场中运动时产生感应电流的条件': 'https://player.bilibili.com/player.html?bvid=BV1EYGC6XE7S&autoplay=1',
+    '发电机工作原理': 'https://player.bilibili.com/player.html?bvid=BV1EaGC6WEzD&autoplay=1',
+    '麦克风工作原理': 'https://player.bilibili.com/player.html?bvid=BV1GwGRz9EC7&autoplay=1',
+    // 第二十一章・电磁波及其应用（1个）
+    '电磁波及其应用': 'https://player.bilibili.com/player.html?bvid=BV1CZUmBfEvz&autoplay=1',
+    // 第二十二章・能源与可持续发展（2个）
+    '能源的分类': 'https://player.bilibili.com/player.html?bvid=BV1Ng4y1m7BY&autoplay=1',
+    '核裂变与核聚变': 'https://player.bilibili.com/player.html?bvid=BV1ktj46dEdN&autoplay=1'
+};
