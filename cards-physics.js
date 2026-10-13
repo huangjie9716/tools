@@ -19,8 +19,8 @@ window.CARDS_PHYSICS = [
         desc: '两人对战模式，涵盖初中物理课堂核心知识点，增强课堂互动与趣味性。',
         date: '2026.09.17',
         version: 'v1.2',
-        file: 'physics/1/PhysicsClassGame.html',
-        href: 'physics/1/PhysicsClassGame.html',
+        file: 'physics/classroom-knowledge/knowledge-pk.html',
+        href: 'physics/classroom-knowledge/knowledge-pk.html',
         action: 'link',
         actionText: '立即使用',
         video: 'https://www.bilibili.com/video/BV1pHeu6UEci/?spm_id_from=333.1387.homepage.video_card.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27'
