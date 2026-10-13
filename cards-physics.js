@@ -30,8 +30,8 @@ window.CARDS_PHYSICS = [
         desc: '涵盖初中物理演示实验和学生实验，提供视频资源、模拟软件、习题资源，致力成为老师和学生们宝贵的学习财富！',
         date: '2026.09.17',
         version: 'v1.2',
-        file: 'physics/2/PhysicsExperiment.html',
-        href: 'physics/2/PhysicsExperiment.html',
+        file: 'physics/physics-experiment/experiment-resource-library.html',
+        href: 'physics/physics-experiment/experiment-resource-library.html',
         action: 'link',
         actionText: '立即使用',
         video: 'https://www.bilibili.com/video/BV1HHeu6UEg6/?spm_id_from=333.1387.homepage.video_card.click&vd_source=53e653f3462e0a0b07cbf67766ff0d27'
