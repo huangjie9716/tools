@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-immersive-translate-page-theme="light"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
+    <title>潜水艇物理演示 - 浮力与重力</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            font-family: 'Microsoft YaHei', 'SimHei', sans-serif;
+            background: linear-gradient(180deg, #e8f4f8 0%, #d4e9f0 100%);
+            min-height: 100vh;
+            overflow: auto;
+        }
+        #zoomWrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform-origin: center top;
+            padding: 15px;
+        }
+        h1 { color: #2c3e50; margin-bottom: 8px; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); font-size: 26px; }
+        .subtitle { color: #7f8c8d; margin-bottom: 15px; font-size: 14px; }
+        .main-container {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+            justify-content: center;
+            max-width: 1300px;
+            width: 100%;
+        }
+        .canvas-container {
+            position: relative;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            padding: 10px;
+            flex-shrink: 0;
+        }
+        canvas { border-radius: 10px; display: block; }
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 260px;
+            flex-shrink: 0;
+        }
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .panel h3 {
+            color: #2c3e50;
+            margin-bottom: 12px;
+            font-size: 16px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 6px;
+        }
+        .control-buttons { display: flex; flex-direction: column; gap: 8px; }
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-family: inherit;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .btn:active { transform: translateY(0) scale(0.98); }
+        .btn-fill { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-drain { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .btn-reset { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .info-item {
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        .info-item label { display: block; font-size: 11px; color: #7f8c8d; margin-bottom: 3px; }
+        .info-item value { display: block; font-size: 16px; font-weight: bold; color: #2c3e50; }
+        .status-indicator {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-top: 8px;
+            text-align: center;
+            width: 100%;
+        }
+        .status-up { background: #d4edda; color: #155724; }
+        .status-down { background: #f8d7da; color: #721c24; }
+        .status-float { background: #fff3cd; color: #856404; }
+        .formula-box {
+            background: #f0f8ff;
+            border: 2px solid #b8d4e3;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+        .formula-box .formula {
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            color: #2980b9;
+            font-size: 15px;
+            margin: 4px 0;
+        }
+        .comparison-bar { margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px; }
+        .comparison-bar .bar-label { font-size: 12px; color: #555; margin-bottom: 4px; display: flex; justify-content: space-between; }
+        .comparison-bar .bar-track { height: 20px; background: #e0e0e0; border-radius: 10px; position: relative; overflow: hidden; }
+        .comparison-bar .bar-fill-g { position: absolute; left: 0; top: 0; height: 100%; background: #e74c3c; border-radius: 10px; transition: width 0.3s ease; }
+        .comparison-bar .bar-fill-f { position: absolute; left: 0; top: 0; height: 100%; background: #2ecc71; border-radius: 10px; transition: width 0.3s ease; opacity: 0.6; }
+        @media (max-width: 1100px) {
+            .main-container { flex-direction: column; align-items: center; }
+            .side-panel { width: 100%; max-width: 600px; }
+        }
+    </style>
+<!--<base target="_blank">--><base href="." target="_blank">
+<style data-id="immersive-translate-input-injected-css"></style></head>
+<body>
+    <div id="zoomWrapper">
+        <h1>🚢 潜水艇物理演示动画</h1>
+        <p class="subtitle">浮力与重力的相互作用原理 | 交互式物理模拟</p>
+
+        <div class="main-container">
+            <!-- 左侧：物理原理 -->
+            <div class="side-panel left-panel">
+                <div class="panel">
+                    <h3>📐 物理原理</h3>
+                    <div class="formula-box">
+                        <div class="formula">F浮 = ρ水 · g · V排</div>
+                        <div class="formula">G = m总 · g = (m艇 + m水) · g</div>
+                        <div style="margin-top: 8px; font-size: 12px;">
+                            <div>🔵 <b>漂浮</b>：F浮 = G（部分露出水面）</div>
+                            <div>🟢 <b>上浮</b>：F浮 &gt; G（排水，重力减小）</div>
+                            <div>🟡 <b>悬浮</b>：F浮 = G（完全浸没）</div>
+                            <div>🔴 <b>下沉</b>：F浮 &lt; G（充水，重力增大）</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <canvas id="simCanvas" width="650" height="520"></canvas>
+            </div>
+
+            <!-- 右侧：控制与数据 -->
+            <div class="side-panel right-panel">
+                <div class="panel">
+                    <h3>🎮 操作控制</h3>
+                    <div class="control-buttons">
+                        <button class="btn btn-fill" onclick="addWater()">💧 充水（下潜）</button>
+                        <button class="btn btn-drain" onclick="removeWater()">🌊 排水（上浮）</button>
+                        <button class="btn btn-reset" onclick="resetSimulation()">🔄 重置</button>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>📊 实时数据</h3>
+                    <div class="info-grid">
+                        <div class="info-item"><label>水舱水量</label><value id="waterAmount">50 kg</value></div>
+                        <div class="info-item"><label>总质量</label><value id="totalMass">350 kg</value></div>
+                        <div class="info-item"><label>重力 G</label><value id="gravityForce">3430 N</value></div>
+                        <div class="info-item"><label>浮力 F浮</label><value id="buoyancyForce">3430 N</value></div>
+                        <div class="info-item"><label>深度</label><value id="depth">18.0 m</value></div>
+                        <div class="info-item"><label>浸没比例</label><value id="submergedRatio">70%</value></div>
+                    </div>
+                    <div class="comparison-bar">
+                        <div class="bar-label"><span>力的大小对比</span><span id="forceCompare" style="color: rgb(133, 100, 4);">G ≈ F浮</span></div>
+                        <div class="bar-track">
+                            <div class="bar-fill-f" id="barF" style="width: 57.167%;"></div>
+                            <div class="bar-fill-g" id="barG" style="width: 57.1667%;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 4px; color: #666;">
+                            <span style="color: #e74c3c;">■ 重力 G</span>
+                            <span style="color: #2ecc71;">■ 浮力 F浮</span>
+                        </div>
+                    </div>
+                    <div class="status-indicator status-float" id="statusText">⚖️ 平衡状态</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // ========== 物理参数 ==========
+        const SUBMARINE_MASS = 300;       // 潜艇自身质量 (kg)
+        const BALLAST_CAPACITY = 500;     // 水舱最大容量 (kg)
+        const GRAVITY = 9.8;              // 重力加速度
+        const DT = 0.016;                 // 时间步长
+        const WATER_STEP = 50;            // 每次充水/排水量 (kg)
+        const MAX_BUOYANCY = 4900;        // 完全浸没时的最大浮力 (N)
+
+        // ========== 状态变量 ==========
+        let waterInBallast = 0;           // 当前水舱水量 (kg)
+        let depth = 9;                    // 初始深度 (px)，约 60% 浸没
+        let velocity = 0;                 // 垂直速度（正值向下）
+        let bubbleParticles = [];
+        let time = 0;
+
+        // ========== 画布参数 ==========
+        const CENTER_X = canvas.width / 2;
+        const WATER_LEVEL = 160;          // 水面Y坐标
+        const SUB_WIDTH = 140;
+        const SUB_HEIGHT = 90;
+        const BALLAST_WIDTH = 35;
+        const BALLAST_HEIGHT = 70;
+
+        // 初始化气泡
+        function initBubbles() {
+            for (let i = 0; i < 25; i++) {
+                bubbleParticles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * (canvas.height - WATER_LEVEL) + WATER_LEVEL,
+                    radius: Math.random() * 3 + 1,
+                    speed: Math.random() * 1.5 + 0.5,
+                    opacity: Math.random() * 0.4 + 0.1
+                });
+            }
+        }
+        initBubbles();
+
+        function addWater() {
+            if (waterInBallast < BALLAST_CAPACITY) {
+                waterInBallast = Math.min(BALLAST_CAPACITY, waterInBallast + WATER_STEP);
+                for (let i = 0; i < 4; i++) {
+                    bubbleParticles.push({
+                        x: CENTER_X + (Math.random() - 0.5) * SUB_WIDTH,
+                        y: WATER_LEVEL + 10,
+                        radius: Math.random() * 3 + 2,
+                        speed: Math.random() * 2 + 1,
+                        opacity: 0.7,
+                        life: 80
+                    });
+                }
+            }
+        }
+
+        function removeWater() {
+            if (waterInBallast > 0) {
+                waterInBallast = Math.max(0, waterInBallast - WATER_STEP);
+            }
+        }
+
+        function resetSimulation() {
+            waterInBallast = 0;
+            depth = 9;
+            velocity = 0;
+        }
+
+        // ========== 物理计算 ==========
+        function updatePhysics() {
+            const totalMass = SUBMARINE_MASS + waterInBallast;
+            const gravityForce = totalMass * GRAVITY;
+
+            let buoyancyForce;
+            let submergedRatio = 0;
+            const centerY = WATER_LEVEL + depth;
+            const subTop = centerY - SUB_HEIGHT / 2;
+            const subBottom = centerY + SUB_HEIGHT / 2;
+
+            if (subBottom <= WATER_LEVEL) {
+                buoyancyForce = 0;
+                submergedRatio = 0;
+            } else if (subTop >= WATER_LEVEL) {
+                buoyancyForce = MAX_BUOYANCY;
+                submergedRatio = 1;
+            } else {
+                const submergedHeight = subBottom - WATER_LEVEL;
+                submergedRatio = submergedHeight / SUB_HEIGHT;
+                buoyancyForce = MAX_BUOYANCY * submergedRatio;
+            }
+
+            const netForce = gravityForce - buoyancyForce;
+            const damping = 0.95;
+            const acceleration = netForce / totalMass;
+            velocity += acceleration * DT * 5;
+            velocity *= damping;
+            depth += velocity * DT * 5;
+
+            if (depth < -150) {
+                depth = -150;
+                velocity = 0;
+            }
+            if (depth > 320) {
+                depth = 320;
+                velocity = 0;
+            }
+
+            updateUI(gravityForce, buoyancyForce, netForce, totalMass, submergedRatio);
+            time += DT;
+        }
+
+        function updateUI(gravity, buoyancy, netForce, totalMass, submergedRatio) {
+            document.getElementById('waterAmount').textContent = waterInBallast.toFixed(0) + ' kg';
+            document.getElementById('totalMass').textContent = totalMass.toFixed(0) + ' kg';
+            document.getElementById('gravityForce').textContent = gravity.toFixed(0) + ' N';
+            document.getElementById('buoyancyForce').textContent = buoyancy.toFixed(0) + ' N';
+            document.getElementById('depth').textContent = Math.max(0, depth).toFixed(1) + ' m';
+            document.getElementById('submergedRatio').textContent = (submergedRatio * 100).toFixed(0) + '%';
+
+            const maxForce = Math.max(gravity, buoyancy, 6000);
+            const gPercent = (gravity / maxForce) * 100;
+            const fPercent = (buoyancy / maxForce) * 100;
+            document.getElementById('barG').style.width = gPercent + '%';
+            document.getElementById('barF').style.width = fPercent + '%';
+
+            const compareText = document.getElementById('forceCompare');
+            if (Math.abs(gravity - buoyancy) < 100) {
+                compareText.textContent = 'G ≈ F浮';
+                compareText.style.color = '#856404';
+            } else if (gravity > buoyancy) {
+                compareText.textContent = 'G > F浮';
+                compareText.style.color = '#e74c3c';
+            } else {
+                compareText.textContent = 'G < F浮';
+                compareText.style.color = '#2ecc71';
+            }
+
+            const statusEl = document.getElementById('statusText');
+            const centerY = WATER_LEVEL + depth;
+            const subTop = centerY - SUB_HEIGHT / 2;
+            const subBottom = centerY + SUB_HEIGHT / 2;
+
+            if (subBottom <= WATER_LEVEL) {
+                if (Math.abs(netForce) < 100) {
+                    statusEl.textContent = '⚖️ 漂浮状态（水面）';
+                    statusEl.className = 'status-indicator status-float';
+                } else if (netForce < 0) {
+                    statusEl.textContent = '🟢 上浮中（趋向水面）';
+                    statusEl.className = 'status-indicator status-up';
+                } else {
+                    statusEl.textContent = '🔴 下沉中（趋向水下）';
+                    statusEl.className = 'status-indicator status-down';
+                }
+            } else if (subTop >= WATER_LEVEL) {
+                if (Math.abs(netForce) < 100) {
+                    statusEl.textContent = '⚖️ 悬浮状态（水下）';
+                    statusEl.className = 'status-indicator status-float';
+                } else if (netForce < 0) {
+                    statusEl.textContent = '🟢 上浮中（趋向水面）';
+                    statusEl.className = 'status-indicator status-up';
+                } else {
+                    statusEl.textContent = '🔴 下沉中（趋向更深）';
+                    statusEl.className = 'status-indicator status-down';
+                }
+            } else {
+                if (Math.abs(netForce) < 100) {
+                    statusEl.textContent = '⚖️ 平衡状态';
+                    statusEl.className = 'status-indicator status-float';
+                } else if (netForce < 0) {
+                    statusEl.textContent = '🟢 上浮中';
+                    statusEl.className = 'status-indicator status-up';
+                } else {
+                    statusEl.textContent = '🔴 下沉中';
+                    statusEl.className = 'status-indicator status-down';
+                }
+            }
+        }
+
+        // ========== 绘制函数 ==========
+        function drawSubmarine() {
+            const centerY = WATER_LEVEL + depth;
+            const leftX = CENTER_X - SUB_WIDTH / 2;
+            const rightX = CENTER_X + SUB_WIDTH / 2;
+
+            ctx.save();
+
+            const tankLeftX = leftX - BALLAST_WIDTH - 5;
+            const tankY = centerY - BALLAST_HEIGHT / 2;
+
+            ctx.fillStyle = '#f0f0f0';
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(tankLeftX, tankY, BALLAST_WIDTH, BALLAST_HEIGHT, 5);
+            ctx.fill();
+            ctx.stroke();
+
+            const waterHeight = (waterInBallast / BALLAST_CAPACITY) * BALLAST_HEIGHT;
+            if (waterHeight > 0) {
+                const gradient = ctx.createLinearGradient(0, tankY + BALLAST_HEIGHT - waterHeight, 0, tankY + BALLAST_HEIGHT);
+                gradient.addColorStop(0, '#4facfe');
+                gradient.addColorStop(1, '#00f2fe');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.roundRect(tankLeftX + 2, tankY + BALLAST_HEIGHT - waterHeight, BALLAST_WIDTH - 4, waterHeight - 2, 3);
+                ctx.fill();
+
+                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < 3; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(tankLeftX + 5, tankY + BALLAST_HEIGHT - waterHeight + i * 4);
+                    ctx.lineTo(tankLeftX + BALLAST_WIDTH - 5, tankY + BALLAST_HEIGHT - waterHeight + i * 4);
+                    ctx.stroke();
+                }
+            }
+
+            const tankRightX = rightX + 5;
+            ctx.fillStyle = '#f0f0f0';
+            ctx.beginPath();
+            ctx.roundRect(tankRightX, tankY, BALLAST_WIDTH, BALLAST_HEIGHT, 5);
+            ctx.fill();
+            ctx.stroke();
+
+            if (waterHeight > 0) {
+                const gradient = ctx.createLinearGradient(0, tankY + BALLAST_HEIGHT - waterHeight, 0, tankY + BALLAST_HEIGHT);
+                gradient.addColorStop(0, '#4facfe');
+                gradient.addColorStop(1, '#00f2fe');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.roundRect(tankRightX + 2, tankY + BALLAST_HEIGHT - waterHeight, BALLAST_WIDTH - 4, waterHeight - 2, 3);
+                ctx.fill();
+
+                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < 3; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(tankRightX + 5, tankY + BALLAST_HEIGHT - waterHeight + i * 4);
+                    ctx.lineTo(tankRightX + BALLAST_WIDTH - 5, tankY + BALLAST_HEIGHT - waterHeight + i * 4);
+                    ctx.stroke();
+                }
+            }
+
+            ctx.fillStyle = '#C0C0C0';
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(CENTER_X, centerY, SUB_WIDTH / 2, SUB_HEIGHT / 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.beginPath();
+            ctx.ellipse(CENTER_X - 15, centerY - 15, SUB_WIDTH / 3, SUB_HEIGHT / 4, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#A0A0A0';
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(CENTER_X - 20, centerY - SUB_HEIGHT / 2 - 25, 40, 25, 5);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#888';
+            ctx.fillRect(CENTER_X - 5, centerY - SUB_HEIGHT / 2 - 45, 10, 20);
+            ctx.fillRect(CENTER_X - 12, centerY - SUB_HEIGHT / 2 - 48, 24, 6);
+
+            ctx.fillStyle = '#87CEEB';
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(CENTER_X + 30, centerY - 5, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(CENTER_X - 10, centerY - 5, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#FF0000';
+            ctx.beginPath();
+            ctx.arc(CENTER_X, centerY, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#FF0000';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.fillStyle = '#FF0000';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.fillText('重心', CENTER_X + 8, centerY + 4);
+
+            ctx.restore();
+        }
+
+        function drawForces() {
+            const centerY = WATER_LEVEL + depth;
+            const totalMass = SUBMARINE_MASS + waterInBallast;
+            const gravityForce = totalMass * GRAVITY;
+
+            let buoyancyForce;
+            const subTop = centerY - SUB_HEIGHT / 2;
+            const subBottom = centerY + SUB_HEIGHT / 2;
+
+            if (subBottom <= WATER_LEVEL) {
+                buoyancyForce = 0;
+            } else if (subTop >= WATER_LEVEL) {
+                buoyancyForce = MAX_BUOYANCY;
+            } else {
+                const submergedHeight = subBottom - WATER_LEVEL;
+                const submergedRatio = submergedHeight / SUB_HEIGHT;
+                buoyancyForce = MAX_BUOYANCY * submergedRatio;
+            }
+
+            const maxForce = Math.max(gravityForce, buoyancyForce, 6000);
+            const arrowMaxLen = 130;
+            const gLen = (gravityForce / maxForce) * arrowMaxLen;
+            const bLen = (buoyancyForce / maxForce) * arrowMaxLen;
+
+            drawArrow(CENTER_X, centerY, CENTER_X, centerY + gLen, '#e74c3c', 4, 'G=' + gravityForce.toFixed(0) + 'N');
+            drawArrow(CENTER_X, centerY, CENTER_X, centerY - bLen, '#2ecc71', 4, 'F浮=' + buoyancyForce.toFixed(0) + 'N');
+        }
+
+        function drawArrow(fromX, fromY, toX, toY, color, width, label) {
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = width;
+
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.stroke();
+
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+            const arrowLength = 12;
+            const arrowAngle = Math.PI / 6;
+
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - arrowLength * Math.cos(angle - arrowAngle), toY - arrowLength * Math.sin(angle - arrowAngle));
+            ctx.lineTo(toX - arrowLength * Math.cos(angle + arrowAngle), toY - arrowLength * Math.sin(angle + arrowAngle));
+            ctx.closePath();
+            ctx.fill();
+
+            const labelX = toX + 15;
+            const labelY = toY + (fromY > toY ? -6 : 6);
+
+            ctx.font = 'bold 12px sans-serif';
+            const textWidth = ctx.measureText(label).width;
+
+            ctx.fillStyle = 'rgba(255,255,255,0.95)';
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.roundRect(labelX - 2, labelY - 11, textWidth + 6, 20, 4);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = color;
+            ctx.fillText(label, labelX, labelY + 3);
+
+            ctx.restore();
+        }
+
+        function drawWater() {
+            ctx.strokeStyle = '#4a90d9';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, WATER_LEVEL);
+            ctx.lineTo(canvas.width, WATER_LEVEL);
+            ctx.stroke();
+
+            ctx.strokeStyle = 'rgba(74, 144, 217, 0.4)';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 4; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, WATER_LEVEL + 4 + i * 3);
+                for (let x = 0; x < canvas.width; x += 20) {
+                    ctx.lineTo(x, WATER_LEVEL + 4 + i * 3 + Math.sin(x * 0.05 + time * 3 + i) * 2);
+                }
+                ctx.stroke();
+            }
+
+            const gradient = ctx.createLinearGradient(0, WATER_LEVEL, 0, canvas.height);
+            gradient.addColorStop(0, 'rgba(135, 206, 235, 0.25)');
+            gradient.addColorStop(1, 'rgba(70, 130, 180, 0.45)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, WATER_LEVEL, canvas.width, canvas.height - WATER_LEVEL);
+
+            ctx.save();
+            bubbleParticles.forEach((bubble, index) => {
+                if (bubble.life !== undefined) {
+                    bubble.life--;
+                    if (bubble.life <= 0) { bubble.y = -100; return; }
+                }
+                bubble.y -= bubble.speed;
+                bubble.x += Math.sin(time * 3 + index) * 0.3;
+                if (bubble.y < WATER_LEVEL && bubble.life === undefined) {
+                    bubble.y = canvas.height;
+                    bubble.x = Math.random() * canvas.width;
+                }
+                ctx.beginPath();
+                ctx.arc(bubble.x, bubble.y, bubble.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${bubble.opacity})`;
+                ctx.fill();
+                ctx.strokeStyle = `rgba(255, 255, 255, ${bubble.opacity * 0.4})`;
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+            });
+            ctx.restore();
+        }
+
+        function drawBackground() {
+            const skyGradient = ctx.createLinearGradient(0, 0, 0, WATER_LEVEL);
+            skyGradient.addColorStop(0, '#e8f4f8');
+            skyGradient.addColorStop(1, '#d4e9f0');
+            ctx.fillStyle = skyGradient;
+            ctx.fillRect(0, 0, canvas.width, WATER_LEVEL);
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            drawCloud(80, 45, 25);
+            drawCloud(480, 70, 20);
+            drawCloud(320, 35, 18);
+        }
+
+        function drawCloud(x, y, size) {
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.arc(x + size * 0.8, y - size * 0.3, size * 0.8, 0, Math.PI * 2);
+            ctx.arc(x + size * 1.5, y, size * 0.9, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawDepthMarkers() {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(100, 100, 100, 0.25)';
+            ctx.lineWidth = 1;
+            ctx.fillStyle = 'rgba(100, 100, 100, 0.5)';
+            ctx.font = '11px sans-serif';
+            ctx.textAlign = 'right';
+            for (let d = 0; d <= 300; d += 50) {
+                const y = WATER_LEVEL + d;
+                if (y > canvas.height) break;
+                ctx.beginPath();
+                ctx.moveTo(canvas.width - 70, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+                ctx.fillText(d + 'm', canvas.width - 75, y + 4);
+            }
+            ctx.restore();
+        }
+
+        function drawLabels() {
+            ctx.save();
+            ctx.fillStyle = '#555';
+            ctx.font = 'bold 13px sans-serif';
+            ctx.fillText('水舱', CENTER_X + SUB_WIDTH / 2 + 50, WATER_LEVEL + depth + 5);
+
+            const subTop = WATER_LEVEL + depth - SUB_HEIGHT / 2;
+            if (subTop < WATER_LEVEL - 20) {
+                ctx.fillStyle = '#FF1493';
+                ctx.font = 'bold 15px sans-serif';
+                ctx.fillText('浮出水面', 70, WATER_LEVEL - 25);
+                ctx.strokeStyle = '#FF1493';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(110, WATER_LEVEL - 15);
+                ctx.lineTo(110, WATER_LEVEL - 40);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(105, WATER_LEVEL - 35);
+                ctx.lineTo(110, WATER_LEVEL - 43);
+                ctx.lineTo(115, WATER_LEVEL - 35);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            updatePhysics();
+            drawBackground();
+            drawWater();
+            drawDepthMarkers();
+            drawSubmarine();
+            drawForces();
+            drawLabels();
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        // ========== 双指缩放 ==========
+        (function() {
+            const wrapper = document.getElementById('zoomWrapper');
+            let initialDistance = 0;
+            let currentScale = 1;
+            let initialScale = 1;
+
+            function getDistance(touches) {
+                const dx = touches[0].pageX - touches[1].pageX;
+                const dy = touches[0].pageY - touches[1].pageY;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+
+            document.addEventListener('touchstart', function(e) {
+                if (e.touches.length === 2) {
+                    initialDistance = getDistance(e.touches);
+                    initialScale = currentScale;
+                }
+            }, { passive: false });
+
+            document.addEventListener('touchmove', function(e) {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const newDistance = getDistance(e.touches);
+                    let scale = initialScale * (newDistance / initialDistance);
+                    scale = Math.min(Math.max(scale, 0.5), 3.0);
+                    currentScale = scale;
+                    wrapper.style.transform = `scale(${scale})`;
+                    wrapper.style.transformOrigin = 'center top';
+                }
+            }, { passive: false });
+        })();
+    </script>
+
+</body></html>

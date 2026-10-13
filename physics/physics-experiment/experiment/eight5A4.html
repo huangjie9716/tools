@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<!-- saved from url=(0055)https://www.html2web.com/view/691d7a4ac8381eeae9406154/ -->
+<html lang="zh-CN">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>凸透镜成像规律互动教学</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Microsoft YaHei', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 8px;
+        }
+
+        .container {
+            max-width: 1600px;
+            height: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ===== 头部：标题左，副标题右，高度紧凑 ===== */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 20px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 40px;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+
+        .header .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: normal;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        /* ===== 主体：画布 + 右侧信息面板 ===== */
+        .main-content {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            background: #f8f9fa;
+            border-right: 1px solid #e0e0e0;
+            min-height: 0;
+        }
+
+        #lensCanvas {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+            display: block;
+        }
+        #lensCanvas:active {
+            cursor: grabbing;
+        }
+
+        /* ===== 右侧信息面板：占满右侧，字体放大 ===== */
+        .info-panel {
+            width: 270px;
+            padding: 12px 14px;
+            background: white;
+            overflow-y: auto;
+            flex-shrink: 0;
+            font-size: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .info-section {
+            padding: 10px 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        .info-section h3 {
+            color: #333;
+            margin-bottom: 6px;
+            font-size: 16px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+            padding: 3px 0;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 15px;
+        }
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #555;
+            font-weight: 500;
+        }
+        .info-value {
+            color: #222;
+            font-weight: bold;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .status-real {
+            background: #4caf50;
+            color: white;
+        }
+        .status-virtual {
+            background: #ff9800;
+            color: white;
+        }
+        .status-none {
+            background: #9e9e9e;
+            color: white;
+        }
+
+        /* ===== 对照表：放在下方，完全显示5行，列宽自适应 ===== */
+        .table-container {
+            padding: 6px 16px 10px 16px;
+            background: #f8f9fa;
+            flex-shrink: 0;
+            border-top: 1px solid #ddd;
+            overflow-x: auto;
+            max-height: 30vh;
+        }
+
+        .table-container h2 {
+            color: #333;
+            margin-bottom: 4px;
+            font-size: 17px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            font-size: 14px;
+            table-layout: fixed;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6px 6px;
+            text-align: left;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 6px 6px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+            word-break: break-word;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        /* 分配列宽：物距 20%，像距 20%，性质 30%，应用 30% */
+        th:nth-child(1), td:nth-child(1) { width: 20%; }
+        th:nth-child(2), td:nth-child(2) { width: 20%; }
+        th:nth-child(3), td:nth-child(3) { width: 30%; }
+        th:nth-child(4), td:nth-child(4) { width: 30%; }
+
+        .highlight-row {
+            background: #fff3cd !important;
+            animation: pulse 1s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { background: #fff3cd; }
+            50% { background: #ffe69c; }
+            100% { background: #fff3cd; }
+        }
+
+        /* ===== 画布提示 & 图例 ===== */
+        .tips {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 13px;
+            color: #333;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .legend {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 13px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 2px 0;
+        }
+        .legend-color {
+            width: 16px;
+            height: 3px;
+            margin-right: 8px;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            .canvas-container {
+                flex: 1;
+                height: 300px;
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+            .info-panel {
+                width: 100%;
+                flex-direction: row;
+                flex-wrap: wrap;
+                padding: 8px;
+            }
+            .info-section {
+                flex: 1;
+                min-width: 120px;
+            }
+            .table-container {
+                max-height: 200px;
+            }
+            th, td {
+                font-size: 12px;
+                padding: 4px;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .header .subtitle {
+                font-size: 12px;
+                white-space: normal;
+                text-align: right;
+            }
+        }
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 17px;
+            }
+            .info-panel {
+                font-size: 13px;
+            }
+            .info-item {
+                font-size: 13px;
+            }
+            .info-section h3 {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>🔬 凸透镜成像规律互动教学</h1>
+            <span class="subtitle">拖动蜡烛，观察成像变化，理解凸透镜成像原理</span>
+        </div>
+
+        <!-- 主体：画布 + 右侧信息 -->
+        <div class="main-content">
+            <div class="canvas-container">
+                <div class="tips">💡 提示：拖动蜡烛观察成像变化</div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #4caf50;"></div>
+                        <span>平行光线</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ff9800;"></div>
+                        <span>过光心光线</span>
+                    </div>
+                </div>
+                <canvas id="lensCanvas"></canvas>
+            </div>
+
+            <!-- 右侧信息面板 -->
+            <div class="info-panel">
+                <div class="info-section">
+                    <h3>📏 成像参数</h3>
+                    <div class="info-item">
+                        <span class="info-label">物距 (u)</span>
+                        <span class="info-value" id="objectDistance">3.0 cm</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">像距 (v)</span>
+                        <span class="info-value" id="imageDistance">1.5 cm</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">焦距 (f)</span>
+                        <span class="info-value">1.0 cm</span>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>🔍 像的性质</h3>
+                    <div class="info-item">
+                        <span class="info-label">虚实</span>
+                        <span class="info-value" id="imageType"><span class="status-badge status-real">实像</span></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">正倒</span>
+                        <span class="info-value" id="imageOrientation">倒立</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">大小</span>
+                        <span class="info-value" id="imageSize">缩小</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">放大率</span>
+                        <span class="info-value" id="magnification">0.50倍</span>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>💡 实际应用</h3>
+                    <div class="info-item">
+                        <span class="info-value" id="application" style="font-size:17px;">📷 照相机</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 对照表：完全显示5行 -->
+        <div class="table-container">
+            <h2>📊 凸透镜成像规律对照表</h2>
+            <table id="lensTable">
+                <thead>
+                    <tr>
+                        <th>物距范围</th>
+                        <th>像距范围</th>
+                        <th>像的性质</th>
+                        <th>应用实例</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr data-range="u>2f" class="highlight-row">
+                        <td>u &gt; 2f</td>
+                        <td>f &lt; v &lt; 2f</td>
+                        <td>倒立、缩小、实像</td>
+                        <td>照相机</td>
+                    </tr>
+                    <tr data-range="u=2f">
+                        <td>u = 2f</td>
+                        <td>v = 2f</td>
+                        <td>倒立、等大、实像</td>
+                        <td>测焦距</td>
+                    </tr>
+                    <tr data-range="f<u<2f">
+                        <td>f &lt; u &lt; 2f</td>
+                        <td>v &gt; 2f</td>
+                        <td>倒立、放大、实像</td>
+                        <td>投影仪</td>
+                    </tr>
+                    <tr data-range="u=f">
+                        <td>u = f</td>
+                        <td>v → ∞</td>
+                        <td>不成像</td>
+                        <td>平行光</td>
+                    </tr>
+                    <tr data-range="u<f">
+                        <td>u &lt; f</td>
+                        <td>—</td>
+                        <td>正立、放大、虚像</td>
+                        <td>放大镜</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        class LensSimulation {
+            constructor() {
+                this.canvas = document.getElementById('lensCanvas');
+                this.ctx = this.canvas.getContext('2d');
+
+                // 缩放因子：整体放大1.5倍
+                this.scaleFactor = 1.5;
+                this.f = 1; // 焦距 1cm
+                this.scale = 100 * this.scaleFactor; // 1cm = 150px
+                this.objectX = -3; // 初始物距 3cm
+                this.isDragging = false;
+                this.dragOffset = 0;
+
+                // 物理尺寸按比例放大
+                this.candleHeight = 60 * this.scaleFactor;
+                this.lensHeight = 140 * this.scaleFactor;
+                this.arrowLength = 8 * this.scaleFactor;
+
+                this.setupCanvas();
+                this.bindEvents();
+                this.animate();
+            }
+
+            setupCanvas() {
+                const resizeCanvas = () => {
+                    const container = this.canvas.parentElement;
+                    this.canvas.width = container.clientWidth;
+                    this.canvas.height = container.clientHeight;
+                    this.centerY = this.canvas.height / 2;
+                    this.centerX = this.canvas.width / 2;
+                };
+
+                resizeCanvas();
+                window.addEventListener('resize', resizeCanvas);
+            }
+
+            bindEvents() {
+                this.canvas.addEventListener('mousedown', this.onMouseDown.bind(this));
+                this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
+                this.canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
+                this.canvas.addEventListener('touchstart', this.onTouchStart.bind(this));
+                this.canvas.addEventListener('touchmove', this.onTouchMove.bind(this));
+                this.canvas.addEventListener('touchend', this.onTouchEnd.bind(this));
+            }
+
+            onMouseDown(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const candleX = this.centerX + this.objectX * this.scale;
+
+                if (Math.abs(x - candleX) < 20 * this.scaleFactor) {
+                    this.isDragging = true;
+                    this.dragOffset = x - candleX;
+                }
+            }
+
+            onMouseMove(e) {
+                if (!this.isDragging) return;
+
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                this.objectX = (x - this.dragOffset - this.centerX) / this.scale;
+                this.objectX = Math.max(-5, Math.min(-0.1, this.objectX));
+                this.updateInfo();
+            }
+
+            onMouseUp() {
+                this.isDragging = false;
+            }
+
+            onTouchStart(e) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const rect = this.canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const candleX = this.centerX + this.objectX * this.scale;
+
+                if (Math.abs(x - candleX) < 20 * this.scaleFactor) {
+                    this.isDragging = true;
+                    this.dragOffset = x - candleX;
+                }
+            }
+
+            onTouchMove(e) {
+                e.preventDefault();
+                if (!this.isDragging) return;
+
+                const touch = e.touches[0];
+                const rect = this.canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                this.objectX = (x - this.dragOffset - this.centerX) / this.scale;
+                this.objectX = Math.max(-5, Math.min(-0.1, this.objectX));
+                this.updateInfo();
+            }
+
+            onTouchEnd(e) {
+                e.preventDefault();
+                this.isDragging = false;
+            }
+
+            calculateImage() {
+                const u = Math.abs(this.objectX);
+
+                if (Math.abs(u - this.f) < 0.01) {
+                    return { v: Infinity, type: 'none', height: 0 };
+                }
+
+                const v = (this.f * u) / (u - this.f);
+                const magnification = Math.abs(v / u);
+
+                let type, orientation;
+                if (u > this.f) {
+                    type = 'real';
+                    orientation = 'inverted';
+                } else {
+                    type = 'virtual';
+                    orientation = 'upright';
+                }
+
+                return { v, type, height: magnification, orientation };
+            }
+
+            drawAxis() {
+                this.ctx.strokeStyle = '#333';
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                this.ctx.moveTo(50, this.centerY);
+                this.ctx.lineTo(this.canvas.width - 50, this.centerY);
+                this.ctx.stroke();
+
+                this.ctx.fillStyle = '#666';
+                this.ctx.font = `${11 * this.scaleFactor}px Arial`;
+                this.ctx.textAlign = 'center';
+
+                for (let i = -5; i <= 5; i++) {
+                    if (i === 0) continue;
+                    const x = this.centerX + i * this.scale;
+
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x, this.centerY - 5 * this.scaleFactor);
+                    this.ctx.lineTo(x, this.centerY + 5 * this.scaleFactor);
+                    this.ctx.stroke();
+
+                    if (i % 1 === 0) {
+                        this.ctx.fillText(i + 'cm', x, this.centerY + 20 * this.scaleFactor);
+                    }
+                }
+
+                this.drawMark(this.f, 'F', '#ff5722');
+                this.drawMark(2 * this.f, '2F', '#ff5722');
+                this.drawMark(-this.f, 'F', '#ff5722');
+                this.drawMark(-2 * this.f, '2F', '#ff5722');
+            }
+
+            drawMark(x, label, color) {
+                const px = this.centerX + x * this.scale;
+                const radius = 4 * this.scaleFactor;
+
+                this.ctx.fillStyle = color;
+                this.ctx.beginPath();
+                this.ctx.arc(px, this.centerY, radius, 0, Math.PI * 2);
+                this.ctx.fill();
+
+                this.ctx.fillStyle = color;
+                this.ctx.font = `bold ${11 * this.scaleFactor}px Arial`;
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText(label, px, this.centerY - 10 * this.scaleFactor);
+            }
+
+            drawLens() {
+                const x = this.centerX;
+                const height = this.lensHeight;
+                const topY = this.centerY - height / 2;
+                const bottomY = this.centerY + height / 2;
+
+                this.ctx.fillStyle = 'rgba(33, 150, 243, 0.2)';
+                this.ctx.strokeStyle = '#2196f3';
+                this.ctx.lineWidth = 2;
+
+                const curveWidth = 8 * this.scaleFactor;
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, topY);
+
+                this.ctx.bezierCurveTo(
+                    x - curveWidth, topY + height * 0.2,
+                    x - curveWidth, bottomY - height * 0.2,
+                    x, bottomY
+                );
+
+                this.ctx.bezierCurveTo(
+                    x + curveWidth, bottomY - height * 0.2,
+                    x + curveWidth, topY + height * 0.2,
+                    x, topY
+                );
+
+                this.ctx.closePath();
+                this.ctx.fill();
+                this.ctx.stroke();
+
+                this.ctx.strokeStyle = '#1976d2';
+                this.ctx.lineWidth = 1;
+                this.ctx.setLineDash([5 * this.scaleFactor, 3 * this.scaleFactor]);
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, this.centerY - height / 2 - 10 * this.scaleFactor);
+                this.ctx.lineTo(x, this.centerY + height / 2 + 10 * this.scaleFactor);
+                this.ctx.stroke();
+                this.ctx.setLineDash([]);
+
+                this.ctx.fillStyle = '#2196f3';
+                this.ctx.beginPath();
+                this.ctx.arc(x, this.centerY, 3 * this.scaleFactor, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+
+            drawCandle() {
+                const x = this.centerX + this.objectX * this.scale;
+                const height = this.candleHeight;
+
+                this.ctx.fillStyle = '#ffa726';
+                this.ctx.fillRect(x - 5 * this.scaleFactor, this.centerY - height, 10 * this.scaleFactor, height);
+
+                this.drawFlame(x, this.centerY - height, '#ff5722', '#ffc107', 1);
+            }
+
+            drawFlame(x, y, color1, color2, scale = 1) {
+                // 根据缩放因子调整火焰基础大小
+                const baseSize = 15 * this.scaleFactor;
+                let finalScale;
+                if (scale === 1) {
+                    finalScale = 1;
+                } else if (scale > 1) {
+                    finalScale = 1 + Math.log(scale) * 0.5;
+                } else {
+                    finalScale = 0.5 + scale * 0.5;
+                }
+                finalScale = Math.max(0.4, Math.min(2.0, finalScale));
+
+                const size = baseSize * finalScale;
+
+                // 外焰
+                this.ctx.fillStyle = color1;
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y - size);
+                this.ctx.quadraticCurveTo(x - 6 * this.scaleFactor * finalScale, y - 5 * this.scaleFactor * finalScale, x, y);
+                this.ctx.quadraticCurveTo(x + 6 * this.scaleFactor * finalScale, y - 5 * this.scaleFactor * finalScale, x, y - size);
+                this.ctx.fill();
+
+                // 内焰
+                this.ctx.fillStyle = color2;
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y - size * 0.7);
+                this.ctx.quadraticCurveTo(x - 4 * this.scaleFactor * finalScale, y - 3 * this.scaleFactor * finalScale, x, y);
+                this.ctx.quadraticCurveTo(x + 4 * this.scaleFactor * finalScale, y - 3 * this.scaleFactor * finalScale, x, y - size * 0.7);
+                this.ctx.fill();
+            }
+
+            drawImage(image) {
+                if (image.type === 'none') return;
+
+                const objectHeight = this.candleHeight;
+                const imageHeight = objectHeight * image.height;
+                let imageX;
+
+                if (image.type === 'real') {
+                    imageX = this.centerX + image.v * this.scale;
+                } else {
+                    imageX = this.centerX + image.v * this.scale;
+                }
+
+                this.ctx.save();
+                this.ctx.globalAlpha = 0.7;
+
+                if (image.type === 'real') {
+                    this.ctx.fillStyle = 'rgba(255, 193, 7, 0.6)';
+                    this.ctx.fillRect(imageX - 5 * this.scaleFactor, this.centerY, 10 * this.scaleFactor, imageHeight);
+
+                    this.ctx.save();
+                    this.ctx.translate(imageX, this.centerY + imageHeight);
+                    this.ctx.scale(1, -1);
+                    this.drawFlame(0, 0, 'rgba(255, 87, 34, 0.6)', 'rgba(255, 193, 7, 0.6)', image.height);
+                    this.ctx.restore();
+                } else {
+                    this.ctx.strokeStyle = '#9c27b0';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.setLineDash([5 * this.scaleFactor, 5 * this.scaleFactor]);
+                    this.ctx.strokeRect(imageX - 5 * this.scaleFactor, this.centerY - imageHeight, 10 * this.scaleFactor, imageHeight);
+
+                    this.ctx.fillStyle = 'rgba(156, 39, 176, 0.2)';
+                    this.ctx.fillRect(imageX - 5 * this.scaleFactor, this.centerY - imageHeight, 10 * this.scaleFactor, imageHeight);
+
+                    this.ctx.save();
+                    this.ctx.translate(imageX, this.centerY - imageHeight);
+                    this.drawFlame(0, 0, '#9c27b0', '#ba68c8', image.height);
+                    this.ctx.restore();
+                    this.ctx.setLineDash([]);
+                }
+
+                this.ctx.restore();
+            }
+
+            drawRays(image) {
+                const candleX = this.centerX + this.objectX * this.scale;
+                const candleY = this.centerY - this.candleHeight;
+
+                this.ctx.setLineDash([]);
+                this.ctx.globalAlpha = 1;
+
+                if (image.type === 'real') {
+                    this.drawRealImageRays(candleX, candleY, image);
+                } else if (image.type === 'virtual') {
+                    this.drawVirtualImageRays(candleX, candleY, image);
+                }
+            }
+
+            drawRealImageRays(candleX, candleY, image) {
+                const imageX = this.centerX + image.v * this.scale;
+                const imageY = this.centerY + this.candleHeight * image.height;
+
+                this.ctx.strokeStyle = '#4caf50';
+                this.ctx.lineWidth = 2.5;
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(candleX, candleY);
+                this.ctx.lineTo(this.centerX, candleY);
+                this.ctx.stroke();
+                this.drawArrowAtMidpoint(candleX, candleY, this.centerX, candleY);
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.centerX, candleY);
+                this.ctx.lineTo(this.centerX + this.f * this.scale, this.centerY);
+                this.ctx.stroke();
+                this.drawArrowAtMidpoint(this.centerX, candleY, this.centerX + this.f * this.scale, this.centerY);
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.centerX + this.f * this.scale, this.centerY);
+                this.ctx.lineTo(imageX, imageY);
+                this.ctx.stroke();
+                this.drawArrowAtMidpoint(this.centerX + this.f * this.scale, this.centerY, imageX, imageY);
+
+                this.ctx.strokeStyle = '#ff9800';
+                this.ctx.lineWidth = 2.5;
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(candleX, candleY);
+                this.ctx.lineTo(this.centerX, this.centerY);
+                this.ctx.stroke();
+                this.drawArrowAtMidpoint(candleX, candleY, this.centerX, this.centerY);
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.centerX, this.centerY);
+                this.ctx.lineTo(imageX, imageY);
+                this.ctx.stroke();
+                this.drawArrowAtMidpoint(this.centerX, this.centerY, imageX, imageY);
+            }
+
+            drawVirtualImageRays(candleX, candleY, image) {
+                const imageX = this.centerX + image.v * this.scale;
+                const imageY = this.centerY - this.candleHeight * image.height;
+
+                this.ctx.strokeStyle = '#4caf50';
+                this.ctx.lineWidth = 2.5;
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(candleX, candleY);
+                this.ctx.lineTo(this.centerX, candleY);
+                this.ctx.stroke();
+                this.drawArrowAtMidpoint(candleX, candleY, this.centerX, candleY);
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.centerX, candleY);
+                this.ctx.lineTo(this.centerX + this.f * this.scale, this.centerY);
+                this.ctx.stroke();
+                this.drawArrowAtMidpoint(this.centerX, candleY, this.centerX + this.f * this.scale, this.centerY);
+
+                this.ctx.save();
+                this.ctx.strokeStyle = '#4caf50';
+                this.ctx.lineWidth = 2;
+                this.ctx.setLineDash([8 * this.scaleFactor, 4 * this.scaleFactor]);
+                this.ctx.globalAlpha = 0.7;
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.centerX + this.f * this.scale, this.centerY);
+                this.ctx.lineTo(imageX, imageY);
+                this.ctx.stroke();
+                this.ctx.restore();
+
+                this.ctx.strokeStyle = '#ff9800';
+                this.ctx.lineWidth = 2.5;
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(candleX, candleY);
+                this.ctx.lineTo(this.centerX, this.centerY);
+                this.ctx.stroke();
+                this.drawArrowAtMidpoint(candleX, candleY, this.centerX, this.centerY);
+
+                this.ctx.save();
+                this.ctx.strokeStyle = '#ff9800';
+                this.ctx.lineWidth = 2;
+                this.ctx.setLineDash([8 * this.scaleFactor, 4 * this.scaleFactor]);
+                this.ctx.globalAlpha = 0.7;
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.centerX, this.centerY);
+                this.ctx.lineTo(imageX, imageY);
+                this.ctx.stroke();
+                this.ctx.restore();
+            }
+
+            drawArrowAtMidpoint(fromX, fromY, toX, toY) {
+                const midX = (fromX + toX) / 2;
+                const midY = (fromY + toY) / 2;
+                const angle = Math.atan2(toY - fromY, toX - fromX);
+                const arrowLength = this.arrowLength;
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(midX, midY);
+                this.ctx.lineTo(
+                    midX - arrowLength * Math.cos(angle - Math.PI / 6),
+                    midY - arrowLength * Math.sin(angle - Math.PI / 6)
+                );
+                this.ctx.moveTo(midX, midY);
+                this.ctx.lineTo(
+                    midX - arrowLength * Math.cos(angle + Math.PI / 6),
+                    midY - arrowLength * Math.sin(angle + Math.PI / 6)
+                );
+                this.ctx.stroke();
+            }
+
+            updateInfo() {
+                const u = Math.abs(this.objectX);
+                const image = this.calculateImage();
+
+                document.getElementById('objectDistance').textContent = u.toFixed(1) + ' cm';
+
+                if (image.type === 'none') {
+                    document.getElementById('imageDistance').textContent = '∞';
+                    document.getElementById('imageType').innerHTML = '<span class="status-badge status-none">不成像</span>';
+                    document.getElementById('imageOrientation').textContent = '-';
+                    document.getElementById('imageSize').textContent = '-';
+                    document.getElementById('magnification').textContent = '-';
+                    document.getElementById('application').textContent = '平行光管';
+                    this.highlightTableRow('u=f');
+                } else {
+                    document.getElementById('imageDistance').textContent =
+                        (image.type === 'real' ? image.v.toFixed(1) : Math.abs(image.v).toFixed(1)) + ' cm';
+
+                    const typeBadge = image.type === 'real' ?
+                        '<span class="status-badge status-real">实像</span>' :
+                        '<span class="status-badge status-virtual">虚像</span>';
+                    document.getElementById('imageType').innerHTML = typeBadge;
+
+                    document.getElementById('imageOrientation').textContent =
+                        image.orientation === 'inverted' ? '倒立' : '正立';
+
+                    const sizeText = image.height > 1 ? '放大' :
+                        image.height < 1 ? '缩小' : '等大';
+                    document.getElementById('imageSize').textContent = sizeText;
+
+                    document.getElementById('magnification').textContent =
+                        image.height.toFixed(2) + '倍';
+
+                    let application = '';
+                    if (u > 2 * this.f) {
+                        application = '📷 照相机';
+                        this.highlightTableRow('u>2f');
+                    } else if (Math.abs(u - 2 * this.f) < 0.01) {
+                        application = '📏 测焦距';
+                        this.highlightTableRow('u=2f');
+                    } else if (this.f < u && u < 2 * this.f) {
+                        application = '🎥 投影仪';
+                        this.highlightTableRow('f<u<2f');
+                    } else if (u < this.f) {
+                        application = '🔍 放大镜';
+                        this.highlightTableRow('u<f');
+                    }
+                    document.getElementById('application').textContent = application;
+                }
+            }
+
+            highlightTableRow(range) {
+                document.querySelectorAll('#lensTable tbody tr').forEach(row => {
+                    row.classList.remove('highlight-row');
+                });
+
+                const currentRow = document.querySelector(`tr[data-range="${range}"]`);
+                if (currentRow) {
+                    currentRow.classList.add('highlight-row');
+                }
+            }
+
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                this.drawAxis();
+                this.drawLens();
+
+                const image = this.calculateImage();
+                this.drawRays(image);
+                this.drawCandle();
+                this.drawImage(image);
+            }
+
+            animate() {
+                this.draw();
+                this.updateInfo();
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            new LensSimulation();
+        });
+    </script>
+
+</body>
+</html>
