@@ -68,5 +68,16 @@ window.CARDS_PHYSICS = [
         action: 'link',
         actionText: '立即使用',
         video: ''
+    },
+     {
+        title: '澳门公开课平台',
+        desc: '仅供10月24日公开课使用',
+        date: '2026.10.20',
+        version: 'v1.0',
+        file: 'physics/macao/macao-class.html',
+        href: 'physics/macao/macao-class.html',
+        action: 'link',
+        actionText: '立即使用',
+        video: ''
     }
 ];
