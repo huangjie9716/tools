@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>光的折射實驗 · 3D 光學演示盤</title>
+<style>
+  :root {
+    --bg: #07090d;
+    --panel: #12181f;
+    --panel2: #19212b;
+    --line: #242f3b;
+    --line2: #33424f;
+    --ink: #e8eef5;
+    --muted: #7b8b9c;
+    --green: #2ecc71;
+    --radius: 10px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; user-select: none;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  }
+  #app { display: grid; grid-template-columns: 1fr 348px; height: 100vh; height: 100dvh; }
+  #stage { position: relative; overflow: hidden; background: #07090d; }
+  #stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+
+  .views { position: absolute; top: 16px; left: 16px; display: flex; gap: 6px; z-index: 10; flex-wrap: wrap; }
+  .vbtn {
+    padding: 7px 14px; border-radius: 8px; border: 1px solid var(--line2);
+    background: rgba(18, 24, 31, .82); backdrop-filter: blur(10px);
+    color: var(--ink); font-size: 12.5px; font-weight: 600; cursor: pointer;
+    transition: all .16s; font-family: inherit;
+  }
+  .vbtn:hover { background: rgba(40, 52, 66, .9); border-color: #4a6070; }
+  .vbtn.on { background: var(--green); border-color: var(--green); color: #061208; }
+
+  .hint {
+    position: absolute; bottom: 16px; left: 16px; padding: 9px 16px; border-radius: 8px;
+    background: rgba(18, 24, 31, .86); backdrop-filter: blur(10px);
+    border: 1px solid var(--line2); font-size: 12.5px; color: #9fb0c2;
+    z-index: 10; pointer-events: none; max-width: 68%; line-height: 1.55;
+  }
+  .tools {
+    position: absolute; top: 16px; right: 16px; z-index: 11;
+    display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; max-width: 64%;
+  }
+  .tools .vbtn { padding: 7px 12px; }
+  .tools .vbtn.fs { color: #cfe4ff; }
+  .tools .vbtn.fs:hover { color: #fff; }
+
+  #panel {
+    background: var(--panel); border-left: 1px solid var(--line);
+    overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px;
+  }
+  #panel::-webkit-scrollbar { width: 6px; }
+  #panel::-webkit-scrollbar-thumb { background: #26333f; border-radius: 3px; }
+
+  .card { background: var(--panel2); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px 14px; }
+  .card h3 { font-size: 12px; font-weight: 700; color: #aebdd0; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .card h3 span { font-size: 11px; font-weight: 500; color: var(--muted); }
+
+  .btn-group { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .btn-group:last-child { margin-bottom: 0; }
+  .btn-group-label { font-size: 11.5px; color: var(--muted); margin-bottom: 6px; display: block; }
+  .btn {
+    flex: 1 1 auto; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--line2);
+    background: #1c2733; color: var(--ink); font-size: 11.5px; font-weight: 600;
+    cursor: pointer; transition: all .16s; font-family: inherit; text-align: center; white-space: nowrap;
+  }
+  .btn:hover:not(:disabled):not(.on) { background: #24323f; border-color: #3a5068; }
+  .btn.on { background: var(--green); border-color: var(--green); color: #061208; }
+  .btn:disabled { opacity: .32; cursor: not-allowed; }
+  .mini { font-size: 10.5px; color: var(--muted); line-height: 1.55; margin-top: 2px; }
+
+  .slider { margin-top: 4px; }
+  .slider .row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; font-size: 12px; color: #9aabbe; }
+  .slider .row b { color: var(--green); font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none; width: 100%; height: 5px; border-radius: 3px;
+    background: linear-gradient(to right,
+      #253140 0%, #253140 var(--a, 50%),
+      #2ecc71 var(--a, 50%), #2ecc71 var(--b, 50%),
+      #253140 var(--b, 50%), #253140 100%);
+    outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%;
+    background: #fff; border: 3px solid var(--green); box-shadow: 0 1px 6px rgba(0,0,0,.5); cursor: grab;
+  }
+
+  .readouts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ro { background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+  .ro em { display: block; font-style: normal; font-size: 10.5px; color: var(--muted); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ro strong { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .ro strong .u { font-size: 10px; color: var(--muted); font-weight: 500; margin-left: 2px; }
+  .ro.hl strong { color: var(--green); }
+  .ro.warn strong { color: #e74c3c; font-size: 15px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: center; }
+  th, td { padding: 6px 2px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  th { color: var(--muted); font-weight: 500; }
+  .table-wrap { max-height: 148px; overflow-y: auto; margin-top: 8px; }
+  .table-wrap::-webkit-scrollbar { width: 4px; }
+  .table-wrap::-webkit-scrollbar-thumb { background: #33424f; border-radius: 2px; }
+  .empty { color: #4c5b6b; font-size: 11px; text-align: center; padding: 12px 0; }
+
+  /* 全屏 */
+  #stage:-webkit-full-screen { background: #07090d; }
+  #stage:fullscreen { background: #07090d; }
+  #stage.stage-full { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 999; }
+
+  /* 平板 / 窄屏適配 */
+  @media (max-width: 1180px) {
+    #app { grid-template-columns: 1fr 320px; }
+    #panel { padding: 12px; gap: 10px; }
+  }
+  @media (max-width: 900px) {
+    #app { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto; }
+    #panel {
+      border-left: 0; border-top: 1px solid var(--line);
+      max-height: 46vh; -webkit-overflow-scrolling: touch;
+    }
+    .views { top: 12px; left: 12px; }
+    .tools { top: 12px; right: 12px; }
+    .hint { left: 12px; bottom: 12px; max-width: calc(100% - 24px); font-size: 12px; padding: 8px 12px; }
+  }
+  @media (max-width: 640px) {
+    .tools { max-width: 72%; gap: 4px; }
+    .tools .vbtn { padding: 6px 9px; font-size: 11.5px; }
+    .views { gap: 4px; }
+    .views .vbtn { padding: 6px 10px; font-size: 11.5px; }
+    .readouts { grid-template-columns: 1fr 1fr; }
+  }
+  /* 觸屏：加大點擊與拖動熱區 */
+  @media (pointer: coarse) {
+    .vbtn { padding: 9px 14px; font-size: 13px; }
+    .btn { padding: 10px 10px; font-size: 13px; }
+    input[type=range] { height: 7px; }
+    input[type=range]::-webkit-slider-thumb { width: 22px; height: 22px; }
+    .ro strong { font-size: 19px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <div class="views" id="views"></div>
+    <div class="tools">
+      <a class="vbtn" href="macao-class.html" style="text-decoration:none; display:inline-flex; align-items:center;">← 返回平台</a>
+      <button class="vbtn on" id="tgNormal">法線</button>
+      <button class="vbtn on" id="tgAngles">角度 ∠i/∠r</button>
+      <button class="vbtn on" id="tgReflect">反射光</button>
+      <button class="vbtn fs" id="btnFull">⛶ 全屏</button>
+    </div>
+    <div class="hint" id="hint"></div>
+  </div>
+
+  <aside id="panel">
+    <div class="card">
+      <h3>① 器材選擇</h3>
+      <span class="btn-group-label">介質形狀</span>
+      <div class="btn-group" id="groupShape">
+        <button class="btn on" data-val="semi">半圓形</button>
+        <button class="btn" data-val="rect">長方形</button>
+      </div>
+      <span class="btn-group-label">折射介質</span>
+      <div class="btn-group" id="groupMedium">
+        <button class="btn on" data-val="glass">玻璃</button>
+        <button class="btn" data-val="acrylic">有機玻璃</button>
+        <button class="btn" data-val="water">水</button>
+      </div>
+      <span class="btn-group-label">安裝方式</span>
+      <div class="btn-group" id="groupMode">
+        <button class="btn on" data-val="normal">正裝 · 空氣→介質</button>
+        <button class="btn" data-val="reverse">倒裝 · 介質→空氣</button>
+      </div>
+      <div class="mini" id="modeInfo"></div>
+    </div>
+
+    <div class="card">
+      <h3>② 激光筆光源 <span id="wlTag">複色光</span></h3>
+      <div class="btn-group" id="groupFilter">
+        <button class="btn on" data-val="white">白光</button>
+        <button class="btn" data-val="red">紅片</button>
+        <button class="btn" data-val="green">綠片</button>
+        <button class="btn" data-val="blue">藍片</button>
+      </div>
+      <div class="mini" id="filterInfo"></div>
+      <div class="mini" style="margin-top:10px;">3D 畫面右上角可切換「法線」「角度 ∠i/∠r」「反射光」的顯示，並可全屏播放。</div>
+    </div>
+
+    <div class="card">
+      <h3>③ 入射角 <span>拖動激光筆或滑塊</span></h3>
+      <div class="slider">
+        <div class="row"><span>激光筆與法線夾角</span><b id="vAngle">30.0°</b></div>
+        <input type="range" id="sAngle" min="-88" max="88" step="0.5" value="30">
+      </div>
+      <div class="mini" id="angleLimitInfo" style="margin-top:6px;"></div>
+      <div class="mini" style="margin-top:8px;">按住圓盤上的激光筆沿刻度盤拖動即可連續改變入射角；越過中間法線後入射光會從另一側射入。</div>
+    </div>
+
+    <div class="card">
+      <h3>④ 光屏折轉 <span>探究三線共面</span></h3>
+      <div class="slider">
+        <div class="row"><span>光屏沿法線向後折</span><b id="vFold">0°</b></div>
+        <input type="range" id="sFold" min="0" max="90" step="1" value="0">
+      </div>
+      <div class="mini" id="foldInfo" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="card">
+      <h3>⑤ 光路可逆 <span>拿支激光筆，沿折射光線射回去</span></h3>
+      <div class="btn-group" style="margin-bottom:0;">
+        <button class="btn" id="btnReverse" style="flex:1 1 100%;">🔦 拿激光筆</button>
+      </div>
+      <div class="mini" id="revInfo" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="card">
+      <h3>實時讀數</h3>
+      <div class="readouts">
+        <div class="ro"><em>入射角 ∠i</em><strong id="rA1">30.0<span class="u">°</span></strong></div>
+        <div class="ro" id="roA2"><em>折射角 ∠r</em><strong id="rA2">19.5<span class="u">°</span></strong></div>
+        <div class="ro hl"><em>sin∠i / sin∠r</em><strong id="rRatio">1.500</strong></div>
+        <div class="ro"><em>介質折射率 n</em><strong id="rN">1.500</strong></div>
+        <div class="ro"><em>臨界角 C</em><strong id="rC">41.8<span class="u">°</span></strong></div>
+        <div class="ro"><em>光路</em><strong id="rPath" style="font-size:12.5px;line-height:1.5;">空氣→玻璃</strong></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>⑥ 數據記錄</h3>
+      <div class="btn-group" style="margin-bottom:0;">
+        <button class="btn" id="btnRecord" style="background:#1f3a2a;border-color:#2ecc71;">記一行</button>
+        <button class="btn" id="btnClear">清空</button>
+      </div>
+      <div class="table-wrap">
+        <table id="recordTable">
+          <thead><tr><th>介質</th><th>∠i</th><th>∠r</th><th>sin∠i/sin∠r</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+/* ==========================================================
+   0. 常量
+   ========================================================== */
+const R_DISC = 140;                  // 量角盤半徑
+const R_HOLE = 100;                  // 盤心鏤空半徑（安裝光屏）
+const SCREEN_Z = 1;                  // 光屏所在平面
+const R_MEDIUM = 72;                 // 介質半徑
+const DISC_T = 12;                   // 量角盤厚度
+const MED_Z = 3;                     // 介質前沿 z
+const MED_D = 22;                    // 介質厚度
+const BEAM_Z = MED_Z + MED_D / 2;    // 光束所在平面（介質中截面）
+const PEN_TIP_R = 129;               // 激光筆出光口到盤心距離
+const N_BASE = { glass: 1.500, acrylic: 1.492, water: 1.333 };
+const N_NAME = { glass: '玻璃', acrylic: '有機玻璃', water: '水' };
+const RAD = Math.PI / 180;
+const DEG = 180 / Math.PI;
+let _glowTex = null;                 // 全局複用的發光貼圖
+
+/* ==========================================================
+   1. 場景
+   ========================================================== */
+const stage = document.getElementById('stage');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x07090d);
+scene.fog = new THREE.Fog(0x07090d, 1100, 2600);
+
+const camera = new THREE.PerspectiveCamera(35, 1, 1, 5000);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+stage.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.075;
+controls.minDistance = 180;
+controls.maxDistance = 1600;
+controls.minPolarAngle = 0.12;
+controls.maxPolarAngle = Math.PI * 0.495;
+controls.target.set(0, 0, 8);
+
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+scene.add(new THREE.HemisphereLight(0xdfeaff, 0x0a0d12, 0.55));
+const keyLight = new THREE.DirectionalLight(0xffffff, 2.4);
+keyLight.position.set(120, 240, 300);
+scene.add(keyLight);
+const fillLight = new THREE.DirectionalLight(0x7fa6d8, 1.1);
+fillLight.position.set(-260, -60, 160);
+scene.add(fillLight);
+const rimLight = new THREE.PointLight(0xffffff, 1.4, 1400);
+rimLight.position.set(0, 40, 260);
+scene.add(rimLight);
+
+/* ==========================================================
+   2. 量角盤
+   ========================================================== */
+const rigRoot = new THREE.Group();
+scene.add(rigRoot);
+
+function makeDiscTexture() {
+  const S = 2048;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = S;
+  const ctx = cv.getContext('2d');
+  const c = S / 2, R = S / 2 - 6;
+
+  const g = ctx.createRadialGradient(c, c * 0.68, R * 0.06, c, c, R);
+  g.addColorStop(0, '#3a4450');
+  g.addColorStop(0.7, '#2b343e');
+  g.addColorStop(1, '#1b2229');
+  ctx.beginPath(); ctx.arc(c, c, R, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
+
+  ctx.beginPath(); ctx.arc(c, c, R - 5, 0, Math.PI * 2);
+  ctx.lineWidth = 10; ctx.strokeStyle = '#151b21'; ctx.stroke();
+  ctx.beginPath(); ctx.arc(c, c, R - 30, 0, Math.PI * 2);
+  ctx.lineWidth = 3; ctx.strokeStyle = '#455565'; ctx.stroke();
+
+  // 中心十字：豎直 = 法線，水平 = 界面
+  ctx.setLineDash([18, 15]);
+  ctx.lineWidth = 3.5;
+  ctx.strokeStyle = 'rgba(158,190,216,.45)';
+  ctx.beginPath();
+  ctx.moveTo(c - R * 0.92, c); ctx.lineTo(c + R * 0.92, c);
+  ctx.moveTo(c, c - R * 0.92); ctx.lineTo(c, c + R * 0.92);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 刻度：0° 在正上方，向左右兩側增大，上下半盤對稱
+  const rOut = R - 32;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (let a = -180; a <= 180; a++) {
+    const abs = Math.abs(a);
+    const major = abs % 10 === 0;
+    const mid = abs % 5 === 0;
+    const len = major ? 64 : mid ? 42 : 24;
+    const th = -Math.PI / 2 - a * RAD;
+    const cs = Math.cos(th), sn = Math.sin(th);
+    ctx.beginPath();
+    ctx.moveTo(c + cs * rOut, c + sn * rOut);
+    ctx.lineTo(c + cs * (rOut - len), c + sn * (rOut - len));
+    ctx.lineWidth = major ? 6 : mid ? 3.6 : 2;
+    ctx.strokeStyle = major ? '#f2f7fc' : mid ? 'rgba(206,222,236,.85)' : 'rgba(160,180,200,.6)';
+    ctx.stroke();
+    if (major) {
+      const rt = rOut - len - 44;
+      ctx.save();
+      ctx.translate(c + cs * rt, c + sn * rt);
+      ctx.rotate(th + Math.PI / 2);
+      ctx.fillStyle = '#eef5fb';
+      ctx.font = 'bold 42px Arial, "Microsoft YaHei"';
+      ctx.fillText(String(abs <= 90 ? abs : 180 - abs), 0, 0);
+      ctx.restore();
+    }
+  }
+
+  const tex = new THREE.CanvasTexture(cv);
+  tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+const metalDark = new THREE.MeshStandardMaterial({ color: 0x59636e, metalness: 0.95, roughness: 0.38 });
+const metalMid = new THREE.MeshStandardMaterial({ color: 0x7d8894, metalness: 0.92, roughness: 0.3 });
+const brassMat = new THREE.MeshStandardMaterial({ color: 0xc9a04a, metalness: 0.85, roughness: 0.35 });
+
+const discFace = new THREE.Mesh(
+  new THREE.RingGeometry(R_HOLE, R_DISC, 160, 1),
+  new THREE.MeshStandardMaterial({ map: makeDiscTexture(), metalness: 0.12, roughness: 0.78, side: THREE.DoubleSide })
+);
+rigRoot.add(discFace);
+
+const discBody = new THREE.Mesh(
+  new THREE.CylinderGeometry(R_DISC + 1.5, R_DISC + 1.5, DISC_T, 160, 1, true),
+  new THREE.MeshStandardMaterial({ color: 0x39424c, metalness: 0.9, roughness: 0.45, side: THREE.DoubleSide })
+);
+discBody.rotation.x = Math.PI / 2;
+discBody.position.z = -DISC_T / 2;
+rigRoot.add(discBody);
+
+// 盤心鏤空的內壁
+const discInnerWall = new THREE.Mesh(
+  new THREE.CylinderGeometry(R_HOLE, R_HOLE, DISC_T, 120, 1, true),
+  new THREE.MeshStandardMaterial({ color: 0x232b33, metalness: 0.7, roughness: 0.6, side: THREE.DoubleSide })
+);
+discInnerWall.rotation.x = Math.PI / 2;
+discInnerWall.position.z = -DISC_T / 2;
+rigRoot.add(discInnerWall);
+
+const discBack = new THREE.Mesh(
+  new THREE.RingGeometry(R_HOLE, R_DISC + 1.5, 160, 1),
+  new THREE.MeshStandardMaterial({ color: 0x2a323b, metalness: 0.8, roughness: 0.6, side: THREE.DoubleSide })
+);
+discBack.position.z = -DISC_T;
+rigRoot.add(discBack);
+
+const rim = new THREE.Mesh(new THREE.TorusGeometry(R_DISC + 1.5, 3.6, 12, 160), metalMid);
+rim.position.z = -1;
+rigRoot.add(rim);
+
+/* ==========================================================
+   2.5 光屏（左右各半頁紙板，右半頁可沿法線向後折）
+   ========================================================== */
+const cardboardMat = new THREE.MeshStandardMaterial({
+  color: 0x9a9486, roughness: 0.96, metalness: 0.02, side: THREE.DoubleSide
+});
+const screenGroup = new THREE.Group();
+rigRoot.add(screenGroup);
+
+const edgeMat = new THREE.LineBasicMaterial({ color: 0x8d8878, transparent: true, opacity: 0.5 });
+function halfScreenMesh(startAngle) {
+  return new THREE.Mesh(new THREE.CircleGeometry(R_HOLE, 96, startAngle, Math.PI), cardboardMat);
+}
+function halfScreenEdge(startAngle) {
+  const pts = [new THREE.Vector3(0, 0, 0)];
+  const n = 72;
+  for (let i = 0; i <= n; i++) {
+    const a = startAngle + Math.PI * i / n;
+    pts.push(new THREE.Vector3(Math.cos(a) * R_HOLE, Math.sin(a) * R_HOLE, 0));
+  }
+  pts.push(new THREE.Vector3(0, 0, 0));
+  return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), edgeMat);
+}
+
+// 左、右半頁各自成組，可繞豎直法線折轉（只折折射光線所在的那半頁）
+const screenFoldL = new THREE.Group();
+screenFoldL.position.z = SCREEN_Z;
+screenFoldL.add(halfScreenMesh(Math.PI / 2), halfScreenEdge(Math.PI / 2));
+screenGroup.add(screenFoldL);
+
+const screenFoldR = new THREE.Group();
+screenFoldR.position.z = SCREEN_Z;
+screenFoldR.add(halfScreenMesh(-Math.PI / 2), halfScreenEdge(-Math.PI / 2));
+screenGroup.add(screenFoldR);
+
+// 摺頁鉸鏈
+const hinge = new THREE.Mesh(
+  new THREE.CylinderGeometry(2.2, 2.2, R_HOLE * 2, 12),
+  metalMid
+);
+hinge.position.z = SCREEN_Z;
+screenGroup.add(hinge);
+
+// 支架
+const standPost = new THREE.Mesh(new THREE.CylinderGeometry(7, 9, 130, 20), metalDark);
+standPost.position.set(0, -R_DISC - 60, -46);
+rigRoot.add(standPost);
+const standCollar = new THREE.Mesh(new THREE.CylinderGeometry(15, 15, 12, 24), metalMid);
+standCollar.position.set(0, -R_DISC - 4, -46);
+rigRoot.add(standCollar);
+const standArm = new THREE.Mesh(new THREE.BoxGeometry(26, 26, 40), metalDark);
+standArm.position.set(0, -R_DISC - 6, -20);
+rigRoot.add(standArm);
+const standBase = new THREE.Mesh(new THREE.CylinderGeometry(64, 70, 14, 40), metalDark);
+standBase.position.set(0, -R_DISC - 130, -46);
+rigRoot.add(standBase);
+
+/* ==========================================================
+   3. 二維幾何 / 光線追跡
+   ========================================================== */
+function ensureCCW(pts) {
+  let area = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i], b = pts[(i + 1) % pts.length];
+    area += a.x * b.y - b.x * a.y;
+  }
+  return area < 0 ? pts.slice().reverse() : pts;
+}
+
+function mediumOutline(shape, mode) {
+  const R = R_MEDIUM;
+  let pts;
+  if (shape === 'semi') {
+    pts = [];
+    const N = 240;
+    for (let i = 0; i <= N; i++) {
+      const a = Math.PI + Math.PI * i / N;
+      pts.push(new THREE.Vector2(R * Math.cos(a), R * Math.sin(a)));
+    }
+  } else {
+    const w = R * 1.78, h = R * 1.02;
+    pts = [
+      new THREE.Vector2(-w / 2, 0), new THREE.Vector2(w / 2, 0),
+      new THREE.Vector2(w / 2, -h), new THREE.Vector2(-w / 2, -h)
+    ];
+  }
+  if (mode === 'reverse') pts = pts.map(p => new THREE.Vector2(p.x, -p.y));
+  return ensureCCW(pts);
+}
+
+// 最近交點；多邊形逆時針時邊法線 (ey,-ex) 朝外
+function firstHit(p, d, poly) {
+  let best = null;
+  const n = poly.length;
+  for (let i = 0; i < n; i++) {
+    const a = poly[i], b = poly[(i + 1) % n];
+    const ex = b.x - a.x, ey = b.y - a.y;
+    const det = ex * d.y - ey * d.x;
+    if (Math.abs(det) < 1e-9) continue;
+    const px = a.x - p.x, py = a.y - p.y;
+    const t = (-px * ey + ex * py) / det;
+    const s = (d.x * py - d.y * px) / det;
+    if (t > 1e-3 && s >= -1e-6 && s <= 1 + 1e-6) {
+      if (!best || t < best.t) {
+        const len = Math.hypot(ex, ey) || 1;
+        best = {
+          t,
+          p: new THREE.Vector2(p.x + d.x * t, p.y + d.y * t),
+          n: new THREE.Vector2(ey / len, -ex / len)
+        };
+      }
+    }
+  }
+  return best;
+}
+
+function clipToDisc(a, dir, maxR = R_DISC * 0.985) {
+  const b = a.x * dir.x + a.y * dir.y;
+  const c = a.lengthSq() - maxR * maxR;
+  const disc = b * b - c;
+  if (disc <= 0) return a.clone();
+  const t = -b + Math.sqrt(disc);
+  return a.clone().addScaledVector(dir, Math.max(t, 1));
+}
+
+function traceRay(origin, dir, poly, nMed, maxBounce = 10) {
+  const segs = [];
+  let p = origin.clone();
+  let d = dir.clone().normalize();
+  let inside = false;
+
+  for (let i = 0; i < maxBounce; i++) {
+    const hit = firstHit(p, d, poly);
+    if (!hit) {
+      segs.push({ a: p, b: clipToDisc(p, d), inside });
+      break;
+    }
+    segs.push({ a: p, b: hit.p, inside });
+
+    const N = hit.n.clone();
+    if (d.dot(N) > 0) N.negate();
+    const cosi = Math.max(-1, Math.min(1, -d.dot(N)));
+    const n1 = inside ? nMed : 1;
+    const n2 = inside ? 1 : nMed;
+    const eta = n1 / n2;
+    const k = 1 - eta * eta * (1 - cosi * cosi);
+
+    if (k < 0) {
+      // 全反射：光仍留在原介質中
+      d.addScaledVector(N, -2 * d.dot(N)).normalize();
+      p = hit.p.clone().addScaledVector(d, 0.06);
+      if (!inside) break;
+    } else {
+      const cost = Math.sqrt(k);
+      d.multiplyScalar(eta).addScaledVector(N, eta * cosi - cost).normalize();
+      p = hit.p.clone().addScaledVector(d, 0.06);
+      inside = !inside;
+    }
+  }
+  return segs;
+}
+
+function fresnel(n1, n2, cosi) {
+  const eta = n1 / n2;
+  const s2 = eta * eta * (1 - cosi * cosi);
+  if (s2 >= 1) return 1;
+  const cost = Math.sqrt(1 - s2);
+  const rs = (n1 * cosi - n2 * cost) / (n1 * cosi + n2 * cost);
+  const rp = (n2 * cosi - n1 * cost) / (n2 * cosi + n1 * cost);
+  return (rs * rs + rp * rp) / 2;
+}
+
+/* ==========================================================
+   4. 介質與夾具
+   ========================================================== */
+const mediumGroup = new THREE.Group();
+rigRoot.add(mediumGroup);
+const clampGroup = new THREE.Group();
+rigRoot.add(clampGroup);
+
+const MEDIUM_STYLE = {
+  water: { color: 0x62c6ff, opacity: 0.34 },
+  acrylic: { color: 0xffd45e, opacity: 0.32 },
+  glass: { color: 0x9df0dd, opacity: 0.30 }
+};
+
+let mediumMat = null;
+
+function buildMedium() {
+  while (mediumGroup.children.length) {
+    const o = mediumGroup.children.pop();
+    if (o.geometry) o.geometry.dispose();
+  }
+  if (mediumMat) { mediumMat.dispose(); mediumMat = null; }
+
+  const poly = mediumOutline(state.shape, state.mode);
+  const style = MEDIUM_STYLE[state.medium];
+
+  const geo = new THREE.ExtrudeGeometry(new THREE.Shape(poly), {
+    depth: MED_D, bevelEnabled: false, curveSegments: 1
+  });
+
+  mediumMat = new THREE.MeshPhysicalMaterial({
+    color: style.color,
+    transparent: true,
+    opacity: style.opacity,
+    roughness: 0.04,
+    metalness: 0,
+    clearcoat: 1,
+    clearcoatRoughness: 0.03,
+    ior: N_BASE[state.medium],
+    side: THREE.DoubleSide,
+    depthWrite: false
+  });
+
+  const mesh = new THREE.Mesh(geo, mediumMat);
+  mesh.position.z = MED_Z;
+  mesh.renderOrder = 2;
+  mediumGroup.add(mesh);
+
+  const edges = new THREE.LineSegments(
+    new THREE.EdgesGeometry(geo, 25),
+    new THREE.LineBasicMaterial({ color: 0xd8fbff, transparent: true, opacity: 0.42 })
+  );
+  edges.position.z = MED_Z;
+  edges.renderOrder = 3;
+  mediumGroup.add(edges);
+
+  // 夾具夾住平直界面兩端（隨安裝方向上下翻轉），避開中心光路
+  const clampX = (state.shape === 'semi' ? R_MEDIUM : R_MEDIUM * 0.89) * 0.8;
+  clampGroup.children.forEach((g, i) => {
+    g.position.x = (i === 0 ? -1 : 1) * clampX;
+    g.position.y = 0;
+    g.scale.y = state.mode === 'reverse' ? -1 : 1;
+  });
+}
+
+function buildClamps() {
+  [-1, 1].forEach(() => {
+    const g = new THREE.Group();
+    const block = new THREE.Mesh(new THREE.BoxGeometry(16, 10, 30), metalMid);
+    block.position.set(0, 5, MED_Z + MED_D / 2);
+    const screw = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.2, 13, 14), brassMat);
+    screw.position.set(0, 12, MED_Z + MED_D / 2 + 10);
+    const knob = new THREE.Mesh(new THREE.CylinderGeometry(5.5, 5.5, 4, 16), brassMat);
+    knob.position.set(0, 17, MED_Z + MED_D / 2 + 10);
+    g.add(block, screw, knob);
+    clampGroup.add(g);
+  });
+}
+
+/* ==========================================================
+   5. 激光筆（夾在盤緣，可繞盤心轉動）
+   ========================================================== */
+const laserRig = new THREE.Group();
+rigRoot.add(laserRig);
+const penPickables = [];
+
+// 反向激光筆（光路可逆演示用）：結構與正向完全相同，只是放在折射光線的出射方向上
+const revRig = new THREE.Group();
+revRig.position.copy(laserRig.position);
+revRig.visible = false;
+rigRoot.add(revRig);
+
+// 兩支激光筆用不同顏色的機身，便於區分（光色不變，才能說明光路可逆）
+const PEN_STYLE = {
+  main: { dark: metalDark, mid: metalMid, brass: brassMat },
+  hand: {
+    dark: new THREE.MeshStandardMaterial({ color: 0x2f74ff, metalness: 0.6, roughness: 0.28, emissive: 0x0a1e4a }),
+    mid: new THREE.MeshStandardMaterial({ color: 0x9fc4ff, metalness: 0.86, roughness: 0.24 }),
+    brass: new THREE.MeshStandardMaterial({ color: 0xe2efff, metalness: 0.7, roughness: 0.26 })
+  }
+};
+
+function buildPenAssembly(rig, pickables, withClamp = true, style = PEN_STYLE.main) {
+  const mat = style;
+  const PEN_Z = BEAM_Z;
+  const add = (m) => {
+    rig.add(m);
+    if (pickables) pickables.push(m);
+    return m;
+  };
+
+  // ① 夾在盤緣的夾座（卡在刻度盤外緣，不遮擋光束）
+  if (withClamp) {
+    const clampBlock = add(new THREE.Mesh(new THREE.BoxGeometry(40, 18, 26), mat.dark));
+    clampBlock.position.set(0, R_DISC, 0);
+
+    const screw = add(new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 16, 16), mat.brass));
+    screw.rotation.x = Math.PI / 2;
+    screw.position.set(0, R_DISC, 18);
+
+    const screwHead = add(new THREE.Mesh(new THREE.CylinderGeometry(6.5, 6.5, 4, 18), mat.brass));
+    screwHead.rotation.x = Math.PI / 2;
+    screwHead.position.set(0, R_DISC, 27);
+
+    // ② 從夾座伸出的兩條支臂，托住筆身的抱箍（分列筆身兩側）
+    [-1, 1].forEach(side => {
+      const arm = add(new THREE.Mesh(new THREE.BoxGeometry(5, 42, 11), mat.mid));
+      arm.position.set(side * 12.5, R_DISC + 12, PEN_Z);
+    });
+
+    const collar = add(new THREE.Mesh(new THREE.CylinderGeometry(11, 11, 13, 28, 1, true), mat.mid));
+    collar.position.set(0, R_DISC + 28, PEN_Z);
+  }
+
+  // ③ 筆身（出光口朝向盤心）
+  const barrel = add(new THREE.Mesh(new THREE.CylinderGeometry(6.6, 6.0, 20, 32), mat.mid));
+  barrel.position.set(0, 140, PEN_Z);
+
+  const grip = add(new THREE.Mesh(new THREE.CylinderGeometry(7.2, 7.2, 10, 32), mat.brass));
+  grip.position.set(0, 154, PEN_Z);
+
+  const body = add(new THREE.Mesh(new THREE.CylinderGeometry(6.4, 6.4, 34, 32), mat.dark));
+  body.position.set(0, 175, PEN_Z);
+
+  const cap = add(new THREE.Mesh(new THREE.CylinderGeometry(5.4, 5.8, 8, 24), mat.dark));
+  cap.position.set(0, 195, PEN_Z);
+
+  // 濾光片轉盤（位於筆頭前方、光束上）
+  const wheel = add(new THREE.Mesh(new THREE.CylinderGeometry(13, 13, 2.4, 36), mat.mid));
+  wheel.position.set(0, 126, PEN_Z);
+
+  const filterGlass = add(new THREE.Mesh(
+    new THREE.CylinderGeometry(9.5, 9.5, 3.2, 32),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, toneMapped: false })
+  ));
+  filterGlass.position.set(0, 125, PEN_Z);
+
+  // 出光口
+  const emitter = new THREE.Mesh(
+    new THREE.SphereGeometry(2.8, 16, 12),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false })
+  );
+  emitter.position.set(0, PEN_TIP_R, PEN_Z);
+  rig.add(emitter);
+
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTexture(), color: 0xffffff, transparent: true,
+    blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.85, toneMapped: false
+  }));
+  halo.scale.set(28, 28, 1);
+  halo.position.set(0, PEN_TIP_R, PEN_Z);
+  rig.add(halo);
+
+  return { emitter, halo, filterGlass };
+}
+
+const penFwd = buildPenAssembly(laserRig, penPickables, true, PEN_STYLE.main);
+const penRev = buildPenAssembly(revRig, null, false, PEN_STYLE.hand);   // 手持激光筆，不帶頭部夾座
+
+/* 全局唯一的發光貼圖，避免重複創建 canvas */
+function glowTexture() {
+  if (_glowTex) return _glowTex;
+  const s = 128;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = s;
+  const ctx = cv.getContext('2d');
+  const g = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+  g.addColorStop(0, 'rgba(255,255,255,1)');
+  g.addColorStop(0.35, 'rgba(255,255,255,.42)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, s, s);
+  _glowTex = new THREE.CanvasTexture(cv);
+  _glowTex.colorSpace = THREE.SRGBColorSpace;
+  return _glowTex;
+}
+
+/* ==========================================================
+   6. 光束
+   ========================================================== */
+const beamGroup = new THREE.Group();
+beamGroup.position.z = BEAM_Z;
+rigRoot.add(beamGroup);
+
+const TIP_GEO = new THREE.CylinderGeometry(1, 1, 1, 12, 1, true);
+TIP_GEO.translate(0, 0.5, 0);
+const UP = new THREE.Vector3(0, 1, 0);
+
+const matCache = new Map();
+function beamMat(color, opacity, add) {
+  const k = color + '|' + opacity + '|' + (add ? 1 : 0);
+  if (!matCache.has(k)) {
+    matCache.set(k, new THREE.MeshBasicMaterial({
+      color, transparent: true, opacity, toneMapped: false, depthWrite: false,
+      blending: add ? THREE.AdditiveBlending : THREE.NormalBlending
+    }));
+  }
+  return matCache.get(k);
+}
+
+const spriteMatCache = new Map();
+function glowMat(color, opacity) {
+  const k = color + '|' + opacity;
+  if (!spriteMatCache.has(k)) {
+    spriteMatCache.set(k, new THREE.SpriteMaterial({
+      map: glowTexture(), color, transparent: true, opacity,
+      blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false
+    }));
+  }
+  return spriteMatCache.get(k);
+}
+
+// 光束一律使用加色混合：複色光的紅、綠、藍三束在重合處自然疊加為白光
+function addBeam(a, b, color, radius, opacity, glowScale = 1) {
+  const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy);
+  if (len < 0.4) return;
+  const dir = new THREE.Vector3(dx, dy, 0).normalize();
+  const q = new THREE.Quaternion().setFromUnitVectors(UP, dir);
+
+  const core = new THREE.Mesh(TIP_GEO, beamMat(color, Math.min(1, opacity), true));
+  core.position.set(a.x, a.y, 0);
+  core.quaternion.copy(q);
+  core.scale.set(radius, len, radius);
+  core.renderOrder = 8;
+  beamGroup.add(core);
+
+  const glow = new THREE.Mesh(TIP_GEO, beamMat(color, 0.13 * glowScale, true));
+  glow.position.set(a.x, a.y, 0);
+  glow.quaternion.copy(q);
+  glow.scale.set(radius * 2.8 * glowScale, len, radius * 2.8 * glowScale);
+  glow.renderOrder = 7;
+  beamGroup.add(glow);
+}
+
+function addDot(x, y, color, size) {
+  const s = new THREE.Sprite(glowMat(color, 0.85));
+  s.scale.set(size * 3, size * 3, 1);
+  s.position.set(x, y, 0.8);
+  s.renderOrder = 9;
+  beamGroup.add(s);
+}
+
+/* ==========================================================
+   7. 法線與角度標註
+   ========================================================== */
+const annoGroup = new THREE.Group();
+annoGroup.position.z = BEAM_Z;
+rigRoot.add(annoGroup);
+
+const normalLine = new THREE.Line(
+  new THREE.BufferGeometry(),
+  new THREE.LineDashedMaterial({ color: 0x9fc6e0, transparent: true, opacity: 0.62, dashSize: 7, gapSize: 6, depthWrite: false })
+);
+normalLine.renderOrder = 10;
+annoGroup.add(normalLine);
+
+const interfaceLine = new THREE.Line(
+  new THREE.BufferGeometry(),
+  new THREE.LineBasicMaterial({ color: 0x7fe3ff, transparent: true, opacity: 0.45, depthWrite: false })
+);
+interfaceLine.renderOrder = 10;
+annoGroup.add(interfaceLine);
+
+// 角度弧線用細管繪製：比 1px 線段在淺色光屏上更醒目
+function makeArc(color) {
+  const mesh = new THREE.Mesh(
+    new THREE.BufferGeometry(),
+    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.95, depthWrite: false, toneMapped: false })
+  );
+  mesh.renderOrder = 12;
+  mesh.visible = false;
+  annoGroup.add(mesh);
+  return mesh;
+}
+function setArc(mesh, a0, a1, radius, tube = 1.0) {
+  mesh.geometry.dispose();
+  mesh.geometry = new THREE.TubeGeometry(
+    new THREE.CatmullRomCurve3(arcPoints(a0, a1, radius)), 48, tube, 6, false
+  );
+}
+const arc1 = makeArc(0xffd34d);
+const arc2 = makeArc(0x5cc8ff);
+
+function makeLabel(text, color) {
+  const cv = document.createElement('canvas');
+  cv.width = 256; cv.height = 128;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = 'rgba(8,12,18,.72)';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(10, 14, 236, 100, 26);
+  else ctx.rect(10, 14, 236, 100);
+  ctx.fill();
+  ctx.font = 'bold 84px Arial, "Microsoft YaHei"';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#' + color.toString(16).padStart(6, '0');
+  ctx.fillText(text, 128, 66);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: tex, transparent: true, depthWrite: false, depthTest: false, toneMapped: false
+  }));
+  sprite.scale.set(40, 20, 1);
+  sprite.renderOrder = 11;
+  sprite.visible = false;
+  return sprite;
+}
+const labelI = makeLabel('∠i', 0xffd34d);   // 入射角
+const labelR = makeLabel('∠r', 0x5cc8ff);   // 折射角
+annoGroup.add(labelI, labelR);
+
+function setLine(line, pts) {
+  line.geometry.dispose();
+  line.geometry = new THREE.BufferGeometry().setFromPoints(pts);
+  line.computeLineDistances();
+}
+
+function arcPoints(a0, a1, radius) {
+  const pts = [];
+  const steps = 44;
+  for (let i = 0; i <= steps; i++) {
+    const a = a0 + (a1 - a0) * i / steps;
+    pts.push(new THREE.Vector3(Math.cos(a) * radius, Math.sin(a) * radius, 0));
+  }
+  return pts;
+}
+
+/* ==========================================================
+   8. 狀態與 UI
+   ========================================================== */
+const state = {
+  shape: 'semi',
+  medium: 'glass',
+  mode: 'normal',
+  filter: 'white',
+  angle: 30,
+  fold: 0,
+  reversed: false,
+  showNormal: true,
+  showAngles: true,
+  showReflect: true,
+  records: []
+};
+
+const FILTER_COLOR = { white: 0xffffff, red: 0xff3b30, green: 0x3dff86, blue: 0x4a7dff };
+const FILTER_WL = { red: 650, green: 532, blue: 450 };
+const FILTER_NAME = { white: '複色光', red: '紅光 650nm', green: '綠光 532nm', blue: '藍光 450nm' };
+
+function nOf(medium, filter) {
+  const base = N_BASE[medium];
+  if (filter === 'white') return base;
+  const s = 1e6 / (FILTER_WL[filter] ** 2);
+  const sG = 1e6 / (FILTER_WL.green ** 2);
+  return base + 0.0045 * (s - sG);
+}
+
+// 複色光按紅、綠、藍三束追跡；單色光只有一束
+function activeFilters() {
+  return state.filter === 'white' ? ['red', 'green', 'blue'] : [state.filter];
+}
+function mainFilter() {
+  return state.filter === 'white' ? 'green' : state.filter;
+}
+
+function setupButtons(groupId, key, after) {
+  const group = document.getElementById(groupId);
+  const btns = [...group.querySelectorAll('.btn')];
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
+      btns.forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      state[key] = btn.dataset.val;
+      if (key === 'mode' && state.mode === 'reverse' && state.shape === 'rect') {
+        state.shape = 'semi';
+        document.querySelectorAll('#groupShape .btn')
+          .forEach(b => b.classList.toggle('on', b.dataset.val === 'semi'));
+      }
+      after();
+    });
+  });
+}
+
+// 四組選擇按鈕
+setupButtons('groupShape', 'shape', () => { syncShapeAvailability(); refreshAll(); });
+setupButtons('groupMedium', 'medium', refreshAll);
+setupButtons('groupMode', 'mode', () => { syncShapeAvailability(); refreshAll(); });
+setupButtons('groupFilter', 'filter', refreshAll);
+
+function syncShapeAvailability() {
+  const rectBtn = document.querySelector('#groupShape .btn[data-val="rect"]');
+  const disabled = state.mode === 'reverse';
+  rectBtn.disabled = disabled;
+  rectBtn.title = disabled ? '倒裝（介質→空氣）需用半圓形介質，光線才能垂直射入弧面' : '';
+}
+
+const sAngle = document.getElementById('sAngle');
+const sFold = document.getElementById('sFold');
+
+function paintRange(el) {
+  const min = parseFloat(el.min), max = parseFloat(el.max), v = parseFloat(el.value);
+  const pos = (v - min) / (max - min) * 100;
+  const zero = (0 - min) / (max - min) * 100;
+  el.style.setProperty('--a', Math.min(zero, pos) + '%');
+  el.style.setProperty('--b', Math.max(zero, pos) + '%');
+}
+function paintSlider() {
+  paintRange(sAngle);
+  paintRange(sFold);
+}
+
+sAngle.addEventListener('input', () => {
+  state.angle = parseFloat(sAngle.value);
+  document.getElementById('vAngle').textContent = Math.abs(state.angle).toFixed(1) + '°';
+  paintSlider();
+  updateScene();
+});
+
+sFold.addEventListener('input', () => {
+  state.fold = parseFloat(sFold.value);
+  document.getElementById('vFold').textContent = state.fold.toFixed(0) + '°';
+  paintSlider();
+  updateFold();
+  updateReadouts();
+});
+
+document.getElementById('btnReverse').addEventListener('click', e => {
+  state.reversed = !state.reversed;
+  e.currentTarget.classList.toggle('on', state.reversed);
+  e.currentTarget.textContent = state.reversed ? '🔦 放回原位（正向射入）' : '🔦 拿激光筆';
+  updateScene();
+});
+
+// 畫面右上角的顯示開關：法線、角度標註、反射光
+function bindToggle(id, key) {
+  const el = document.getElementById(id);
+  el.classList.toggle('on', state[key]);
+  el.addEventListener('click', () => {
+    state[key] = !state[key];
+    el.classList.toggle('on', state[key]);
+    updateScene();
+  });
+}
+bindToggle('tgNormal', 'showNormal');
+bindToggle('tgAngles', 'showAngles');
+bindToggle('tgReflect', 'showReflect');
+
+/* ==========================================================
+   9. 刷新
+   ========================================================== */
+/* 介質→空氣時為避免出現全反射，把入射角限制在臨界角以內
+   （多種色光同時存在時按折射率最大者計算，保證任何顏色都能射出） */
+function critLimit() {
+  const nMax = Math.max(...activeFilters().map(f => nOf(state.medium, f)));
+  return Math.asin(Math.min(1, 1 / nMax)) * DEG;
+}
+
+function angleLimit() {
+  if (state.mode !== 'reverse') return 88;
+  return Math.max(5, Math.min(88, Math.floor((critLimit() - 1.5) * 2) / 2));
+}
+
+function syncAngleRange() {
+  const lim = angleLimit();
+  if (Math.abs(state.angle) > lim) state.angle = Math.sign(state.angle) * lim;
+  sAngle.min = -lim;
+  sAngle.max = lim;
+  sAngle.value = state.angle;
+  document.getElementById('vAngle').textContent = Math.abs(state.angle).toFixed(1) + '°';
+  document.getElementById('angleLimitInfo').textContent = state.mode === 'reverse'
+    ? `入射角限制在 ${lim.toFixed(1)}° 以內（臨界角 ${critLimit().toFixed(1)}°），實驗中不會發生全反射`
+    : '';
+  paintSlider();
+}
+
+function setAngle(deg) {
+  const lim = angleLimit();
+  state.angle = Math.max(-lim, Math.min(lim, deg));
+  sAngle.value = state.angle;
+  document.getElementById('vAngle').textContent = Math.abs(state.angle).toFixed(1) + '°';
+  paintSlider();
+  updateScene();
+}
+
+function updateFold() {
+  const a = state.fold * RAD;
+  const foldRight = state.angle >= 0;      // 折射光線在右半 → 折右半頁
+  screenFoldR.rotation.y = foldRight ? a : 0;
+  screenFoldL.rotation.y = foldRight ? 0 : -a;
+}
+
+function updateScene() {
+  laserRig.rotation.z = state.angle * RAD;
+  revRig.visible = state.reversed;
+  updateFold();
+  updateRays();
+  updateAnnotations();
+  updateReadouts();
+}
+
+let lastMediumKey = '';
+function refreshAll() {
+  const key = state.shape + '|' + state.mode + '|' + state.medium;
+  if (key !== lastMediumKey) {
+    buildMedium();
+    lastMediumKey = key;
+  }
+  syncAngleRange();
+  updateScene();
+}
+
+function drawBeams(tip, dir, poly, alpha) {
+  const filters = activeFilters();
+  filters.forEach(f => {
+    const nMed = nOf(state.medium, f);
+    const segs = traceRay(tip, dir, poly, nMed);
+    segs.forEach(s => {
+      addBeam(
+        s.a, s.b, FILTER_COLOR[f],
+        filters.length > 1 ? 1.0 : 1.35,
+        (s.inside ? 0.92 : 1) * alpha
+      );
+    });
+  });
+}
+
+function updateRays() {
+  while (beamGroup.children.length) beamGroup.remove(beamGroup.children[0]);
+
+  const phi = state.angle * RAD;
+  const poly = mediumOutline(state.shape, state.mode);
+  const tipF = new THREE.Vector2(-PEN_TIP_R * Math.sin(phi), PEN_TIP_R * Math.cos(phi));
+  const dirF = new THREE.Vector2(Math.sin(phi), -Math.cos(phi));
+
+  let tip = tipF, dir = dirF;
+
+  if (state.reversed) {
+    // 光路可逆：原來的激光筆保持原位，另用一支筆沿原折射光線的方向反向射入
+    const segs0 = traceRay(tipF, dirF, poly, nOf(state.medium, mainFilter()));
+    const last = segs0[segs0.length - 1];
+    const dOut = new THREE.Vector2(last.b.x - last.a.x, last.b.y - last.a.y).normalize();
+    const A = last.a;
+    const b1 = A.x * dOut.x + A.y * dOut.y;
+    const c1 = A.lengthSq() - PEN_TIP_R * PEN_TIP_R;
+    const tt = -b1 + Math.sqrt(Math.max(0, b1 * b1 - c1));
+    tip = new THREE.Vector2(A.x + tt * dOut.x, A.y + tt * dOut.y);
+    dir = dOut.clone().negate();
+    revRig.position.set(
+      A.x + (tt - PEN_TIP_R) * dOut.x,
+      A.y + (tt - PEN_TIP_R) * dOut.y,
+      0
+    );
+    revRig.rotation.z = Math.atan2(-dOut.x, dOut.y);
+    drawBeams(tipF, dirF, poly, 0.4);   // 原激光筆的光路仍然保留
+  } else {
+    revRig.position.set(0, 0, 0);
+    revRig.rotation.z = phi;
+  }
+
+  drawBeams(tip, dir, poly, 1);
+
+  // 界面反射光：顏色隨濾光片變化，亮度按菲涅耳反射率，明顯弱於折射光
+  if (state.showReflect && Math.abs(state.angle) > 0.5) {
+    const hit = firstHit(tip, dir, poly);
+    if (hit && Math.abs(hit.p.y) < 2.5) {
+      const N = hit.n.clone();
+      if (dir.dot(N) > 0) N.negate();
+      const cosi = Math.max(0, Math.min(1, -dir.dot(N)));
+      const rd = dir.clone().addScaledVector(N, -2 * dir.dot(N)).normalize();
+      const start = hit.p.clone().addScaledVector(rd, 0.06);
+      const end = clipToDisc(start, rd);
+      const filters = activeFilters();
+      filters.forEach(f => {
+        const nHit = nOf(state.medium, f);
+        const Rr = state.reversed ? fresnel(nHit, 1, cosi) : fresnel(1, nHit, cosi);
+        addBeam(start, end, FILTER_COLOR[f], 0.72, Math.min(0.62, 0.3 + 0.5 * Rr), 0.6);
+      });
+      addDot(hit.p.x, hit.p.y, FILTER_COLOR[filters[filters.length - 1]], 1.8);
+    }
+  }
+}
+
+function updateAnnotations() {
+  normalLine.visible = state.showNormal;
+  interfaceLine.visible = state.showNormal;
+  if (state.showNormal) {
+    setLine(normalLine, [
+      new THREE.Vector3(0, R_DISC * 0.95, 0),
+      new THREE.Vector3(0, -R_DISC * 0.95, 0)
+    ]);
+    setLine(interfaceLine, [
+      new THREE.Vector3(-R_DISC * 0.95, 0, 0),
+      new THREE.Vector3(R_DISC * 0.95, 0, 0)
+    ]);
+  }
+
+  const p = physics();
+  const phi = state.angle * RAD;
+  const rev = state.reversed;
+  const show = state.showAngles && Math.abs(state.angle) > 1.2;
+
+  // 逆向時，上下兩條光線的“入射/折射”角色互換
+  arc1.material.color.setHex(rev ? 0x5cc8ff : 0xffd34d);
+  arc2.material.color.setHex(rev ? 0xffd34d : 0x5cc8ff);
+  const upperLabel = rev ? labelR : labelI;
+  const lowerLabel = rev ? labelI : labelR;
+
+  labelI.visible = labelR.visible = false;
+  arc1.visible = arc2.visible = show;
+  if (!show) return;
+
+  // 上弧：上方法線 → 上方光線
+  const a0 = Math.PI / 2, a1 = Math.PI / 2 + phi;
+  setArc(arc1, a0, a1, 56);
+  const m1 = (a0 + a1) / 2;
+  upperLabel.visible = true;
+  upperLabel.position.set(Math.cos(m1) * 84, Math.sin(m1) * 84, 1);
+
+  // 下弧：下方法線 → 下方光線
+  const sgn = state.angle >= 0 ? 1 : -1;
+  const b0 = -Math.PI / 2, b1 = -Math.PI / 2 + sgn * p.a2 * RAD;
+  setArc(arc2, b0, b1, 46);
+  const m2 = (b0 + b1) / 2;
+  lowerLabel.visible = true;
+  lowerLabel.position.set(Math.cos(m2) * 96, Math.sin(m2) * 96, 1);
+}
+
+/* ==========================================================
+   10. 物理與讀數
+   ========================================================== */
+function physics() {
+  const a1 = Math.abs(state.angle);
+  const n = nOf(state.medium, mainFilter());
+  const s1 = Math.sin(a1 * RAD);
+  const crit = Math.asin(Math.min(1, 1 / n)) * DEG;
+  const a2 = state.mode === 'normal'
+    ? Math.asin(Math.min(1, s1 / n)) * DEG
+    : Math.asin(Math.min(1, s1 * n)) * DEG;
+  return { a1, n, a2, crit };
+}
+
+function updateReadouts() {
+  const p = physics();
+  const name = N_NAME[state.medium];
+  const rev = state.reversed;
+  const dA1 = rev ? p.a2 : p.a1;      // 逆向時，原來的折射角變成新的入射角
+  const dA2 = rev ? p.a1 : p.a2;
+
+  document.getElementById('rA1').innerHTML = dA1.toFixed(1) + '<span class="u">°</span>';
+  document.getElementById('rA2').innerHTML = dA2.toFixed(1) + '<span class="u">°</span>';
+  document.getElementById('rRatio').innerText = Math.abs(state.angle) > 0.05 ? p.n.toFixed(3) : '—';
+  document.getElementById('rN').innerText = p.n.toFixed(3);
+  document.getElementById('rC').innerHTML = p.crit.toFixed(1) + '<span class="u">°</span>';
+  document.getElementById('rPath').innerText = state.mode === 'normal' ? `空氣 → ${name}` : `${name} → 空氣`;
+
+  document.getElementById('wlTag').textContent = FILTER_NAME[state.filter];
+  document.getElementById('filterInfo').textContent = state.filter === 'white'
+    ? `複色光經${name}後分成紅、綠、藍三束：n紅 < n綠 < n藍（色散）`
+    : `${FILTER_NAME[state.filter]} 在${name}中的折射率 n = ${p.n.toFixed(3)}`;
+
+  document.getElementById('modeInfo').textContent = state.mode === 'normal'
+    ? '光線由空氣射入介質，折射光線靠近法線'
+    : '光線由介質射向空氣，折射光線遠離法線（入射角已限制在臨界角以內，不會發生全反射）';
+
+  document.getElementById('foldInfo').textContent = state.fold < 1
+    ? '光屏展開時，入射光線、折射光線都能落在光屏上'
+    : `${state.angle >= 0 ? '右' : '左'}半光屏已沿法線向後折 ${state.fold.toFixed(0)}°：折射光線不再落在光屏上，說明折射光線與入射光線、法線在同一平面內`;
+
+  document.getElementById('revInfo').textContent = state.reversed
+    ? `手持激光筆（藍色筆身）已沿原折射光線的方向反向射入，兩支筆的光路完全重合：新的入射角 ∠i = ${p.a2.toFixed(1)}°，折射角回到 ∠r = ${p.a1.toFixed(1)}°。`
+    : '把另一支激光筆拿到折射光線射出的方向，沿折射光線射回去，觀察光是否沿原路返回。';
+
+  document.getElementById('hint').textContent = state.reversed
+    ? '光路可逆：沿折射光線反向射入，光沿原路返回（∠r 變成新的 ∠i，出射角回到原來的 ∠i）'
+    : '按住激光筆沿刻度盤拖動即可連續改變入射角 · 拖動空白處旋轉視角 · 滾輪/雙指縮放';
+
+  const col = state.filter === 'white' ? 0xffffff : FILTER_COLOR[state.filter];
+  [penFwd, penRev].forEach(pen => {
+    pen.emitter.material.color.setHex(col);
+    pen.halo.material.color.setHex(col);
+    pen.filterGlass.material.color.setHex(col);
+  });
+}
+
+/* ==========================================================
+   11. 拖動激光筆
+   ========================================================== */
+const raycaster = new THREE.Raycaster();
+const ndc = new THREE.Vector2();
+const dragPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -BEAM_Z);
+const hitPoint = new THREE.Vector3();
+
+let dragging = false;
+let dragOffset = 0;
+
+function pointerAngle(ev) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  ndc.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+  ndc.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(ndc, camera);
+  if (!raycaster.ray.intersectPlane(dragPlane, hitPoint)) return null;
+  return Math.atan2(-hitPoint.x, hitPoint.y);
+}
+
+function onPen(ev) {
+  if (state.reversed) return false;
+  if (pointerAngle(ev) === null) return false;
+  return raycaster.intersectObjects(penPickables, false).length > 0;
+}
+
+renderer.domElement.addEventListener('pointerdown', ev => {
+  if (ev.button !== 0) return;
+  if (!onPen(ev)) return;
+  const a = pointerAngle(ev);
+  if (a === null) return;
+  dragging = true;
+  dragOffset = state.angle * RAD - a;
+  controls.enabled = false;
+  renderer.domElement.style.cursor = 'grabbing';
+  try { renderer.domElement.setPointerCapture(ev.pointerId); } catch (_) { }
+});
+
+renderer.domElement.addEventListener('pointermove', ev => {
+  if (!dragging) {
+    renderer.domElement.style.cursor = onPen(ev) ? 'grab' : 'default';
+    return;
+  }
+  const a = pointerAngle(ev);
+  if (a === null) return;
+  const lim = angleLimit();
+  const deg = Math.max(-lim, Math.min(lim, (a + dragOffset) * DEG));
+  if (Math.abs(deg - state.angle) > 0.01) setAngle(deg);
+});
+
+function endDrag(ev) {
+  if (!dragging) return;
+  dragging = false;
+  controls.enabled = true;
+  renderer.domElement.style.cursor = 'grab';
+  try { renderer.domElement.releasePointerCapture(ev.pointerId); } catch (_) { }
+}
+renderer.domElement.addEventListener('pointerup', endDrag);
+renderer.domElement.addEventListener('pointercancel', endDrag);
+
+/* ==========================================================
+   12. 視角
+   ========================================================== */
+function fitDistance() {
+  const aspect = (stage.clientWidth || 1) / (stage.clientHeight || 1);
+  const need = 186;
+  const vFov = camera.fov * RAD;
+  return Math.max(need / Math.tan(vFov / 2), need / (Math.tan(vFov / 2) * aspect)) * 1.03;
+}
+
+const VIEWS = {
+  front: { label: '正視', dir: new THREE.Vector3(0, 0, 1) },
+  iso: { label: '斜視', dir: new THREE.Vector3(0.55, 0.42, 0.82) },
+  top: { label: '俯視', dir: new THREE.Vector3(0.2, 0.95, 0.5) }
+};
+
+const viewBar = document.getElementById('views');
+Object.entries(VIEWS).forEach(([key, v]) => {
+  const b = document.createElement('button');
+  b.className = 'vbtn' + (key === 'front' ? ' on' : '');
+  b.textContent = v.label;
+  b.dataset.view = key;
+  b.addEventListener('click', () => {
+    [...viewBar.children].forEach(c => c.classList.toggle('on', c.dataset.view === key));
+    goToView(key);
+  });
+  viewBar.appendChild(b);
+});
+
+let camAnim = null;
+function goToView(name) {
+  const d = fitDistance();
+  const pos = VIEWS[name].dir.clone().normalize().multiplyScalar(d).add(new THREE.Vector3(0, 0, 8));
+  camAnim = { t: 0, p0: camera.position.clone(), p1: pos, t0: controls.target.clone(), t1: new THREE.Vector3(0, 0, 8) };
+}
+
+function resize() {
+  const w = stage.clientWidth || 1;
+  const h = stage.clientHeight || 1;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+if (window.ResizeObserver) new ResizeObserver(resize).observe(stage);
+
+/* ==========================================================
+   12.5 全屏
+   ========================================================== */
+const btnFull = document.getElementById('btnFull');
+
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement ||
+    stage.classList.contains('stage-full'));
+}
+function syncFullBtn() {
+  btnFull.textContent = isFullscreen() ? '⤡ 退出全屏' : '⛶ 全屏';
+  btnFull.classList.toggle('on', isFullscreen());
+}
+
+// 等比縮放到當前畫面大小，避免進出全屏後物件過大或過小
+function refitCamera() {
+  const offset = camera.position.clone().sub(controls.target);
+  const len = offset.length();
+  const want = fitDistance();
+  if (len > 1 && Math.abs(len - want) > 1) {
+    camera.position.copy(controls.target).add(offset.setLength(want));
+  }
+}
+
+function fallbackFull() {
+  stage.classList.toggle('stage-full');
+  syncFullBtn();
+  requestAnimationFrame(() => { resize(); refitCamera(); });
+}
+
+btnFull.addEventListener('click', () => {
+  if (document.fullscreenElement || document.webkitFullscreenElement) {
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    return;
+  }
+  if (stage.classList.contains('stage-full')) { fallbackFull(); return; }
+
+  const req = stage.requestFullscreen || stage.webkitRequestFullscreen;
+  if (!req) { fallbackFull(); return; }
+  try {
+    const p = req.call(stage, { navigationUI: 'hide' });
+    if (p && typeof p.catch === 'function') p.catch(fallbackFull);
+  } catch (_) {
+    fallbackFull();
+  }
+});
+
+['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => {
+  document.addEventListener(ev, () => {
+    syncFullBtn();
+    requestAnimationFrame(() => { resize(); refitCamera(); });
+  });
+});
+syncFullBtn();
+
+/* ==========================================================
+   13. 數據記錄
+   ========================================================== */
+document.getElementById('btnRecord').addEventListener('click', () => {
+  const p = physics();
+  const rev = state.reversed;
+  state.records.push({
+    medium: N_NAME[state.medium] + (rev ? '(可逆)' : ''),
+    a1: (rev ? p.a2 : p.a1).toFixed(1),
+    a2: (rev ? p.a1 : p.a2).toFixed(1),
+    ratio: p.n.toFixed(3)
+  });
+  renderTable();
+});
+document.getElementById('btnClear').addEventListener('click', () => {
+  state.records = [];
+  renderTable();
+});
+
+function renderTable() {
+  const tbody = document.querySelector('#recordTable tbody');
+  if (!state.records.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">還沒有數據，調節入射角後點擊「記一行」</td></tr>';
+    return;
+  }
+  tbody.innerHTML = state.records.map(r => `
+    <tr>
+      <td>${r.medium}</td>
+      <td>${r.a1}°</td>
+      <td>${r.a2}°</td>
+      <td style="color:var(--green);font-weight:700;">${r.ratio}</td>
+    </tr>`).join('');
+}
+
+/* ==========================================================
+   14. 啟動
+   ========================================================== */
+buildClamps();
+syncShapeAvailability();
+resize();
+paintSlider();
+updateFold();
+refreshAll();
+renderTable();
+camera.position.set(0, 0, fitDistance() + 8);
+controls.update();
+
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const t = clock.getElapsedTime();
+
+  if (camAnim) {
+    camAnim.t = Math.min(1, camAnim.t + dt * 2.6);
+    const e = 1 - Math.pow(1 - camAnim.t, 3);
+    camera.position.lerpVectors(camAnim.p0, camAnim.p1, e);
+    controls.target.lerpVectors(camAnim.t0, camAnim.t1, e);
+    if (camAnim.t >= 1) camAnim = null;
+  }
+
+  const pulse = 0.72 + Math.sin(t * 6) * 0.18;
+  penFwd.halo.material.opacity = pulse;
+  penRev.halo.material.opacity = pulse;
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>

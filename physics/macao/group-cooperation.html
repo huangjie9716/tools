@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070b12" />
+    <title>澳門聖保祿中學物理公開課小組積分系統</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            color-scheme: dark;
+            --panel: rgba(18, 26, 38, 0.94);
+            --line: rgba(120, 160, 255, 0.16);
+            --text: #e6edf7;
+            --muted: #8fa3bd;
+            --cyan: #4dd0ff;
+            --green: #5de0a1;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 24px;
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background:
+                radial-gradient(900px 520px at 8% 0%, rgba(77, 208, 255, 0.14), transparent 60%),
+                radial-gradient(760px 480px at 100% 20%, rgba(124, 140, 255, 0.13), transparent 58%),
+                linear-gradient(155deg, #070b12 0%, #0b1220 55%, #070b12 100%);
+        }
+
+        button {
+            font: inherit;
+        }
+
+        .container {
+            width: min(100%, 1040px);
+            margin: 0 auto;
+            padding: 32px;
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            background: linear-gradient(180deg, var(--panel), rgba(13, 20, 31, 0.97));
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.48);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding-bottom: 26px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .title-logo {
+            width: 62px;
+            height: 62px;
+            flex: 0 0 auto;
+            filter: drop-shadow(0 0 12px rgba(77, 208, 255, 0.22));
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(25px, 5vw, 36px);
+            letter-spacing: 1px;
+        }
+
+        .back-link {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            padding: 9px 18px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            color: var(--muted);
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
+        }
+
+        .back-link:hover,
+        .back-link:focus-visible {
+            color: var(--text);
+            border-color: rgba(77, 208, 255, 0.45);
+            background: rgba(77, 208, 255, 0.08);
+            outline: none;
+        }
+
+        .group-list {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+            padding-top: 28px;
+        }
+
+        .group-card {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto auto;
+            align-items: center;
+            gap: 18px;
+            min-height: 154px;
+            padding: 23px;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background:
+                radial-gradient(220px 120px at 100% 0%, rgba(77, 208, 255, 0.08), transparent 75%),
+                linear-gradient(145deg, rgba(22, 33, 49, 0.96), rgba(13, 21, 33, 0.96));
+            transition: border-color 180ms ease, transform 180ms ease;
+        }
+
+        .group-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(77, 208, 255, 0.38);
+        }
+
+        .group-identity {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            min-width: 0;
+        }
+
+        .group-rank {
+            display: grid;
+            width: 36px;
+            height: 36px;
+            flex: 0 0 auto;
+            place-items: center;
+            border: 1px solid rgba(77, 208, 255, 0.2);
+            border-radius: 11px;
+            color: var(--cyan);
+            background: rgba(77, 208, 255, 0.08);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .group-name {
+            margin: 0;
+            font-size: 21px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .group-score {
+            color: #fff;
+            font-size: clamp(36px, 5vw, 50px);
+            font-variant-numeric: tabular-nums;
+            font-weight: 800;
+            line-height: 1;
+            text-align: right;
+            text-shadow: 0 0 22px rgba(77, 208, 255, 0.2);
+        }
+
+        .score-unit {
+            margin-left: 5px;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
+            text-shadow: none;
+        }
+
+        .score-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .score-button {
+            display: grid;
+            width: 50px;
+            height: 50px;
+            place-items: center;
+            border: 1px solid transparent;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 29px;
+            font-weight: 500;
+            transition: transform 150ms ease, filter 150ms ease, background 150ms ease;
+        }
+
+        .score-button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            filter: brightness(1.12);
+        }
+
+        .score-button:active:not(:disabled) {
+            transform: scale(0.96);
+        }
+
+        .score-button:focus-visible {
+            outline: 2px solid #fff;
+            outline-offset: 3px;
+        }
+
+        .add-button {
+            border-color: rgba(93, 224, 161, 0.28);
+            color: var(--green);
+            background: rgba(93, 224, 161, 0.12);
+        }
+
+        .subtract-button {
+            border-color: rgba(255, 120, 135, 0.24);
+            color: #ff9aa5;
+            background: rgba(255, 120, 135, 0.1);
+        }
+
+        .subtract-button:disabled {
+            opacity: 0.38;
+            cursor: not-allowed;
+        }
+
+        .save-status {
+            min-height: 20px;
+            margin: 17px 2px 0;
+            color: var(--muted);
+            font-size: 13px;
+            text-align: right;
+        }
+
+        .save-status.error {
+            color: #ff9aa5;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 18px 12px;
+            }
+
+            .container {
+                padding: 22px 18px;
+                border-radius: 20px;
+            }
+
+            .group-list {
+                gap: 11px;
+            }
+
+            .group-card {
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 14px 8px;
+                min-height: 0;
+                padding: 17px;
+            }
+
+            .group-identity {
+                grid-column: 1 / -1;
+            }
+
+            .group-score {
+                font-size: 40px;
+                text-align: left;
+            }
+
+            .score-actions {
+                justify-self: end;
+            }
+
+            .score-button {
+                width: 46px;
+                height: 46px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                gap: 13px;
+                padding-bottom: 21px;
+            }
+
+            .title-logo {
+                width: 52px;
+                height: 52px;
+            }
+
+            .group-list {
+                grid-template-columns: 1fr;
+            }
+
+            .group-card {
+                grid-template-columns: minmax(0, 1fr) auto auto;
+                min-height: 112px;
+                padding: 17px;
+            }
+
+            .group-identity {
+                grid-column: auto;
+                gap: 10px;
+            }
+
+            .group-rank {
+                width: 32px;
+                height: 32px;
+            }
+
+            .group-name {
+                font-size: 18px;
+            }
+
+            .group-score {
+                font-size: 34px;
+            }
+
+            .score-unit {
+                margin-left: 3px;
+                font-size: 12px;
+            }
+
+            .score-button {
+                width: 40px;
+                height: 40px;
+                border-radius: 12px;
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <header class="header">
+            <svg class="title-logo" viewBox="0 0 1041 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M957.17452 577.941c44.348-3.41 80.172 25.59 83.582 69.942 3.41 46.058-29 83.59-73.348 87-42.644 3.414-80.172-29-83.582-71.645-3.414-46.058 27.293-80.176 73.348-85.297z m0 0" fill="#86DA2F"></path>
+                <path d="M418.15052 941.293c0-44.352 34.118-78.469 75.055-78.469 40.938 0 80.172 37.531 80.172 80.176 0 40.941-34.117 76.766-73.348 78.473-49.468 0-81.879-30.707-81.879-80.18z m0 0" fill="#24C2FF"></path>
+                <path d="M539.26052 443.18c-6.824 3.41-10.235-1.707-11.942-6.825-63.113-117.707-44.347-266.117 66.528-354.824 28.996-23.879 83.582-29 107.46-5.117 10.235 8.531 11.942 18.766 13.65 30.707 3.41 25.59 8.526 51.176 25.585 71.649 18.762 22.175 42.645 30.703 69.938 29 23.878 0 47.761-3.415 63.113 23.878 8.527 15.356 5.117 75.059-8.531 87-6.82 5.118-11.938 1.707-17.055 0-39.234-15.351-80.172-15.351-121.113-8.527-13.645 1.707-20.47-1.707-20.47-17.058-1.702-25.59-6.82-49.473-20.468-71.649-25.586-46.059-73.348-47.766-104.05-5.117-25.587 34.117-32.41 75.058-39.235 116-6.82 35.824-5.117 73.351-3.41 110.883 0 0-1.707 0 0 0z m0 0" fill="#FFCB12"></path>
+                <path d="M581.90452 468.766c-3.41-5.118-1.707-10.235 3.41-13.645 97.231-88.707 242.22-105.766 354.801-18.766 29 23.883 47.762 73.352 32.41 102.352-6.824 11.941-15.351 17.059-25.586 20.473-23.882 10.234-46.058 20.468-61.41 42.644-15.351 22.176-18.761 47.766-11.937 75.059 5.117 22.176 13.644 46.058-8.531 66.531-11.938 11.941-69.934 22.176-85.29 11.941-6.82-5.117-5.117-10.238-3.41-17.058 5.118-42.649-5.117-81.883-20.468-119.414-5.118-13.645-3.41-20.469 10.234-23.883 23.883-6.82 46.055-18.762 63.113-35.82 37.528-35.825 29-81.883-20.468-102.356-39.235-17.058-80.172-13.644-119.403-10.234-37.527 1.707-73.347 11.941-107.465 22.176z m0 0" fill="#86DA2F"></path>
+                <path d="M559.72952 513.121c5.117-5.117 8.53-3.414 13.648 0 112.578 68.234 170.574 202.996 119.402 334.352-13.644 34.117-57.996 68.234-90.406 59.703-13.644-3.41-20.469-10.235-27.293-18.762-15.351-20.473-32.41-39.238-57.996-47.766-27.293-8.53-51.172-3.414-75.05 10.235-20.473 11.941-40.942 27.293-66.528 11.941-15.352-8.527-40.938-61.41-35.82-78.469 3.41-6.824 10.234-6.824 17.058-6.824 42.645-6.824 76.758-27.293 109.168-54.59 10.235-8.527 18.762-8.527 27.293 3.414 13.645 20.47 30.703 37.528 52.879 49.47 44.348 25.59 86.992 3.413 92.11-47.766 5.117-42.645-10.235-80.176-23.88-117.704-15.351-34.117-34.117-66.53-54.585-97.234z m0 0" fill="#24C2FF"></path>
+                <path d="M505.14752 523.355c-6.825 34.118-22.176 66.528-42.645 95.528C401.09252 711 312.39252 748.53 203.22552 738.297c-39.235-3.414-71.645-35.824-75.055-68.238-1.707-13.645 1.707-23.88 10.234-34.118 11.942-15.351 22.176-29 27.293-47.761 10.235-37.532-3.41-68.239-30.703-95.532-37.527-37.527-32.41-71.644 11.942-98.941 5.117-3.41 11.937-6.82 18.761-10.234 10.235-5.118 18.762-5.118 22.176 6.824 15.352 39.234 46.055 68.234 80.172 92.117 11.937 10.234 11.937 17.059 1.703 29-20.469 22.176-32.41 49.469-34.113 80.176-3.414 37.531 18.762 61.41 56.289 61.41 23.879 0 46.055-8.527 66.523-18.762 52.88-27.297 93.82-66.531 133.051-107.472 5.117-1.703 6.824-5.118 13.649-3.41z m0 0" fill="#0069DA"></path>
+                <path d="M225.40052 165.121c3.41 0 11.938 1.707 20.47 3.41C308.98252 180.473 348.21252 158.297 368.68252 98.59c13.648-39.235 42.644-51.176 80.172-30.703 1.707 0 1.707 1.707 3.414 1.707 39.23 22.176 39.23 25.586 15.351 59.703-20.469 27.293-30.703 58-35.824 90.414-3.41 18.762-10.234 22.176-27.29 15.351-27.292-10.234-56.292-10.234-85.288 0-32.41 10.235-46.055 39.235-35.82 71.645 13.644 42.648 51.171 61.414 83.582 83.59 32.41 22.176 69.937 34.117 105.757 49.469 5.118 1.707 13.645 1.707 11.938 10.238-1.703 5.117-8.527 5.117-15.352 5.117-76.757 3.41-150.105-8.531-209.808-59.707-56.29-46.059-97.227-102.351-90.407-180.824 5.118-25.586 23.883-44.352 56.293-49.469z m0 0" fill="#FF4649"></path>
+                <path d="M85.52552 644.473c-40.937 5.117-81.875-29-85.289-71.649-3.41-40.941 30.707-81.883 69.938-85.293 44.351-5.117 85.289 25.59 88.7 66.531 1.706 39.235-23.88 86.997-73.349 90.41z m0 0" fill="#0069DA"></path>
+                <path d="M801.94752 37.18c42.645-3.41 83.582 30.707 86.996 73.351 3.41 40.942-30.703 80.18-71.644 83.59-44.348 3.41-83.582-29-86.992-71.648-3.414-42.645 27.293-81.88 71.64-85.293z m0 0" fill="#FFCB12"></path>
+                <path d="M356.74452 69.594c5.117 44.351-25.586 81.879-71.644 88.703-39.23 5.117-80.168-27.293-85.29-64.824-5.117-49.47 22.176-85.293 68.235-90.41 42.64-5.118 83.582 27.292 88.7 66.53z m0 0" fill="#FF4649"></path>
+            </svg>
+            <h1>澳門聖保祿中學物理公開課小組積分系統</h1>
+            <a class="back-link" href="macao-class.html">← 返回平台</a>
+        </header>
+
+        <section class="group-list" id="groupList" aria-label="小組積分">
+            <article class="group-card" data-group="group-1">
+                <div class="group-identity"><span class="group-rank">01</span><h2 class="group-name">第一組</h2></div>
+                <div class="group-score" aria-live="polite">0<span class="score-unit">分</span></div>
+                <div class="score-actions" aria-label="第一組積分操作">
+                    <button class="score-button subtract-button" type="button" aria-label="第一組減 1 分" disabled>−</button>
+                    <button class="score-button add-button" type="button" aria-label="第一組加 1 分">+</button>
+                </div>
+            </article>
+            <article class="group-card" data-group="group-2">
+                <div class="group-identity"><span class="group-rank">02</span><h2 class="group-name">第二組</h2></div>
+                <div class="group-score" aria-live="polite">0<span class="score-unit">分</span></div>
+                <div class="score-actions" aria-label="第二組積分操作">
+                    <button class="score-button subtract-button" type="button" aria-label="第二組減 1 分" disabled>−</button>
+                    <button class="score-button add-button" type="button" aria-label="第二組加 1 分">+</button>
+                </div>
+            </article>
+            <article class="group-card" data-group="group-3">
+                <div class="group-identity"><span class="group-rank">03</span><h2 class="group-name">第三組</h2></div>
+                <div class="group-score" aria-live="polite">0<span class="score-unit">分</span></div>
+                <div class="score-actions" aria-label="第三組積分操作">
+                    <button class="score-button subtract-button" type="button" aria-label="第三組減 1 分" disabled>−</button>
+                    <button class="score-button add-button" type="button" aria-label="第三組加 1 分">+</button>
+                </div>
+            </article>
+            <article class="group-card" data-group="group-4">
+                <div class="group-identity"><span class="group-rank">04</span><h2 class="group-name">第四組</h2></div>
+                <div class="group-score" aria-live="polite">0<span class="score-unit">分</span></div>
+                <div class="score-actions" aria-label="第四組積分操作">
+                    <button class="score-button subtract-button" type="button" aria-label="第四組減 1 分" disabled>−</button>
+                    <button class="score-button add-button" type="button" aria-label="第四組加 1 分">+</button>
+                </div>
+            </article>
+        </section>
+        <p class="save-status" id="saveStatus" role="status">積分保存在此瀏覽器</p>
+    </main>
+
+    <script>
+        const STORAGE_KEY = 'macau-st-paul-group-scores';
+        const groupCards = [...document.querySelectorAll('.group-card')];
+        const saveStatus = document.getElementById('saveStatus');
+        let audioContext;
+
+        function setScore(card, score) {
+            const scoreDisplay = card.querySelector('.group-score');
+            scoreDisplay.firstChild.textContent = String(score);
+            card.querySelector('.subtract-button').disabled = score <= 0;
+        }
+
+        function loadScores() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (!saved) return;
+
+                const scores = JSON.parse(saved);
+                for (const card of groupCards) {
+                    const score = scores[card.dataset.group];
+                    if (Number.isSafeInteger(score)) setScore(card, score);
+                }
+            } catch (error) {
+                console.error('無法讀取本機保存的積分。', error);
+                saveStatus.textContent = '無法讀取本機積分，當前從 0 分開始';
+                saveStatus.classList.add('error');
+            }
+        }
+
+        function saveScores() {
+            const scores = Object.fromEntries(groupCards.map(card => [
+                card.dataset.group,
+                Number(card.querySelector('.group-score').firstChild.textContent)
+            ]));
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(scores));
+                saveStatus.textContent = '積分已保存在此瀏覽器';
+                saveStatus.classList.remove('error');
+            } catch (error) {
+                console.error('無法保存積分到本機。', error);
+                saveStatus.textContent = '本機保存失敗，請保持此頁面開啟';
+                saveStatus.classList.add('error');
+            }
+        }
+
+        function playAddSound() {
+            const AudioContextType = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextType) {
+                saveStatus.textContent = '此瀏覽器不支援加分音效';
+                return;
+            }
+
+            try {
+                audioContext ||= new AudioContextType();
+                const oscillator = audioContext.createOscillator();
+                const volume = audioContext.createGain();
+                const startTime = audioContext.currentTime;
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, startTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1320, startTime + 0.12);
+                volume.gain.setValueAtTime(0.0001, startTime);
+                volume.gain.exponentialRampToValueAtTime(0.18, startTime + 0.015);
+                volume.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.32);
+                oscillator.connect(volume);
+                volume.connect(audioContext.destination);
+                oscillator.start(startTime);
+                oscillator.stop(startTime + 0.33);
+            } catch (error) {
+                console.error('無法播放加分音效。', error);
+                saveStatus.textContent = '加分成功，但音效無法播放';
+            }
+        }
+
+        for (const card of groupCards) {
+            card.querySelector('.add-button').addEventListener('click', () => {
+                const scoreDisplay = card.querySelector('.group-score');
+                const score = Number(scoreDisplay.firstChild.textContent);
+                if (!Number.isSafeInteger(score + 1)) {
+                    saveStatus.textContent = '積分已達到可記錄範圍上限';
+                    saveStatus.classList.add('error');
+                    return;
+                }
+
+                setScore(card, score + 1);
+                saveScores();
+                playAddSound();
+            });
+
+            card.querySelector('.subtract-button').addEventListener('click', () => {
+                const scoreDisplay = card.querySelector('.group-score');
+                const score = Number(scoreDisplay.firstChild.textContent);
+                if (score <= 0) return;
+
+                setScore(card, score - 1);
+                saveScores();
+            });
+        }
+
+        loadScores();
+    </script>
+</body>
+</html>
