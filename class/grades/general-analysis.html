@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班主任通用成绩分析系统</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2">
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <div class="title-group">
+                <div class="logo-icon" aria-hidden="true">
+                    <svg viewBox="0 0 1059 1024" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M617.931034 971.034483H335.448276c62.834759 0 70.62069-140.994207 70.62069-211.862069h247.172413c0 70.867862 7.785931 211.862069 70.62069 211.862069h-105.931035z" fill="#4DB5E3"></path>
+                        <path d="M282.482759 953.37931h512a35.310345 35.310345 0 0 1 0 70.62069H282.482759a35.310345 35.310345 0 0 1 0-70.62069z" fill="#47C5FC"></path>
+                        <path d="M0 0m73.145379 0l913.019587 0q73.145379 0 73.145379 73.145379l0 683.502345q0 73.145379-73.145379 73.145379l-913.019587 0q-73.145379 0-73.145379-73.145379l0-683.502345q0-73.145379 73.145379-73.145379Z" fill="#47C5FC"></path>
+                        <path d="M52.965517 52.965517h953.379311v723.862069H52.965517z" fill="#FFFFFF"></path>
+                        <path d="M600.275862 564.965517h335.448276a17.655172 17.655172 0 0 1 0 35.310345H600.275862a17.655172 17.655172 0 0 1 0-35.310345z m0 88.275862h205.78869a17.655172 17.655172 0 0 1 0 35.310345H600.275862a17.655172 17.655172 0 0 1 0-35.310345z m278.068966 0H935.724138a17.655172 17.655172 0 0 1 0 35.310345h-57.37931a17.655172 17.655172 0 0 1 0-35.310345z" fill="#C7EAF9"></path>
+                        <path d="M194.206897 211.862069h282.482758a17.655172 17.655172 0 0 1 0 35.310345H194.206897a17.655172 17.655172 0 0 1 0-35.310345z m0 88.275862h171.59062a17.655172 17.655172 0 0 1 0 35.310345H194.206897a17.655172 17.655172 0 0 1 0-35.310345z m238.344827 0H476.689655a17.655172 17.655172 0 0 1 0 35.310345h-44.137931a17.655172 17.655172 0 0 1 0-35.310345z" fill="#C7EAF9"></path>
+                        <path d="M194.206897 176.551724H141.241379v52.965517a17.655172 17.655172 0 0 1-35.310345 0V158.896552a17.655172 17.655172 0 0 1 17.655173-17.655173h70.62069a17.655172 17.655172 0 0 1 0 35.310345z" fill="#C7EAF9"></path>
+                        <path d="M317.793103 564.965517h141.24138a141.241379 141.241379 0 1 1-141.24138-141.241379v141.241379z" fill="#47C5FC"></path>
+                        <path d="M335.448276 406.068966a141.241379 141.241379 0 0 1 141.241379 141.241379h-141.241379v-141.241379z" fill="#FFDE21"></path>
+                        <path d="M582.62069 176.551724h52.965517v247.172414h-52.965517z" fill="#FFDE21"></path>
+                        <path d="M688.551724 247.172414h52.965517v176.551724h-52.965517z" fill="#47C5FC"></path>
+                        <path d="M794.482759 300.137931h52.965517v123.586207h-52.965517z" fill="#47C5FC"></path>
+                        <path d="M900.413793 353.103448h52.965517v70.62069h-52.965517z" fill="#FFDE21"></path>
+                    </svg>
+                </div>
+                <h1>班主任通用成绩分析系统</h1>
+            </div>
+        </div>
+        <div class="mode-tabs" id="examCountTabs">
+            <span class="mode-tab-label">考试次数</span>
+            <button class="mode-tab" data-count="2">2 次</button>
+            <button class="mode-tab active" data-count="3">3 次</button>
+            <button class="mode-tab" data-count="4">4 次</button>
+            <button class="mode-tab" data-count="5">5 次</button>
+            <button class="mode-tab" data-count="6">6 次</button>
+        </div>
+        <div class="upload-section">
+            <div class="upload-row">
+                <div class="upload-group" id="uploadGroup1"><span class="upload-label">第1次考试</span><label class="upload-btn" id="uploadBtn1"><span class="dot"></span> 上传文件<input type="file" id="fileInput1" accept=".xlsx,.xls,.csv"></label><span class="status-badge waiting" id="statusBadge1">未上传</span></div>
+                <div class="upload-group" id="uploadGroup2"><span class="upload-label">第2次考试</span><label class="upload-btn" id="uploadBtn2"><span class="dot"></span> 上传文件<input type="file" id="fileInput2" accept=".xlsx,.xls,.csv"></label><span class="status-badge waiting" id="statusBadge2">未上传</span></div>
+                <div class="upload-group" id="uploadGroup3"><span class="upload-label">第3次考试</span><label class="upload-btn" id="uploadBtn3"><span class="dot"></span> 上传文件<input type="file" id="fileInput3" accept=".xlsx,.xls,.csv"></label><span class="status-badge waiting" id="statusBadge3">未上传</span></div>
+                <div class="upload-group" id="uploadGroup4" style="display:none;"><span class="upload-label">第4次考试</span><label class="upload-btn" id="uploadBtn4"><span class="dot"></span> 上传文件<input type="file" id="fileInput4" accept=".xlsx,.xls,.csv"></label><span class="status-badge waiting" id="statusBadge4">未上传</span></div>
+                <div class="upload-group" id="uploadGroup5" style="display:none;"><span class="upload-label">第5次考试</span><label class="upload-btn" id="uploadBtn5"><span class="dot"></span> 上传文件<input type="file" id="fileInput5" accept=".xlsx,.xls,.csv"></label><span class="status-badge waiting" id="statusBadge5">未上传</span></div>
+                <div class="upload-group" id="uploadGroup6" style="display:none;"><span class="upload-label">第6次考试</span><label class="upload-btn" id="uploadBtn6"><span class="dot"></span> 上传文件<input type="file" id="fileInput6" accept=".xlsx,.xls,.csv"></label><span class="status-badge waiting" id="statusBadge6">未上传</span></div>
+                <div class="analyze-btn-wrap">
+                    <button class="analyze-btn" id="analyzeBtn" disabled><svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M1012.5 977.4l-132-141.5c-3.5-3.7-7.9-5.9-12.5-7.2 44-52.2 70.6-119.4 70.6-192.8 0-69-23.7-132.5-63.1-183.2V306.6C875.5 242.9 679.8 0 568.9 0H73.4C35.2 0 4.1 31.1 4.1 69.3V927c0 38.2 31.1 69.3 69.3 69.3h732.8c38.2 0 69.3-31.1 69.3-69.3v-15.2l96.5 103.4c5.5 5.8 12.8 8.8 20.2 8.8 6.8 0 13.5-2.5 18.9-7.4 11.2-10.5 11.8-28 1.4-39.2z m-373.6-97.2c-134.7 0-244.3-109.6-244.3-244.3s109.6-244.3 244.3-244.3 244.3 109.6 244.3 244.3-109.6 244.3-244.3 244.3z m147.5-634.5H621.5v-169c55.6 36.5 124.6 112.7 164.9 169zM806.2 941H73.4c-7.7 0-14-6.3-14-14V69.3c0-7.7 6.3-14 14-14h492.8v193c0 29 23.6 52.7 52.7 52.7h199.7c0.6 1.9 1.4 4.1 1.6 5.6v91.2c-50.4-38.5-113.1-61.6-181.2-61.6-165.2 0-299.6 134.4-299.6 299.6 0 165.2 134.4 299.6 299.6 299.6 68.1 0 130.8-23.1 181.2-61.6v53c-0.1 7.9-6.3 14.2-14 14.2z"/><path fill="currentColor" d="M118.8 142.6h138.4V198H118.8zM312.5 142.6h138.4V198H312.5zM118.8 308.6h138.4V364H118.8zM118.8 474.7h138.4v55.4H118.8z"/></svg> 开始成绩分析</button>
+                    <span class="ready-indicator" id="readyIndicator">请先上传成绩</span>
+                    <button class="clear-btn" id="clearDataBtn"><svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M512 838.858c10.89 0 19.732-9.158 19.732-20.43v-490.275c0-11.273-8.842-20.43-19.732-20.43s-19.755 9.157-19.755 20.43v490.275c0 11.272 8.842 20.43 19.755 20.43M629.877 838.813c10.935 0.428 20.138-8.37 20.475-19.688l28.665-489.69c0.427-11.272-8.077-20.745-18.99-21.195-10.935-0.405-20.137 8.415-20.475 19.688l-28.665 489.713c-0.405 11.317 8.1 20.767 18.99 21.172M848.038 185.142h-197.708v-81.653c0-22.545-17.685-40.882-39.51-40.882h-197.64c-21.87 0-39.532 18.338-39.532 40.882v81.653h-197.685c-10.913 0-19.755 9.158-19.755 20.475 0 11.272 8.843 20.407 19.755 20.407h39.577l39.488 653.67c6.367 44.73 35.415 81.72 79.065 81.72h355.793c43.65 0 71.573-37.44 79.088-81.72l39.488-653.67h39.578c10.867 0 19.755-9.135 19.755-20.408 0-11.317-8.888-20.475-19.755-20.475M413.157 103.49h197.64v81.653h-197.64v-81.653zM729.418 879.695c-2.655 21.555-17.73 40.86-39.533 40.86h-355.793c-21.87 0-36.54-19.057-39.532-40.86l-39.532-653.67h513.945l-39.555 653.67zM394.145 838.858c10.89-0.473 19.373-9.9 18.99-21.195l-29.070-489.712c-0.427-11.273-9.585-20.070-20.475-19.665-10.913 0.428-19.463 9.9-19.013 21.173l29.093 489.712c0.36 11.295 9.54 20.070 20.475 19.688z"/></svg> 清空数据，重新上传</button>
+                </div>
+            </div>
+        </div>
+        <div class="mismatch-warning" id="mismatchWarning">
+            <span class="warn-icon">⚠️</span>
+            <span id="mismatchText"></span>
+            <button class="warn-close" onclick="document.getElementById('mismatchWarning').classList.remove('visible')">✕</button>
+        </div>
+        <div class="empty-hint" id="emptyHint">请上传考试成绩文件，然后点击“开始成绩分析”。</div>
+        <div class="data-area" id="dataArea">
+            <div id="controlBar" class="control-bar">
+                <span class="section-label">学科</span>
+                <div class="subject-tabs" id="subjectTabs">
+                    <button class="subject-tab active" data-subject="总分">总分</button>
+                </div>
+            </div>
+            <div class="dashboard-section" id="dashboardSection">
+                <div class="dashboard-head">
+                    <span class="section-label">班级整体分析</span>
+                    <span class="dash-subject-tag">当前学科：<b id="dashSubjectName">总分</b></span>
+                </div>
+                <div class="stats-row">
+                    <div class="stat-card"><div class="stat-value" id="dashAvg">--</div><div class="stat-label">班级均分</div></div>
+                    <div class="stat-card"><div class="stat-value" id="dashPass">--</div><div class="stat-label">及格率</div></div>
+                    <div class="stat-card"><div class="stat-value" id="dashExcellent">--</div><div class="stat-label">优秀率</div></div>
+                    <div class="stat-card"><div class="stat-value" id="dashDelta">--</div><div class="stat-label">与上次均分差</div></div>
+                </div>
+                <div class="dashboard-charts">
+                    <div class="chart-box"><canvas id="dashDistChart"></canvas></div>
+                    <div class="chart-box"><canvas id="dashSubjChart"></canvas></div>
+                </div>
+            </div>
+            <div class="search-row">
+                <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="studentSearch" placeholder="搜索学生姓名..."><span class="clear-search" id="clearSearch">清除</span></div>
+                <span style="font-size:0.85rem;color:var(--text-secondary);" id="resultCount"></span>
+                <div class="sort-group" id="sortGroup">
+                    <span class="section-label">排序</span>
+                    <button class="sort-btn active" data-sort="totalRank">按最新总分排名</button>
+                    <button class="sort-btn" data-sort="progress">按总进退步</button>
+                    <button class="sort-btn" data-sort="name">按名字首字母</button>
+                </div>
+                <button class="download-btn" id="btnDownloadData" title="下载当前学科成绩数据为Excel文件"><svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M498.347 824.32l-296.96-296.96c-11.947-11.947-3.414-34.133 13.653-34.133h160.427c11.946 0 20.48-8.534 20.48-20.48V54.613c0-11.946 8.533-20.48 20.48-20.48h189.44c11.946 0 20.48 8.534 20.48 20.48v418.134c0 11.946 8.533 20.48 20.48 20.48h160.426c18.774 0 27.307 22.186 13.654 34.133L525.653 824.32c-6.826 6.827-20.48 6.827-27.306 0zM916.48 989.867H107.52c-18.773 0-35.84-15.36-35.84-35.84 0-18.774 15.36-35.84 35.84-35.84h810.667c18.773 0 35.84 15.36 35.84 35.84-1.707 20.48-17.067 35.84-37.547 35.84z"/></svg> 下载当前学科数据</button>
+            </div>
+            <div class="stats-row" id="statsRowMain">
+                <div class="stat-card"><div class="stat-value" id="statTotal">--</div><div class="stat-label">参与分析学生</div></div>
+                <div class="stat-card highlight-progress"><div class="stat-value" id="statBestProgress">--</div><div class="stat-label">最大进步(名次)</div></div>
+                <div class="stat-card highlight-regress"><div class="stat-value" id="statWorstRegress">--</div><div class="stat-label">最大退步(名次)</div></div>
+                <div class="stat-card"><div class="stat-value" id="statAvgProgress">--</div><div class="stat-label">平均进退步(名次)</div></div>
+            </div>
+            <div class="stats-row" id="statsRowTrend">
+                <div class="stat-card highlight-progress"><div class="stat-value" id="statImproveCount">--</div><div class="stat-label">持续进步学生</div></div>
+                <div class="stat-card highlight-regress"><div class="stat-value" id="statDeclineCount">--</div><div class="stat-label">持续退步学生</div></div>
+                <div class="stat-card"><div class="stat-value" id="statFluctuateCount">--</div><div class="stat-label">明显波动学生</div></div>
+            </div>
+            <div class="table-container"><div class="table-scroll"><table id="mainTable"><thead></thead><tbody></tbody></table></div></div>
+            <div class="report-section">
+                <h3>班级成绩分析报告</h3>
+                <div class="report-actions">
+                    <button class="btn-report local" onclick="generateLocalReport()"><svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M728.3 928.2H297.9c-84.2 0-152.8-68.5-152.8-152.8V329.1c0-84.2 68.5-152.8 152.8-152.8H365v60h-67.1c-51.2 0-92.8 41.6-92.8 92.8v446.3c0 51.2 41.6 92.8 92.8 92.8h430.4c51.2 0 92.8-41.6 92.8-92.8V329.1c0-51.2-41.6-92.8-92.8-92.8H661v-60h67.3c84.2 0 152.8 68.5 152.8 152.8v446.3c0 84.3-68.6 152.8-152.8 152.8z"/><path fill="currentColor" d="M593.6 308.1h-161c-49.3 0-89.4-40.1-89.4-89.4v-31.4c0-49.3 40.1-89.4 89.4-89.4h161c49.3 0 89.4 40.1 89.4 89.4v31.4c0 49.3-40.1 89.4-89.4 89.4zM432.6 158c-16.2 0-29.4 13.2-29.4 29.4v31.4c0 16.2 13.2 29.4 29.4 29.4h161c16.2 0 29.4-13.2 29.4-29.4v-31.4c0-16.2-13.2-29.4-29.4-29.4h-161z"/><path fill="currentColor" d="M511.3 477.1H320.1c-16.6 0-30-13.4-30-30s13.4-30 30-30h191.3c16.6 0 30 13.4 30 30s-13.5 30-30.1 30zM576.1 604.1h-256c-16.6 0-30-13.4-30-30s13.4-30 30-30h256.1c16.6 0 30 13.4 30 30s-13.5 30-30.1 30zM640.1 732.1h-320c-16.6 0-30-13.4-30-30s13.4-30 30-30h320.1c16.6 0 30 13.4 30 30s-13.5 30-30.1 30z"/></svg> 生成本地分析报告</button>
+                    <button class="btn-report ai" id="btnAIReport" onclick="generateAIReport()"><svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M928 384h96v384h-96zM576 512a64 64 0 1 0 128 0 64 64 0 1 0-128 0zM0 384h96v384H0z m384 268.8h256v96H384zM563.2 64H460.8v140.8h-320v742.4h742.4V204.8h-320V64z m217.6 243.2v537.6H243.2V307.2h537.6zM320 512a64 64 0 1 0 128 0 64 64 0 1 0-128 0z"/></svg><span class="ai-label">AI智能分析报告 (DeepSeek)</span></button>
+                    <button class="btn-report download" id="btnDownloadReport" style="display:none;" onclick="downloadReport()"><svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M512 1008C238.08 1008 16 785.92 16 512 16 238.08 238.08 16 512 16 785.92 16 1008 238.08 1008 512c0 273.92-222.08 496-496 496z m0-96c220.928 0 400-179.072 400-400S732.928 112 512 112 112 291.072 112 512 291.072 912 512 912z"/><path fill="currentColor" d="M480 256l96 0 0 448-96 0 0-448Z"/><path fill="currentColor" d="M704.32 530.88a48 48 0 0 1 54.56 78.976l-240.8 166.4-243.36-166.272a48 48 0 0 1 54.144-79.264l188.896 129.024 186.56-128.864z"/></svg> 下载报告（Word文档）</button>
+                    <span style="font-size:0.75rem;color:var(--text-secondary);">AI模式需配置API Key</span>
+                </div>
+                <div class="api-key-row">
+                    <span>DeepSeek API Key：</span>
+                    <input type="password" id="apiKeyInput" placeholder="sk-xxxxxxxxxxxxxxxx">
+                    <button class="btn-report local" style="padding:6px 14px;font-size:0.75rem;" onclick="saveApiKey()">保存密钥</button>
+                    <span class="api-status" id="apiStatus">未配置</span>
+                    <span style="font-size:0.7rem;color:#94a3b8;">（密钥仅保存在您的浏览器本地存储中）</span>
+                </div>
+                <div class="report-content" id="reportContent">点击上方按钮生成分析报告...</div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="modalOverlay" style="display:none;">
+        <div class="modal" id="studentModal">
+            <button class="modal-close" id="modalClose">✕</button>
+            <h2 id="modalName"></h2>
+            <div class="modal-subtitle" id="modalSubtitle"></div>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="appDialogOverlay" style="display:none;">
+        <div class="modal app-dialog" id="appDialog">
+            <h2 id="appDialogTitle"></h2>
+            <div class="app-dialog-body" id="appDialogBody"></div>
+            <div class="dialog-actions" id="appDialogActions"></div>
+        </div>
+    </div>
+    <div class="toast" id="toast"></div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/parsing.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/tables.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/report.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
