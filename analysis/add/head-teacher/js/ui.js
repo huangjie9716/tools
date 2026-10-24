@@ -1,0 +1,492 @@
+/* ============================================================
+   js/ui.js —— 界面渲染模块
+   负责所有与 DOM 展示相关的逻辑：表格渲染（重点列着色）、
+   散点图绘制、视图切换、学科切换、弹窗渲染、文件状态等。
+   通过全局命名空间 HT（state + el）读写共享数据。
+   ============================================================ */
+(function (global) {
+    'use strict';
+
+    const HT = global.HT;
+
+    // ---- 自动填充建议层数 ----
+    function autoFillLayerSuggestion() {
+        if (HT.state.file1Data && HT.state.file2Data) {
+            const n = Math.min(HT.state.file1Data.length, HT.state.file2Data.length);
+            if (n > 0) {
+                const log2 = (x) => Math.log2(x);
+                const val = 2 * log2(n) - log2(100);
+                let suggested = Math.round(val);
+                if (suggested < 2) suggested = 2;
+                HT.el.suggestLayer.textContent = suggested;
+                if (!HT.el.layerInput.dataset.userChanged || HT.el.layerInput.dataset.userChanged === 'false') {
+                    HT.el.layerInput.value = suggested;
+                }
+            }
+        }
+    }
+
+    // ---- 更新文件状态 ----
+    function updateFileStatus() {
+        if (HT.state.file1Data) {
+            HT.el.status1.textContent = HT.state.file1Name + ' (' + HT.state.file1Data.length + ' 行)';
+            HT.el.drop1.classList.add('has-file');
+        } else {
+            HT.el.status1.textContent = '未选择文件';
+            HT.el.drop1.classList.remove('has-file');
+        }
+        if (HT.state.file2Data) {
+            HT.el.status2.textContent = HT.state.file2Name + ' (' + HT.state.file2Data.length + ' 行)';
+            HT.el.drop2.classList.add('has-file');
+        } else {
+            HT.el.status2.textContent = '未选择文件';
+            HT.el.drop2.classList.remove('has-file');
+        }
+        HT.el.processBtn.disabled = !(HT.state.file1Data && HT.state.file2Data);
+        if (!HT.state.file1Data || !HT.state.file2Data) {
+            HT.el.stateLabel.textContent = '数据待分析';
+            HT.el.stateLabel.style.color = '#6c757d';
+        } else {
+            HT.el.stateLabel.innerHTML = HT.CHECK_ICON + ' 已就绪';
+            HT.el.stateLabel.style.color = '#28a745';
+            autoFillLayerSuggestion();
+        }
+    }
+
+    // ---- 生成排序按钮并绑定事件 ----
+    function initSortButtons() {
+        const btns = HT.el.sortButtonsContainer.querySelectorAll('.btn-sm');
+        btns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const sort = this.dataset.sort;
+                if (sort !== HT.state.currentSortField) {
+                    btns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    HT.state.currentSortField = sort;
+                    if (HT.state.currentSubject) {
+                        renderStudentTable(HT.state.currentSubject, HT.state.currentSortField);
+                    }
+                }
+            });
+        });
+    }
+
+    // ---- 渲染学生表格（重点列着色） ----
+    function renderStudentTable(subject, sortField = 'id') {
+        const data = HT.state.subjectResults[subject];
+        if (!data) return;
+
+        // 排序
+        const sorted = global.Utils.sortStudentRows([...data], sortField);
+
+        // 截取前50
+        let displayData = sorted;
+        let previewMsg = '';
+        if (sorted.length > 50) {
+            displayData = sorted.slice(0, 50);
+            previewMsg = `（仅显示前50名，共${sorted.length}人）`;
+        } else {
+            previewMsg = `（共${sorted.length}人）`;
+        }
+        HT.el.previewNote.textContent = previewMsg;
+
+        // 构建表头
+        const headers = [
+            { key: 'id', label: '学号', cls: 'col-id' },
+            { key: 'name', label: '姓名', cls: 'col-name' },
+            { key: 'class', label: '班级号', cls: 'col-class' },
+            { key: 'raw1', label: '第一次原始分', cls: 'col-raw' },
+            { key: 'rank1', label: '第一次名次', cls: 'col-rank' },
+            { key: 'percentile1', label: '第一次百分等级', cls: 'col-percentile' },
+            { key: 'std1', label: '第一次标准分', cls: 'col-std' },
+            { key: 'layer1', label: '第一次分层名次', cls: 'col-layer' },
+            { key: 'raw2', label: '第二次原始分', cls: 'col-raw' },
+            { key: 'rank2', label: '第二次名次', cls: 'col-rank' },
+            { key: 'percentile2', label: '第二次百分等级', cls: 'col-percentile' },
+            { key: 'std2', label: '第二次标准分', cls: 'col-std' },
+            { key: 'layer2', label: '第二次分层名次', cls: 'col-layer' },
+            { key: 'predicted2', label: '预测成绩', cls: 'col-pred' },
+            { key: 'residual', label: '进步分(残差)', cls: 'col-residual' },
+            { key: 'residualStd', label: '残差标准差', cls: 'col-residstd' },
+            { key: 'tValue', label: '个人T值', cls: 'col-tvalue' },
+            { key: 'conclusion', label: '判定结论', cls: 'col-conclusion' }
+        ];
+
+        let theadHtml = '<tr>';
+        headers.forEach(h => {
+            theadHtml += `<th class="${h.cls}">${h.label}</th>`;
+        });
+        theadHtml += '</tr>';
+        HT.el.resultHead.innerHTML = theadHtml;
+
+        // 填充数据（T值按判定结论显示为彩色块，右侧给出结论文字）
+        const tbody = HT.el.resultBody;
+        tbody.innerHTML = '';
+        displayData.forEach(row => {
+            const tr = document.createElement('tr');
+            headers.forEach(h => {
+                const td = document.createElement('td');
+                const v = row[h.key];
+                if (h.key === 'tValue') {
+                    td.innerHTML = `<span class="t-flag ${global.Utils.getTConclusion(v).cls}">${global.Utils.formatValue('tValue', v)}</span>`;
+                } else if (h.key === 'conclusion') {
+                    const concl = global.Utils.getTConclusion(row.tValue);
+                    td.innerHTML = `<span class="concl-text ${concl.cls}">${concl.text}</span>`;
+                } else {
+                    td.textContent = global.Utils.formatValue(h.key, v);
+                }
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+
+        // 更新排序按钮高亮
+        const sortBtns = HT.el.sortButtonsContainer.querySelectorAll('.btn-sm');
+        sortBtns.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.sort === sortField);
+        });
+        HT.state.currentSortField = sortField;
+    }
+
+    // ---- 绘制回归散点图（分层点按高低回归线着色，黑色虚线回归线） ----
+    function drawRegressionForSubject(subject) {
+        const data = HT.state.subjectResults[subject];
+        if (!data || data.length === 0) return;
+        const layerMap = new Map();
+        data.forEach(r => {
+            const l = r.layer1;
+            if (!layerMap.has(l)) {
+                layerMap.set(l, { sum1: 0, sum2: 0, count: 0 });
+            }
+            const entry = layerMap.get(l);
+            entry.sum1 += r.std1;
+            entry.sum2 += r.std2;
+            entry.count++;
+        });
+        const layers = Array.from(layerMap.keys()).sort((a, b) => a - b);
+        const xMeans = layers.map(l => layerMap.get(l).sum1 / layerMap.get(l).count);
+        const yMeans = layers.map(l => layerMap.get(l).sum2 / layerMap.get(l).count);
+
+        const reg = global.Stats.linearRegression(xMeans, yMeans);
+        if (!reg) {
+            HT.state.plotData = null;
+            HT.el.regressionArea.style.display = 'none';
+            return;
+        }
+        const { slope, intercept } = reg;
+
+        // 回归线（黑色虚线）
+        const xMin = Math.min(...xMeans);
+        const xMax = Math.max(...xMeans);
+        const xRange = [xMin - 10, xMax + 10];
+        const yRange = xRange.map(x => slope * x + intercept);
+        const trace2 = {
+            x: xRange,
+            y: yRange,
+            mode: 'lines',
+            type: 'scatter',
+            line: { color: '#000000', width: 2.5, dash: 'dash' },
+            name: '回归线'
+        };
+
+        // 分层点按高于/低于回归线分组着色（高于绿、低于红），附残差线与放大的距离数字
+        const aboveX = [], aboveY = [], belowX = [], belowY = [];
+        const residualTraces = [];
+        const annotations = [];
+        xMeans.forEach((x, i) => {
+            const y = yMeans[i];
+            const yPred = slope * x + intercept;
+            const diff = y - yPred;
+            const color = diff >= 0 ? '#28a745' : '#e74c3c';
+            if (diff >= 0) { aboveX.push(x); aboveY.push(y); }
+            else { belowX.push(x); belowY.push(y); }
+            residualTraces.push({
+                x: [x, x],
+                y: [y, yPred],
+                mode: 'lines',
+                type: 'scatter',
+                line: { color: color, width: 2 },
+                showlegend: false,
+                hoverinfo: 'skip'
+            });
+            const sign = diff >= 0 ? '+' : '';
+            const label = sign + diff.toFixed(2);
+            const yOffset = (diff >= 0) ? 8 : -8;
+            annotations.push({
+                x: x,
+                y: y + yOffset,
+                text: label,
+                showarrow: false,
+                font: { color: color, size: 15 },
+                xanchor: 'center',
+                yanchor: (diff >= 0) ? 'bottom' : 'top'
+            });
+        });
+        const traceAbove = {
+            x: aboveX,
+            y: aboveY,
+            mode: 'markers',
+            type: 'scatter',
+            marker: { size: 13, color: '#28a745' },
+            name: '高于回归线'
+        };
+        const traceBelow = {
+            x: belowX,
+            y: belowY,
+            mode: 'markers',
+            type: 'scatter',
+            marker: { size: 13, color: '#e74c3c' },
+            name: '低于回归线'
+        };
+
+        const allTraces = [traceAbove, traceBelow, trace2, ...residualTraces];
+        const layout = {
+            title: `【${subject}】第一次标准分均值 vs 第二次标准分均值`,
+            xaxis: { title: '第一次标准分均值' },
+            yaxis: { title: '第二次标准分均值' },
+            hovermode: 'closest',
+            margin: { l: 60, r: 40, t: 50, b: 60 },
+            annotations: annotations
+        };
+        const config = { responsive: true, displayModeBar: true };
+        Plotly.newPlot(HT.el.scatterPlot, allTraces, layout, config);
+        HT.state.plotData = { data: allTraces, layout, config };
+        const formulaText = `y = ${intercept.toFixed(4)} + ${slope.toFixed(4)} · x`;
+        HT.el.regressionFormula.innerHTML = `<code> 经验回归方程：${formulaText}</code>`;
+        HT.el.downloadPlotBtn.onclick = function() {
+            if (HT.state.plotData) {
+                Plotly.downloadImage(HT.el.scatterPlot, { format: 'png', filename: `回归散点图_${subject}` });
+            }
+        };
+    }
+
+    // ---- 视图切换卡片 ----
+    function switchView(view) {
+        HT.el.resultArea.style.display = view === 'result' ? 'block' : 'none';
+        HT.el.regressionArea.style.display = view === 'regression' ? 'block' : 'none';
+        document.querySelectorAll('#viewCards .view-card').forEach(card => {
+            card.classList.toggle('active', card.dataset.view === view);
+        });
+        HT.state.currentView = view;
+        // 切到回归视图时在可见容器中重绘，避免隐藏容器导致图表尺寸异常
+        if (view === 'regression' && HT.state.currentSubject && HT.state.subjectResults[HT.state.currentSubject]) {
+            drawRegressionForSubject(HT.state.currentSubject);
+        }
+    }
+
+    // ---- 生成学科按钮（按表头顺序） ----
+    function buildSubjectButtons() {
+        HT.el.subjectButtons.innerHTML = '';
+        const validSubjects = HT.state.allSubjects.filter(s => HT.state.subjectResults[s]);
+        validSubjects.forEach(sub => {
+            const btn = document.createElement('button');
+            btn.className = 'subject-btn' + (sub === HT.state.currentSubject ? ' active' : '');
+            btn.textContent = sub;
+            btn.dataset.subject = sub;
+            btn.addEventListener('click', function() {
+                const selected = this.dataset.subject;
+                if (selected && HT.state.subjectResults[selected]) {
+                    switchSubject(selected);
+                }
+            });
+            HT.el.subjectButtons.appendChild(btn);
+        });
+    }
+
+    // ---- 切换学科 ----
+    function switchSubject(subject) {
+        if (!subject || !HT.state.subjectResults[subject]) return;
+        HT.state.currentSubject = subject;
+        document.querySelectorAll('#subjectButtons .subject-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.subject === subject);
+        });
+        renderStudentTable(subject, HT.state.currentSortField);
+        drawRegressionForSubject(subject);
+    }
+
+    // ---- 缺失数据提醒弹窗（返回 Promise，用户确认后 resolve） ----
+    function confirmMissingData(validCount, missingList) {
+        return new Promise((resolve) => {
+            HT.el.missingValidCount.textContent = validCount;
+            HT.el.missingListBody.innerHTML = '';
+            missingList.forEach(item => {
+                const tr = document.createElement('tr');
+                const tdId = document.createElement('td');
+                tdId.textContent = item.id;
+                const tdName = document.createElement('td');
+                tdName.textContent = item.name;
+                const tdNote = document.createElement('td');
+                tdNote.textContent = item.note;
+                tr.appendChild(tdId);
+                tr.appendChild(tdName);
+                tr.appendChild(tdNote);
+                HT.el.missingListBody.appendChild(tr);
+            });
+            HT.el.missingModal.style.display = 'flex';
+            let settled = false;
+            const done = (val) => {
+                if (settled) return;
+                settled = true;
+                HT.el.missingModal.style.display = 'none';
+                resolve(val);
+            };
+            HT.el.missingContinueBtn.onclick = () => done(true);
+            HT.el.missingCancelBtn.onclick = () => done(false);
+        });
+    }
+
+    // ---- 下载当前学科数据 ----
+    function downloadCurrentSubjectExcel() {
+        const sub = HT.state.currentSubject;
+        if (!sub || !HT.state.subjectResults[sub]) {
+            alert('没有数据可下载，请先处理。');
+            return;
+        }
+        // 跟随当前排序（与页面表格保持一致）
+        const data = global.Utils.sortStudentRows(HT.state.subjectResults[sub], HT.state.currentSortField);
+        const exportArr = data.map(r => ({
+            '学号': r.id,
+            '姓名': r.name || '',
+            '班级号': r.class || '',
+            '第一次原始分': r.raw1,
+            '第一次名次': r.rank1,
+            '第一次百分等级': r.percentile1,
+            '第一次标准分': r.std1,
+            '第一次分层名次': r.layer1,
+            '第二次原始分': r.raw2,
+            '第二次名次': r.rank2,
+            '第二次百分等级': r.percentile2,
+            '第二次标准分': r.std2,
+            '第二次分层名次': r.layer2,
+            '预测成绩': r.predicted2,
+            '进步分（残差）': r.residual,
+            '残差标准差': r.residualStd,
+            '个人T值': r.tValue,
+            '判定结论': global.Utils.getTConclusion(r.tValue).text
+        }));
+        const ws = XLSX.utils.json_to_sheet(exportArr);
+        const colWidths = [];
+        for (let key in exportArr[0]) {
+            colWidths.push({ wch: Math.max(key.length * 1.2, 12) });
+        }
+        ws['!cols'] = colWidths;
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, sub);
+        const sortLabelMap = { id: '按学号', rank2: '按第二次名次', tValue: '按个人T值' };
+        const sortLabel = sortLabelMap[HT.state.currentSortField] || '默认排序';
+        const fileName = `增值分析_${sub}_${sortLabel}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        HT.log(`📥 下载成功：${fileName}`, 'ok');
+    }
+
+    // ---- 生成建议名单表格行（学科 + 各组学生名单） ----
+    function buildAdviceRow(subject, groups) {
+        const tr = document.createElement('tr');
+        if (subject === '总分') tr.className = 'row-total';
+
+        const tdSubject = document.createElement('td');
+        tdSubject.className = 'adv-subject';
+        tdSubject.textContent = subject;
+        tr.appendChild(tdSubject);
+
+        groups.forEach(item => {
+            const list = item.list;
+            const level = item.level;
+            const td = document.createElement('td');
+            const wrap = document.createElement('div');
+            wrap.className = 'advice-names';
+            if (list.length === 0) {
+                const none = document.createElement('span');
+                none.className = 'none';
+                none.textContent = '—';
+                wrap.appendChild(none);
+            } else {
+                list.forEach(row => {
+                    const chip = document.createElement('span');
+                    chip.className = 'advice-name' + (level ? ' ' + level : '');
+                    chip.textContent = row.name || row.id;
+                    chip.title = '学号：' + row.id + '　个人T值：' + row.tValue.toFixed(3);
+                    wrap.appendChild(chip);
+                });
+                const count = document.createElement('span');
+                count.className = 'advice-count';
+                count.textContent = '共' + list.length + '人';
+                wrap.appendChild(count);
+            }
+            td.appendChild(wrap);
+            tr.appendChild(td);
+        });
+        return tr;
+    }
+
+    // ---- 渲染增值评价建议名单（本班全部学科汇总，总分视为一个学科） ----
+    function renderAdvicePanel() {
+        if (!HT.el.advicePanel) return;
+        const subjects = (HT.state.allSubjects || [])
+            .filter(s => HT.state.subjectResults[s] && HT.state.subjectResults[s].length > 0);
+        if (subjects.length === 0) {
+            HT.el.advicePanel.style.display = 'none';
+            HT.el.advicePraiseBody.innerHTML = '';
+            HT.el.adviceAnalyzeBody.innerHTML = '';
+            HT.el.adviceScope.textContent = '';
+            return;
+        }
+
+        const praiseBody = HT.el.advicePraiseBody;
+        const analyzeBody = HT.el.adviceAnalyzeBody;
+        praiseBody.innerHTML = '';
+        analyzeBody.innerHTML = '';
+
+        let classSize = 0;
+        subjects.forEach(sub => {
+            const data = HT.state.subjectResults[sub];
+            classSize = Math.max(classSize, data.length);
+
+            // 超2标天然属于超1标；退2标天然属于退1标 —— 名单去重，互不重复
+            const overTwo = [], overOne = [], belowTwo = [], belowOne = [];
+            data.forEach(row => {
+                if (row.overTwo === 1) overTwo.push(row);
+                else if (row.overOne === 1) overOne.push(row);
+
+                if (row.belowTwo === 1) belowTwo.push(row);
+                else if (row.belowOne === 1) belowOne.push(row);
+            });
+
+            // 表扬名单按个人T值从高到低；需分析名单按个人T值从低到高
+            overTwo.sort((a, b) => b.tValue - a.tValue);
+            overOne.sort((a, b) => b.tValue - a.tValue);
+            belowTwo.sort((a, b) => a.tValue - b.tValue);
+            belowOne.sort((a, b) => a.tValue - b.tValue);
+
+            praiseBody.appendChild(buildAdviceRow(sub, [
+                { list: overTwo, level: 'lv2' },
+                { list: overOne, level: '' }
+            ]));
+            analyzeBody.appendChild(buildAdviceRow(sub, [
+                { list: belowTwo, level: 'lv2' },
+                { list: belowOne, level: '' }
+            ]));
+        });
+
+        const cls = HT.state.currentClass ? String(HT.state.currentClass) : '';
+        const classLabel = !cls ? '本班' : (cls.includes('班') ? cls : cls + '班');
+        HT.el.adviceScope.textContent = `班级：${classLabel} ｜ 共 ${classSize} 人 ｜ 学科：${subjects.length} 个（含总分）`;
+        HT.el.advicePanel.style.display = 'block';
+    }
+
+    // ---- 对外暴露 ----
+    global.UI = {
+        autoFillLayerSuggestion,
+        updateFileStatus,
+        initSortButtons,
+        renderStudentTable,
+        renderAdvicePanel,
+        drawRegressionForSubject,
+        switchView,
+        buildSubjectButtons,
+        switchSubject,
+        confirmMissingData,
+        downloadCurrentSubjectExcel
+    };
+
+})(window);
