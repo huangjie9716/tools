@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ 星尘抽选 · 像素点名器</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- SheetJS 用于 Excel 解析 -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- 样式已拆分至 RollCall4.css -->
+    <link rel="stylesheet" href="RollCall4.css">
+</head>
+<body>
+
+    <!-- ===== 浮动粒子 ===== -->
+    <div class="floating-pixels" id="floatingPixels"></div>
+
+    <!-- ===== 主容器 ===== -->
+    <div class="main-container" id="mainContainer">
+
+        <!-- ===== 标题 ===== -->
+        <div class="title-area">
+            <div class="title-main">✨ 星 尘 抽 选 ✨</div>
+            <div class="title-sub">STARDUST PICKER · 像 素 抽 选</div>
+        </div>
+
+        <!-- ===== 显示屏幕 ===== -->
+        <div class="display-wrapper" id="displayWrapper">
+            <div class="display-screen">
+                <div class="display-text" id="displayText">准 备 就 绪</div>
+                <div class="particle-burst" id="particleBurst"></div>
+            </div>
+        </div>
+
+        <!-- ===== 状态指示器 ===== -->
+        <div class="status-indicator">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="statusLabel">等待开始</span>
+        </div>
+
+        <!-- ===== 按钮区域 + 上传组件 ===== -->
+        <div class="button-area">
+            <button class="btn btn-start" id="btnStart">▶ START</button>
+            <button class="btn btn-pause" id="btnPause" disabled>⏸ PAUSE</button>
+            <button class="btn btn-reset" id="btnReset">↺ RESET</button>
+            <button class="btn btn-fullscreen" id="btnFullscreen">⛶ 全屏</button>
+
+            <!-- 上传组件：放在全屏右边 -->
+            <div class="upload-group" id="uploadGroup">
+                <span class="btn-upload" id="uploadBtn">
+                    📁 上传
+                    <input type="file" id="fileInput" accept=".txt,.csv,.text,.xlsx,.xls">
+                </span>
+                <span class="upload-divider">|</span>
+                <span class="upload-filename" id="uploadFilename">默认名单</span>
+                <span class="upload-count" id="uploadCount">(12人)</span>
+                <span class="upload-clear" id="uploadClear" title="移除文件">✕</span>
+            </div>
+        </div>
+
+        <!-- 格式提示 -->
+        <div class="upload-hint">
+            <span>📋</span> 支持 .txt .csv .xlsx · 每行一个姓名（首行是“姓名”时自动跳过）
+        </div>
+    </div>
+    <!-- 逻辑脚本已拆分至 RollCall4.js -->
+    <script src="RollCall4.js"></script>
+
+</body>
+</html>
