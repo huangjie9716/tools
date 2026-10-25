@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>实验数据 · 拍照上传</title>
+<script src="oc-fullscreen.js?v=1"></script>
+<style>
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    :root {
+        color-scheme: dark;
+        --text: #e6edf7;
+        --muted: #8fa3bd;
+        --cyan: #4dd0ff;
+        --green: #5de0a1;
+        --danger: #ff8a9a;
+        --line: rgba(120, 160, 255, 0.16);
+        --panel: rgba(18, 26, 38, 0.86);
+    }
+
+    body {
+        min-height: 100vh;
+        margin: 0;
+        padding: 30px 22px 46px;
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        background:
+            radial-gradient(900px 520px at 8% 0%, rgba(77, 208, 255, 0.14), transparent 60%),
+            radial-gradient(760px 480px at 100% 20%, rgba(124, 140, 255, 0.13), transparent 58%),
+            linear-gradient(155deg, #070b12 0%, #0b1220 55%, #070b12 100%);
+        background-attachment: fixed;
+    }
+
+    button { font: inherit; }
+
+    .container { max-width: 1180px; margin: 0 auto; }
+
+    .header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 22px;
+    }
+
+    .title-logo { width: 46px; height: 46px; flex: 0 0 auto; }
+    .title-logo path, .title-logo circle { fill: none; stroke: var(--cyan); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+    .header h1 {
+        margin: 0;
+        font-size: clamp(22px, 2.6vw, 32px);
+        letter-spacing: 1px;
+        font-weight: 800;
+    }
+
+    .header-actions {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .role-chip {
+        padding: 7px 14px;
+        border-radius: 999px;
+        font-size: 12.5px;
+        letter-spacing: 0.5px;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--line);
+    }
+
+    .role-chip.teacher { color: #04131d; background: linear-gradient(120deg, var(--cyan), #7c8cff); border-color: transparent; font-weight: 700; }
+
+    .tool-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        font-size: 13px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 160ms ease, border-color 160ms ease;
+    }
+
+    .tool-btn:hover { background: rgba(77, 208, 255, 0.14); border-color: rgba(77, 208, 255, 0.5); }
+    .tool-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .tool-btn.primary { background: linear-gradient(120deg, var(--cyan), #7c8cff); color: #04131d; font-weight: 700; border-color: transparent; }
+    .tool-btn.danger { color: var(--danger); border-color: rgba(255, 138, 154, 0.4); }
+
+    .panel {
+        padding: 20px 22px;
+        border-radius: 18px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        margin-bottom: 18px;
+    }
+
+    .panel-title {
+        margin: 0 0 14px;
+        font-size: 15px;
+        letter-spacing: 1px;
+        color: var(--text);
+        font-weight: 700;
+    }
+
+    .panel-title small { color: var(--muted); font-weight: 400; margin-left: 8px; letter-spacing: 0; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+
+    .chip {
+        min-width: 62px;
+        padding: 9px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 160ms ease;
+    }
+
+    .chip.on {
+        color: #04131d;
+        font-weight: 800;
+        background: linear-gradient(120deg, var(--cyan), #7c8cff);
+        border-color: transparent;
+    }
+
+    .pick-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        padding: 26px 18px;
+        border-radius: 16px;
+        border: 1.5px dashed rgba(77, 208, 255, 0.5);
+        background: rgba(77, 208, 255, 0.06);
+        color: var(--text);
+        font-size: 16px;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: background 160ms ease;
+    }
+
+    .pick-btn:hover { background: rgba(77, 208, 255, 0.14); }
+
+    .toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .toolbar .panel-title { margin: 0; }
+    .toolbar .spacer { flex: 1; }
+
+    .preview { margin-top: 18px; text-align: center; }
+    .preview img { max-width: 100%; max-height: 40vh; border-radius: 14px; border: 1px solid var(--line); }
+    .preview-actions { display: flex; gap: 10px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+
+    .status { margin: 14px 0 0; font-size: 13.5px; color: var(--muted); min-height: 20px; }
+    .status.error { color: var(--danger); }
+    .status.ok { color: var(--green); }
+
+    .gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+    }
+
+    .thumb {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.03);
+        cursor: zoom-in;
+        aspect-ratio: 4 / 3;
+    }
+
+    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .thumb .del {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 0;
+        background: rgba(10, 14, 22, 0.78);
+        color: var(--danger);
+        font-size: 15px;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+    .group-block { margin-bottom: 22px; }
+
+    .group-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+        font-size: 14px;
+        color: var(--text);
+        letter-spacing: 1px;
+    }
+
+    .group-head .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); }
+    .group-head .count { color: var(--muted); font-size: 12.5px; letter-spacing: 0; }
+
+    .empty { color: var(--muted); font-size: 13.5px; padding: 18px 0; text-align: center; }
+
+    .lightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        background: rgba(4, 8, 14, 0.96);
+    }
+
+    .lightbox-stage {
+        position: absolute;
+        inset: 0;
+        padding: 76px 24px 26px;
+        overflow: auto;
+        overscroll-behavior: contain;
+    }
+
+    .lightbox img {
+        display: block;
+        margin: auto;
+        border-radius: 12px;
+        max-width: none;
+        max-height: none;
+    }
+
+    .lightbox-stage.zoomed { cursor: grab; }
+    .lightbox-stage.zoomed.dragging { cursor: grabbing; }
+
+    .lightbox-tools {
+        position: absolute;
+        top: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(8px);
+    }
+
+    .lightbox-tools button {
+        padding: 7px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+    .lightbox-tools button:hover:not(:disabled) { background: rgba(77, 208, 255, 0.18); border-color: rgba(77, 208, 255, 0.55); }
+    .lightbox-tools button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .lightbox-tools .zoom-label { min-width: 52px; text-align: center; font-size: 13px; color: var(--muted); }
+
+    .lightbox .close {
+        position: absolute;
+        top: 18px;
+        right: 22px;
+        z-index: 2;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        font-size: 22px;
+        cursor: pointer;
+    }
+
+    @media (max-width: 700px) {
+        body { padding: 20px 14px 34px; }
+        .header h1 { font-size: 22px; }
+        .header-actions { width: 100%; justify-content: space-between; }
+        .panel { padding: 16px; border-radius: 14px; }
+        .gallery { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+    }
+</style>
+    <link rel="stylesheet" href="oc-touch.css?v=1" />
+    <script src="oc-net.js?v=1"></script>
+</head>
+<body>
+<main class="container">
+    <header class="header">
+        <svg class="title-logo" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3.5 8.5h3l1.6-2.4h6.8L16.5 8.5h4v10a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5v-10Z" />
+            <circle cx="12" cy="13.8" r="3.4" />
+        </svg>
+        <h1>实验数据</h1>
+        <div class="header-actions">
+            <span class="role-chip" id="roleChip">学生端</span>
+            <button class="tool-btn" id="btnFullscreen" type="button" aria-label="全屏显示">
+                <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+                    <path class="fs-expand" d="M9 4H4v5M15 4h5v5M20 15v5h-5M4 15v5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    <path class="fs-shrink" d="M4 9h5V4M20 9h-5V4M15 20v-5h5M9 20v-5H4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                <span id="fsLabel">全屏</span>
+            </button>
+            <a class="tool-btn back-link" href="open-class-smart-platform.html">
+                <svg viewBox="0 0 1024 1024" width="14" height="14" aria-hidden="true"><path d="M185.3952 511.232l398.2336 398.2336-72.3968 72.448L40.6016 511.232 511.232 40.6016 583.68 112.9984z" fill="currentColor"></path></svg>
+                返回平台
+            </a>
+        </div>
+    </header>
+
+    <!-- ================= 学生端：拍照上传 ================= -->
+    <section id="studentView" hidden>
+        <div class="panel">
+            <p class="panel-title">上传实验照片 <small id="groupHint">第 1 组</small></p>
+            <button class="pick-btn" id="btnPick" type="button">
+                <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+                    <path d="M3.5 8.5h3l1.6-2.4h6.8L16.5 8.5h4v10a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5v-10Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                    <circle cx="12" cy="13.8" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6" />
+                </svg>
+                拍照 / 选择照片
+            </button>
+            <input type="file" id="fileInput" accept="image/*" capture="environment" hidden />
+
+            <div class="preview" id="previewWrap" hidden>
+                <img id="previewImg" alt="照片预览" />
+                <div class="preview-actions">
+                    <button class="tool-btn primary" id="btnUpload" type="button">上传这张照片</button>
+                    <button class="tool-btn" id="btnCancel" type="button">取消</button>
+                </div>
+            </div>
+
+            <p class="status" id="uploadStatus">照片会自动压缩后再上传，节省流量</p>
+        </div>
+
+        <div class="panel">
+            <p class="panel-title">本组已上传 <small id="myCountText">共 0 张</small></p>
+            <div class="gallery" id="myGallery"></div>
+            <p class="empty" id="myEmpty">还没有上传照片</p>
+        </div>
+    </section>
+
+    <!-- ================= 教师端：查看全部 ================= -->
+    <section id="teacherView" hidden>
+        <div class="panel">
+            <div class="toolbar">
+                <span class="panel-title">全部小组实验照片</span>
+                <span class="count" id="totalText" style="color:var(--muted);font-size:13px">共 0 张</span>
+                <span class="spacer"></span>
+                <button class="tool-btn" id="btnRefresh" type="button">刷新</button>
+            </div>
+            <div id="teacherGallery"></div>
+            <p class="empty" id="teacherEmpty">还没有任何小组上传照片</p>
+        </div>
+    </section>
+
+    <p class="status" id="globalStatus" role="status">正在连接本地服务…</p>
+</main>
+
+<div class="lightbox" id="lightbox" hidden>
+    <div class="lightbox-tools">
+        <button id="lbZoomOut" type="button">－ 缩小</button>
+        <span class="zoom-label" id="lbZoomLabel">100%</span>
+        <button id="lbZoomIn" type="button">＋ 放大</button>
+        <button id="lbZoomReset" type="button">适应屏幕</button>
+    </div>
+    <button class="close" id="lightboxClose" type="button" aria-label="关闭">×</button>
+    <div class="lightbox-stage" id="lightboxStage">
+        <img id="lightboxImg" alt="实验照片" />
+    </div>
+</div>
+
+<script>
+    (function () {
+        'use strict';
+
+        var GROUP_COUNT = 12;
+        var CN_INDEX = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
+        var REFRESH_MS_TEACHER = 8000;
+        var REFRESH_MS_STUDENT = 15000;
+
+        var studentView = document.getElementById('studentView');
+        var teacherView = document.getElementById('teacherView');
+        var roleChip = document.getElementById('roleChip');
+        var btnPick = document.getElementById('btnPick');
+        var fileInput = document.getElementById('fileInput');
+        var previewWrap = document.getElementById('previewWrap');
+        var previewImg = document.getElementById('previewImg');
+        var btnUpload = document.getElementById('btnUpload');
+        var btnCancel = document.getElementById('btnCancel');
+        var uploadStatus = document.getElementById('uploadStatus');
+        var myGallery = document.getElementById('myGallery');
+        var myEmpty = document.getElementById('myEmpty');
+        var myCountText = document.getElementById('myCountText');
+        var teacherGallery = document.getElementById('teacherGallery');
+        var teacherEmpty = document.getElementById('teacherEmpty');
+        var totalText = document.getElementById('totalText');
+        var globalStatus = document.getElementById('globalStatus');
+        var btnRefresh = document.getElementById('btnRefresh');
+        var lightbox = document.getElementById('lightbox');
+        var lightboxStage = document.getElementById('lightboxStage');
+        var lightboxImg = document.getElementById('lightboxImg');
+        var lightboxClose = document.getElementById('lightboxClose');
+
+        var pendingBlob = null;
+        var configured = false;
+        var refreshing = false;
+
+        /* ---------------- 角色 & 小组 ---------------- */
+        function readLoginSession() {
+            try {
+                return JSON.parse(localStorage.getItem('oc_login_session') || 'null');
+            } catch (err) {
+                return null;
+            }
+        }
+
+        function currentRole() {
+            var forced = new URLSearchParams(location.search).get('role');
+            if (forced === 'teacher' || forced === 'student') return forced;
+            var session = readLoginSession();
+            if (session && (session.role === 'teacher' || session.role === 'student')) return session.role;
+            return 'student';
+        }
+
+        var isTeacher = currentRole() === 'teacher';
+
+        // 组别由登录账号决定：001 → 第 1 组 … 012 → 第 12 组；013 起是备用账号
+        function accountOf() {
+            var session = readLoginSession();
+            return session && session.account ? String(session.account) : '';
+        }
+
+        var currentGroup = Number(accountOf()) || 0;
+
+        /* ---------------- 状态提示 ---------------- */
+        function setGlobal(text, type) {
+            globalStatus.textContent = text;
+            globalStatus.className = 'status' + (type ? ' ' + type : '');
+        }
+
+        function setUploadStatus(text, type) {
+            uploadStatus.textContent = text;
+            uploadStatus.className = 'status' + (type ? ' ' + type : '');
+        }
+
+        /* ---------------- Supabase Storage 数据层 ---------------- */
+        var SUPABASE_URL = 'https://nmwtgxmqlmezcjtnxgqk.supabase.co';
+        var SUPABASE_ANON_KEY =
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5td3RneG1xbG1lemNqdG54Z3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4MzI2OTAsImV4cCI6MjEwMTQwODY5MH0.90TChC0s47NOGJlEkRNhD0uePRfcwdndK5SyeRRKgWo';
+        var BUCKET = 'lab';
+
+        function sbHeaders(extra) {
+            var base = { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY };
+            if (extra) { for (var k in extra) base[k] = extra[k]; }
+            return base;
+        }
+
+        function publicUrl(path) {
+            return SUPABASE_URL + '/storage/v1/object/public/' + BUCKET + '/' + path.split('/').map(encodeURIComponent).join('/');
+        }
+
+        function sbError(res, text, action) {
+            var parsed = null;
+            try { parsed = JSON.parse(text); } catch (err) { parsed = null; }
+            var msg = (parsed && (parsed.message || parsed.error)) || text || ('HTTP ' + res.status);
+            var code = parsed && String(parsed.statusCode || '');
+            if (res.status === 404 || code === '404' || /bucket not found|nosuchbucket/i.test(String(msg))) {
+                return '存储桶 lab 还不存在：请在 Supabase → Storage 新建一个名为 lab 的公开桶（并执行 supabase-storage.sql 里的策略）';
+            }
+            if (res.status === 401 || res.status === 403 || /row-level security|permission|not authorized/i.test(String(msg))) {
+                return '没有' + action + '权限：请在 Supabase SQL Editor 里执行 supabase-storage.sql 里的策略';
+            }
+            return action + '失败：' + msg;
+        }
+
+        function storageUpload(path, blob) {
+            return fetch(SUPABASE_URL + '/storage/v1/object/' + BUCKET + '/' + path.split('/').map(encodeURIComponent).join('/'), {
+                method: 'POST',
+                headers: sbHeaders({
+                    'Content-Type': blob.type || 'image/jpeg',
+                    'cache-control': 'max-age=3600',
+                    'x-upsert': 'false'
+                }),
+                body: blob
+            }).then(function (res) {
+                if (res.ok) return res.json().catch(function () { return {}; });
+                return res.text().then(function (text) { throw new Error(sbError(res, text, '上传')); });
+            });
+        }
+
+        function storageList() {
+            return fetch(SUPABASE_URL + '/storage/v1/object/list/' + BUCKET, {
+                method: 'POST',
+                headers: sbHeaders({ 'Content-Type': 'application/json' }),
+                body: JSON.stringify({ prefix: '', limit: 1000, offset: 0, sortBy: { column: 'name', order: 'asc' } })
+            }).then(function (res) {
+                if (!res.ok) {
+                    return res.text().then(function (text) { throw new Error(sbError(res, text, '读取')); });
+                }
+                return res.json();
+            }).then(function (rows) {
+                return (rows || []).filter(function (r) {
+                    return r && r.name && !r.name.endsWith('/') && /^g\d+-/.test(r.name);
+                }).map(function (r) {
+                    return {
+                        key: r.name,
+                        url: publicUrl(r.name),
+                        size: (r.metadata && r.metadata.size) || 0,
+                        time: Math.floor(new Date(r.created_at || r.updated_at || 0).getTime() / 1000)
+                    };
+                });
+            });
+        }
+
+        function storageDelete(path) {
+            return fetch(SUPABASE_URL + '/storage/v1/object/' + BUCKET + '/' + path.split('/').map(encodeURIComponent).join('/'), {
+                method: 'DELETE',
+                headers: sbHeaders()
+            }).then(function (res) {
+                if (res.ok) return true;
+                return res.text().then(function (text) { throw new Error(sbError(res, text, '删除')); });
+            });
+        }
+
+        /* ---------------- 照片列表 ---------------- */
+        function groupOfKey(key) {
+            var match = /^g(\d+)-/.exec(key || '');
+            return match ? Number(match[1]) : 0;
+        }
+
+        function formatTime(seconds) {
+            if (!seconds) return '';
+            var date = new Date(seconds * 1000);
+            var pad = function (n) { return String(n).padStart(2, '0'); };
+            return (date.getMonth() + 1) + '-' + pad(date.getDate()) + ' ' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+        }
+
+        function makeThumb(item, allowDelete) {
+            var group = groupOfKey(item.key);
+            var groupLabel = group >= 1 && group <= GROUP_COUNT ? ('第' + CN_INDEX[group - 1] + '组') : '未分组';
+
+            var box = document.createElement('div');
+            box.className = 'thumb';
+            box.title = groupLabel + ' · ' + formatTime(item.time);
+
+            var img = document.createElement('img');
+            img.src = item.url;
+            img.alt = groupLabel + '实验照片';
+            img.addEventListener('click', function () { openLightbox(item.url); });
+            box.appendChild(img);
+
+            if (allowDelete) {
+                var del = document.createElement('button');
+                del.type = 'button';
+                del.className = 'del';
+                del.textContent = '×';
+                del.title = '删除这张照片';
+                del.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    removePhoto(item);
+                });
+                box.appendChild(del);
+            }
+            return box;
+        }
+
+        /* ---------------- 图片查看：缩放 + 拖动 ---------------- */
+        var lbZoom = 1;
+        var lbBaseW = 0;
+        var lbRatio = 1.5;
+        var lbZoomLabel = document.getElementById('lbZoomLabel');
+        var lbZoomIn = document.getElementById('lbZoomIn');
+        var lbZoomOut = document.getElementById('lbZoomOut');
+        var lbZoomReset = document.getElementById('lbZoomReset');
+        var MAX_ZOOM = 5;
+        var ZOOM_STEP = 0.25;
+
+        function lbApplyZoom() {
+            if (!lbBaseW) return;
+            lightboxImg.style.width = Math.round(lbBaseW * lbZoom) + 'px';
+            var shownH = (lbBaseW * lbZoom) / (lbRatio || 1.5);
+            var availH = Math.max(0, lightboxStage.clientHeight - 102);
+            lightboxImg.style.marginTop = Math.round(Math.max(0, (availH - shownH) / 2)) + 'px';
+            lbZoomLabel.textContent = Math.round(lbZoom * 100) + '%';
+            lbZoomIn.disabled = lbZoom >= MAX_ZOOM - 0.001;
+            lbZoomOut.disabled = lbZoom <= 1.001;
+            lightboxStage.classList.toggle('zoomed', lbZoom > 1.001);
+        }
+
+        function lbSetZoom(next) {
+            lbZoom = Math.min(MAX_ZOOM, Math.max(1, Math.round(next * 100) / 100));
+            lbApplyZoom();
+        }
+
+        // 以鼠标位置为中心缩放：缩放后光标下的那一点仍然留在光标下
+        function lbZoomAt(next, clientX, clientY) {
+            if (!lbBaseW) return;
+            var prev = lbZoom;
+            if (Math.abs(next - prev) < 0.001) return;
+
+            var before = lightboxImg.getBoundingClientRect();
+            var anchorX = clientX === undefined ? before.left + before.width / 2 : clientX;
+            var anchorY = clientY === undefined ? before.top + before.height / 2 : clientY;
+            var fx = before.width ? (anchorX - before.left) / before.width : 0.5;
+            var fy = before.height ? (anchorY - before.top) / before.height : 0.5;
+
+            lbSetZoom(next);
+
+            var after = lightboxImg.getBoundingClientRect();
+            lightboxStage.scrollLeft += (after.left + fx * after.width) - anchorX;
+            lightboxStage.scrollTop += (after.top + fy * after.height) - anchorY;
+        }
+
+        function lbMeasure() {
+            var stage = lightboxStage;
+            var nw = lightboxImg.naturalWidth || 1200;
+            var nh = lightboxImg.naturalHeight || 800;
+            var sw = Math.max(120, stage.clientWidth - 48);
+            var sh = Math.max(120, stage.clientHeight - 102);
+            lbRatio = nw / nh;
+            // 基准 = 铺满可视区域（小图也放大到满屏，再往上翻倍看细节）
+            lbBaseW = Math.min(sw, sh * lbRatio);
+            lbApplyZoom();
+        }
+
+        function openLightbox(url) {
+            lightboxImg.src = url;
+            lightbox.hidden = false;
+            lbZoom = 1;
+            lbBaseW = 0;
+            lightboxImg.style.width = '';
+            lightboxStage.scrollTop = 0;
+            lightboxStage.scrollLeft = 0;
+            if (lightboxImg.complete && lightboxImg.naturalWidth) lbMeasure();
+            else lightboxImg.addEventListener('load', lbMeasure, { once: true });
+        }
+
+        function closeLightbox() {
+            lightbox.hidden = true;
+            lightboxImg.removeAttribute('src');
+            lightboxImg.style.width = '';
+            lbZoom = 1;
+            lbBaseW = 0;
+        }
+
+        lbZoomIn.addEventListener('click', function () { lbZoomAt(lbZoom + ZOOM_STEP); });
+        lbZoomOut.addEventListener('click', function () { lbZoomAt(lbZoom - ZOOM_STEP); });
+        lbZoomReset.addEventListener('click', function () {
+            lbZoom = 1;
+            lbApplyZoom();
+            lightboxStage.scrollTop = 0;
+            lightboxStage.scrollLeft = 0;
+        });
+        lightboxImg.addEventListener('dblclick', function () {
+            lbZoomAt(lbZoom > 1.001 ? 1 : 2);
+        });
+
+        lightboxStage.addEventListener('wheel', function (event) {
+            if (lightbox.hidden || !event.ctrlKey) return;
+            event.preventDefault();
+            lbZoomAt(lbZoom + (event.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP), event.clientX, event.clientY);
+        }, { passive: false });
+
+        // 放大后可按住图片拖动平移
+        var lbDrag = null;
+        lightboxStage.addEventListener('pointerdown', function (event) {
+            if (lbZoom <= 1.001) return;
+            lbDrag = {
+                x: event.clientX,
+                y: event.clientY,
+                left: lightboxStage.scrollLeft,
+                top: lightboxStage.scrollTop
+            };
+            lightboxStage.classList.add('dragging');
+            lightboxStage.setPointerCapture(event.pointerId);
+        });
+        lightboxStage.addEventListener('pointermove', function (event) {
+            if (!lbDrag) return;
+            lightboxStage.scrollLeft = lbDrag.left - (event.clientX - lbDrag.x);
+            lightboxStage.scrollTop = lbDrag.top - (event.clientY - lbDrag.y);
+        });
+        ['pointerup', 'pointercancel'].forEach(function (type) {
+            lightboxStage.addEventListener(type, function () {
+                lbDrag = null;
+                lightboxStage.classList.remove('dragging');
+            });
+        });
+
+        window.addEventListener('resize', function () {
+            if (!lightbox.hidden && lbBaseW) {
+                var keep = lbZoom;
+                lbMeasure();
+                lbZoom = keep;
+                lbApplyZoom();
+            }
+        });
+
+        lightboxClose.addEventListener('click', closeLightbox);
+        lightbox.addEventListener('click', function (event) {
+            if (event.target === lightbox) closeLightbox();
+        });
+        document.addEventListener('keydown', function (event) {
+            if (lightbox.hidden) return;
+            if (event.key === 'Escape') closeLightbox();
+            else if (event.key === '+' || event.key === '=') lbZoomAt(lbZoom + ZOOM_STEP);
+            else if (event.key === '-') lbZoomAt(lbZoom - ZOOM_STEP);
+        });
+
+        function removePhoto(item) {
+            if (!window.confirm('确定删除这张照片吗？（删除后无法恢复）')) return;
+            storageDelete(item.key).then(function () {
+                setGlobal('已删除一张照片', 'ok');
+                refresh();
+            }).catch(function (error) {
+                setGlobal('删除失败：' + error.message, 'error');
+            });
+        }
+
+        function renderStudent(items) {
+            var mine = items.filter(function (item) { return groupOfKey(item.key) === currentGroup; });
+            myGallery.textContent = '';
+            myEmpty.hidden = mine.length > 0;
+            myCountText.textContent = '共 ' + mine.length + ' 张';
+            mine.forEach(function (item) { myGallery.appendChild(makeThumb(item, false)); });
+        }
+
+        function renderTeacher(items) {
+            teacherGallery.textContent = '';
+            totalText.textContent = '共 ' + items.length + ' 张';
+            teacherEmpty.hidden = items.length > 0;
+
+            var byGroup = new Map();
+            items.forEach(function (item) {
+                var group = groupOfKey(item.key);
+                if (!byGroup.has(group)) byGroup.set(group, []);
+                byGroup.get(group).push(item);
+            });
+
+            Array.from(byGroup.keys()).sort(function (a, b) { return a - b; }).forEach(function (group) {
+                var block = document.createElement('div');
+                block.className = 'group-block';
+
+                var head = document.createElement('div');
+                head.className = 'group-head';
+                var dot = document.createElement('span');
+                dot.className = 'dot';
+                head.appendChild(dot);
+                var label = document.createElement('span');
+                label.textContent = group >= 1 && group <= GROUP_COUNT ? ('第' + CN_INDEX[group - 1] + '组') : '未分组';
+                head.appendChild(label);
+                var count = document.createElement('span');
+                count.className = 'count';
+                count.textContent = '（' + byGroup.get(group).length + ' 张）';
+                head.appendChild(count);
+                block.appendChild(head);
+
+                var gallery = document.createElement('div');
+                gallery.className = 'gallery';
+                byGroup.get(group)
+                    .sort(function (a, b) { return b.time - a.time; })
+                    .forEach(function (item) { gallery.appendChild(makeThumb(item, true)); });
+                block.appendChild(gallery);
+
+                teacherGallery.appendChild(block);
+            });
+        }
+
+        function refresh() {
+            if (refreshing) return;
+            refreshing = true;
+            storageList().then(function (items) {
+                configured = true;
+                if (isTeacher) {
+                    renderTeacher(items);
+                    setGlobal('已连接云端存储 · 每 8 秒自动刷新');
+                } else {
+                    renderStudent(items);
+                    setGlobal('已连接云端存储 · 当前：第' + CN_INDEX[currentGroup - 1] + '组');
+                }
+            }).catch(function (error) {
+                setGlobal('读取照片列表失败：' + error.message, 'error');
+            }).then(function () {
+                refreshing = false;
+            });
+        }
+
+        /* ---------------- 照片压缩 & 上传 ---------------- */
+        function loadImage(file) {
+            return new Promise(function (resolve, reject) {
+                var url = URL.createObjectURL(file);
+                var img = new Image();
+                img.onload = function () { URL.revokeObjectURL(url); resolve(img); };
+                img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('这张图片读不出来，请重新拍一张')); };
+                img.src = url;
+            });
+        }
+
+        function compress(file) {
+            return loadImage(file).then(function (img) {
+                var maxSide = 1600;
+                var scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+                var width = Math.max(1, Math.round(img.naturalWidth * scale));
+                var height = Math.max(1, Math.round(img.naturalHeight * scale));
+
+                var canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+
+                return new Promise(function (resolve) {
+                    canvas.toBlob(function (blob) { resolve(blob || file); }, 'image/jpeg', 0.82);
+                });
+            });
+        }
+
+        btnPick.addEventListener('click', function () { fileInput.click(); });
+
+        fileInput.addEventListener('change', function () {
+            var file = fileInput.files && fileInput.files[0];
+            fileInput.value = '';
+            if (!file) return;
+
+            setUploadStatus('正在压缩照片…');
+            compress(file).then(function (blob) {
+                pendingBlob = blob;
+                previewImg.src = URL.createObjectURL(blob);
+                previewWrap.hidden = false;
+                setUploadStatus('照片已就绪（约 ' + Math.round(blob.size / 1024) + ' KB），确认后点“上传这张照片”');
+            }).catch(function (error) {
+                setUploadStatus(error.message, 'error');
+            });
+        });
+
+        btnCancel.addEventListener('click', function () {
+            pendingBlob = null;
+            previewWrap.hidden = true;
+            setUploadStatus('照片会自动压缩后再上传，节省流量');
+        });
+
+        btnUpload.addEventListener('click', function () {
+            if (!pendingBlob) return;
+            if (typeof OCNet !== 'undefined' && !OCNet.isOnline()) {
+                setUploadStatus('当前没有网络：照片已保留在本页，连上 Wi-Fi 后会自动重传（先别关页面）', 'error');
+                return;
+            }
+            btnUpload.disabled = true;
+
+            setUploadStatus('正在上传到云端…');
+            var pad = function (n) { return String(n).padStart(2, '0'); };
+            var d = new Date();
+            var stamp = d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '-' +
+                pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
+            var rand = Math.random().toString(16).slice(2, 8);
+            var ext = (pendingBlob.type || 'image/jpeg').indexOf('png') >= 0 ? 'png' : 'jpg';
+            var path = 'g' + pad(currentGroup) + '-' + stamp + '-' + rand + '.' + ext;
+
+            storageUpload(path, pendingBlob).then(function () {
+                pendingBlob = null;
+                previewWrap.hidden = true;
+                setUploadStatus('上传成功！老师那边刷新就能看到 ✅', 'ok');
+                refresh();
+            }).catch(function (error) {
+                var netErr = (typeof OCNet !== 'undefined' && !OCNet.isOnline()) ||
+                    /Failed to fetch|NetworkError|Load failed|ERR_INTERNET|network/i.test(error.message || '');
+                if (netErr) {
+                    setUploadStatus('网络中断：照片已保留在本页，连上 Wi-Fi 后会自动重传（先别关页面）', 'error');
+                } else {
+                    setUploadStatus('上传失败：' + error.message, 'error');
+                }
+            }).then(function () {
+                btnUpload.disabled = false;
+            });
+        });
+
+        // 断网兜底：网络恢复后自动重传还没上传的照片
+        if (typeof OCNet !== 'undefined') {
+            OCNet.onOnline(function () {
+                if (pendingBlob && !btnUpload.disabled && !previewWrap.hidden) {
+                    setUploadStatus('网络已恢复，正在自动重传…');
+                    btnUpload.click();
+                }
+            });
+        }
+
+        /* ---------------- 全屏（统一控制外层页面） ---------------- */
+        var fsBtn = document.getElementById('btnFullscreen');
+        var fsLabel = document.getElementById('fsLabel');
+
+        function syncFsButton(on) {
+            var fs = (typeof on === 'boolean') ? on : OCFullscreen.isOn();
+            fsBtn.classList.toggle('is-fs', fs);
+            fsLabel.textContent = fs ? '退出全屏' : '全屏';
+            fsBtn.setAttribute('aria-label', fs ? '退出全屏' : '全屏显示');
+        }
+
+        fsBtn.addEventListener('click', function () { OCFullscreen.toggle(); });
+        OCFullscreen.onChange(syncFsButton);
+
+        /* ---------------- 返回平台（内嵌时通知外层关闭） ---------------- */
+        var backLink = document.querySelector('.back-link');
+        backLink.addEventListener('click', function () {
+            var embedded = false;
+            try { embedded = !!(window.parent && window.parent !== window); }
+            catch (err) { embedded = true; }
+            if (!embedded) return;
+
+            try {
+                if (typeof window.parent.closeTool === 'function') window.parent.closeTool();
+            } catch (err) { /* 跨域忽略 */ }
+            try { window.parent.postMessage({ type: 'oc-close-tool' }, '*'); } catch (err) { /* 忽略 */ }
+        });
+
+        /* ---------------- 启动 ---------------- */
+        var groupHint = document.getElementById('groupHint');
+        roleChip.classList.toggle('teacher', isTeacher);
+
+        if (isTeacher) {
+            roleChip.textContent = '教师端';
+            studentView.hidden = true;
+            teacherView.hidden = false;
+            btnRefresh.addEventListener('click', function () { refresh(); });
+        } else if (!currentGroup) {
+            roleChip.textContent = '学生端';
+            studentView.hidden = true;
+            setGlobal('没有读到登录账号，请从平台右上角登录后再进入', 'error');
+        } else if (currentGroup > GROUP_COUNT) {
+            roleChip.textContent = '学生端';
+            studentView.hidden = true;
+            setGlobal('备用账号（' + accountOf() + '）不参与小组统计', 'error');
+        } else {
+            roleChip.textContent = '学生端 · 第' + CN_INDEX[currentGroup - 1] + '组';
+            groupHint.textContent = '第 ' + CN_INDEX[currentGroup - 1] + ' 组 · 账号 ' + accountOf();
+            studentView.hidden = false;
+            teacherView.hidden = true;
+        }
+
+        if (isTeacher || (currentGroup >= 1 && currentGroup <= GROUP_COUNT)) {
+            refresh();
+            setInterval(function () {
+                if (!document.hidden) refresh();
+            }, isTeacher ? REFRESH_MS_TEACHER : REFRESH_MS_STUDENT);
+            document.addEventListener('visibilitychange', function () {
+                if (!document.hidden) refresh();
+            });
+        }
+
+        syncFsButton();
+    })();
+</script>
+</body>
+</html>

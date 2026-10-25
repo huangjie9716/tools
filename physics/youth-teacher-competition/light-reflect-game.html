@@ -1,0 +1,2771 @@
+<!DOCTYPE html>
+<!-- 单文件版：由 light-reflect/ 目录下的 light-reflect-game-lab.html、shell/easy/hard/responsive 的 CSS 与 JS 合并而成，可直接双击打开离线运行 -->
+<html lang="zh-CN">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>光的反射游戏实验室</title>
+<script src="oc-fullscreen.js?v=1"></script>
+<meta name="description" content="光的反射游戏实验室：拖动平面镜与激光笔，让反射光线击中怪物，在游戏中观察入射角等于反射角，适合课堂演示与学生自主探究。">
+<meta name="theme-color" content="#0b1224">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="光的反射实验室">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%230F172A'/%3E%3Crect x='80' y='340' width='352' height='12' rx='3' fill='%235AC8FA'/%3E%3Crect x='80' y='352' width='352' height='40' fill='%235AC8FA' opacity='0.35'/%3E%3Cline x1='256' y1='100' x2='256' y2='340' stroke='%235AC8FA' stroke-width='12' stroke-dasharray='38,28' opacity='0.7'/%3E%3Cline x1='100' y1='140' x2='256' y2='340' stroke='%23FF3B30' stroke-width='22'/%3E%3Cline x1='256' y1='340' x2='412' y2='140' stroke='%23FF3B30' stroke-width='22'/%3E%3Ccircle cx='256' cy='340' r='26' fill='%2334C759'/%3E%3C/svg%3E">
+  <!-- shell.css -->
+  <style>
+/*
+  光的反射游戏实验室 · 外壳样式（选择界面 / 按钮 / 弹层 / 主题）
+  入口：light-reflect-game.html
+*/
+
+/* ==================== 外壳 ==================== */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    background: radial-gradient(circle at 50% 30%, #0b1224 0%, #04060d 70%);
+    font-family: "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+    -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 两个游戏的场景容器：同时只显示一个 */
+  .scene { display: none; width: 100%; height: 100%; }
+  #easyScene.active { display: grid; place-items: center; }
+  #hardScene.active { display: block; }
+
+  /* 全屏时舞台同样铺满，不留黑边 */
+
+  /* ---------- 选择模式 ---------- */
+  .select-screen {
+    position: fixed; inset: 0; z-index: 50;
+    display: flex; flex-direction: column;
+    padding: clamp(16px, 3vh, 34px) clamp(14px, 3vw, 32px);
+    overflow-y: auto;
+    text-align: center; color: #dfeaff;
+    background: radial-gradient(circle at 50% 40%, rgba(20,36,70,.94), rgba(4,6,13,.98));
+    touch-action: manipulation;
+  }
+  /* 空间够时整体居中，空间不够时可滚动且不裁掉顶部 */
+  .select-inner {
+    margin: auto; width: 100%; max-width: 780px;
+    display: flex; flex-direction: column; align-items: center;
+    gap: clamp(24px, 3.8vh, 38px);
+  }
+  .select-screen.hidden { display: none; }
+  .brand { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .brand-icon { width: clamp(110px, 15vw, 176px); height: auto; filter: drop-shadow(0 10px 26px rgba(80,170,255,.5)); }
+  .brand h1 {
+    font-size: clamp(26px, 4.4vw, 44px); font-weight: 900; letter-spacing: 3px; line-height: 1.2;
+    background: linear-gradient(90deg, #6ee7ff, #a78bfa, #ff7eb3);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .mode-list { display: flex; flex-wrap: wrap; gap: clamp(18px, 2.4vw, 28px); justify-content: center; }
+  .mode-card {
+    font-family: inherit; cursor: pointer; text-align: left;
+    width: min(340px, 88vw); padding: 24px 26px 22px; border-radius: 20px;
+    background: linear-gradient(160deg, rgba(26,40,72,.92), rgba(12,18,36,.95));
+    border: 1px solid rgba(110,170,255,.3); color: #cfe0ff;
+    box-shadow: 0 18px 44px rgba(0,0,0,.5); transition: .18s ease;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  }
+  .mode-card:hover { transform: translateY(-4px); border-color: #6cb6ff; box-shadow: 0 22px 52px rgba(60,140,255,.35); }
+  .mode-card .tag { display: block; font-size: clamp(19px, 2.2vw, 22px); font-weight: 900; letter-spacing: 2px; margin-bottom: 12px; color: #7fd0ff; }
+  .mode-card.hard .tag { color: #ffb37a; }
+  .mode-card .desc { display: block; font-size: clamp(13.5px, 1.5vw, 15.5px); line-height: 1.85; color: #a8bede; }
+  .mode-card .meta { display: block; margin-top: 16px; font-size: 13px; color: #7f9ac4; }
+  /* ---------- 外壳按钮：返回选择 + 全屏，都在右上角 ---------- */
+  .shell-bar {
+    position: fixed; z-index: 60;
+    top: calc(16px + env(safe-area-inset-top, 0px));
+    right: calc(20px + env(safe-area-inset-right, 0px));
+    display: flex; align-items: center; gap: 12px;
+  }
+  .shell-btn {
+    cursor: pointer; font-family: inherit;
+    font-size: 15px; font-weight: 700; min-height: 44px; padding: 12px 22px; border-radius: 12px;
+    background: rgba(16,26,48,.9); border: 1px solid rgba(110,170,255,.32); color: #cfe3ff;
+    backdrop-filter: blur(8px); transition: .15s ease;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  }
+  /* 全屏按钮前的四角方框图标：非全屏为“展开”，全屏时为“收起” */
+  .shell-btn .fs-icon { width: 1.2em; height: 1.2em; flex: none; }
+  /* 返回平台左侧箭头（与积分系统统一） */
+  .shell-btn .back-icon { width: 1em; height: 1em; flex: none; }
+  .shell-btn .fs-exit { display: none; }
+  .shell-btn.is-fs .fs-expand { display: none; }
+  .shell-btn.is-fs .fs-exit { display: inline; }
+  .shell-btn:hover { background: rgba(40,70,130,.95); color: #fff; border-color: #6cb6ff; }
+  .shell-btn.active { background: rgba(60, 140, 255, .38); border-color: #6cb6ff; color: #fff; }
+  .shell-btn.hidden { display: none; }
+  /* 次要按钮（结算页的“返回选择”） */
+  .ghost-btn {
+    font-family: inherit; cursor: pointer; font-weight: 700; letter-spacing: 2px;
+    padding: 14px 34px; border-radius: 999px; margin-left: 14px;
+    background: rgba(24, 36, 62, .85); color: #b9d3f5;
+    border: 1px solid rgba(110, 170, 255, .35);
+    font-size: clamp(15px, 1.7vw, 18px);
+    transition: .15s ease; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  }
+  .ghost-btn:hover { background: rgba(40, 70, 130, .95); color: #fff; border-color: #6cb6ff; }
+
+  /* 全屏不受支持（如 iPhone）时的提示 */
+  .ios-tip {
+    display: none; max-width: 620px; color: #7f9ac4;
+    font-size: clamp(12px, 1.4vw, 14px); line-height: 1.7;
+  }
+  .ios-tip.show { display: block; }
+
+  /* 暂停 / 玩法 弹层 */
+  .modal {
+    position: fixed; inset: 0; z-index: 70;
+    display: flex; flex-direction: column; align-items: center;
+    padding: clamp(14px, 3vh, 30px); overflow-y: auto;
+    background: rgba(3, 6, 14, .82); backdrop-filter: blur(8px);
+  }
+  .modal.hidden { display: none; }
+  .modal-card {
+    margin: auto; width: min(680px, 92%); text-align: center; color: #dce9ff;
+    background: linear-gradient(160deg, rgba(22,34,64,.97), rgba(12,18,36,.97));
+    border: 1px solid rgba(110,170,255,.35); border-radius: 22px;
+    padding: clamp(20px, 3.4vh, 38px) clamp(18px, 3vw, 34px);
+    box-shadow: 0 24px 70px rgba(0,0,0,.7);
+  }
+  .modal-title { font-size: clamp(20px, 2.6vw, 26px); font-weight: 900; letter-spacing: 4px; margin-bottom: 16px; }
+  .modal-body { text-align: left; color: #8ea9cc; font-size: clamp(14px, 1.6vw, 17px); line-height: 2; }
+  .modal-body ul { list-style: none; }
+  .modal-body li { position: relative; padding-left: 24px; }
+  .modal-body li::before { content: "▸"; position: absolute; left: 4px; top: 0; color: #7fd0ff; font-weight: 700; }
+  .modal-body b, .modal-body span { color: #7fd0ff; font-weight: 700; }
+  .modal-body .k { color: #ffd166; }
+  .modal-actions { margin-top: 22px; }
+  @media (min-width: 1100px) { .shell-btn { font-size: 17px; } }
+  </style>
+
+  <!-- easy.css -->
+  <style>
+/*
+  光的反射游戏实验室 · 简单模式样式（作用于 #easyScene）
+  入口：light-reflect-game.html
+*/
+
+/* ==================== 简单模式（easy_reflect） ==================== */
+#easyScene .stage{
+    position:relative;
+    width:100%;height:100%;
+    border-radius:0;
+    overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,.85), 0 0 0 1px rgba(120,180,255,.18),
+               inset 0 0 60px rgba(60,120,255,.06);
+    cursor:default;
+  }
+#easyScene canvas{display:block;width:100%;height:100%;touch-action:none;-webkit-touch-callout:none;-webkit-user-drag:none;}
+/* 简单模式独有的“显示角度”开关（左下角；被开始/结算面板盖住，游戏中才可见） */
+#btnEasyAngles{
+    position:fixed;z-index:9;
+    left:calc(20px + env(safe-area-inset-left, 0px));
+    bottom:calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+#easyScene .hud{
+    position:absolute;inset:0;pointer-events:none;
+    display:flex;justify-content:space-between;align-items:flex-start;
+    padding:14px min(var(--shell-inset, 250px), 46vw) 14px calc(18px + env(safe-area-inset-left, 0px));gap:10px;
+  }
+#easyScene .pill{
+    background:rgba(10,20,42,.7);
+    border:1px solid rgba(120,180,255,.3);
+    backdrop-filter:blur(8px);
+    border-radius:999px;
+    padding:7px 20px;
+    color:#cfe3ff;
+    font-size:clamp(12px,1.55vw,17px);
+    font-weight:700;letter-spacing:.5px;
+    white-space:nowrap;
+    box-shadow:0 6px 20px rgba(0,0,0,.4);
+  }
+#easyScene .hud-right{display:flex;align-items:center;gap:12px;}
+#easyScene .pill b{color:#ffd166;font-size:1.3em;margin-left:4px;}
+#easyScene .pill.warn{border-color:rgba(255,90,90,.7);color:#ff9a9a;animation:easyPulse .7s infinite alternate;}
+#easyScene .pill.warn b{color:#ff5252;}
+@keyframes easyPulse{from{box-shadow:0 0 0 rgba(255,60,60,0);}to{box-shadow:0 0 22px rgba(255,60,60,.65);}}
+#easyScene .hint{
+    position:absolute;left:50%;top:14px;transform:translateX(-50%);
+    color:#7f9ac4;font-size:clamp(11px,1.3vw,14px);
+    background:rgba(8,14,28,.55);border:1px solid rgba(90,140,220,.2);
+    padding:6px 16px;border-radius:999px;backdrop-filter:blur(6px);
+    pointer-events:none;white-space:nowrap;
+  }
+#easyScene .overlay{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+    padding:clamp(12px,2.4vh,26px);overflow-y:auto;
+    background:rgba(3,6,14,.78);backdrop-filter:blur(7px);
+    opacity:0;visibility:hidden;transition:.28s ease;z-index:10;
+  }
+#easyScene .overlay.show{opacity:1;visibility:visible;}
+#easyScene .panel{
+    width:min(760px,90%);margin:auto;text-align:center;color:#dce9ff;
+    background:linear-gradient(160deg,rgba(22,34,64,.96),rgba(12,18,36,.96));
+    border:1px solid rgba(110,170,255,.35);
+    border-radius:24px;padding:46px 42px 40px;
+    box-shadow:0 24px 70px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.08);
+    transform:translateY(10px);transition:.3s cubic-bezier(.2,.9,.3,1.4);
+  }
+#easyScene .overlay.show .panel{transform:translateY(0);}
+#easyScene .panel h1{
+    margin:0 0 16px;font-size:clamp(30px,4.4vw,46px);letter-spacing:3px;
+    background:linear-gradient(90deg,#7fd0ff,#b78bff,#ffd166);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+#easyScene .panel p{margin:0 0 26px;line-height:1.85;color:#a8bede;font-size:clamp(17px,2vw,22px);}
+#easyScene .lead{
+    margin:0 0 16px;font-size:clamp(20px,2.4vw,26px);font-weight:900;
+    letter-spacing:4px;color:#dce9ff;
+  }
+#easyScene .panel .tips{
+    text-align:left;display:inline-block;color:#8ea9cc;font-size:clamp(16px,1.8vw,19px);
+    line-height:2;margin:0 0 26px;
+  }
+#easyScene .panel ul.tips{list-style:none;padding:0;}
+#easyScene .panel ul.tips li{position:relative;padding-left:24px;}
+#easyScene .panel ul.tips li::before{
+    content:"▸";position:absolute;left:4px;top:0;
+    color:#7fd0ff;font-weight:700;
+  }
+#easyScene .panel .tips span{color:#7fd0ff;font-weight:700;}
+#easyScene .btn{
+    pointer-events:auto;cursor:pointer;border:none;
+    padding:18px 56px;border-radius:999px;
+    font-size:clamp(19px,2.3vw,24px);font-weight:800;letter-spacing:3px;
+    color:#04101f;
+    background:linear-gradient(120deg,#6fe0ff,#8ea8ff 55%,#c58bff);
+    box-shadow:0 10px 30px rgba(110,180,255,.4), inset 0 1px 0 rgba(255,255,255,.6);
+    transition:.18s;
+    font-family:inherit;
+  }
+#easyScene .btn:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 16px 40px rgba(110,180,255,.6);}
+#easyScene .btn:active{transform:translateY(0) scale(.98);}
+
+
+#easyScene .tip{
+    position:absolute;left:50%;top:60px;transform:translate(-50%,-8px);
+    background:rgba(10,20,42,.88);border:1px solid rgba(255,209,102,.5);
+    color:#ffd166;font-size:clamp(13px,1.5vw,16px);font-weight:700;
+    padding:8px 18px;border-radius:999px;backdrop-filter:blur(6px);
+    white-space:nowrap;pointer-events:none;
+    opacity:0;visibility:hidden;transition:.25s ease;z-index:11;
+  }
+#easyScene .tip.show{opacity:1;visibility:visible;transform:translate(-50%,0);}
+  </style>
+
+  <!-- hard.css -->
+  <style>
+/*
+  光的反射游戏实验室 · 困难模式样式（作用于 #hardScene）
+  入口：light-reflect-game.html
+*/
+
+/* ==================== 困难模式（hard_reflect） ==================== */
+#hardScene #game{ display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; -webkit-touch-callout: none; -webkit-user-drag: none; }
+#hardScene .hud{
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 16px min(var(--shell-inset, 250px), 46vw) 16px calc(20px + env(safe-area-inset-left, 0px)); pointer-events: none; z-index: 5;
+    gap: 12px; flex-wrap: wrap;
+  }
+#hardScene .stats{ display: flex; gap: 10px; }
+#hardScene .stat{
+    background: rgba(10, 20, 42, .7);
+    border: 1px solid rgba(120, 180, 255, .3);
+    border-radius: 999px; padding: 7px 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .4);
+    backdrop-filter: blur(8px);
+    display: flex; align-items: baseline; gap: 8px;
+  }
+#hardScene .stat .label{ font-size: clamp(12px, 1.55vw, 17px); color: #cfe3ff; font-weight: 700; letter-spacing: .5px; }
+#hardScene .stat .value{
+    font-size: clamp(15px, 2vw, 22px); font-weight: 700; color: #ffd166;
+    font-variant-numeric: tabular-nums; min-width: 2.2ch; text-align: right;
+  }
+#hardScene .stat .value.warn{ color: #ff5b6e; animation: hardPulse .5s infinite alternate; }
+#hardScene .stat .unit{ font-size: clamp(11px, 1.3vw, 14px); font-weight: 700; color: #cfe3ff; margin-left: -4px; }
+@keyframes hardPulse{ from { opacity: 1 } to { opacity: .3 } }
+#hardScene .controls{ display: flex; gap: 8px; flex-wrap: wrap; pointer-events: none; }
+#hardScene .controls button{ pointer-events: auto; }
+#hardScene button{
+    font-family: inherit; font-size: clamp(12px, 1.5vw, 16px); cursor: pointer;
+    padding: 10px 18px; border-radius: 999px;
+    min-height: 44px; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    background: rgba(24, 36, 62, .85);
+    border: 1px solid rgba(110, 170, 255, .28);
+    color: #b9d3f5; transition: all .15s ease;
+    backdrop-filter: blur(8px);
+  }
+#hardScene button:hover{ background: rgba(40, 70, 130, .95); color: #fff; border-color: #6cb6ff; transform: translateY(-1px); }
+#hardScene button:active{ transform: translateY(0); }
+#hardScene button.active{ background: rgba(60, 140, 255, .38); border-color: #6cb6ff; color: #fff; }
+#hardScene .overlay{
+    position: fixed; inset: 0; z-index: 20;
+    display: flex; flex-direction: column; align-items: center;
+    padding: clamp(14px, 3vh, 28px); overflow-y: auto;
+    background: radial-gradient(circle at 50% 45%, rgba(20, 36, 70, .93), rgba(5, 8, 16, .97));
+    backdrop-filter: blur(10px);
+    text-align: center; color: #dfeaff;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  }
+#hardScene .overlay.hidden{ display: none; }
+#hardScene h1{
+    font-size: clamp(30px, 4.4vw, 46px); font-weight: 900; letter-spacing: 2px;
+    background: linear-gradient(90deg, #6ee7ff, #a78bfa, #ff7eb3);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    margin-bottom: 10px;
+  }
+#hardScene .hs-panel{
+    width: min(760px, 90%); margin: auto; text-align: center; color: #dce9ff;
+    background: linear-gradient(160deg, rgba(22, 34, 64, .96), rgba(12, 18, 36, .96));
+    border: 1px solid rgba(110, 170, 255, .35); border-radius: 24px;
+    padding: 46px 42px 40px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .7), inset 0 1px 0 rgba(255, 255, 255, .08);
+  }
+#hardScene .lead{
+    margin: 0 0 16px; font-size: clamp(20px, 2.4vw, 26px); font-weight: 900;
+    letter-spacing: 4px; color: #dce9ff;
+  }
+#hardScene .rules{
+    list-style: none; text-align: left; max-width: none; width: 100%;
+    background: rgba(255, 255, 255, .04);
+    border: 1px solid rgba(120, 180, 255, .15);
+    border-radius: 16px; padding: 20px 24px; margin: 0 0 26px;
+    font-size: clamp(16px, 1.8vw, 19px); line-height: 2; color: #8ea9cc;
+  }
+#hardScene .rules li{ position: relative; padding-left: 24px; }
+#hardScene .rules li::before{
+    content: "▸"; position: absolute; left: 2px; top: 0;
+    color: #7dd3fc; font-weight: 700;
+  }
+#hardScene .rules b{ color: #7dd3fc; }
+#hardScene .rules .k{ color: #ffd166; font-weight: 700; }
+#hardScene .big-btn{
+    font-family: inherit; font-size: clamp(19px, 2.3vw, 24px); font-weight: 800; letter-spacing: 3px;
+    padding: 18px 56px; border-radius: 999px;
+    background: linear-gradient(120deg, #6fe0ff, #8ea8ff 55%, #c58bff);
+    border: none; color: #04101f; cursor: pointer;
+    box-shadow: 0 10px 30px rgba(110, 180, 255, .4), inset 0 1px 0 rgba(255, 255, 255, .6);
+    transition: all .18s ease;
+  }
+#hardScene .big-btn:hover{ transform: translateY(-2px) scale(1.03); box-shadow: 0 16px 40px rgba(110, 180, 255, .6); }
+#hardScene .big-btn:active{ transform: translateY(0) scale(.98); }
+#hardScene .final{ font-size: 18px; margin: 6px 0; color: #a8c4e8; }
+#hardScene .final b{ font-size: 46px; color: #ffd166; font-weight: 900; margin: 0 6px; }
+#hardScene .stars{ font-size: 38px; margin: 16px 0 4px; letter-spacing: 8px; }
+#hardScene .encourage{
+    margin-top: 18px; font-size: clamp(17px, 3vw, 22px); font-weight: 800; letter-spacing: 1px;
+    background: linear-gradient(90deg, #ffd166, #ff8c42, #ff5b7f);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: hardPop .45s ease;
+  }
+@keyframes hardPop{ from { transform: scale(.86); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+#hardScene .tip{ color: #6f8bb0; font-size: 14px; margin-top: 22px; }
+#hardScene .tip-banner{
+    position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 10px);
+    background: rgba(16, 24, 44, .9);
+    border: 1px solid rgba(255, 209, 102, .5);
+    color: #ffd166; font-size: 16px; font-weight: 700;
+    padding: 10px 22px; border-radius: 999px;
+    backdrop-filter: blur(8px);
+    pointer-events: none; z-index: 8; white-space: nowrap;
+    opacity: 0; visibility: hidden; transition: .25s ease;
+  }
+#hardScene .tip-banner.show{ opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+@media (min-width: 1100px){
+#hardScene .rules{ font-size: 17px; }
+#hardScene .tip-banner{ font-size: 18px; padding: 12px 26px; }
+}
+  </style>
+
+  <!-- responsive.css -->
+  <style>
+/*
+  光的反射游戏实验室 · 手机 / 平板 / 全屏适配（媒体查询，最后加载以便覆盖）
+  入口：light-reflect-game.html
+*/
+
+/* ==================== 手机 / 平板适配 ==================== */
+  /* 顶部安全区：右上角浮动按钮栏在非全屏时会压住面板，这里统一把内容往下推。
+     --shell-top 由 shell.js 按按钮栏实际底边实时计算。 */
+  #easyScene .overlay,
+  #hardScene .overlay,
+  .select-screen {
+    padding-top: max(var(--shell-top, 78px), clamp(16px, 3vh, 34px));
+  }
+
+  /* 窄屏：外壳按钮与 HUD 变小，给画面让位 */
+  @media (max-width: 760px) {
+    .shell-bar { top: calc(10px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px)); gap: 8px; }
+    .shell-btn { font-size: 13px; padding: 10px 14px; min-height: 40px; border-radius: 10px; }
+    #easyScene .hud { padding: 10px min(var(--shell-inset, 200px), 44vw) 10px calc(12px + env(safe-area-inset-left, 0px)); gap: 8px; }
+    #hardScene .hud { padding: 10px min(var(--shell-inset, 200px), 44vw) 10px calc(12px + env(safe-area-inset-left, 0px)); gap: 8px; }
+    #easyScene .pill { font-size: 13px; padding: 5px 14px; }
+    #easyScene .hint { font-size: 11px; padding: 4px 12px; top: 48px; }
+    #easyScene .tip { font-size: 13px; padding: 8px 14px; top: 80px; }
+    #hardScene .stat { padding: 5px 12px; gap: 5px; }
+    #hardScene .stat .label { font-size: 13px; }
+    #hardScene .stat .value { font-size: 15px; min-width: 2ch; }
+    #hardScene .stat .unit { font-size: 11px; }
+    #hardScene .controls { gap: 6px; }
+    #hardScene .controls button { font-size: 13px; padding: 8px 12px; min-height: 40px; }
+    #hardScene .tip-banner { font-size: 13px; padding: 8px 14px; bottom: 14px; }
+  }
+
+  /* 矮屏（手机横屏）：紧凑排版；内容超高时可滚动，居中由 margin:auto 保证 */
+  @media (max-height: 480px) {
+    .select-inner { gap: 12px; }
+    .brand { gap: 8px; }
+    .brand-icon { width: 76px; }
+    .brand h1 { font-size: clamp(20px, 6.4vh, 30px); letter-spacing: 2px; }
+    .mode-list { gap: 12px; }
+    .mode-card { width: min(300px, 46vw); padding: 14px 16px; border-radius: 16px; }
+    .mode-card .tag { font-size: 17px; margin-bottom: 6px; }
+    .mode-card .desc { font-size: 12.5px; line-height: 1.7; }
+    .mode-card .meta { margin-top: 8px; font-size: 11.5px; }
+
+    #easyScene .overlay, #hardScene .overlay { padding: 10px; padding-top: max(var(--shell-top, 62px), 10px); }
+    #easyScene .panel { width: min(720px, 94%); padding: 18px 20px 16px; }
+    #easyScene .lead { font-size: 18px; margin-bottom: 8px; letter-spacing: 2px; }
+    #easyScene .panel p { font-size: 14px; margin-bottom: 10px; line-height: 1.6; }
+    #easyScene .panel ul.tips { font-size: 13px; line-height: 1.85; margin-bottom: 12px; }
+    #easyScene .panel br { display: none; }
+    #easyScene .btn { padding: 12px 34px; font-size: 16px; letter-spacing: 2px; }
+
+    #hardScene .hs-panel { width: min(720px, 94%); padding: 18px 20px 16px; }
+    #hardScene .lead { font-size: 18px; margin-bottom: 8px; letter-spacing: 2px; }
+    #hardScene .rules { font-size: 13px; line-height: 1.85; padding: 12px 16px; margin-bottom: 12px; }
+    #hardScene .big-btn { padding: 12px 34px; font-size: 16px; letter-spacing: 2px; }
+    #hardScene h1 { font-size: 24px; margin-bottom: 6px; }
+    #hardScene .stars { font-size: 24px; margin: 6px 0 2px; }
+    #hardScene .final { font-size: 14px; margin: 2px 0; }
+    #hardScene .final b { font-size: 28px; }
+    #hardScene .encourage { font-size: 15px; margin-top: 10px; }
+    #hardScene .tip { font-size: 12px; margin-top: 10px; }
+  }
+
+  /* 极矮屏（如 568×320 横屏手机）：再缩一档，让首页不必滚动 */
+  @media (max-height: 400px) {
+    .select-inner { gap: 10px; }
+    .brand { gap: 6px; }
+    .brand-icon { width: 56px; }
+    .brand h1 { font-size: clamp(18px, 6.4vh, 24px); }
+    .mode-list { gap: 10px; }
+    .mode-card { width: min(280px, 46vw); padding: 12px 14px; border-radius: 14px; }
+    .mode-card .tag { font-size: 16px; margin-bottom: 4px; }
+    .mode-card .desc { font-size: 12px; line-height: 1.6; }
+    .mode-card .meta { margin-top: 6px; font-size: 11px; }
+  }
+
+  /* 手机竖屏：提示横屏使用（平板竖屏不受影响） */
+  .rotate-hint { display: none; }
+  @media (orientation: portrait) and (max-width: 620px) {
+    .rotate-hint {
+      position: fixed; inset: 0; z-index: 100; display: flex;
+      flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+      padding: 24px; text-align: center; color: #dfeaff;
+      background: radial-gradient(circle at 50% 40%, #142244, #04060d 78%);
+    }
+    .rotate-hint .rot-icon { width: 92px; height: 92px; }
+    .rotate-hint .rot-title { font-size: 22px; font-weight: 900; letter-spacing: 2px; }
+    .rotate-hint .rot-desc { font-size: 14px; color: #8fa9cc; line-height: 1.8; }
+  }
+  </style>
+
+    <link rel="stylesheet" href="oc-touch.css?v=1" />
+    <script src="oc-net.js?v=1"></script>
+</head>
+<body>
+
+<div class="select-screen" id="selectScreen">
+  <div class="select-inner">
+  <div class="brand">
+    <svg class="brand-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-hidden="true">
+      <defs>
+        <radialGradient id="bgGrad" cx="50%" cy="50%" r="70%">
+          <stop offset="0%" stop-color="#1a2744"/>
+          <stop offset="100%" stop-color="#0F172A"/>
+        </radialGradient>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="6" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glowStrong" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="10" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <pattern id="hatch" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="10" stroke="#5AC8FA" stroke-width="1.5" opacity="0.4"/>
+        </pattern>
+      </defs>
+
+      <rect width="512" height="512" rx="80" ry="80" fill="url(#bgGrad)"/>
+
+      <!-- 反射面 -->
+      <rect x="80" y="340" width="352" height="12" rx="3" fill="#5AC8FA" filter="url(#glow)" opacity="0.9"/>
+      <rect x="80" y="352" width="352" height="40" fill="url(#hatch)" opacity="0.5"/>
+      <line x1="80" y1="392" x2="432" y2="392" stroke="#5AC8FA" stroke-width="2" opacity="0.3"/>
+
+      <!-- 法线（冰蓝色虚线） -->
+      <line x1="256" y1="100" x2="256" y2="340" stroke="#5AC8FA" stroke-width="2.5" stroke-dasharray="12,8" opacity="0.7"/>
+
+      <!-- 入射光线 -->
+      <line x1="100" y1="140" x2="256" y2="340" stroke="#FF3B30" stroke-width="5" filter="url(#glow)"/>
+      <g transform="translate(178,240) rotate(52)">
+        <polygon points="14,0 -7,-8 -7,8" fill="#FF3B30" filter="url(#glow)"/>
+      </g>
+
+      <!-- 反射光线 -->
+      <line x1="256" y1="340" x2="412" y2="140" stroke="#FF3B30" stroke-width="5" filter="url(#glow)"/>
+      <g transform="translate(334,240) rotate(-52)">
+        <polygon points="14,0 -7,-8 -7,8" fill="#FF3B30" filter="url(#glow)"/>
+      </g>
+
+      <!-- 入射点 -->
+      <circle cx="256" cy="340" r="10" fill="#34C759" filter="url(#glowStrong)"/>
+      <circle cx="256" cy="340" r="5" fill="#ffffff" opacity="0.8"/>
+    </svg>
+    <h1>光的反射游戏实验室</h1>
+  </div>
+  <div class="mode-list">
+    <button class="mode-card easy" type="button" data-mode="easy">
+      <span class="tag">简单模式</span>
+      <span class="desc">镜子固定在下方：拖动镜面改变倾角，或拖动激光笔改变入射角，让反射光击中怪物。</span>
+      <span class="meta" data-base="限时 60 秒 · 每只怪物 +10 分">限时 60 秒 · 每只怪物 +10 分</span>
+    </button>
+    <button class="mode-card hard" type="button" data-mode="hard">
+      <span class="tag">困难模式</span>
+      <span class="desc">自己动手画出平面镜，光可以连续多次反射，画对镜子的位置才能打到怪物。</span>
+      <span class="meta" data-base="限时 60 秒 · 每只怪物 +10 分">限时 60 秒 · 每只怪物 +10 分</span>
+    </button>
+  </div>
+  <p class="ios-tip" id="iosTip">iPhone / iPad 可在浏览器菜单里选择「添加到主屏幕」，之后就能全屏游玩。</p>
+  </div>
+</div>
+
+<div class="shell-bar" id="shellBar">
+  <button class="shell-btn" id="btnPlatform" type="button" aria-label="返回公开课智慧平台" onclick="location.href='open-class-smart-platform.html'"><svg class="back-icon" viewBox="0 0 1024 1024" aria-hidden="true"><path d="M185.3952 511.232l398.2336 398.2336-72.3968 72.448L40.6016 511.232 511.232 40.6016 583.68 112.9984z" fill="currentColor"></path></svg>返回平台</button>
+  <button class="shell-btn hidden" id="btnHelp" type="button" aria-label="查看玩法说明">玩法</button>
+  <button class="shell-btn hidden" id="btnPause" type="button" aria-label="暂停游戏">暂停</button>
+  <button class="shell-btn hidden" id="btnBack" type="button" aria-label="返回模式选择">返回选择</button>
+  <button class="shell-btn" id="btnFull" type="button" aria-label="进入全屏">
+    <svg class="fs-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <g class="fs-expand" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 4H4v5"/><path d="M15 4h5v5"/><path d="M20 15v5h-5"/><path d="M4 15v5h5"/>
+      </g>
+      <g class="fs-exit" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 9h5V4"/><path d="M20 9h-5V4"/><path d="M15 20v-5h5"/><path d="M9 20v-5H4"/>
+      </g>
+    </svg>
+    <span class="fs-label">全屏</span>
+  </button>
+</div>
+
+<!-- 暂停 -->
+<div class="modal hidden" id="pauseModal">
+  <div class="modal-card">
+    <div class="modal-title">已 暂 停</div>
+    <div class="modal-body" style="text-align:center;color:#8fa9cc">计时与光线都已暂停<br>点击这里或右上角「继续」按钮恢复</div>
+    <div class="modal-actions"><button class="shell-btn" id="btnResume" type="button">继 续</button></div>
+  </div>
+</div>
+
+<!-- 玩法说明（游戏中随时可看） -->
+<div class="modal hidden" id="helpModal">
+  <div class="modal-card">
+    <div class="modal-title">玩 法 说 明</div>
+    <div class="modal-body" id="helpBody"></div>
+    <div class="modal-actions"><button class="shell-btn" id="btnHelpClose" type="button">继 续 游 戏</button></div>
+  </div>
+</div>
+
+<!-- 手机竖屏时提示横屏 -->
+<div class="rotate-hint" id="rotateHint">
+  <svg class="rot-icon" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M22 84a42 42 0 1 1 76-30" fill="none" stroke="#ffd166" stroke-width="6" stroke-linecap="round"/>
+    <polygon points="100,68 90,55 106,53" fill="#ffd166"/>
+    <rect x="40" y="34" width="40" height="66" rx="9" fill="none" stroke="#7fd0ff" stroke-width="5"/>
+    <circle cx="60" cy="94" r="3" fill="#7fd0ff"/>
+  </svg>
+  <div class="rot-title">请把手机横过来使用</div>
+  <div class="rot-desc">横屏才能完整看到游戏画面<br>转动手机后画面会自动适配</div>
+</div>
+
+<div class="scene" id="easyScene">
+<div class="stage">
+  <canvas id="cv"></canvas>
+
+  <div class="hud">
+    <div class="pill">得分<b id="score">0</b></div>
+    <div class="hud-right">
+      <div class="pill" id="timePill">时间<b id="time">60</b>s</div>
+    </div>
+  </div>
+  <div class="hint" id="hint">拖动激光笔 / 平面镜调整角度　·　点击激光笔开启激光</div>
+  <div class="tip" id="tip"></div>
+
+  <div class="overlay show" id="overlay">
+    <div class="panel">
+      <div class="lead">玩法说明</div>
+      <p>光遇到平面镜会发生反射——让反射光线击中怪物！</p>
+      <ul class="tips">
+        <li><span>点击</span> 激光笔 → 开启 / 关闭激光（一次只能开一支）</li>
+        <li><span>拖动</span> 激光笔 → 改变入射角</li>
+        <li><span>拖动</span> 平面镜 → 改变镜面倾角</li>
+        <li>限时 <span>60 秒</span>，每消灭一只怪物得 <span>10 分</span></li>
+        <li>镜面倾角有上限：打不到怪物时，请拖动激光笔调整入射角</li>
+      </ul>
+      <br>
+      <button class="btn" id="ovBtn">开始挑战</button>
+    </div>
+  </div>
+</div>
+  <button class="shell-btn" id="btnEasyAngles" type="button" aria-label="显示角度">显示角度：关</button>
+</div>
+
+<div class="scene" id="hardScene">
+<canvas id="game"></canvas>
+
+<div class="hud">
+  <div class="stats">
+    <div class="stat"><span class="label">得分</span><span class="value" id="scoreEl">0</span><span class="unit">分</span></div>
+    <div class="stat"><span class="label">时间</span><span class="value" id="timeEl">60</span><span class="unit">秒</span></div>
+  </div>
+  <div class="controls">
+    <button id="btnAngles">显示角度：关</button>
+    <button id="btnClear">清空镜子</button>
+    <button id="btnRestart">结束本局</button>
+  </div>
+</div>
+
+<div class="overlay" id="startScreen">
+  <div class="hs-panel">
+    <div class="lead">玩法说明</div>
+    <ul class="rules">
+      <li>让激光反射后击中怪物，每只 <b>+10 分</b></li>
+      <li>按住鼠标（或手指）<span class="k">拖动</span>，画出一面平面镜</li>
+      <li>镜子背面画着斜线，没有斜线的一面才是反射面</li>
+      <li>限时 <b>60 秒</b>，看看你能打中几只！</li>
+      <li>打开「显示角度」，观察 <b>入射角 = 反射角</b></li>
+    </ul>
+    <button class="big-btn" id="btnStart">开 始 游 戏</button>
+  </div>
+</div>
+
+<div class="overlay hidden" id="endScreen">
+  <div class="hs-panel">
+    <h1>时间到！</h1>
+    <div class="stars" id="starsEl">⭐⭐⭐</div>
+    <div class="final">总得分 <b id="finalScore">0</b> 分</div>
+    <div class="final" style="font-size:15px">共击中 <span id="finalHits">0</span> 只怪物</div>
+    <div class="final" style="font-size:15px" id="bestLine"></div>
+    <div class="encourage" id="encourageEl"></div>
+    <div style="margin-top:30px">
+      <button class="big-btn" id="btnAgain">再 来 一 局</button><button class="ghost-btn" id="btnEndBack">返回选择</button>
+    </div>
+    <div class="tip">想一想：镜子多转 10°，反射光会转多少度？</div>
+  </div>
+</div>
+
+<div class="tip-banner" id="tipBanner"></div>
+</div>
+
+<!-- shell.js -->
+<script>
+/*
+  光的反射游戏实验室 · 外壳逻辑：模式切换 / 全屏 / 暂停 / 玩法 / 最高分
+  入口：light-reflect-game.html
+*/
+
+/* ==================== 外壳：模式切换 / 全屏 ==================== */
+(function () {
+  'use strict';
+
+  const selectScreen = document.getElementById('selectScreen');
+  const btnFull = document.getElementById('btnFull');
+  const btnBack = document.getElementById('btnBack');
+  const shellBar = document.getElementById('shellBar');
+  const scenes = {
+    easy: document.getElementById('easyScene'),
+    hard: document.getElementById('hardScene')
+  };
+  const games = {};
+  const rootEl = document.documentElement;
+  // 两个模式的规则列表在加载时就缓存起来（简单模式结算后会替换面板内容）
+  const helpSource = {
+    easy: document.querySelector('#easyScene .panel ul.tips'),
+    hard: document.querySelector('#hardScene .rules')
+  };
+  const pauseModal = document.getElementById('pauseModal');
+  const helpModal = document.getElementById('helpModal');
+  const helpBody = document.getElementById('helpBody');
+  let mode = null;
+  let paused = false;       // 暂停按钮状态
+  let helpPaused = false;   // 打开玩法弹层时是否顺手暂停了游戏
+
+  // 两个游戏在加载时注册自己的接口
+  window.registerReflectGame = function (name, api) { games[name] = api; };
+
+  /* ---------- 最高分：只存在本机，不上传 ---------- */
+  function bestKey(name) { return 'reflect.best.' + name; }
+
+  window.getBestScore = function (name) {
+    try { return parseInt(localStorage.getItem(bestKey(name)) || '0', 10) || 0; }
+    catch (e) { return 0; }
+  };
+
+  window.setBestScore = function (name, score) {
+    if (score <= window.getBestScore(name)) return false;
+    try { localStorage.setItem(bestKey(name), String(score)); } catch (e) {}
+    updateCardMeta();
+    return true;
+  };
+
+  function updateCardMeta() {
+    Array.prototype.forEach.call(document.querySelectorAll('.mode-card'), function (card) {
+      const meta = card.querySelector('.meta');
+      if (!meta) return;
+      const best = window.getBestScore(card.getAttribute('data-mode'));
+      meta.textContent = meta.getAttribute('data-base') + (best > 0 ? '　·　最高分 ' + best + ' 分' : '');
+    });
+  }
+
+  /* ---------- 全屏（统一控制外层页面） ---------- */
+  function updateFullBtn() {
+    const fs = OCFullscreen.isOn();
+    btnFull.classList.toggle('is-fs', fs);
+    const label = btnFull.querySelector('.fs-label');
+    if (label) label.textContent = fs ? '退出全屏' : '全屏';
+    btnFull.setAttribute('aria-label', fs ? '退出全屏' : '进入全屏');
+    syncShellInset();
+  }
+
+  function toggleFullscreen() {
+    OCFullscreen.toggle();
+  }
+
+  OCFullscreen.onChange(updateFullBtn);
+
+  // 把右上角按钮栏的实际尺寸写成 CSS 变量：
+  // --shell-inset 供 HUD 预留右侧位置，--shell-top 供开始/结算面板预留顶部位置
+  function syncShellInset() {
+    const rect = shellBar.getBoundingClientRect();
+    const inset = Math.max(120, Math.ceil(rect.width) + 20 + 16);  // 右侧留白 20px，再留 16px 间隔
+    rootEl.style.setProperty('--shell-inset', inset + 'px');
+
+    // 非全屏时窗口较矮，面板顶端容易被按钮压住，因此按按钮栏底边留出安全区
+    const top = Math.ceil(rect.bottom) + 14;
+    rootEl.style.setProperty('--shell-top', Math.max(0, top) + 'px');
+  }
+
+  /* ---------- 暂停 ---------- */
+  function setPaused(on) {
+    if (!mode) return;
+    paused = on;
+    pauseModal.classList.toggle('hidden', !on);
+    btnPause.textContent = on ? '继续' : '暂停';
+    btnPause.setAttribute('aria-label', on ? '继续游戏' : '暂停游戏');
+    if (on) games[mode].pause();
+    else if (!helpPaused) games[mode].resume();
+    syncShellInset();
+  }
+
+  /* ---------- 玩法说明（游戏中随时可看，规则取自当前模式） ---------- */
+  function openHelp() {
+    if (!mode) return;
+    const src = helpSource[mode];
+    helpBody.innerHTML = '';
+    if (src) helpBody.appendChild(src.cloneNode(true));
+    helpModal.classList.remove('hidden');
+    helpPaused = !paused;
+    if (helpPaused) games[mode].pause();
+  }
+
+  function closeHelp() {
+    helpModal.classList.add('hidden');
+    if (helpPaused && mode && !paused) games[mode].resume();
+    helpPaused = false;
+  }
+
+  function enterMode(name) {
+    if (!scenes[name] || !games[name]) return;
+    mode = name;
+    paused = false;
+    helpPaused = false;
+    pauseModal.classList.add('hidden');
+    helpModal.classList.add('hidden');
+    btnPause.textContent = '暂停';
+    selectScreen.classList.add('hidden');
+    btnBack.classList.remove('hidden');
+    btnPause.classList.remove('hidden');
+    btnHelp.classList.remove('hidden');
+
+    for (const key in scenes) scenes[key].classList.toggle('active', key === name);
+    for (const key in games) {
+      if (key === name) continue;
+      games[key].pause();
+    }
+
+    const game = games[name];
+    if (game.resize) game.resize();   // 场景刚显示，需要重新量取画布尺寸
+    if (game.reset) game.reset();
+    game.resume();
+    syncShellInset();                       // 立即按新的按钮栏宽度预留位置
+    requestAnimationFrame(syncShellInset);  // 字体/布局稳定后再校正一次
+  }
+
+  function backToSelect() {
+    mode = null;
+    paused = false;
+    helpPaused = false;
+    for (const key in games) games[key].pause();
+    for (const key in scenes) scenes[key].classList.remove('active');
+    pauseModal.classList.add('hidden');
+    helpModal.classList.add('hidden');
+    selectScreen.classList.remove('hidden');
+    btnBack.classList.add('hidden');
+    btnPause.classList.add('hidden');
+    btnHelp.classList.add('hidden');
+    updateCardMeta();
+    syncShellInset();
+  }
+  window.reflectBackToSelect = backToSelect;
+
+  Array.prototype.forEach.call(document.querySelectorAll('.mode-card'), function (card) {
+    card.addEventListener('click', function () { enterMode(card.getAttribute('data-mode')); });
+  });
+
+  btnBack.addEventListener('click', backToSelect);
+  btnFull.addEventListener('click', toggleFullscreen);
+  btnPause.addEventListener('click', function () { setPaused(!paused); });
+  btnHelp.addEventListener('click', openHelp);
+  document.getElementById('btnHelpClose').addEventListener('click', closeHelp);
+  document.getElementById('btnResume').addEventListener('click', function () { setPaused(false); });
+  pauseModal.addEventListener('click', function () { if (paused) setPaused(false); });
+
+  window.addEventListener('resize', syncShellInset);
+
+  // 按钮栏自身的尺寸变化（文案切换、跨字号断点）也要立刻同步预留宽度
+  if (window.ResizeObserver) new ResizeObserver(syncShellInset).observe(shellBar);
+
+  // 不支持全屏的环境（iPhone / iPad Safari）：隐藏按钮并给替代方案
+  const canFullscreen = !!((OCFullscreen && OCFullscreen.isOn) &&
+    (document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen));
+  if (!canFullscreen) {
+    btnFull.classList.add('hidden');
+    const tip = document.getElementById('iosTip');
+    if (tip) tip.classList.add('show');
+  }
+
+  // 首次触控 / 回到前台时恢复音频（iOS 来电或锁屏后 AudioContext 会挂起）
+  function resumeAudio() {
+    for (const key in games) if (games[key].resumeAudio) games[key].resumeAudio();
+  }
+  document.addEventListener('pointerdown', resumeAudio);
+  document.addEventListener('touchstart', resumeAudio, { passive: true });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) resumeAudio(); });
+
+  updateFullBtn();
+  updateCardMeta();
+  syncShellInset();
+})();
+</script>
+
+<!-- easy.js -->
+<script>
+/*
+  光的反射游戏实验室 · 简单模式逻辑（注册为 easy）
+  入口：light-reflect-game.html
+*/
+
+/* ==================== 简单模式逻辑 ==================== */
+(() => {
+"use strict";
+
+/* =========================================================
+   基础设置
+   ========================================================= */
+const H = 620;                 // 世界高度固定，纵向布局保持不变
+let W = 1200;                  // 世界宽度随窗口比例变化，画面铺满整个窗口
+let viewCW = 1200, viewCH = 620;   // 画布 CSS 尺寸，用来把 HUD 占位换算成世界坐标
+let sceneReady = false;
+const cv  = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+
+function fitCanvas(){
+  const cw = cv.clientWidth || window.innerWidth || 1200;
+  const ch = cv.clientHeight || window.innerHeight || H;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const s = ch / H;
+  viewCW = cw; viewCH = ch;
+  W = Math.max(700, Math.round(H * cw / ch));
+  cv.width  = Math.round(cw * dpr);
+  cv.height = Math.round(ch * dpr);
+  ctx.setTransform(dpr * s, 0, 0, dpr * s, 0, 0);
+  if (sceneReady) layoutScene();
+}
+fitCanvas();
+window.addEventListener('resize', fitCanvas);
+
+/* =========================================================
+   场景几何（可自行调整位置）
+   ========================================================= */
+const D2R = Math.PI / 180;
+
+// 平面镜：位于底部中央，可绕中心旋转 ±25°
+const MIRROR = {
+  x: 600, y: 545,
+  half: 170,
+  angle: 0,
+  min: -25 * D2R,
+  max:  25 * D2R
+};
+
+// 两支激光笔，固定在左右两侧
+// sx = 1 表示朝右下射，sx = -1 表示朝左下射
+const PENS = [
+  { id:'L', x:120, y:235, sx: 1, angle:45*D2R, min:27*D2R, max:58*D2R, on:false },
+  { id:'R', x:1080, y:235, sx:-1, angle:45*D2R, min:27*D2R, max:58*D2R, on:false }
+];
+
+// 按窗口比例摆放镜子与激光笔（世界高度固定，宽度随窗口变化）
+function layoutScene(){
+  MIRROR.x = Math.round(W / 2);
+  MIRROR.half = Math.max(100, Math.min(190, W * 0.14));
+  const margin = Math.min(120, W * 0.11);
+  PENS[0].x = Math.round(margin);
+  PENS[1].x = Math.round(W - margin);
+  computeReachable();
+}
+
+// 世界单位 <-> CSS 像素换算：画布里的文字与线宽按固定 CSS 尺寸渲染，
+// 这样手机等小屏上被整体缩小后依然看得清。
+function cssPerWorld(){ return Math.max(viewCH / H, 0.05); }
+function cssSize(cssPx){ return cssPx / cssPerWorld(); }
+function cssFont(cssPx, weight){
+  return (weight || 600) + ' ' + cssSize(cssPx) + 'px system-ui,sans-serif';
+}
+
+/* =========================================================
+   数学工具
+   ========================================================= */
+const rayToEdge = (p, d) => {
+  let t = Infinity;
+  if (d.x >  1e-9) t = Math.min(t, (W - p.x) / d.x);
+  if (d.x < -1e-9) t = Math.min(t, (0 - p.x) / d.x);
+  if (d.y >  1e-9) t = Math.min(t, (H - p.y) / d.y);
+  if (d.y < -1e-9) t = Math.min(t, (0 - p.y) / d.y);
+  return Math.max(t, 0);
+};
+
+// 射线与镜面线段求交 → 返回交点 Q、反射方向 d2
+function intersectMirror(origin, dir, mAngle){
+  const u = { x: Math.cos(mAngle), y: Math.sin(mAngle) };   // 镜面方向
+  const w = { x: MIRROR.x - origin.x, y: MIRROR.y - origin.y };
+  const D = u.x * dir.y - dir.x * u.y;
+  if (Math.abs(D) < 1e-9) return null;                       // 平行
+  const t = (u.x * w.y - w.x * u.y) / D;
+  const s = (dir.x * w.y - w.x * dir.y) / D;
+  if (t <= 0 || Math.abs(s) > MIRROR.half) return null;      // 未命中镜面
+
+  const Q = { x: origin.x + dir.x * t, y: origin.y + dir.y * t };
+  const n = { x: Math.sin(mAngle), y: -Math.cos(mAngle) };   // 镜面朝上的法线
+  const dn = dir.x * n.x + dir.y * n.y;
+  const d2 = { x: dir.x - 2 * dn * n.x, y: dir.y - 2 * dn * n.y }; // 反射定律
+  return { Q, d2 };
+}
+
+const penDir = pen => ({ x: pen.sx * Math.cos(pen.angle), y: Math.sin(pen.angle) });
+
+function segDist(p, a, b){
+  const abx = b.x - a.x, aby = b.y - a.y;
+  const apx = p.x - a.x, apy = p.y - a.y;
+  const l2 = abx*abx + aby*aby;
+  let t = l2 > 0 ? (apx*abx + apy*aby) / l2 : 0;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(p.x - (a.x + abx*t), p.y - (a.y + aby*t));
+}
+
+function segHitsCircle(a, b, c, r){
+  return segDist(c, a, b) <= r;
+}
+
+/* =========================================================
+   预计算：所有"能够被激光打到"的位置
+   ========================================================= */
+let reachable = [];
+
+function computeReachable(){
+  const pts = new Map();
+  const STEP = 12;
+
+  // 边界留白随 HUD 的 CSS 占位换算成世界坐标，保证怪物不会藏在得分/时间/按钮下面
+  const yTop = Math.round(Math.max(70, 100 * H / viewCH));
+  const yBot = Math.round(Math.max(yTop + 60, 345 * H / viewCH));
+  const xPad = Math.round(Math.max(150, 180 * W / viewCW));
+  const xMin = xPad, xMax = Math.max(xPad + 60, W - xPad);
+
+  const mirrorAngles = [];
+  for (let i = 0; i <= 20; i++) mirrorAngles.push(MIRROR.min + (MIRROR.max - MIRROR.min) * i / 20);
+
+  const penAngles = [];
+  for (let i = 0; i <= 26; i++) penAngles.push(27*D2R + (31*D2R) * i / 26);
+
+  for (const pen of PENS){
+    for (const ma of mirrorAngles){
+      for (const pa of penAngles){
+        const dir = { x: pen.sx * Math.cos(pa), y: Math.sin(pa) };
+        const hit = intersectMirror({ x: pen.x, y: pen.y }, dir, ma);
+        if (!hit) continue;
+
+        let p = { x: hit.Q.x, y: hit.Q.y };
+        const d2 = hit.d2;
+        for (let k = 0; k < 260; k++){
+          p = { x: p.x + d2.x * STEP, y: p.y + d2.y * STEP };
+          if (p.x < -80 || p.x > W + 80 || p.y < -80 || p.y > H + 80) break;
+
+          if (p.y < yTop || p.y > yBot) continue;
+          if (p.x < xMin || p.x > xMax) continue;
+          if (Math.hypot(p.x - pen.x, p.y - pen.y) < 115) continue;
+
+          const gx = Math.round(p.x / STEP) * STEP;
+          const gy = Math.round(p.y / STEP) * STEP;
+          if (gy < yTop || gy > yBot || gx < xMin || gx > xMax) continue;
+
+          const key = gx + ',' + gy;
+          if (!pts.has(key)) pts.set(key, { x: gx, y: gy });
+        }
+      }
+    }
+  }
+  reachable = [...pts.values()];
+}
+layoutScene();          // 首次布局：按窗口比例摆好镜子与激光笔，并算出可达点
+sceneReady = true;
+
+/* =========================================================
+   游戏状态
+   ========================================================= */
+const state = {
+  running: false,
+  over:    false,
+  score:   0,
+  timeLeft: 60,
+  monster: null,
+  particles: [],
+  respawn: 0,
+  shake: 0
+};
+
+const scoreEl  = document.getElementById('score');
+const timeEl   = document.getElementById('time');
+const timePill = document.getElementById('timePill');
+const overlay  = document.getElementById('overlay');
+const ovBtn    = document.getElementById('ovBtn');
+const hintEl   = document.getElementById('hint');
+const tipEl    = document.getElementById('tip');
+const panelEl  = overlay.querySelector('.panel');
+const INTRO_HTML = panelEl.innerHTML;   // 记住开始面板，返回选择后要还原
+const btnEasyAngles = document.getElementById('btnEasyAngles');
+let showAngles = false;                 // 是否显示 入射角 / 反射角
+
+let tipTimer = 0, tipText = '';
+function showTip(text, dur){ tipText = text; tipTimer = dur; }
+
+/* =========================================================
+   怪物
+   ========================================================= */
+function spawnMonster(){
+  if (!reachable.length) return;
+  let best = null, bestD = -1;
+  for (let i = 0; i < 12; i++){
+    const p = reachable[(Math.random() * reachable.length) | 0];
+    const d = state.monster
+      ? Math.hypot(p.x - state.monster.x, p.y - state.monster.y)
+      : 9999;
+    if (d > bestD){ bestD = d; best = p; }
+    if (d > 340) break;
+  }
+  state.monster = {
+    x: best.x, y: best.y,
+    r: Math.max(34, cssSize(26)),   // 小屏上保证怪物直径不小于约 52 CSS px
+    alive: true,
+    spawn: 0,
+    seed: Math.random() * 10
+  };
+}
+
+function hitMonster(){
+  const m = state.monster;
+  if (!m || !m.alive) return;
+
+  m.alive = false;
+  state.score += 10;
+  state.shake = 0.28;
+
+  for (let i = 0; i < 30; i++){
+    const a = Math.random() * Math.PI * 2;
+    const sp = 70 + Math.random() * 300;
+    state.particles.push({
+      x: m.x, y: m.y,
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp - 60,
+      life: 0.6 + Math.random() * 0.6,
+      maxLife: 1.1,
+      size: 2 + Math.random() * 4,
+      color: Math.random() < 0.45 ? '#ffd166'
+           : Math.random() < 0.6  ? '#ff5d8f' : '#9b6bff'
+    });
+  }
+
+  beep(620, 0.11, 'triangle', 0.13);
+  setTimeout(() => beep(880, 0.16, 'sine', 0.09), 35);
+  setTimeout(() => beep(1240, 0.18, 'sine', 0.055), 75);
+
+  state.respawn = 0.30;
+}
+
+/* =========================================================
+   音效
+   ========================================================= */
+let actx = null;
+function beep(freq, dur, type = 'sine', vol = 0.12){
+  try{
+    if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();   // iOS 从后台回来时可能被挂起
+    const o = actx.createOscillator();
+    const g = actx.createGain();
+    o.type = type;
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + dur);
+    o.connect(g); g.connect(actx.destination);
+    o.start(); o.stop(actx.currentTime + dur + 0.02);
+  }catch(e){}
+}
+
+/* =========================================================
+   交互
+   ========================================================= */
+const drag = { active:false, obj:null, type:null, sx:0, sy:0, moved:false, touch:false };
+
+function getPos(e){
+  const r = cv.getBoundingClientRect();
+  return {
+    x: (e.clientX - r.left) * (W / r.width),
+    y: (e.clientY - r.top ) * (H / r.height)
+  };
+}
+
+function togglePen(pen){
+  const willOn = !pen.on;
+  for (const p of PENS) p.on = false;
+  pen.on = willOn;
+  beep(willOn ? 620 : 300, 0.07, 'square', 0.07);
+}
+
+cv.addEventListener('pointerdown', e => {
+  const p = getPos(e);
+  drag.sx = p.x; drag.sy = p.y; drag.moved = false;
+  drag.active = false; drag.obj = null; drag.type = null;
+  drag.touch = e.pointerType === 'touch';   // 手指触摸时放宽抓取范围
+
+  // 先判断激光笔
+  const penR = drag.touch ? 100 : 80;
+  for (const pen of PENS){
+    if (Math.hypot(p.x - pen.x, p.y - pen.y) < penR){
+      drag.active = true; drag.obj = pen; drag.type = 'pen';
+      break;
+    }
+  }
+  // 再判断平面镜
+  if (!drag.active){
+    const a = Math.cos(MIRROR.angle), b = Math.sin(MIRROR.angle);
+    const p1 = { x: MIRROR.x - a*MIRROR.half, y: MIRROR.y - b*MIRROR.half };
+    const p2 = { x: MIRROR.x + a*MIRROR.half, y: MIRROR.y + b*MIRROR.half };
+    if (segDist(p, p1, p2) < (drag.touch ? 60 : 42)){
+      drag.active = true; drag.obj = MIRROR; drag.type = 'mirror';
+    }
+  }
+  if (drag.active) { try { cv.setPointerCapture(e.pointerId); } catch (err) {} }
+});
+
+cv.addEventListener('pointermove', e => {
+  if (!drag.active) return;
+  const p = getPos(e);
+  if (!drag.moved && Math.hypot(p.x - drag.sx, p.y - drag.sy) > (drag.touch ? 14 : 6)) drag.moved = true;
+  if (!drag.moved) return;
+
+  if (drag.type === 'pen'){
+    const pen = drag.obj;
+    const a = Math.atan2(p.y - pen.y, pen.sx * (p.x - pen.x));
+    pen.angle = Math.max(pen.min, Math.min(pen.max, a));
+  } else {
+    let a = Math.atan2(p.y - MIRROR.y, p.x - MIRROR.x);
+    if (a >  Math.PI/2) a -= Math.PI;
+    if (a < -Math.PI/2) a += Math.PI;
+    MIRROR.angle = Math.max(MIRROR.min, Math.min(MIRROR.max, a));
+  }
+});
+
+function endPointer(){
+  if (drag.active && !drag.moved && drag.type === 'pen'){
+    togglePen(drag.obj);
+  } else if (!drag.active && state.running && !drag.moved){
+    showTip('按住并拖动激光笔或平面镜，就能改变角度', 2);
+  }
+  drag.active = false; drag.obj = null; drag.type = null; drag.moved = false;
+}
+cv.addEventListener('pointerup', endPointer);
+cv.addEventListener('pointercancel', endPointer);
+
+/* =========================================================
+   游戏流程
+   ========================================================= */
+function startGame(){
+  state.score = 0;
+  state.timeLeft = 60;
+  state.running = true;
+  state.over = false;
+  state.particles = [];
+  state.respawn = 0;
+  state.monster = null;
+  state.shake = 0;
+  for (const p of PENS) p.on = false;
+  overlay.classList.remove('show');
+  hintEl.style.opacity = '1';
+  tipEl.classList.remove('show');
+  spawnMonster();
+}
+
+function endGame(){
+  state.running = false;
+  state.over = true;
+  for (const p of PENS) p.on = false;
+  hintEl.style.opacity = '0';
+
+  const killed = state.score / 10;
+  const rank = killed >= 12 ? '反射大师 🏆'
+             : killed >= 8  ? '光路高手 ⭐'
+             : killed >= 4  ? '小有心得 👍'
+             : '继续加油 💪';
+
+  // 本机最高分（只存在本地，不上传）
+  const prevBest = window.getBestScore ? window.getBestScore('easy') : 0;
+  const isRecord = window.setBestScore ? window.setBestScore('easy', state.score) : false;
+  let bestText = '';
+  if (state.score > 0 || prevBest > 0){
+    bestText = isRecord ? '新纪录！本机最高分 ' + state.score + ' 分'
+                        : '本机最高分 ' + prevBest + ' 分';
+  }
+
+  overlay.querySelector('.panel').innerHTML = `
+    <h1>挑战结束</h1>
+    <p>消灭怪物 <b style="color:#ffd166;font-size:1.4em">${killed}</b> 只　·　
+       总得分 <b style="color:#ffd166;font-size:1.4em">${state.score}</b></p>
+    <p style="color:#7fd0ff;font-weight:700;letter-spacing:2px;">${rank}</p>
+    ${bestText ? `<p style="color:${isRecord ? '#ffd166' : '#a8bede'};font-size:16px;margin:-12px 0 20px">${bestText}</p>` : ''}
+    <div class="tips" style="text-align:center;display:block;">
+      反射光线、法线、入射光线在同一平面内<br>
+      反射光线和入射光线位于法线两侧<br>
+      反射角等于入射角
+    </div>
+    <button class="btn" id="ovBtn">再来一局</button><button class="ghost-btn" id="ovBack">返回选择</button>
+  `;
+  overlay.classList.add('show');
+  document.getElementById('ovBtn').addEventListener('click', startGame);
+  document.getElementById('ovBack').addEventListener('click', function () {
+    if (window.reflectBackToSelect) window.reflectBackToSelect();
+  });
+  beep(520, 0.15, 'sine', 0.09);
+  setTimeout(() => beep(392, 0.35, 'sine', 0.09), 160);
+}
+
+ovBtn.addEventListener('click', startGame);
+
+btnEasyAngles.addEventListener('click', function () {
+  showAngles = !showAngles;
+  btnEasyAngles.textContent = '显示角度：' + (showAngles ? '开' : '关');
+  btnEasyAngles.classList.toggle('active', showAngles);
+});
+
+/* =========================================================
+   更新
+   ========================================================= */
+function update(dt){
+  if (state.running){
+    state.timeLeft -= dt;
+    if (state.timeLeft <= 0){
+      state.timeLeft = 0;
+      endGame();
+    }
+  }
+
+  // 粒子
+  for (let i = state.particles.length - 1; i >= 0; i--){
+    const p = state.particles[i];
+    p.life -= dt;
+    if (p.life <= 0){ state.particles.splice(i, 1); continue; }
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.vy += 340 * dt;
+    p.vx *= 0.985;
+    p.vy *= 0.985;
+  }
+
+  // 怪物重生
+  if (state.respawn > 0){
+    state.respawn -= dt;
+    if (state.respawn <= 0) spawnMonster();
+  }
+
+  if (state.monster) state.monster.spawn = Math.min(1, state.monster.spawn + dt * 5);
+  if (state.shake > 0) state.shake = Math.max(0, state.shake - dt);
+
+  // 命中判定
+  if (state.running && state.monster && state.monster.alive) checkHit();
+
+  // 提示条：临时提示优先，其次是「镜面已到极限」的引导
+  if (tipTimer > 0) tipTimer = Math.max(0, tipTimer - dt);
+  const mirrorAtLimit = MIRROR.angle <= MIRROR.min + 0.5 * D2R
+                     || MIRROR.angle >= MIRROR.max - 0.5 * D2R;
+  let tipMsg = '';
+  if (tipTimer > 0){
+    tipMsg = tipText;
+  } else if (state.running && mirrorAtLimit && PENS.some(p => p.on)
+             && !beamHitsMonster(state.monster)){
+    tipMsg = '镜面已转到极限 · 试试拖动激光笔改变入射角';
+  }
+  if (tipEl.textContent !== tipMsg) tipEl.textContent = tipMsg;
+  tipEl.classList.toggle('show', tipMsg !== '');
+
+  // HUD
+  scoreEl.textContent = state.score;
+  const t = Math.ceil(state.timeLeft);
+  timeEl.textContent = t;
+  timePill.classList.toggle('warn', state.running && t <= 10);
+}
+
+function beamSegments(pen){
+  const o = { x: pen.x, y: pen.y };
+  const dir = penDir(pen);
+  const hit = intersectMirror(o, dir, MIRROR.angle);
+
+  if (!hit){
+    const t = rayToEdge(o, dir);
+    return [[o, { x: o.x + dir.x*t, y: o.y + dir.y*t }]];
+  }
+  const t2 = rayToEdge(hit.Q, hit.d2);
+  return [
+    [o, hit.Q],
+    [hit.Q, { x: hit.Q.x + hit.d2.x*t2, y: hit.Q.y + hit.d2.y*t2 }]
+  ];
+}
+
+function beamHitsMonster(m){
+  if (!m) return false;
+  return PENS.some(p => p.on && beamSegments(p).some(([a, b]) => segHitsCircle(a, b, m, m.r + 6)));
+}
+
+function checkHit(){
+  const m = state.monster;
+  for (const pen of PENS){
+    if (!pen.on) continue;
+    for (const [a, b] of beamSegments(pen)){
+      if (segHitsCircle(a, b, m, m.r + 6)){ hitMonster(); return; }
+    }
+  }
+}
+
+/* =========================================================
+   绘制
+   ========================================================= */
+function roundRect(c, x, y, w, h, r){
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y,     x + w, y + h, r);
+  c.arcTo(x + w, y + h, x,     y + h, r);
+  c.arcTo(x,     y + h, x,     y,     r);
+  c.arcTo(x,     y,     x + w, y,     r);
+  c.closePath();
+}
+
+function drawBackground(){
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0,   '#080d1c');
+  g.addColorStop(0.6, '#0d1428');
+  g.addColorStop(1,   '#131b33');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+
+  // 网格
+  ctx.strokeStyle = 'rgba(90,150,255,.055)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let x = 0; x <= W; x += 40){ ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+  for (let y = 0; y <= H; y += 40){ ctx.moveTo(0, y); ctx.lineTo(W, y); }
+  ctx.stroke();
+
+  // 顶部氛围光
+  const rg = ctx.createRadialGradient(W/2, -80, 40, W/2, -80, 620);
+  rg.addColorStop(0, 'rgba(90,150,255,.12)');
+  rg.addColorStop(1, 'rgba(90,150,255,0)');
+  ctx.fillStyle = rg;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function drawMirror(){
+  const a  = MIRROR.angle;
+  const ux = Math.cos(a), uy = Math.sin(a);
+  const p1 = { x: MIRROR.x - ux * MIRROR.half, y: MIRROR.y - uy * MIRROR.half };
+  const p2 = { x: MIRROR.x + ux * MIRROR.half, y: MIRROR.y + uy * MIRROR.half };
+
+  // 支架
+  ctx.strokeStyle = 'rgba(100,140,200,.45)';
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(MIRROR.x, MIRROR.y);
+  ctx.lineTo(MIRROR.x, MIRROR.y + 34);
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(80,120,190,.30)';
+  ctx.beginPath();
+  ctx.ellipse(MIRROR.x, MIRROR.y + 40, 78, 13, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // 镜面光晕
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.shadowColor = 'rgba(120,200,255,.95)';
+  ctx.shadowBlur = 26;
+  ctx.strokeStyle = 'rgba(120,200,255,.9)';
+  ctx.lineWidth = Math.max(9, cssSize(7));
+  ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+  ctx.restore();
+
+  // 镜面本体
+  const mg = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+  mg.addColorStop(0,   '#5f8fc9');
+  mg.addColorStop(0.5, '#eaf6ff');
+  mg.addColorStop(1,   '#5f8fc9');
+  ctx.strokeStyle = mg;
+  ctx.lineWidth = Math.max(7, cssSize(4.8));
+  ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+
+  ctx.strokeStyle = 'rgba(255,255,255,.95)';
+  ctx.lineWidth = Math.max(2, cssSize(1.8));
+  ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+
+  // 两端手柄
+  for (const p of [p1, p2]){
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, Math.max(7, cssSize(5)), 0, Math.PI*2);
+    ctx.fillStyle = '#0e1a30';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(140,210,255,.9)';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  }
+
+  // 角度读数
+  const deg = (a / D2R).toFixed(0);
+  ctx.fillStyle = 'rgba(140,190,255,.6)';
+  ctx.font = cssFont(14, 600);
+  ctx.textAlign = 'center';
+  ctx.fillText(`镜面倾角 ${deg > 0 ? '+' : ''}${deg}°`, MIRROR.x, Math.min(MIRROR.y + 74, H - 10));
+  ctx.textAlign = 'left';
+}
+
+// 在反射点画出入射角 / 反射角（与困难模式同一套画法）
+function drawArc(cx, cy, a1, a2, radius, color, label){
+  let diff = a2 - a1;
+  while (diff > Math.PI) diff -= Math.PI * 2;
+  while (diff < -Math.PI) diff += Math.PI * 2;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, a1, a1 + diff, diff < 0);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(2.2, cssSize(1.6));
+  ctx.stroke();
+
+  const mid = a1 + diff / 2;
+  ctx.fillStyle = color;
+  ctx.font = cssFont(13, 700);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(0,0,0,.9)';
+  ctx.shadowBlur = 5;
+  ctx.fillText(label, cx + Math.cos(mid) * (radius + cssSize(22)), cy + Math.sin(mid) * (radius + cssSize(22)));
+  ctx.restore();
+}
+
+function drawAnglesAt(Q, inDir, outDir, nx, ny){
+  const vIn = { x: -inDir.x, y: -inDir.y };          // 指向光源
+  if (vIn.x * nx + vIn.y * ny < 0){ nx = -nx; ny = -ny; }
+
+  const aN   = Math.atan2(ny, nx);
+  const aIn  = Math.atan2(vIn.y, vIn.x);
+  const aOut = Math.atan2(outDir.y, outDir.x);
+
+  const c = Math.max(-1, Math.min(1, Math.abs(inDir.x * nx + inDir.y * ny)));
+  const deg = Math.round(Math.acos(c) * 180 / Math.PI);
+  const R = Math.max(54, cssSize(36));
+
+  drawArc(Q.x, Q.y, aN, aIn, R, 'rgba(255,214,80,.95)', 'i=' + deg + '°');
+  drawArc(Q.x, Q.y, aN, aOut, R, 'rgba(90,230,255,.95)', 'r=' + deg + '°');
+
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(Q.x, Q.y, Math.max(3.2, cssSize(2.6)), 0, Math.PI*2);
+  ctx.fill();
+}
+
+function drawPens(){
+  for (const pen of PENS){
+    const dir = penDir(pen);
+    const ang = Math.atan2(dir.y, dir.x);
+
+    ctx.save();
+    ctx.translate(pen.x, pen.y);
+    ctx.rotate(ang);
+
+    // 光晕
+    if (pen.on){
+      ctx.save();
+      ctx.shadowColor = '#ff3b3b';
+      ctx.shadowBlur = 22;
+      ctx.fillStyle = 'rgba(255,60,60,.85)';
+      ctx.beginPath();
+      ctx.arc(66, 0, 6, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 笔身
+    const bg = ctx.createLinearGradient(0, -11, 0, 11);
+    bg.addColorStop(0,    '#7b87a3');
+    bg.addColorStop(0.38, '#e8eeff');
+    bg.addColorStop(0.62, '#c3cde4');
+    bg.addColorStop(1,    '#5d6880');
+    ctx.fillStyle = bg;
+    roundRect(ctx, 0, -11, 66, 22, 9);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(20,30,50,.55)';
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, 0, -11, 66, 22, 9);
+    ctx.stroke();
+
+    // 按钮
+    ctx.fillStyle = pen.on ? '#ff4d4d' : '#39415a';
+    roundRect(ctx, 18, -7, 20, 14, 5);
+    ctx.fill();
+    if (pen.on){
+      ctx.save();
+      ctx.shadowColor = '#ff4d4d';
+      ctx.shadowBlur = 14;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 笔头
+    ctx.fillStyle = pen.on ? '#ff2b2b' : '#2b3145';
+    ctx.beginPath();
+    ctx.arc(66, 0, 5.5, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.restore();
+
+    // 底座圆点
+    ctx.beginPath();
+    ctx.arc(pen.x, pen.y, 4.5, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(150,200,255,.55)';
+    ctx.fill();
+
+    // 文字提示
+    ctx.fillStyle = pen.on ? 'rgba(255,140,140,.95)' : 'rgba(140,175,225,.75)';
+    ctx.font = cssFont(13, 700);
+    ctx.textAlign = 'center';
+    ctx.fillText(pen.on ? '● 开启中' : '○ 点击开启', pen.x, pen.y + 42);
+    ctx.textAlign = 'left';
+  }
+}
+
+function drawBeams(){
+  for (const pen of PENS){
+    if (!pen.on) continue;
+
+    const o = { x: pen.x, y: pen.y };
+    const dir = penDir(pen);
+    const hit = intersectMirror(o, dir, MIRROR.angle);
+
+    const path = [o];
+    if (hit){
+      path.push(hit.Q);
+      const t2 = rayToEdge(hit.Q, hit.d2);
+      path.push({ x: hit.Q.x + hit.d2.x * t2, y: hit.Q.y + hit.d2.y * t2 });
+    } else {
+      const t = rayToEdge(o, dir);
+      path.push({ x: o.x + dir.x * t, y: o.y + dir.y * t });
+    }
+
+    // 外发光
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    ctx.shadowColor = 'rgba(255,40,40,.95)';
+    ctx.shadowBlur = 22;
+    ctx.strokeStyle = 'rgba(255,50,50,.55)';
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.moveTo(path[0].x, path[0].y);
+    for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
+    ctx.stroke();
+
+    // 核心
+    ctx.shadowBlur = 12;
+    ctx.strokeStyle = '#ff5a5a';
+    ctx.lineWidth = 3.4;
+    ctx.beginPath();
+    ctx.moveTo(path[0].x, path[0].y);
+    for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
+    ctx.stroke();
+
+    // 内芯
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(255,235,235,.95)';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(path[0].x, path[0].y);
+    for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
+    ctx.stroke();
+
+    // 反射点光斑
+    if (hit){
+      ctx.beginPath();
+      ctx.arc(hit.Q.x, hit.Q.y, 6, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255,255,255,.95)';
+      ctx.shadowColor = '#ff6060';
+      ctx.shadowBlur = 20;
+      ctx.fill();
+
+      const nx = Math.sin(MIRROR.angle), ny = -Math.cos(MIRROR.angle);
+      ctx.shadowBlur = 0;
+      ctx.setLineDash([5, 6]);
+      ctx.strokeStyle = 'rgba(150,210,255,.8)';
+      ctx.lineWidth = Math.max(1.8, cssSize(1.6));
+      ctx.beginPath();
+      ctx.moveTo(hit.Q.x, hit.Q.y);
+      ctx.lineTo(hit.Q.x + nx*Math.max(38, cssSize(26)), hit.Q.y + ny*Math.max(38, cssSize(26)));
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      if (showAngles) drawAnglesAt(hit.Q, dir, hit.d2, nx, ny);
+    }
+    ctx.restore();
+  }
+}
+
+function drawMonster(){
+  const m = state.monster;
+  if (!m || !m.alive) return;
+
+  const t = performance.now() / 1000;
+  const bob = Math.sin(t * 2 + m.seed) * 4;
+  const s = m.spawn < 1 ? (1 - Math.pow(1 - m.spawn, 3)) : 1;
+  const R = m.r * s;
+
+  ctx.save();
+  ctx.translate(m.x, m.y + bob);
+
+  // 光晕
+  const glow = ctx.createRadialGradient(0, 0, R*0.3, 0, 0, R*2.3);
+  glow.addColorStop(0, 'rgba(170,90,255,.35)');
+  glow.addColorStop(1, 'rgba(170,90,255,0)');
+  ctx.fillStyle = glow;
+  ctx.beginPath(); ctx.arc(0, 0, R*2.3, 0, Math.PI*2); ctx.fill();
+
+  // 触角
+  ctx.strokeStyle = '#a56bff';
+  ctx.lineWidth = 5;
+  ctx.lineCap = 'round';
+  for (const sgn of [-1, 1]){
+    ctx.beginPath();
+    ctx.moveTo(sgn * R*0.42, -R*0.82);
+    ctx.quadraticCurveTo(sgn * R*0.75, -R*1.35, sgn * R*0.45, -R*1.55);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(sgn * R*0.45, -R*1.58, R*0.14, 0, Math.PI*2);
+    ctx.fillStyle = '#ffd166';
+    ctx.fill();
+  }
+
+  // 身体
+  const bg = ctx.createRadialGradient(-R*0.35, -R*0.4, R*0.15, 0, 0, R*1.15);
+  bg.addColorStop(0,   '#d9a3ff');
+  bg.addColorStop(0.5, '#a35cff');
+  bg.addColorStop(1,   '#6a22c4');
+  ctx.fillStyle = bg;
+  ctx.beginPath();
+  ctx.arc(0, 0, R, 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(255,255,255,.45)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // 眼睛
+  const eyeY = -R * 0.12;
+  for (const sgn of [-1, 1]){
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(sgn * R*0.35, eyeY, R*0.25, R*0.30, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle = '#22103a';
+    ctx.beginPath();
+    ctx.arc(sgn * R*0.35 + Math.sin(t*1.4 + m.seed)*R*0.06,
+            eyeY + R*0.05, R*0.13, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(255,255,255,.9)';
+    ctx.beginPath();
+    ctx.arc(sgn * R*0.35 + R*0.07, eyeY - R*0.08, R*0.05, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // 嘴巴
+  ctx.strokeStyle = '#22103a';
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(0, R*0.26, R*0.30, 0.12*Math.PI, 0.88*Math.PI);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawParticles(){
+  for (const p of state.particles){
+    const a = Math.max(0, p.life / p.maxLife);
+    ctx.globalAlpha = a;
+    ctx.fillStyle = p.color;
+    ctx.shadowColor = p.color;
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * a, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  ctx.shadowBlur = 0;
+}
+
+function render(){
+  ctx.save();
+
+  // 命中震屏
+  if (state.shake > 0){
+    const s = state.shake * 22;
+    ctx.translate((Math.random()-0.5)*s, (Math.random()-0.5)*s);
+  }
+
+  drawBackground();
+  drawMirror();
+  drawMonster();
+  drawBeams();
+  drawPens();
+  drawParticles();
+
+  ctx.restore();
+}
+
+/* =========================================================
+   主循环（由外壳在进入本模式时启动 / 暂停）
+   ========================================================= */
+let last = performance.now();
+let paused = true, scheduled = false;
+
+function loop(now){
+  scheduled = false;
+  if (paused) return;
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  update(dt);
+  render();
+  scheduled = true;
+  requestAnimationFrame(loop);
+}
+
+function startLoop(){
+  if (paused || scheduled) return;
+  scheduled = true;
+  requestAnimationFrame(loop);
+}
+
+/* =========================================================
+   对外接口
+   ========================================================= */
+function resetToIntro(){
+  state.running = false;
+  state.over = false;
+  state.score = 0;
+  state.timeLeft = 60;
+  state.monster = null;
+  state.particles = [];
+  state.respawn = 0;
+  state.shake = 0;
+  for (const p of PENS) p.on = false;
+  MIRROR.angle = 0;
+  tipTimer = 0;
+  panelEl.innerHTML = INTRO_HTML;
+  overlay.classList.add('show');
+  panelEl.querySelector('#ovBtn').addEventListener('click', startGame);
+}
+
+window.registerReflectGame('easy', {
+  reset: resetToIntro,
+  resize: fitCanvas,
+  pause(){ paused = true; },
+  resume(){
+    if (!paused) return;
+    paused = false;
+    last = performance.now();
+    startLoop();
+  },
+  resumeAudio(){ if (actx && actx.state !== 'running') actx.resume(); }
+});
+
+})();
+</script>
+
+<!-- hard.js -->
+<script>
+/*
+  光的反射游戏实验室 · 困难模式逻辑（注册为 hard）
+  入口：light-reflect-game.html
+*/
+
+/* ==================== 困难模式逻辑 ==================== */
+(function () {
+'use strict';
+
+/* ==================== 基础 ==================== */
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('scoreEl');
+const timeEl = document.getElementById('timeEl');
+const startScreen = document.getElementById('startScreen');
+const endScreen = document.getElementById('endScreen');
+const starsEl = document.getElementById('starsEl');
+const finalScoreEl = document.getElementById('finalScore');
+const finalHitsEl = document.getElementById('finalHits');
+const bestLineEl = document.getElementById('bestLine');
+const encourageEl = document.getElementById('encourageEl');
+const btnAngles = document.getElementById('btnAngles');
+const tipBanner = document.getElementById('tipBanner');
+
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+let W = 0, H = 0;
+let sceneScale = 1;   // 世界坐标 → CSS 像素的缩放（教室大屏自动放大）
+
+const laser = { x: 74, y: 300 };
+const MAX_BOUNCES = 16;
+const MIRROR_MAX_LEN = 320;
+
+let mirrors = [];
+let monster = null;
+let drag = null;
+let particles = [];
+let floaters = [];
+let stars = [];
+let score = 0, hits = 0;
+let timeLeft = 60;
+let running = false;
+let showAngles = false;
+let respawnTimer = 0;
+let shakeT = 0;
+let trace = { pts: [], hit: null, reflections: [] };
+let lastT = performance.now();
+
+/* ==================== 工具 ==================== */
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+function roundRect(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+function makeStars() {
+  stars = [];
+  const n = Math.round((W * H) / 11000);
+  for (let i = 0; i < n; i++) {
+    stars.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.4 + 0.3,
+      a: Math.random() * 0.45 + 0.12,
+      p: Math.random() * Math.PI * 2
+    });
+  }
+}
+
+function resize() {
+  const cw = canvas.clientWidth || window.innerWidth;
+  const ch = canvas.clientHeight || window.innerHeight;
+
+  const prevW = W, prevH = H;
+  sceneScale = clamp(Math.min(cw, ch) / 760, 1, 2);   // 大屏放大场景，方便投屏观看
+  W = cw / sceneScale;
+  H = ch / sceneScale;
+
+  canvas.width = Math.round(cw * DPR);
+  canvas.height = Math.round(ch * DPR);
+  ctx.setTransform(DPR * sceneScale, 0, 0, DPR * sceneScale, 0, 0);
+
+  // 缩放变化时按比例保留已画的镜子
+  if (prevW > 0 && prevH > 0 && mirrors.length) {
+    const kx = W / prevW, ky = H / prevH;
+    for (const m of mirrors) {
+      m.a.x *= kx; m.a.y *= ky;
+      m.b.x *= kx; m.b.y *= ky;
+    }
+  }
+
+  laser.x = 74;
+  laser.y = Math.round(H / 2);
+  makeStars();
+}
+
+/* ==================== 音效 ==================== */
+let audioCtx = null;
+function initAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; }
+  }
+}
+function beep(freq, freq2, dur, vol, type) {
+  if (!audioCtx) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();   // iOS 从后台回来时可能被挂起
+  const t = audioCtx.currentTime;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type || 'sine';
+  o.frequency.setValueAtTime(freq, t);
+  o.frequency.exponentialRampToValueAtTime(Math.max(40, freq2), t + dur);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(t); o.stop(t + dur + 0.02);
+}
+
+/* ==================== 光线追踪 ==================== */
+function segIntersect(p, d, a, b) {
+  const rx = d.x, ry = d.y;
+  const sx = b.x - a.x, sy = b.y - a.y;
+  const denom = rx * sy - ry * sx;
+  if (Math.abs(denom) < 1e-9) return null;
+  const qx = a.x - p.x, qy = a.y - p.y;
+  const t = (qx * sy - qy * sx) / denom;
+  const u = (qx * ry - qy * rx) / denom;
+  if (t > 0.5 && u >= 0 && u <= 1) {
+    return { t, point: { x: p.x + rx * t, y: p.y + ry * t } };
+  }
+  return null;
+}
+
+function rayCircle(p, d, cx, cy, r) {
+  const ox = p.x - cx, oy = p.y - cy;
+  const b = ox * d.x + oy * d.y;
+  const cc = ox * ox + oy * oy - r * r;
+  const disc = b * b - cc;
+  if (disc < 0) return null;
+  const sq = Math.sqrt(disc);
+  let t = -b - sq;
+  if (t < 0.5) t = -b + sq;
+  if (t < 0.5) return null;
+  return { t, point: { x: p.x + d.x * t, y: p.y + d.y * t } };
+}
+
+function tToBoundary(p, d) {
+  let t = 6000;
+  const M = 80;
+  if (d.x > 1e-9) t = Math.min(t, (W + M - p.x) / d.x);
+  if (d.x < -1e-9) t = Math.min(t, (-M - p.x) / d.x);
+  if (d.y > 1e-9) t = Math.min(t, (H + M - p.y) / d.y);
+  if (d.y < -1e-9) t = Math.min(t, (-M - p.y) / d.y);
+  return Math.max(t, 1);
+}
+
+function traceLaser() {
+  const start = { x: laser.x + 14, y: laser.y };
+  const pts = [{ x: start.x, y: start.y }];
+  let p = { x: start.x, y: start.y };
+  let d = { x: 1, y: 0 };
+  let hit = null;
+  const reflections = [];
+
+  for (let b = 0; b < MAX_BOUNCES; b++) {
+    let best = null;
+
+    for (let i = 0; i < mirrors.length; i++) {
+      const m = mirrors[i];
+      const r = segIntersect(p, d, m.a, m.b);
+      if (r && (!best || r.t < best.t)) {
+        best = { t: r.t, point: r.point, type: 'mirror', mirror: m };
+      }
+    }
+
+    if (monster && monster.alive) {
+      const r = rayCircle(p, d, monster.x, monster.y, monster.r);
+      if (r && (!best || r.t < best.t)) {
+        best = { t: r.t, point: r.point, type: 'monster' };
+      }
+    }
+
+    const tb = tToBoundary(p, d);
+    if (!best || tb < best.t) {
+      best = { t: tb, point: { x: p.x + d.x * tb, y: p.y + d.y * tb }, type: 'wall' };
+    }
+
+    pts.push(best.point);
+
+    if (best.type === 'mirror') {
+      const m = best.mirror;
+      let nx = -(m.b.y - m.a.y);
+      let ny = (m.b.x - m.a.x);
+      const nl = Math.hypot(nx, ny) || 1;
+      nx /= nl; ny /= nl;
+
+      const dot = d.x * nx + d.y * ny;
+      const nd = { x: d.x - 2 * dot * nx, y: d.y - 2 * dot * ny };
+
+      if (reflections.length < 6) {
+        reflections.push({
+          point: best.point,
+          inDir: { x: d.x, y: d.y },
+          outDir: { x: nd.x, y: nd.y },
+          normal: { x: nx, y: ny }
+        });
+      }
+      d = nd;
+      p = best.point;
+    } else if (best.type === 'monster') {
+      hit = best.point;
+      break;
+    } else {
+      break;
+    }
+  }
+  return { pts, hit, reflections };
+}
+
+/* ==================== 怪物 ==================== */
+function spawnMonster() {
+  const r = 26;
+  let x = 0, y = 0;
+  // 顶部/底部留出空间，避免怪物被 HUD 按钮挡住
+  const topPad = Math.max(120, H * 0.18);
+  const botPad = Math.max(70, H * 0.09);
+  for (let i = 0; i < 80; i++) {
+    x = rand(W * 0.32, Math.max(W * 0.5, W - 80));
+    y = rand(topPad, Math.max(topPad + 40, H - botPad));
+    if (Math.abs(y - laser.y) < 95) continue;                 // 避开激光初始路径
+    if (Math.hypot(x - laser.x, y - laser.y) < 150) continue; // 别贴着激光源
+    break;
+  }
+  monster = {
+    x, y, r,
+    alive: true,
+    seed: Math.random() * 10,
+    born: performance.now()
+  };
+}
+
+function onHit(p) {
+  if (!monster || !monster.alive) return;
+  monster.alive = false;
+  score += 10;
+  hits++;
+  respawnTimer = 0.35;
+  shakeT = 0.32;
+
+  spawnExplosion(p.x, p.y);
+  addFloater(p.x, p.y - 34, '+10');
+  beep(880, 160, 0.22, 0.10, 'square');
+  beep(1600, 500, 0.12, 0.06, 'triangle');
+}
+
+/* ==================== 粒子 & 飘字 ==================== */
+function spawnExplosion(x, y) {
+  const colors = ['#7CFF6B', '#FFD93D', '#FF6B6B', '#4DD0E1', '#ffffff'];
+  for (let i = 0; i < 30; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const sp = rand(70, 420);
+    particles.push({
+      x, y,
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp,
+      life: rand(0.4, 0.95),
+      maxLife: 0.95,
+      size: rand(2, 5.5),
+      color: colors[(Math.random() * colors.length) | 0]
+    });
+  }
+}
+
+function updateParticles(dt) {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.vy += 380 * dt;
+    p.vx *= 0.985;
+    p.vy *= 0.985;
+    p.life -= dt;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    const a = clamp(p.life / p.maxLife, 0, 1);
+    ctx.globalAlpha = a;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * a + 0.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function addFloater(x, y, text) {
+  floaters.push({ x, y, text, life: 1.0, maxLife: 1.0 });
+}
+
+function updateFloaters(dt) {
+  for (let i = floaters.length - 1; i >= 0; i--) {
+    const f = floaters[i];
+    f.y -= 55 * dt;
+    f.life -= dt;
+    if (f.life <= 0) floaters.splice(i, 1);
+  }
+}
+
+function drawFloaters() {
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (const f of floaters) {
+    const a = clamp(f.life / f.maxLife, 0, 1);
+    ctx.globalAlpha = a;
+    ctx.font = 'bold 26px system-ui, sans-serif';
+    ctx.fillStyle = '#ffd166';
+    ctx.shadowColor = 'rgba(255,180,60,.9)';
+    ctx.shadowBlur = 14;
+    ctx.fillText(f.text, f.x, f.y);
+    ctx.shadowBlur = 0;
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* ==================== 绘制 ==================== */
+function drawStars() {
+  const t = performance.now() / 1000;
+  for (const s of stars) {
+    const a = s.a * (0.55 + 0.45 * Math.sin(t * 1.6 + s.p));
+    ctx.fillStyle = 'rgba(180,215,255,' + a.toFixed(3) + ')';
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawMirror(a, b, preview) {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const L = Math.hypot(dx, dy) || 1;
+  const tx = dx / L, ty = dy / L;                 // 镜面方向
+  const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+
+  // 镜背方向：取背离激光源的一侧，使反射面始终朝向入射光
+  let bx = -ty, by = tx;
+  if (bx * (laser.x - mx) + by * (laser.y - my) > 0) { bx = -bx; by = -by; }
+
+  ctx.save();
+  ctx.lineCap = 'round';
+
+  // 外发光
+  ctx.shadowColor = preview ? 'rgba(120,225,255,.95)' : 'rgba(80,175,255,.85)';
+  ctx.shadowBlur = 16;
+  ctx.strokeStyle = preview ? 'rgba(150,230,255,.8)' : 'rgba(150,215,255,.95)';
+  ctx.lineWidth = 8;
+  ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+
+  // 镜面本体
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = preview ? '#e6f8ff' : '#ffffff';
+  ctx.lineWidth = 3.2;
+  ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+
+  // 镜背斜线：物理课本中表示平面镜背面的画法
+  const hx = (bx + tx) * Math.SQRT1_2, hy = (by + ty) * Math.SQRT1_2;  // 与镜面成 45°
+  const hlen = 12;
+  const count = Math.max(1, Math.floor(L / 15));
+  ctx.strokeStyle = preview ? 'rgba(190,235,255,.8)' : 'rgba(160,205,255,.75)';
+  ctx.lineWidth = 1.7;
+  ctx.beginPath();
+  for (let i = 0; i <= count; i++) {
+    const t = (i + 0.5) / (count + 1);
+    const px = a.x + dx * t + bx * 1.5;
+    const py = a.y + dy * t + by * 1.5;
+    ctx.moveTo(px, py);
+    ctx.lineTo(px + hx * hlen, py + hy * hlen);
+  }
+  ctx.stroke();
+
+  // 两端小圆点
+  ctx.fillStyle = preview ? '#bff0ff' : '#ffffff';
+  ctx.beginPath(); ctx.arc(a.x, a.y, 3.2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(b.x, b.y, 3.2, 0, Math.PI * 2); ctx.fill();
+
+  ctx.restore();
+}
+
+function drawBeam(pts) {
+  if (pts.length < 2) return;
+  const path = new Path2D();
+  path.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) path.lineTo(pts[i].x, pts[i].y);
+
+  ctx.save();
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+
+  ctx.shadowColor = 'rgba(255,40,80,.9)';
+  ctx.shadowBlur = 28;
+  ctx.strokeStyle = 'rgba(255,60,100,.45)';
+  ctx.lineWidth = 11;
+  ctx.stroke(path);
+
+  ctx.shadowBlur = 18;
+  ctx.strokeStyle = 'rgba(255,120,150,.9)';
+  ctx.lineWidth = 4.5;
+  ctx.stroke(path);
+
+  ctx.shadowBlur = 8;
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 1.8;
+  ctx.stroke(path);
+
+  ctx.restore();
+}
+
+function drawMonster(m) {
+  const t = performance.now() / 1000;
+  const bob = Math.sin(t * 3.4 + m.seed) * 4;
+  const squash = 1 + Math.sin(t * 7 + m.seed) * 0.045;
+  const r = m.r;
+
+  ctx.save();
+  ctx.translate(m.x, m.y + bob);
+
+  // 光晕
+  const g0 = ctx.createRadialGradient(0, 0, r * 0.3, 0, 0, r * 2.3);
+  g0.addColorStop(0, 'rgba(110,255,140,.35)');
+  g0.addColorStop(1, 'rgba(110,255,140,0)');
+  ctx.fillStyle = g0;
+  ctx.beginPath(); ctx.arc(0, 0, r * 2.3, 0, Math.PI * 2); ctx.fill();
+
+  // 触角
+  ctx.strokeStyle = '#2fae5e';
+  ctx.lineWidth = 4;
+  ctx.lineCap = 'round';
+  for (const s of [-1, 1]) {
+    ctx.beginPath();
+    ctx.moveTo(s * r * 0.45, -r * 0.78);
+    ctx.quadraticCurveTo(s * r * 0.75, -r * 1.35, s * r * 1.0, -r * 1.15);
+    ctx.stroke();
+  }
+  ctx.fillStyle = '#8dff9e';
+  for (const s of [-1, 1]) {
+    ctx.beginPath(); ctx.arc(s * r * 1.0, -r * 1.15, 3.4, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // 身体
+  ctx.save();
+  ctx.scale(squash, 1 / squash);
+  const bg = ctx.createRadialGradient(-r * 0.32, -r * 0.4, r * 0.15, 0, 0, r * 1.25);
+  bg.addColorStop(0, '#a6ffb4');
+  bg.addColorStop(0.55, '#3ddc6b');
+  bg.addColorStop(1, '#12904a');
+  ctx.fillStyle = bg;
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  // 眼睛（看向激光笔）
+  const dx = laser.x - m.x, dy = laser.y - (m.y + bob);
+  const dl = Math.hypot(dx, dy) || 1;
+  const px = (dx / dl) * r * 0.13;
+  const py = (dy / dl) * r * 0.13;
+  const ex = r * 0.34, ey = -r * 0.16, er = r * 0.31;
+
+  for (const s of [-1, 1]) {
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(s * ex, ey, er, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#0b2b16';
+    ctx.beginPath(); ctx.arc(s * ex + px, ey + py, er * 0.52, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.9)';
+    ctx.beginPath(); ctx.arc(s * ex + px - er * 0.22, ey + py - er * 0.24, er * 0.16, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // 嘴巴
+  ctx.strokeStyle = '#0b2b16';
+  ctx.lineWidth = 2.6;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(0, r * 0.22, r * 0.4, 0.18 * Math.PI, 0.82 * Math.PI);
+  ctx.stroke();
+
+  // 小尖牙
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.moveTo(-r * 0.2, r * 0.56);
+  ctx.lineTo(-r * 0.1, r * 0.56);
+  ctx.lineTo(-r * 0.15, r * 0.74);
+  ctx.closePath(); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(r * 0.1, r * 0.56);
+  ctx.lineTo(r * 0.2, r * 0.56);
+  ctx.lineTo(r * 0.15, r * 0.74);
+  ctx.closePath(); ctx.fill();
+
+  ctx.restore();
+}
+
+function drawLaserSource() {
+  ctx.save();
+  ctx.translate(laser.x, laser.y);
+
+  // 机身
+  ctx.shadowColor = 'rgba(255,50,90,.8)';
+  ctx.shadowBlur = 18;
+  ctx.fillStyle = '#232b40';
+  roundRect(ctx, -54, -16, 54, 32, 10);
+  ctx.fill();
+
+  // 握把
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#181f33';
+  roundRect(ctx, -32, 12, 20, 26, 6);
+  ctx.fill();
+
+  // 高光条
+  ctx.fillStyle = '#3a4a6e';
+  roundRect(ctx, -50, -12, 40, 8, 4);
+  ctx.fill();
+
+  // 灯头
+  ctx.fillStyle = '#101827';
+  roundRect(ctx, -9, -11, 17, 22, 5);
+  ctx.fill();
+
+  // 发射口辉光
+  const g = ctx.createRadialGradient(7, 0, 0, 7, 0, 14);
+  g.addColorStop(0, '#ffffff');
+  g.addColorStop(0.32, '#ff5a7a');
+  g.addColorStop(1, 'rgba(255,40,80,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(7, 0, 14, 0, Math.PI * 2); ctx.fill();
+
+  ctx.restore();
+}
+
+function drawArc(cx, cy, a1, a2, radius, color, label) {
+  let diff = a2 - a1;
+  while (diff > Math.PI) diff -= Math.PI * 2;
+  while (diff < -Math.PI) diff += Math.PI * 2;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, a1, a1 + diff, diff < 0);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.2;
+  ctx.stroke();
+
+  const mid = a1 + diff / 2;
+  ctx.fillStyle = color;
+  ctx.font = 'bold 13px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(0,0,0,.9)';
+  ctx.shadowBlur = 5;
+  ctx.fillText(label, cx + Math.cos(mid) * (radius + 18), cy + Math.sin(mid) * (radius + 18));
+  ctx.restore();
+}
+
+// 法线：跟随反射点动态显示，只画在入射光一侧
+function drawNormals() {
+  const list = trace.reflections.slice(0, 4);
+  if (!list.length) return;
+  const len = showAngles ? 66 : 44;
+
+  ctx.save();
+  ctx.setLineDash([5, 6]);
+  ctx.strokeStyle = 'rgba(150,210,255,.85)';
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  for (const r of list) {
+    let nx = r.normal.x, ny = r.normal.y;
+    if (nx * -r.inDir.x + ny * -r.inDir.y < 0) { nx = -nx; ny = -ny; }
+    ctx.moveTo(r.point.x, r.point.y);
+    ctx.lineTo(r.point.x + nx * len, r.point.y + ny * len);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawAngles(reflections) {
+  const list = reflections.slice(0, 4);
+  for (const r of list) {
+    const { point, inDir, outDir, normal } = r;
+
+    const vIn = { x: -inDir.x, y: -inDir.y };
+    let n2 = { x: normal.x, y: normal.y };
+    if (vIn.x * n2.x + vIn.y * n2.y < 0) { n2.x = -n2.x; n2.y = -n2.y; }
+
+    const aN = Math.atan2(n2.y, n2.x);
+    const aIn = Math.atan2(vIn.y, vIn.x);
+    const aOut = Math.atan2(outDir.y, outDir.x);
+
+    const c = Math.abs(inDir.x * n2.x + inDir.y * n2.y);
+    const deg = Math.round(Math.acos(clamp(c, -1, 1)) * 180 / Math.PI);
+
+    drawArc(point.x, point.y, aN, aIn, 54, 'rgba(255,214,80,.95)', 'i=' + deg + '°');
+    drawArc(point.x, point.y, aN, aOut, 54, 'rgba(90,230,255,.95)', 'r=' + deg + '°');
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(point.x, point.y, 3.2, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+/* ==================== 主渲染 ==================== */
+function render() {
+  ctx.save();
+  if (shakeT > 0) {
+    const m = shakeT * 16;
+    ctx.translate(rand(-m, m), rand(-m, m));
+  }
+
+  // 背景
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, '#0a1020');
+  bg.addColorStop(0.5, '#0d1526');
+  bg.addColorStop(1, '#131a2e');
+  ctx.fillStyle = bg;
+  ctx.fillRect(-40, -40, W + 80, H + 80);
+
+  drawStars();
+
+  // 镜子
+  for (const m of mirrors) drawMirror(m.a, m.b, false);
+  if (drag) drawMirror(drag.a, drag.b, true);
+
+  // 光束
+  drawBeam(trace.pts);
+
+  // 法线
+  drawNormals();
+
+  // 角度标注
+  if (showAngles) drawAngles(trace.reflections);
+
+  // 怪物
+  if (monster && monster.alive) drawMonster(monster);
+
+  // 粒子 / 飘字
+  drawParticles();
+  drawFloaters();
+
+  // 激光笔
+  drawLaserSource();
+
+  ctx.restore();
+}
+
+/* ==================== 更新 ==================== */
+function updateTrace() {
+  trace = traceLaser();
+  if (trace.hit && monster && monster.alive) {
+    onHit(trace.hit);
+  }
+}
+
+function updateHUD() {
+  scoreEl.textContent = score;
+  const t = Math.ceil(timeLeft);
+  timeEl.textContent = t;
+  if (t <= 10) timeEl.classList.add('warn');
+  else timeEl.classList.remove('warn');
+}
+
+/* ==================== 游戏流程 ==================== */
+function startGame() {
+  initAudio();
+  score = 0;
+  hits = 0;
+  timeLeft = 60;
+  mirrors = [];
+  particles = [];
+  floaters = [];
+  drag = null;
+  respawnTimer = 0;
+  shakeT = 0;
+  monster = null;
+  trace = { pts: [], hit: null, reflections: [] };
+  running = true;
+  tipTimer = 0;
+
+  startScreen.classList.add('hidden');
+  endScreen.classList.add('hidden');
+
+  spawnMonster();
+  lastT = performance.now();
+  updateHUD();
+}
+
+function endGame() {
+  running = false;
+  drag = null;
+  monster = null;
+  tipTimer = 0;
+  trace = { pts: [], hit: null, reflections: [] };
+
+  finalScoreEl.textContent = score;
+  finalHitsEl.textContent = hits;
+
+  // 本机最高分（只存在本地，不上传）
+  const prevBest = window.getBestScore ? window.getBestScore('hard') : 0;
+  const isRecord = window.setBestScore ? window.setBestScore('hard', score) : false;
+  if (score <= 0 && prevBest <= 0) {
+    bestLineEl.textContent = '';
+  } else {
+    bestLineEl.textContent = isRecord ? '新纪录！本机最高分 ' + score + ' 分'
+                                      : '本机最高分 ' + prevBest + ' 分';
+    bestLineEl.style.color = isRecord ? '#ffd166' : '';
+  }
+
+  let s = '💪';
+  if (hits >= 10) s = '⭐⭐⭐';
+  else if (hits >= 6) s = '⭐⭐';
+  else if (hits >= 3) s = '⭐';
+  starsEl.textContent = s;
+
+  // 按击中数量（答对题数）给出相应的激励语
+  let msg;
+  if (hits >= 10) msg = '哇！反射定律已经刻进脑子里了，光路大师！';
+  else if (hits >= 6) msg = '很厉害！反射定律用得很熟练！';
+  else if (hits >= 3) msg = '不错哦！再多练几轮就能拿满星啦！';
+  else if (hits >= 1) msg = '已经找到感觉啦，继续加油！';
+  else msg = '别灰心，先记住：反射角 = 入射角，再来一局！';
+  encourageEl.textContent = msg;
+  encourageEl.style.animation = 'none';
+  void encourageEl.offsetWidth;   // 重排以重新播放弹入动画
+  encourageEl.style.animation = '';
+
+  endScreen.classList.remove('hidden');
+  beep(660, 220, 0.5, 0.09, 'sine');
+}
+
+/* ==================== 输入 ==================== */
+function getPos(e) {
+  const r = canvas.getBoundingClientRect();
+  return { x: (e.clientX - r.left) / sceneScale, y: (e.clientY - r.top) / sceneScale };
+}
+
+canvas.addEventListener('pointerdown', function (e) {
+  if (!running) return;
+  e.preventDefault();
+  const p = getPos(e);
+  drag = { a: { x: p.x, y: p.y }, b: { x: p.x, y: p.y } };
+  try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+});
+
+canvas.addEventListener('pointermove', function (e) {
+  if (!drag) return;
+  e.preventDefault();
+  const p = getPos(e);
+  let dx = p.x - drag.a.x;
+  let dy = p.y - drag.a.y;
+  const len = Math.hypot(dx, dy);
+  if (len > MIRROR_MAX_LEN) {
+    dx = dx / len * MIRROR_MAX_LEN;
+    dy = dy / len * MIRROR_MAX_LEN;
+  }
+  drag.b = { x: drag.a.x + dx, y: drag.a.y + dy };
+});
+
+function endDrag(e) {
+  if (!drag) return;
+  const len = Math.hypot(drag.b.x - drag.a.x, drag.b.y - drag.a.y);
+  if (len > 26) {
+    mirrors.push({ a: { x: drag.a.x, y: drag.a.y }, b: { x: drag.b.x, y: drag.b.y } });
+    beep(320, 520, 0.07, 0.035, 'triangle');
+  } else if (running) {
+    showTip('按住并拖动手指（或鼠标），就能画出一面平面镜', 2);
+  }
+  drag = null;
+}
+canvas.addEventListener('pointerup', endDrag);
+canvas.addEventListener('pointercancel', endDrag);
+
+/* ==================== 提示条 ==================== */
+let tipTimer = 0, tipText = '';
+const MIRROR_HINT_COUNT = 4;    // 镜子多到这个数量还没打中怪物，就提示清空重画
+
+function showTip(text, dur) {
+  tipText = text;
+  tipTimer = dur;
+}
+
+function updateTip(dt) {
+  if (tipTimer > 0) tipTimer = Math.max(0, tipTimer - dt);
+
+  let text = '';
+  if (tipTimer > 0) {
+    text = tipText;
+  } else if (running && monster && monster.alive && !trace.hit && mirrors.length >= MIRROR_HINT_COUNT) {
+    text = '镜子太多啦 · 点右上角「清空镜子」重新画一面吧';
+  }
+
+  if (tipBanner.textContent !== text) tipBanner.textContent = text;
+  tipBanner.classList.toggle('show', text !== '');
+}
+
+/* ==================== 按钮 ==================== */
+/* 全屏按钮由外壳统一提供 */
+document.getElementById('btnStart').addEventListener('click', startGame);
+document.getElementById('btnAgain').addEventListener('click', startGame);
+
+document.getElementById('btnRestart').addEventListener('click', function () {
+  if (running) { endGame(); }
+  else { startGame(); }
+});
+
+document.getElementById('btnEndBack').addEventListener('click', function () {
+  if (window.reflectBackToSelect) window.reflectBackToSelect();
+});
+
+document.getElementById('btnClear').addEventListener('click', function () {
+  mirrors = [];
+  drag = null;
+});
+
+btnAngles.addEventListener('click', function () {
+  showAngles = !showAngles;
+  btnAngles.textContent = '显示角度：' + (showAngles ? '开' : '关');
+  btnAngles.classList.toggle('active', showAngles);
+});
+
+/* ==================== 主循环（由外壳在进入本模式时启动 / 暂停） ==================== */
+let paused = true, scheduled = false;
+
+function loop(now) {
+  scheduled = false;
+  if (paused) return;
+  const dt = Math.min(0.05, (now - lastT) / 1000);
+  lastT = now;
+
+  if (running) {
+    timeLeft -= dt;
+    if (timeLeft <= 0) {
+      timeLeft = 0;
+      updateHUD();
+      endGame();
+    }
+  }
+
+  updateParticles(dt);
+  updateFloaters(dt);
+  if (shakeT > 0) shakeT = Math.max(0, shakeT - dt);
+
+  if (running) {
+    if (respawnTimer > 0) {
+      respawnTimer -= dt;
+      if (respawnTimer <= 0) spawnMonster();
+    }
+    updateTrace();
+  }
+
+  updateTip(dt);
+  render();
+  updateHUD();
+
+  scheduled = true;
+  requestAnimationFrame(loop);
+}
+
+function startLoop() {
+  if (paused || scheduled) return;
+  scheduled = true;
+  requestAnimationFrame(loop);
+}
+
+/* ==================== 对外接口 ==================== */
+function resetToIntro() {
+  running = false;
+  drag = null;
+  monster = null;
+  mirrors = [];
+  particles = [];
+  floaters = [];
+  score = 0;
+  hits = 0;
+  timeLeft = 60;
+  respawnTimer = 0;
+  shakeT = 0;
+  tipTimer = 0;
+  showAngles = false;
+  btnAngles.textContent = '显示角度：关';
+  btnAngles.classList.remove('active');
+  trace = { pts: [], hit: null, reflections: [] };
+  endScreen.classList.add('hidden');
+  startScreen.classList.remove('hidden');
+  updateHUD();
+}
+
+window.registerReflectGame('hard', {
+  reset: resetToIntro,
+  resize: resize,
+  pause() { paused = true; },
+  resume() {
+    if (!paused) return;
+    paused = false;
+    lastT = performance.now();
+    startLoop();
+  },
+  resumeAudio() { if (audioCtx && audioCtx.state !== 'running') audioCtx.resume(); }
+});
+
+/* ==================== 启动 ==================== */
+window.addEventListener('resize', resize);
+resize();   // 场景隐藏时尺寸为 0，进入本模式时外壳会再次调用
+
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<script src="oc-fullscreen.js?v=1"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#070b12" />
+<title>2026年香洲区公开课智慧平台</title>
+<style>
+    * { box-sizing: border-box; }
+
+    :root {
+        color-scheme: dark;
+        --panel: rgba(18, 26, 38, 0.94);
+        --line: rgba(120, 160, 255, 0.16);
+        --text: #e6edf7;
+        --muted: #8fa3bd;
+        --cyan: #4dd0ff;
+    }
+
+    body {
+        min-height: 100vh;
+        margin: 0;
+        padding: 48px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        background:
+            radial-gradient(900px 520px at 8% 0%, rgba(77, 208, 255, 0.14), transparent 60%),
+            radial-gradient(760px 480px at 100% 20%, rgba(124, 140, 255, 0.13), transparent 58%),
+            linear-gradient(155deg, #070b12 0%, #0b1220 55%, #070b12 100%);
+        background-attachment: fixed;
+    }
+
+    /* 不套浮框：内容直接铺在桌面背景上 */
+    .container {
+        width: min(100%, 1180px);
+        padding: 0;
+        margin: auto;
+    }
+
+    .header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        padding-bottom: 28px;
+    }
+
+    .logo {
+        width: 56px;
+        height: 56px;
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+        color: var(--text);            /* 图标颜色跟随标题 */
+    }
+
+    .logo svg {
+        width: 100%;
+        height: 100%;
+        fill: currentColor;
+        filter: drop-shadow(0 0 10px rgba(120, 180, 255, 0.25));
+    }
+
+    h1 {
+        margin: 0;
+        font-size: clamp(24px, 4vw, 34px);
+        letter-spacing: 2px;
+        font-weight: 600;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 16px;
+        padding-top: 30px;
+    }
+
+    .card {
+        grid-column: span 2;
+    }
+
+    /* 学生端：上面 3 张（各 2 格），下面 2 张（各 3 格）——下面两个更宽，
+       两张合起来正好等于上面一行 3 张的总宽 */
+    body[data-role="student"] .card[data-order-student="4"],
+    body[data-role="student"] .card[data-order-student="5"] {
+        grid-column: span 3;
+    }
+
+    /* 教师端：前 6 张排成 3 列 × 2 行，第 7 张（反射游戏）居中放第三行 */
+    body[data-role="teacher"] .card[data-order-teacher="7"] {
+        grid-column: 3 / span 2;
+    }
+
+    .card {
+        --accent: var(--cyan);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 18px;
+        min-height: 176px;
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        text-decoration: none;
+        color: inherit;
+        overflow: hidden;
+        background: linear-gradient(145deg, rgba(22, 33, 49, 0.96), rgba(13, 21, 33, 0.96));
+        background:
+            radial-gradient(220px 130px at 100% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 72%),
+            linear-gradient(145deg, rgba(22, 33, 49, 0.96), rgba(13, 21, 33, 0.96));
+        transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+    }
+
+    .card::after {
+        content: "";
+        position: absolute;
+        inset: auto 0 0 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        opacity: 0;
+        transition: opacity 200ms ease;
+    }
+
+    .card:hover,
+    .card:focus-visible {
+        transform: translateY(-4px);
+        border-color: rgba(120, 170, 255, 0.46);
+        border-color: color-mix(in srgb, var(--accent) 46%, transparent);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent);
+        outline: none;
+    }
+
+    .card:hover::after,
+    .card:focus-visible::after { opacity: 1; }
+
+    .card .icon {
+        width: 44px;
+        height: 44px;
+        display: grid;
+        place-items: center;
+        border-radius: 13px;
+        color: var(--accent);
+        background: rgba(77, 208, 255, 0.12);
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
+        border: 1px solid rgba(77, 208, 255, 0.26);
+        border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+    }
+
+    .card .icon svg {
+        width: 24px;
+        height: 24px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .card .name {
+        display: block;
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: 3px;
+    }
+
+    .card .hint {
+        display: block;
+        margin: 8px 0 0;
+        font-size: 13px;
+        letter-spacing: 1px;
+        color: var(--muted);
+    }
+
+    /* ---------- 全屏按钮（固定右上角） ---------- */
+    /* ---------- 右上角操作区：学生端/教师端 · 全屏 · 退出登录 ---------- */
+    .top-actions {
+        position: fixed;
+        top: 20px;
+        right: 22px;
+        z-index: 60;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(77, 208, 255, 0.35);
+        background: rgba(77, 208, 255, 0.12);
+        color: #9fe4ff;
+        font-size: 13.5px;
+        letter-spacing: 1px;
+        white-space: nowrap;
+    }
+
+    .role-badge.teacher {
+        border-color: rgba(155, 140, 255, 0.42);
+        background: rgba(155, 140, 255, 0.14);
+        color: #cfc7ff;
+    }
+
+    .top-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 18px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(18, 26, 38, 0.72);
+        backdrop-filter: blur(8px);
+        color: var(--muted);
+        font: inherit;
+        font-size: 14px;
+        letter-spacing: 1px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+
+    .top-btn:hover {
+        color: var(--text);
+        border-color: rgba(77, 208, 255, 0.45);
+        background: rgba(77, 208, 255, 0.08);
+    }
+
+    .top-btn:focus-visible {
+        outline: 2px solid var(--cyan);
+        outline-offset: 2px;
+    }
+
+    .top-btn svg {
+        width: 15px;
+        height: 15px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .top-btn .fs-shrink { display: none; }
+    .top-btn.is-fs .fs-expand { display: none; }
+    .top-btn.is-fs .fs-shrink { display: inline; }
+    .top-btn.hidden { display: none; }
+
+    /* ---------- 登录界面 ---------- */
+    .login {
+        position: fixed;
+        inset: 0;
+        z-index: 120;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        overflow-y: auto;
+        background:
+            radial-gradient(900px 520px at 18% 0%, rgba(77, 208, 255, 0.14), transparent 60%),
+            radial-gradient(760px 480px at 100% 18%, rgba(124, 140, 255, 0.13), transparent 58%),
+            linear-gradient(155deg, #070b12 0%, #0b1220 55%, #070b12 100%);
+    }
+
+    .login.hidden { display: none; }
+
+    .login-card {
+        width: min(100%, 420px);
+        margin: auto;
+        padding: 30px 30px 26px;
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: linear-gradient(180deg, rgba(18, 26, 38, 0.98), rgba(13, 20, 31, 0.98));
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+        text-align: center;
+    }
+
+    .login-logo {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 14px;
+        color: var(--text);
+    }
+
+    .login-logo svg { width: 100%; height: 100%; fill: currentColor; }
+
+    .login h2 {
+        margin: 0 0 6px;
+        font-size: 19px;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
+
+    .login .sub {
+        margin: 0 0 20px;
+        font-size: 12.5px;
+        color: var(--muted);
+        letter-spacing: 1px;
+    }
+
+    .role-seg {
+        display: flex;
+        gap: 6px;
+        padding: 4px;
+        margin-bottom: 18px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .role-btn {
+        flex: 1;
+        padding: 9px 8px;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: var(--muted);
+        font: inherit;
+        font-size: 13.5px;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: color 160ms ease, background 160ms ease;
+    }
+
+    .role-btn:hover:not(.on) { color: var(--text); }
+
+    .role-btn.on {
+        background: linear-gradient(120deg, var(--cyan), #7c8cff);
+        color: #04131d;
+        font-weight: 700;
+    }
+
+    .field {
+        display: block;
+        margin-bottom: 12px;
+        text-align: left;
+    }
+
+    .field span {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 12px;
+        color: var(--muted);
+        letter-spacing: 1px;
+    }
+
+    .field input {
+        width: 100%;
+        padding: 11px 14px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        font: inherit;
+        font-size: 15px;
+        letter-spacing: 1px;
+        outline: none;
+        transition: border-color 160ms ease, background 160ms ease;
+    }
+
+    .field input:focus {
+        border-color: rgba(77, 208, 255, 0.55);
+        background: rgba(77, 208, 255, 0.06);
+    }
+
+    .login-err {
+        min-height: 18px;
+        margin: 2px 0 8px;
+        font-size: 12.5px;
+        color: #ff8080;
+    }
+
+    .login-btn {
+        width: 100%;
+        padding: 12px;
+        border: 0;
+        border-radius: 999px;
+        background: linear-gradient(120deg, var(--cyan), #7c8cff);
+        color: #04131d;
+        font: inherit;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 3px;
+        cursor: pointer;
+        transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .login-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 26px rgba(77, 208, 255, 0.25);
+    }
+
+    /* 角色隐藏（学生端不显示教师专属入口） */
+    [hidden] {
+        display: none !important;
+    }
+
+    /* ---------- 工具内嵌窗口（保持全屏状态） ---------- */
+    .viewer {
+        position: fixed;
+        inset: 0;
+        z-index: 90;
+        display: none;
+        flex-direction: column;
+        background: var(--bg);
+    }
+
+    .viewer.open { display: flex; }
+
+    /* 工具里用自己的「返回平台」，所以内嵌时把平台右上角的按钮收起来 */
+    body.viewing .top-actions { display: none; }
+
+    .viewer iframe {
+        flex: 1;
+        width: 100%;
+        border: 0;
+        background: #0a0d11;
+    }
+
+    /* 工具加载较慢时的提示（不会自动跳转，避免退出全屏） */
+    .viewer-hint {
+        position: absolute;
+        left: 50%;
+        bottom: 22px;
+        transform: translateX(-50%);
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 9px 16px;
+        border-radius: 999px;
+        background: rgba(10, 16, 26, 0.92);
+        border: 1px solid rgba(120, 160, 255, 0.28);
+        color: #cfe3ff;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .viewer-hint a { color: #4dd0ff; text-decoration: none; font-weight: 700; }
+    .viewer-hint a:hover { text-decoration: underline; }
+
+    @media (max-width: 900px) {
+        .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .card,
+        .card:nth-child(4),
+        .card:nth-child(5),
+        body[data-role="student"] .card[data-order-student="4"],
+        body[data-role="student"] .card[data-order-student="5"],
+        body[data-role="teacher"] .card[data-order-teacher="7"] { grid-column: auto; }
+        .top-actions { top: 12px; right: 12px; gap: 8px; }
+        .top-btn, .role-badge { padding: 7px 12px; font-size: 12.5px; }
+    }
+
+    @media (max-width: 560px) {
+        body { padding: 58px 14px 20px; }
+        .container { padding: 0; }
+        .header { gap: 14px; padding-bottom: 22px; }
+        .top-actions { top: 10px; right: 10px; gap: 6px; }
+        .top-btn, .role-badge { padding: 6px 10px; font-size: 12px; }
+        .logo { width: 46px; height: 46px; border-radius: 13px; }
+        .grid { grid-template-columns: 1fr; }
+        .card,
+        .card:nth-child(5),
+        body[data-role="student"] .card[data-order-student="4"],
+        body[data-role="student"] .card[data-order-student="5"],
+        body[data-role="teacher"] .card[data-order-teacher="7"] { grid-column: auto; min-height: 132px; gap: 22px; padding: 20px; }
+        .card .name { font-size: 21px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .card, .card::after { transition: none; }
+        .card:hover, .card:focus-visible { transform: none; }
+    }
+</style>
+    <link rel="stylesheet" href="oc-touch.css?v=1" />
+    <script src="oc-net.js?v=1"></script>
+</head>
+<body data-role="student">
+<!-- ================= 登录界面 ================= -->
+<div class="login" id="loginScreen">
+    <div class="login-card">
+        <div class="login-logo" id="loginLogo" aria-hidden="true"></div>
+        <h2>2026年香洲区公开课智慧平台</h2>
+        <p class="sub">请选择身份后登录</p>
+
+        <div class="role-seg" id="roleSeg">
+            <button class="role-btn on" type="button" data-role="student">学生端</button>
+            <button class="role-btn" type="button" data-role="teacher">教师端</button>
+        </div>
+
+        <label class="field">
+            <span>账号</span>
+            <input id="loginUser" type="text" autocomplete="username" />
+        </label>
+        <label class="field">
+            <span>密码</span>
+            <input id="loginPass" type="password" autocomplete="current-password" placeholder="请输入密码" />
+        </label>
+
+        <p class="login-err" id="loginErr"></p>
+        <button class="login-btn" id="loginBtn" type="button">登 录</button>
+    </div>
+</div>
+
+<!-- ================= 右上角：身份 · 全屏 · 退出登录 ================= -->
+<div class="top-actions" id="topActions">
+    <span class="role-badge" id="roleBadge">学生端</span>
+    <button class="top-btn" id="btnFullscreen" type="button" aria-label="全屏显示">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path class="fs-expand" d="M9 4H4v5M15 4h5v5M20 15v5h-5M4 15v5h5" />
+            <path class="fs-shrink" d="M4 9h5V4M20 9h-5V4M15 20v-5h5M9 20v-5H4" />
+        </svg>
+        <span id="fsLabel">全屏</span>
+    </button>
+    <button class="top-btn" id="btnLogout" type="button">退出登录</button>
+</div>
+<main class="container">
+    <header class="header">
+        <div class="logo" aria-hidden="true">
+            <svg viewBox="0 0 1024 1024">
+                <path d="M420.736 512a91.264 91.264 0 1 0 182.528 0 91.264 91.264 0 1 0-182.528 0zM256.341 693.547l-20.138-5.12C86.1 650.496 0 586.112 0 511.829s86.101-138.666 236.203-176.597l20.138-5.077 5.675 19.968a1003.947 1003.947 0 0 0 58.155 152.661l4.309 9.088-4.31 9.088a994.432 994.432 0 0 0-58.154 152.661l-5.675 19.926z m-29.482-311.68C112.768 413.909 42.752 462.933 42.752 511.829c0 48.854 70.016 97.878 184.107 129.963a1064.533 1064.533 0 0 1 50.432-129.963 1056.085 1056.085 0 0 1-50.432-129.962z m540.8 311.68l-5.675-20.011a996.565 996.565 0 0 0-58.197-152.619l-4.31-9.088 4.31-9.088a999.253 999.253 0 0 0 58.197-152.661l5.675-19.968 20.181 5.077C937.899 373.12 1024 437.504 1024 511.83s-86.101 138.667-236.16 176.598l-20.181 5.12z m-20.95-181.718c20.48 44.331 37.419 87.894 50.432 129.963 114.134-32.085 184.107-81.11 184.107-129.963 0-48.896-70.016-97.877-184.107-129.962a1057.621 1057.621 0 0 1-50.432 129.962z" />
+                <path d="M226.56 381.653l-5.675-19.925C178.688 212.992 191.488 106.411 256 69.205c63.275-36.522 164.864 6.614 271.317 115.883l14.507 14.89-14.507 14.891A1004.885 1004.885 0 0 0 423.98 341.461l-5.76 8.235-10.027 0.853a1009.365 1009.365 0 0 0-161.493 26.027l-20.139 5.077z m80.896-282.88c-11.435 0-21.547 2.475-30.08 7.382-42.41 24.448-49.92 109.44-20.693 224.128a1071.872 1071.872 0 0 1 137.941-21.376 1060.139 1060.139 0 0 1 87.552-108.544c-66.56-64.811-129.579-101.59-174.72-101.59z m409.13 868.779c-0.042 0-0.042 0 0 0-60.8 0-138.88-45.781-219.903-128.981l-14.507-14.891 14.507-14.89a1003.947 1003.947 0 0 0 103.296-126.635l5.76-8.235 9.984-0.853A1008.213 1008.213 0 0 0 777.3 647.083l20.139-5.078 5.717 19.968C845.27 810.624 832.512 917.248 768 954.411a101.547 101.547 0 0 1-51.413 13.141zM541.825 823.296c66.56 64.81 129.579 101.59 174.72 101.59h0.043c11.392 0 21.546-2.475 30.037-7.382 42.41-24.448 49.963-109.483 20.693-224.17a1067.52 1067.52 0 0 1-137.984 21.375 1052.757 1052.757 0 0 1-87.509 108.587z" />
+                <path d="M797.44 381.653l-20.139-5.077a1001.77 1001.77 0 0 0-161.578-26.027l-9.984-0.853-5.76-8.235A998.997 998.997 0 0 0 496.683 214.87l-14.507-14.89 14.507-14.891C603.093 75.861 704.64 32.725 768 69.205c64.512 37.206 77.312 143.787 35.157 292.48l-5.717 19.968z m-168.107-72.746c48.726 4.437 95.019 11.648 137.984 21.376 29.27-114.688 21.718-199.68-20.693-224.128-42.155-24.363-121.387 12.97-204.8 94.208a1060.224 1060.224 0 0 1 87.51 108.544zM307.456 967.552A101.547 101.547 0 0 1 256 954.411c-64.512-37.163-77.312-143.744-35.115-292.438l5.632-19.968 20.139 5.078c49.28 12.416 103.637 21.162 161.493 25.984l10.027 0.853 5.717 8.235a1006.763 1006.763 0 0 0 103.339 126.634l14.507 14.891-14.507 14.89c-80.981 83.2-159.061 128.982-219.776 128.982z m-50.773-274.219c-29.27 114.688-21.718 199.723 20.693 224.171 42.112 24.021 121.301-13.013 204.8-94.208a1066.581 1066.581 0 0 1-87.552-108.587 1065.643 1065.643 0 0 1-137.941-21.376z" />
+                <path d="M512 720.128c-35.115 0-71.21-1.536-107.35-4.523l-10.026-0.853-5.76-8.235a1296.555 1296.555 0 0 1-57.6-90.538 1295.104 1295.104 0 0 1-49.75-95.062l-4.266-9.088 4.267-9.088a1292.8 1292.8 0 0 1 49.749-95.061c17.664-30.55 37.077-61.013 57.6-90.539l5.76-8.234 10.027-0.854a1270.827 1270.827 0 0 1 214.741 0l9.984 0.854 5.717 8.234a1280.256 1280.256 0 0 1 107.392 185.6l4.31 9.088-4.31 9.088a1262.933 1262.933 0 0 1-107.392 185.6l-5.717 8.235-9.984 0.853c-36.139 2.987-72.277 4.523-107.392 4.523z m-93.739-46.25c63.147 4.735 124.331 4.735 187.52 0a1237.59 1237.59 0 0 0 93.696-162.049 1219.627 1219.627 0 0 0-93.738-162.048 1238.656 1238.656 0 0 0-187.478 0 1215.019 1215.019 0 0 0-93.738 162.048 1242.197 1242.197 0 0 0 93.738 162.048z" />
+            </svg>
+        </div>
+        <h1>2026年香洲区公开课智慧平台</h1>
+    </header>
+
+    <nav class="grid" id="toolGrid">
+        <a class="card" href="group-cooperation.html" data-order-student="1" data-order-teacher="1" style="--accent:#4dd0ff">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 3.5l2.6 5.3 5.9.8-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8L3.5 9.6l5.9-.8L12 3.5Z" />
+                </svg>
+            </span>
+            <span>
+                <span class="name">积分</span>
+                <span class="hint">小组积分榜</span>
+            </span>
+        </a>
+
+        <a class="card" href="roll-call.html" data-teacher-only data-order-teacher="2" style="--accent:#ffc15e">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3.5" y="3.5" width="17" height="17" rx="4" />
+                    <circle cx="8.6" cy="8.6" r="1.3" />
+                    <circle cx="15.4" cy="15.4" r="1.3" />
+                    <circle cx="12" cy="12" r="1.3" />
+                </svg>
+            </span>
+            <span>
+                <span class="name">抽签</span>
+                <span class="hint">随机点名</span>
+            </span>
+        </a>
+
+        <a class="card" href="experiment-data.html" data-order-student="2" data-order-teacher="3"
+           data-hint-student="拍照上传" data-hint-teacher="查看照片" style="--accent:#4dd0ff">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3.5 8.5h3l1.6-2.4h6.8L16.5 8.5h4v10a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5v-10Z" />
+                    <circle cx="12" cy="13.8" r="3.4" />
+                </svg>
+            </span>
+            <span>
+                <span class="name">实验数据</span>
+                <span class="hint">拍照上传</span>
+            </span>
+        </a>
+
+        <a class="card" href="light-reflection-simulation.html" data-order-student="3" data-order-teacher="4" style="--accent:#5de0a1">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M9.5 3h5" />
+                    <path d="M10 3v5.2L5.9 17a3 3 0 0 0 2.7 4.3h6.8A3 3 0 0 0 18.1 17L14 8.2V3" />
+                    <path d="M7.4 14h9.2" />
+                </svg>
+            </span>
+            <span>
+                <span class="name">模拟实验</span>
+                <span class="hint">光的反射与漫反射</span>
+            </span>
+        </a>
+
+        <a class="card" href="class-pk.html" data-teacher-only data-order-teacher="5" style="--accent:#9b8cff">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="8.5" />
+                    <path d="M9.6 9.4a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2-2.4 3.6" />
+                    <path d="M12 17.3h.01" />
+                </svg>
+            </span>
+            <span>
+                <span class="name">答题</span>
+                <span class="hint">课堂知识PK</span>
+            </span>
+        </a>
+
+        <a class="card" href="answer-submit.html" data-order-student="4" data-order-teacher="6"
+           data-name-student="题目答案" data-name-teacher="答题结果"
+           data-hint-student="光的反射 · 提交答案" data-hint-teacher="学生答题结果查看" style="--accent:#8b7cff">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 3.5h9l3.5 3.5v13.5H6z" />
+                    <path d="M9.5 11.5h5M9.5 15h3.5" />
+                </svg>
+            </span>
+            <span>
+                <span class="name">题目答案</span>
+                <span class="hint">光的反射 · 提交答案</span>
+            </span>
+        </a>
+
+        <a class="card" href="light-reflect-game.html" data-order-student="5" data-order-teacher="7" style="--accent:#ff8a5c">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="8" />
+                    <circle cx="12" cy="12" r="3.4" />
+                    <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+                </svg>
+            </span>
+            <span>
+                <span class="name">反射游戏</span>
+                <span class="hint">激光打怪闯关</span>
+            </span>
+        </a>
+    </nav>
+</main>
+
+<!-- ================= 工具内嵌窗口（全屏状态保持） ================= -->
+<div class="viewer" id="viewer">
+    <iframe id="toolFrame" title="课堂工具" allow="fullscreen; autoplay; clipboard-write; encrypted-media"></iframe>
+</div>
+
+<script>
+    (function () {
+        /* ================= 账号名单（优先读 accounts.json） ================= */
+        const FALLBACK_ACCOUNTS = {
+            students: Array.from({ length: 20 }, function (_, i) {
+                const id = String(i + 1).padStart(3, '0');
+                return { account: id, password: id, group: i + 1 };
+            }),
+            teachers: [
+                { account: 'admin01', password: 'admin01' },
+                { account: 'admin02', password: 'admin02' }
+            ]
+        };
+
+        let accountsPromise = null;
+        function getAccounts() {
+            if (!accountsPromise) {
+                accountsPromise = fetch('accounts.json', { cache: 'no-store' })
+                    .then(function (res) { return res.ok ? res.json() : FALLBACK_ACCOUNTS; })
+                    .catch(function () { return FALLBACK_ACCOUNTS; });   // 本地双击打开时读不到文件，用内置名单兜底
+            }
+            return accountsPromise;
+        }
+
+        /* ================= 登录 ================= */
+        const STORE_KEY = 'oc_login_session';
+        const loginScreen = document.getElementById('loginScreen');
+        const roleSeg = document.getElementById('roleSeg');
+        const userInput = document.getElementById('loginUser');
+        const passInput = document.getElementById('loginPass');
+        const loginErr = document.getElementById('loginErr');
+        const loginBtn = document.getElementById('loginBtn');
+        const roleBadge = document.getElementById('roleBadge');
+        let role = 'student';
+
+        function readSession() {
+            try { return JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); }
+            catch (err) { return null; }
+        }
+
+        function writeSession(session) {
+            try {
+                if (session) localStorage.setItem(STORE_KEY, JSON.stringify(session));
+                else localStorage.removeItem(STORE_KEY);
+            } catch (err) { /* 隐私模式忽略 */ }
+        }
+
+        function applySession(session) {
+            const isTeacher = !!(session && session.role === 'teacher');
+            document.body.dataset.role = isTeacher ? 'teacher' : 'student';
+            // 教师专属入口（抽签等）在学生端隐藏
+            Array.prototype.forEach.call(document.querySelectorAll('[data-teacher-only]'), function (el) {
+                el.hidden = !isTeacher;
+            });
+            applyCardOrder(isTeacher);
+            applyCardLabels(isTeacher);
+
+            if (!session) {
+                loginScreen.classList.remove('hidden');
+                roleBadge.textContent = '未登录';
+                roleBadge.classList.remove('teacher');
+                return;
+            }
+            loginScreen.classList.add('hidden');
+            roleBadge.textContent = (isTeacher ? '教师端' : '学生端') + ' · ' + session.account;
+            roleBadge.classList.toggle('teacher', isTeacher);
+        }
+
+        // 按角色调整卡片顺序（学生 5 个 / 教师 7 个，顺序不同）
+        function applyCardOrder(isTeacher) {
+            const nav = document.getElementById('toolGrid');
+            if (!nav) return;
+            const attr = isTeacher ? 'orderTeacher' : 'orderStudent';
+            const cards = Array.prototype.slice.call(nav.querySelectorAll('.card'));
+            cards.sort(function (a, b) {
+                const ao = Number(a.dataset[attr] || 99);
+                const bo = Number(b.dataset[attr] || 99);
+                return ao - bo;
+            });
+            cards.forEach(function (card) { nav.appendChild(card); });
+        }
+
+        // 同一张卡片在不同角色下的名称/说明
+        function applyCardLabels(isTeacher) {
+            Array.prototype.forEach.call(document.querySelectorAll('.card'), function (card) {
+                const suffix = isTeacher ? 'Teacher' : 'Student';
+                const name = card.dataset['name' + suffix];
+                const hint = card.dataset['hint' + suffix];
+                if (name) card.querySelector('.name').textContent = name;
+                if (hint) card.querySelector('.hint').textContent = hint;
+            });
+        }
+
+        roleSeg.addEventListener('click', function (e) {
+            const btn = e.target.closest('.role-btn');
+            if (!btn) return;
+            role = btn.dataset.role;
+            Array.prototype.forEach.call(roleSeg.children, function (b) {
+                b.classList.toggle('on', b === btn);
+            });
+            loginErr.textContent = '';
+            userInput.focus();
+        });
+
+        async function doLogin() {
+            const user = userInput.value.trim();
+            const pass = passInput.value;
+            loginErr.textContent = '';
+            if (!user || !pass) {
+                loginErr.textContent = '请输入账号和密码';
+                return;
+            }
+
+            const data = await getAccounts();
+            let account = null;
+
+            if (role === 'teacher') {
+                const list = data.teachers || (data.teacher ? [data.teacher] : []);
+                const found = list.find(function (t) {
+                    return String(user).toLowerCase() === String(t.account).toLowerCase() && pass === t.password;
+                });
+                if (found) account = found.account;
+            } else {
+                const id = /^\d{1,3}$/.test(user) ? user.padStart(3, '0') : user;
+                const found = (data.students || []).find(function (s) { return s.account === id; });
+                if (found && pass === found.password) account = found.account;
+            }
+
+            if (!account) {
+                loginErr.textContent = '账号或密码不正确';
+                passInput.select();
+                return;
+            }
+
+            writeSession({ role: role, account: account, loginAt: Date.now() });
+            passInput.value = '';
+            applySession(readSession());
+        }
+
+        loginBtn.addEventListener('click', doLogin);
+        [userInput, passInput].forEach(function (el) {
+            el.addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
+        });
+
+        /* ================= 工具在平台内打开（全屏不会被打断） ================= */
+        const viewer = document.getElementById('viewer');
+        const toolFrame = document.getElementById('toolFrame');
+        let toolLoading = false;
+        let toolLoadTimer = null;
+
+        function openTool(href) {
+            // 把当前身份带给工具页，并加时间戳强制读取最新文件（本地文件容易被浏览器缓存）
+            const session = readSession();
+            const sep = href.indexOf('?') === -1 ? '?' : '&';
+            const role = session && session.role ? 'role=' + encodeURIComponent(session.role) + '&' : '';
+            const url = href + sep + role + 'v=' + Date.now();
+
+            viewer.classList.add('open');
+            document.body.classList.add('viewing');
+            hideToolHint();
+            toolLoading = true;
+            toolFrame.src = url;
+
+            // 加载慢时只给个提示，绝不自动跳转整页——整页跳转会让浏览器退出全屏
+            clearTimeout(toolLoadTimer);
+            toolLoadTimer = setTimeout(function () {
+                if (toolLoading) showToolHint(url);
+            }, 8000);
+        }
+
+        function showToolHint(url) {
+            let hint = document.getElementById('toolHint');
+            if (!hint) {
+                hint = document.createElement('div');
+                hint.id = 'toolHint';
+                hint.className = 'viewer-hint';
+                viewer.appendChild(hint);
+            }
+            hint.innerHTML = '<span>页面加载较慢…</span><a href="' + url + '" target="_blank" rel="noopener">在新标签打开</a>';
+            hint.hidden = false;
+        }
+
+        function hideToolHint() {
+            const hint = document.getElementById('toolHint');
+            if (hint) hint.hidden = true;
+        }
+
+        function closeTool() {
+            clearTimeout(toolLoadTimer);
+            toolLoading = false;
+            hideToolHint();
+            viewer.classList.remove('open');
+            document.body.classList.remove('viewing');
+            toolFrame.src = 'about:blank';
+        }
+
+        toolFrame.addEventListener('load', function () {
+            toolLoading = false;
+            clearTimeout(toolLoadTimer);
+            hideToolHint();
+            try {
+                const file = (toolFrame.contentWindow.location.pathname || '').split('/').pop();
+                if (file === 'open-class-smart-platform.html' || file === 'macao-class.html') closeTool();
+            } catch (err) { /* 跨域时忽略 */ }
+        });
+
+        toolFrame.addEventListener('load', function () {
+            toolLoading = false;
+            clearTimeout(toolLoadTimer);
+            try {
+                const file = (toolFrame.contentWindow.location.pathname || '').split('/').pop();
+                if (file === 'open-class-smart-platform.html' || file === 'macao-class.html') closeTool();
+            } catch (err) { /* 跨域时忽略 */ }
+        });
+
+        // 工具页点“返回平台”时会通知外层关闭面板；跨域/被隔离时也能收到
+        window.addEventListener('message', function (event) {
+            const data = event.data;
+            if (data && data.type === 'oc-close-tool') closeTool();
+        });
+
+        // 平台页自己被工具面板内嵌时（工具页跳回了平台），主动通知外层关闭
+        try {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'oc-close-tool' }, '*');
+            }
+        } catch (err) { /* 忽略 */ }
+
+        Array.prototype.forEach.call(document.querySelectorAll('.card'), function (card) {
+            card.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (!readSession()) { applySession(null); return; }
+                openTool(card.getAttribute('href'));
+            });
+        });
+
+        /* ================= 退出登录 ================= */
+        document.getElementById('btnLogout').addEventListener('click', function () {
+            if (!confirm('确定要退出登录吗？')) return;
+            writeSession(null);
+            closeTool();
+            userInput.value = '';
+            passInput.value = '';
+            loginErr.textContent = '';
+            applySession(null);
+            userInput.focus();
+        });
+
+        /* ================= 全屏 ================= */
+        const root = document.documentElement;
+        const btn = document.getElementById('btnFullscreen');
+        const label = document.getElementById('fsLabel');
+        const canFullscreen = !!(root.requestFullscreen || root.webkitRequestFullscreen);
+        const fsEl = function () {
+            return document.fullscreenElement || document.webkitFullscreenElement || null;
+        };
+
+        if (!canFullscreen) {
+            btn.classList.add('hidden');            // iPhone 等不支持全屏的环境
+        } else {
+            btn.addEventListener('click', function () {
+                try {
+                    if (fsEl()) {
+                        if (document.exitFullscreen) document.exitFullscreen();
+                        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                    } else if (root.requestFullscreen) {
+                        const p = root.requestFullscreen();
+                        if (p && p.catch) p.catch(function () {});
+                    } else if (root.webkitRequestFullscreen) {
+                        root.webkitRequestFullscreen();
+                    }
+                } catch (err) { /* 被浏览器拒绝时忽略 */ }
+            });
+        }
+
+        function sync() {
+            const on = !!fsEl();
+            btn.classList.toggle('is-fs', on);
+            label.textContent = on ? '退出全屏' : '全屏';
+            btn.setAttribute('aria-label', on ? '退出全屏' : '全屏显示');
+        }
+
+        document.addEventListener('fullscreenchange', sync);
+        document.addEventListener('webkitfullscreenchange', sync);
+
+        /* ================= 启动 ================= */
+        document.getElementById('loginLogo').innerHTML = document.querySelector('.logo').innerHTML;
+        applySession(readSession());
+        sync();
+    })();
+</script>
+</body>
+</html>

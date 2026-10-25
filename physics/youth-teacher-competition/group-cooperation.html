@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070b12" />
+    <title>珠海市第五中学物理公开课小组积分系统</title>
+    <script src="oc-fullscreen.js?v=1"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        /* 保证 hidden 属性一定生效（.seg 等 display 规则会覆盖浏览器默认样式） */
+        [hidden] {
+            display: none !important;
+        }
+
+        :root {
+            color-scheme: dark;
+            --panel: rgba(18, 26, 38, 0.94);
+            --line: rgba(120, 160, 255, 0.16);
+            --text: #e6edf7;
+            --muted: #8fa3bd;
+            --cyan: #4dd0ff;
+            --green: #5de0a1;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 24px;
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background:
+                radial-gradient(900px 520px at 8% 0%, rgba(77, 208, 255, 0.14), transparent 60%),
+                radial-gradient(760px 480px at 100% 20%, rgba(124, 140, 255, 0.13), transparent 58%),
+                linear-gradient(155deg, #070b12 0%, #0b1220 55%, #070b12 100%);
+        }
+
+        button {
+            font: inherit;
+        }
+
+        /* 不套外框：内容直接放在背景上，标题就在顶部 */
+        .container {
+            width: min(100%, 1180px);
+            margin: 0 auto;
+            padding: 0;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding-bottom: 22px;
+        }
+
+        .title-logo {
+            width: 62px;
+            height: 62px;
+            flex: 0 0 auto;
+            filter: drop-shadow(0 0 12px rgba(77, 208, 255, 0.22));
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(25px, 5vw, 36px);
+            letter-spacing: 1px;
+        }
+
+        .header-actions {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 18px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            color: var(--muted);
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
+        }
+
+        /* 全屏按钮：样式与主界面保持一致 */
+        .fs-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 18px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: rgba(18, 26, 38, 0.72);
+            color: var(--muted);
+            font: inherit;
+            font-size: 14px;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
+        }
+
+        .fs-btn:hover {
+            color: var(--text);
+            border-color: rgba(77, 208, 255, 0.45);
+            background: rgba(77, 208, 255, 0.08);
+        }
+
+        .fs-btn:focus-visible {
+            outline: 2px solid var(--cyan);
+            outline-offset: 2px;
+        }
+
+        .fs-btn svg {
+            width: 15px;
+            height: 15px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .fs-btn .fs-shrink { display: none; }
+        .fs-btn.is-fs .fs-expand { display: none; }
+        .fs-btn.is-fs .fs-shrink { display: inline; }
+
+        .back-icon {
+            width: 14px;
+            height: 14px;
+            flex: 0 0 auto;
+            fill: currentColor;
+        }
+
+        .back-link:hover,
+        .back-link:focus-visible {
+            color: var(--text);
+            border-color: rgba(77, 208, 255, 0.45);
+            background: rgba(77, 208, 255, 0.08);
+            outline: none;
+        }
+
+        /* ===== 排序工具栏 ===== */
+        .sort-bar {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding-top: 24px;
+        }
+
+        .sort-label {
+            color: var(--muted);
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .sort-button {
+            padding: 9px 18px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--muted);
+            font-size: 14px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
+        }
+
+        .sort-button:hover {
+            color: var(--text);
+            border-color: rgba(77, 208, 255, 0.45);
+        }
+
+        .sort-button.active {
+            border-color: transparent;
+            background: linear-gradient(120deg, var(--cyan), #7c8cff);
+            color: #04131d;
+            font-weight: 700;
+        }
+
+        .sort-button:focus-visible {
+            outline: 2px solid var(--cyan);
+            outline-offset: 2px;
+        }
+
+        .group-list {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            padding-top: 22px;
+        }
+
+        .group-card {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 12px 10px;
+            min-height: 0;
+            padding: 18px 20px;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background:
+                radial-gradient(220px 120px at 100% 0%, rgba(77, 208, 255, 0.08), transparent 75%),
+                linear-gradient(145deg, rgba(22, 33, 49, 0.96), rgba(13, 21, 33, 0.96));
+            transition: border-color 180ms ease, transform 180ms ease;
+        }
+
+        .group-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(77, 208, 255, 0.38);
+        }
+
+        .group-identity {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            min-width: 0;
+            grid-column: 1 / -1;
+        }
+
+        .group-rank {
+            display: grid;
+            width: 36px;
+            height: 36px;
+            flex: 0 0 auto;
+            place-items: center;
+            border: 1px solid rgba(77, 208, 255, 0.2);
+            border-radius: 11px;
+            color: var(--cyan);
+            background: rgba(77, 208, 255, 0.08);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .group-name {
+            margin: 0;
+            font-size: 19px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        /* ===== 积分前三名奖杯（按积分排序时显示，同分并列同名次） ===== */
+        .group-medal {
+            display: inline-flex;
+            width: 24px;
+            height: 24px;
+            flex: 0 0 auto;
+        }
+
+        .group-medal svg {
+            width: 100%;
+            height: 100%;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .group-medal.medal-1 {
+            color: #ffd24a;
+            filter: drop-shadow(0 0 7px rgba(255, 210, 74, 0.6));
+        }
+
+        .group-medal.medal-2 {
+            color: #d9e3ec;
+            filter: drop-shadow(0 0 7px rgba(217, 227, 236, 0.5));
+        }
+
+        .group-medal.medal-3 {
+            color: #d98b52;
+            filter: drop-shadow(0 0 7px rgba(217, 139, 82, 0.5));
+        }
+
+        .group-card.rank-1 {
+            border-color: rgba(255, 210, 74, 0.42);
+        }
+
+        .group-card.rank-2 {
+            border-color: rgba(217, 227, 236, 0.32);
+        }
+
+        .group-card.rank-3 {
+            border-color: rgba(217, 139, 82, 0.34);
+        }
+
+        .group-score {
+            color: #fff;
+            font-size: clamp(30px, 3.4vw, 40px);
+            font-variant-numeric: tabular-nums;
+            font-weight: 800;
+            line-height: 1;
+            text-align: left;
+            text-shadow: 0 0 22px rgba(77, 208, 255, 0.2);
+        }
+
+        .score-unit {
+            margin-left: 5px;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
+            text-shadow: none;
+        }
+
+        .score-actions {
+            display: flex;
+            gap: 8px;
+            justify-self: end;
+        }
+
+        .score-button {
+            display: grid;
+            width: 44px;
+            height: 44px;
+            place-items: center;
+            border: 1px solid transparent;
+            border-radius: 13px;
+            cursor: pointer;
+            font-size: 25px;
+            font-weight: 500;
+            transition: transform 150ms ease, filter 150ms ease, background 150ms ease;
+        }
+
+        .score-button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            filter: brightness(1.12);
+        }
+
+        .score-button:active:not(:disabled) {
+            transform: scale(0.96);
+        }
+
+        .score-button:focus-visible {
+            outline: 2px solid #fff;
+            outline-offset: 3px;
+        }
+
+        .add-button {
+            border-color: rgba(93, 224, 161, 0.28);
+            color: var(--green);
+            background: rgba(93, 224, 161, 0.12);
+        }
+
+        .subtract-button {
+            border-color: rgba(255, 120, 135, 0.24);
+            color: #ff9aa5;
+            background: rgba(255, 120, 135, 0.1);
+        }
+
+        .subtract-button:disabled {
+            opacity: 0.38;
+            cursor: not-allowed;
+        }
+
+        .save-status {
+            min-height: 20px;
+            margin: 17px 2px 0;
+            color: var(--muted);
+            font-size: 13px;
+            text-align: right;
+        }
+
+        .save-status.error {
+            color: #ff9aa5;
+            cursor: pointer;
+        }
+
+        /* ===== 学生端：只读柱状图 ===== */
+        .chart-card {
+            padding-top: 22px;
+        }
+
+        #teacherTabs {
+            display: flex;
+            width: fit-content;
+            margin: 0 auto 18px;
+        }
+
+        .chart-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .seg {
+            display: inline-flex;
+            gap: 4px;
+            padding: 4px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .seg button {
+            padding: 8px 18px;
+            border: 0;
+            border-radius: 999px;
+            background: transparent;
+            color: var(--muted);
+            font: inherit;
+            font-size: 13.5px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: color 160ms ease, background 160ms ease;
+        }
+
+        .seg button:hover:not(.on) {
+            color: var(--text);
+        }
+
+        .seg button.on {
+            background: linear-gradient(120deg, var(--cyan), #7c8cff);
+            color: #04131d;
+            font-weight: 700;
+        }
+
+        .chart {
+            display: flex;
+            align-items: stretch;
+            height: clamp(260px, 52vh, 520px);
+            padding: 26px 0 0;
+        }
+
+        .chart-y {
+            position: relative;
+            width: 46px;
+            flex: 0 0 auto;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .chart-y span {
+            position: absolute;
+            right: 8px;
+            transform: translateY(50%);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .chart-plot {
+            position: relative;
+            flex: 1;
+            display: flex;
+            align-items: flex-end;
+            gap: clamp(8px, 1.6vw, 26px);
+            padding: 0 8px;
+            border-bottom: 1px solid rgba(120, 160, 255, 0.22);
+        }
+
+        .chart-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            border-top: 1px dashed rgba(120, 160, 255, 0.14);
+            pointer-events: none;
+        }
+
+        .bar-col {
+            position: relative;
+            z-index: 1;
+            flex: 1 1 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .bar-val {
+            position: absolute;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: clamp(12px, 1.15vw, 15px);
+            font-weight: 700;
+            color: var(--text);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .bar {
+            flex: 0 0 auto;
+            width: 100%;
+            max-width: 64px;
+            border-radius: 6px 6px 2px 2px;
+            min-height: 2px;
+            background: var(--bar-color, #38bdf8);
+            transition: height 420ms cubic-bezier(.2, .8, .3, 1);
+        }
+
+        .chart-x {
+            display: flex;
+            gap: clamp(8px, 1.6vw, 26px);
+            padding: 8px 8px 0 calc(46px + 8px);
+        }
+
+        .chart-x span {
+            flex: 1 1 0;
+            text-align: center;
+            font-size: clamp(13px, 1.3vw, 16px);
+            color: var(--text);
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 18px 12px;
+            }
+
+            .container {
+                padding: 0;
+            }
+
+            .header {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            .header-actions {
+                margin-left: 0;
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .fs-btn,
+            .back-link {
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+
+            .title-logo {
+                width: 48px;
+                height: 48px;
+            }
+
+            .group-list {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 11px;
+            }
+
+            .group-card {
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 14px 8px;
+                min-height: 0;
+                padding: 17px;
+            }
+
+            .group-identity {
+                grid-column: 1 / -1;
+            }
+
+            .group-score {
+                font-size: 40px;
+                text-align: left;
+            }
+
+            .score-actions {
+                justify-self: end;
+            }
+
+            .score-button {
+                width: 46px;
+                height: 46px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                gap: 13px;
+                padding-bottom: 21px;
+            }
+
+            .title-logo {
+                width: 52px;
+                height: 52px;
+            }
+
+            .group-list {
+                grid-template-columns: 1fr;
+            }
+
+            .group-card {
+                grid-template-columns: minmax(0, 1fr) auto auto;
+                min-height: 112px;
+                padding: 17px;
+            }
+
+            .group-identity {
+                grid-column: auto;
+                gap: 10px;
+            }
+
+            .group-rank {
+                width: 32px;
+                height: 32px;
+            }
+
+            .group-name {
+                font-size: 18px;
+            }
+
+            .group-score {
+                font-size: 34px;
+            }
+
+            .score-unit {
+                margin-left: 3px;
+                font-size: 12px;
+            }
+
+            .score-button {
+                width: 40px;
+                height: 40px;
+                border-radius: 12px;
+                font-size: 24px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="oc-touch.css?v=1" />
+    <script src="oc-net.js?v=1"></script>
+</head>
+<body>
+    <main class="container">
+        <header class="header">
+            <svg class="title-logo" viewBox="0 0 1041 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M957.17452 577.941c44.348-3.41 80.172 25.59 83.582 69.942 3.41 46.058-29 83.59-73.348 87-42.644 3.414-80.172-29-83.582-71.645-3.414-46.058 27.293-80.176 73.348-85.297z m0 0" fill="#86DA2F"></path>
+                <path d="M418.15052 941.293c0-44.352 34.118-78.469 75.055-78.469 40.938 0 80.172 37.531 80.172 80.176 0 40.941-34.117 76.766-73.348 78.473-49.468 0-81.879-30.707-81.879-80.18z m0 0" fill="#24C2FF"></path>
+                <path d="M539.26052 443.18c-6.824 3.41-10.235-1.707-11.942-6.825-63.113-117.707-44.347-266.117 66.528-354.824 28.996-23.879 83.582-29 107.46-5.117 10.235 8.531 11.942 18.766 13.65 30.707 3.41 25.59 8.526 51.176 25.585 71.649 18.762 22.175 42.645 30.703 69.938 29 23.878 0 47.761-3.415 63.113 23.878 8.527 15.356 5.117 75.059-8.531 87-6.82 5.118-11.938 1.707-17.055 0-39.234-15.351-80.172-15.351-121.113-8.527-13.645 1.707-20.47-1.707-20.47-17.058-1.702-25.59-6.82-49.473-20.468-71.649-25.586-46.059-73.348-47.766-104.05-5.117-25.587 34.117-32.41 75.058-39.235 116-6.82 35.824-5.117 73.351-3.41 110.883 0 0-1.707 0 0 0z m0 0" fill="#FFCB12"></path>
+                <path d="M581.90452 468.766c-3.41-5.118-1.707-10.235 3.41-13.645 97.231-88.707 242.22-105.766 354.801-18.766 29 23.883 47.762 73.352 32.41 102.352-6.824 11.941-15.351 17.059-25.586 20.473-23.882 10.234-46.058 20.468-61.41 42.644-15.351 22.176-18.761 47.766-11.937 75.059 5.117 22.176 13.644 46.058-8.531 66.531-11.938 11.941-69.934 22.176-85.29 11.941-6.82-5.117-5.117-10.238-3.41-17.058 5.118-42.649-5.117-81.883-20.468-119.414-5.118-13.645-3.41-20.469 10.234-23.883 23.883-6.82 46.055-18.762 63.113-35.82 37.528-35.825 29-81.883-20.468-102.356-39.235-17.058-80.172-13.644-119.403-10.234-37.527 1.707-73.347 11.941-107.465 22.176z m0 0" fill="#86DA2F"></path>
+                <path d="M559.72952 513.121c5.117-5.117 8.53-3.414 13.648 0 112.578 68.234 170.574 202.996 119.402 334.352-13.644 34.117-57.996 68.234-90.406 59.703-13.644-3.41-20.469-10.235-27.293-18.762-15.351-20.473-32.41-39.238-57.996-47.766-27.293-8.53-51.172-3.414-75.05 10.235-20.473 11.941-40.942 27.293-66.528 11.941-15.352-8.527-40.938-61.41-35.82-78.469 3.41-6.824 10.234-6.824 17.058-6.824 42.645-6.824 76.758-27.293 109.168-54.59 10.235-8.527 18.762-8.527 27.293 3.414 13.645 20.47 30.703 37.528 52.879 49.47 44.348 25.59 86.992 3.413 92.11-47.766 5.117-42.645-10.235-80.176-23.88-117.704-15.351-34.117-34.117-66.53-54.585-97.234z m0 0" fill="#24C2FF"></path>
+                <path d="M505.14752 523.355c-6.825 34.118-22.176 66.528-42.645 95.528C401.09252 711 312.39252 748.53 203.22552 738.297c-39.235-3.414-71.645-35.824-75.055-68.238-1.707-13.645 1.707-23.88 10.234-34.118 11.942-15.351 22.176-29 27.293-47.761 10.235-37.532-3.41-68.239-30.703-95.532-37.527-37.527-32.41-71.644 11.942-98.941 5.117-3.41 11.937-6.82 18.761-10.234 10.235-5.118 18.762-5.118 22.176 6.824 15.352 39.234 46.055 68.234 80.172 92.117 11.937 10.234 11.937 17.059 1.703 29-20.469 22.176-32.41 49.469-34.113 80.176-3.414 37.531 18.762 61.41 56.289 61.41 23.879 0 46.055-8.527 66.523-18.762 52.88-27.297 93.82-66.531 133.051-107.472 5.117-1.703 6.824-5.118 13.649-3.41z m0 0" fill="#0069DA"></path>
+                <path d="M225.40052 165.121c3.41 0 11.938 1.707 20.47 3.41C308.98252 180.473 348.21252 158.297 368.68252 98.59c13.648-39.235 42.644-51.176 80.172-30.703 1.707 0 1.707 1.707 3.414 1.707 39.23 22.176 39.23 25.586 15.351 59.703-20.469 27.293-30.703 58-35.824 90.414-3.41 18.762-10.234 22.176-27.29 15.351-27.292-10.234-56.292-10.234-85.288 0-32.41 10.235-46.055 39.235-35.82 71.645 13.644 42.648 51.171 61.414 83.582 83.59 32.41 22.176 69.937 34.117 105.757 49.469 5.118 1.707 13.645 1.707 11.938 10.238-1.703 5.117-8.527 5.117-15.352 5.117-76.757 3.41-150.105-8.531-209.808-59.707-56.29-46.059-97.227-102.351-90.407-180.824 5.118-25.586 23.883-44.352 56.293-49.469z m0 0" fill="#FF4649"></path>
+                <path d="M85.52552 644.473c-40.937 5.117-81.875-29-85.289-71.649-3.41-40.941 30.707-81.883 69.938-85.293 44.351-5.117 85.289 25.59 88.7 66.531 1.706 39.235-23.88 86.997-73.349 90.41z m0 0" fill="#0069DA"></path>
+                <path d="M801.94752 37.18c42.645-3.41 83.582 30.707 86.996 73.351 3.41 40.942-30.703 80.18-71.644 83.59-44.348 3.41-83.582-29-86.992-71.648-3.414-42.645 27.293-81.88 71.64-85.293z m0 0" fill="#FFCB12"></path>
+                <path d="M356.74452 69.594c5.117 44.351-25.586 81.879-71.644 88.703-39.23 5.117-80.168-27.293-85.29-64.824-5.117-49.47 22.176-85.293 68.235-90.41 42.64-5.118 83.582 27.292 88.7 66.53z m0 0" fill="#FF4649"></path>
+            </svg>
+            <h1>珠海市第五中学物理公开课小组积分系统</h1>
+            <div class="header-actions">
+                <button class="fs-btn" id="btnFullscreen" type="button" aria-label="全屏显示">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path class="fs-expand" d="M9 4H4v5M15 4h5v5M20 15v5h-5M4 15v5h5" />
+                        <path class="fs-shrink" d="M4 9h5V4M20 9h-5V4M15 20v-5h5M9 20v-5H4" />
+                    </svg>
+                    <span id="fsLabel">全屏</span>
+                </button>
+                <a class="back-link" href="open-class-smart-platform.html"><svg class="back-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M185.3952 511.232l398.2336 398.2336-72.3968 72.448L40.6016 511.232 511.232 40.6016 583.68 112.9984z" fill="currentColor"></path></svg>返回平台</a>
+                            </div>
+                        </header>
+
+        <!-- ===== 教师端：管理 / 查看 切换 ===== -->
+        <div class="seg view-tabs" id="teacherTabs" role="group" aria-label="积分界面切换" hidden>
+            <button class="on" type="button" data-view="manage" aria-pressed="true">积分管理</button>
+            <button type="button" data-view="view" aria-pressed="false">积分查看</button>
+        </div>
+
+        <!-- ===== 教师端：可加减 ===== -->
+        <div id="teacherView">
+        <div class="sort-bar" role="group" aria-label="排序方式">
+            <span class="sort-label">排序：</span>
+            <button class="sort-button active" type="button" data-sort="index" aria-pressed="true">按小组序号</button>
+            <button class="sort-button" type="button" data-sort="score" aria-pressed="false">按积分排序</button>
+        </div>
+
+        <section class="group-list" id="groupList" aria-label="小组积分">
+            <article class="group-card" data-group="group-1">
+                <div class="group-identity"><span class="group-rank">01</span><h2 class="group-name">第一组</h2></div>
+                <div class="group-score" aria-live="polite">0<span class="score-unit">分</span></div>
+                <div class="score-actions" aria-label="第一组积分操作">
+                    <button class="score-button subtract-button" type="button" aria-label="第一组减 1 分" disabled>−</button>
+                    <button class="score-button add-button" type="button" aria-label="第一组加 1 分">+</button>
+                </div>
+            </article>
+            <article class="group-card" data-group="group-2">
+                <div class="group-identity"><span class="group-rank">02</span><h2 class="group-name">第二组</h2></div>
+                <div class="group-score" aria-live="polite">0<span class="score-unit">分</span></div>
+                <div class="score-actions" aria-label="第二组积分操作">
+                    <button class="score-button subtract-button" type="button" aria-label="第二组减 1 分" disabled>−</button>
+                    <button class="score-button add-button" type="button" aria-label="第二组加 1 分">+</button>
+                </div>
+            </article>
+            <article class="group-card" data-group="group-3">
+                <div class="group-identity"><span class="group-rank">03</span><h2 class="group-name">第三组</h2></div>
+                <div class="group-score" aria-live="polite">0<span class="score-unit">分</span></div>
+                <div class="score-actions" aria-label="第三组积分操作">
+                    <button class="score-button subtract-button" type="button" aria-label="第三组减 1 分" disabled>−</button>
+                    <button class="score-button add-button" type="button" aria-label="第三组加 1 分">+</button>
+                </div>
+            </article>
+            <article class="group-card" data-group="group-4">
+                <div class="group-identity"><span class="group-rank">04</span><h2 class="group-name">第四组</h2></div>
+                <div class="group-score" aria-live="polite">0<span class="score-unit">分</span></div>
+                <div class="score-actions" aria-label="第四组积分操作">
+                    <button class="score-button subtract-button" type="button" aria-label="第四组减 1 分" disabled>−</button>
+                    <button class="score-button add-button" type="button" aria-label="第四组加 1 分">+</button>
+                </div>
+            </article>
+            <article class="group-card" data-group="group-5">
+                <div class="group-identity"><span class="group-rank">05</span><h2 class="group-name">第五组</h2></div>
+                <div class="group-score" aria-live="polite">0<span class="score-unit">分</span></div>
+                <div class="score-actions" aria-label="第五组积分操作">
+                    <button class="score-button subtract-button" type="button" aria-label="第五组减 1 分" disabled>−</button>
+                    <button class="score-button add-button" type="button" aria-label="第五组加 1 分">+</button>
+                </div>
+            </article>
+            <article class="group-card" data-group="group-6">
+                <div class="group-identity"><span class="group-rank">06</span><h2 class="group-name">第六组</h2></div>
+                <div class="group-score" aria-live="polite">0<span class="score-unit">分</span></div>
+                <div class="score-actions" aria-label="第六组积分操作">
+                    <button class="score-button subtract-button" type="button" aria-label="第六组减 1 分" disabled>−</button>
+                    <button class="score-button add-button" type="button" aria-label="第六组加 1 分">+</button>
+                </div>
+            </article>
+            <article class="group-card" data-group="group-7">
+                <div class="group-identity"><span class="group-rank">07</span><h2 class="group-name">第七组</h2></div>
+                <div class="group-score" aria-live="polite">0<span class="score-unit">分</span></div>
+                <div class="score-actions" aria-label="第七组积分操作">
+                    <button class="score-button subtract-button" type="button" aria-label="第七组减 1 分" disabled>−</button>
+                    <button class="score-button add-button" type="button" aria-label="第七组加 1 分">+</button>
+                </div>
+            </article>
+            <article class="group-card" data-group="group-8">
+                <div class="group-identity"><span class="group-rank">08</span><h2 class="group-name">第八组</h2></div>
+                <div class="group-score" aria-live="polite">0<span class="score-unit">分</span></div>
+                <div class="score-actions" aria-label="第八组积分操作">
+                    <button class="score-button subtract-button" type="button" aria-label="第八组减 1 分" disabled>−</button>
+                    <button class="score-button add-button" type="button" aria-label="第八组加 1 分">+</button>
+                </div>
+            </article>
+            <article class="group-card" data-group="group-9">
+                <div class="group-identity"><span class="group-rank">09</span><h2 class="group-name">第九组</h2></div>
+                <div class="group-score" aria-live="polite">0<span class="score-unit">分</span></div>
+                <div class="score-actions" aria-label="第九组积分操作">
+                    <button class="score-button subtract-button" type="button" aria-label="第九组减 1 分" disabled>−</button>
+                    <button class="score-button add-button" type="button" aria-label="第九组加 1 分">+</button>
+                </div>
+            </article>
+            <article class="group-card" data-group="group-10">
+                <div class="group-identity"><span class="group-rank">10</span><h2 class="group-name">第十组</h2></div>
+                <div class="group-score" aria-live="polite">0<span class="score-unit">分</span></div>
+                <div class="score-actions" aria-label="第十组积分操作">
+                    <button class="score-button subtract-button" type="button" aria-label="第十组减 1 分" disabled>−</button>
+                    <button class="score-button add-button" type="button" aria-label="第十组加 1 分">+</button>
+                </div>
+            </article>
+            <article class="group-card" data-group="group-11">
+                <div class="group-identity"><span class="group-rank">11</span><h2 class="group-name">第十一组</h2></div>
+                <div class="group-score" aria-live="polite">0<span class="score-unit">分</span></div>
+                <div class="score-actions" aria-label="第十一组积分操作">
+                    <button class="score-button subtract-button" type="button" aria-label="第十一组减 1 分" disabled>−</button>
+                    <button class="score-button add-button" type="button" aria-label="第十一组加 1 分">+</button>
+                </div>
+            </article>
+            <article class="group-card" data-group="group-12">
+                <div class="group-identity"><span class="group-rank">12</span><h2 class="group-name">第十二组</h2></div>
+                <div class="group-score" aria-live="polite">0<span class="score-unit">分</span></div>
+                <div class="score-actions" aria-label="第十二组积分操作">
+                    <button class="score-button subtract-button" type="button" aria-label="第十二组减 1 分" disabled>−</button>
+                    <button class="score-button add-button" type="button" aria-label="第十二组加 1 分">+</button>
+                </div>
+            </article>
+        </section>
+        </div>
+
+        <!-- ===== 学生端：只读柱状图 ===== -->
+        <section class="chart-card" id="studentView" hidden>
+            <div class="chart-top">
+                <span class="sort-label">排序方式：</span>
+                <div class="seg" id="chartSort" role="group" aria-label="图表排序方式">
+                    <button class="on" type="button" data-sort="index" aria-pressed="true">按组序</button>
+                    <button type="button" data-sort="score" aria-pressed="false">按积分</button>
+                </div>
+            </div>
+
+            <div class="chart" id="chart">
+                <div class="chart-y" id="chartY"></div>
+                <div class="chart-plot" id="chartPlot"></div>
+            </div>
+            <div class="chart-x" id="chartX"></div>
+        </section>
+
+        <p class="save-status" id="saveStatus" role="status">正在连接云端积分…</p>
+    </main>
+
+    <script>
+        /* ================= 云端配置（Supabase） ================= */
+        const SUPABASE_URL = 'https://nmwtgxmqlmezcjtnxgqk.supabase.co';
+        const SUPABASE_ANON_KEY =
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5td3RneG1xbG1lemNqdG54Z3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4MzI2OTAsImV4cCI6MjEwMTQwODY5MH0.90TChC0s47NOGJlEkRNhD0uePRfcwdndK5SyeRRKgWo';
+
+        const STORAGE_KEY = 'macau-st-paul-group-scores';
+        const GROUP_COUNT = 12;
+        const POLL_MS = 4000;
+
+        const groupCards = [...document.querySelectorAll('.group-card')];
+        const groupList = document.getElementById('groupList');
+        const saveStatus = document.getElementById('saveStatus');
+        const sortButtons = [...document.querySelectorAll('.sort-button')];
+        const chartSortButtons = [...document.querySelectorAll('#chartSort button')];
+        const chartY = document.getElementById('chartY');
+        const chartPlot = document.getElementById('chartPlot');
+        const chartX = document.getElementById('chartX');
+        const teacherView = document.getElementById('teacherView');
+        const studentView = document.getElementById('studentView');
+        const teacherTabs = document.getElementById('teacherTabs');
+        const teacherTabButtons = teacherTabs ? [...teacherTabs.querySelectorAll('button')] : [];
+
+        // 颜色跟着小组序号走，切换排序方式时同一组颜色不变
+        const BAR_COLORS = [
+            '#38bdf8', '#5b8cff', '#8b7cff', '#c07cff', '#e879f9', '#fb7185',
+            '#fb923c', '#facc15', '#a3e635', '#34d399', '#2dd4bf', '#22d3ee'
+        ];
+        const CN_INDEX = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
+
+        const scores = {};
+        for (let no = 1; no <= GROUP_COUNT; no += 1) scores[no] = 0;
+
+        let audioContext;
+        let sortMode = 'index';
+        let resortTimer = null;
+        let chartSortMode = 'index';
+        let teacherMode = 'manage';
+        let cloudOnline = false;
+        let syncing = false;
+        const pendingOps = new Map();
+
+        /* ================= 角色识别 ================= */
+        function readLoginSession() {
+            try {
+                const raw = localStorage.getItem('oc_login_session');
+                return raw ? JSON.parse(raw) : null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        // 优先用平台传入的 ?role=，其次读登录会话；单独打开时按教师端显示
+        function currentRole() {
+            const forced = new URLSearchParams(location.search).get('role');
+            if (forced === 'teacher' || forced === 'student') return forced;
+            const session = readLoginSession();
+            if (session && (session.role === 'teacher' || session.role === 'student')) return session.role;
+            return 'teacher';
+        }
+
+        const isTeacher = currentRole() === 'teacher';
+
+        /* ================= 通用工具 ================= */
+        function clampScore(value) {
+            const number = Math.round(Number(value) * 100) / 100;
+            return Number.isFinite(number) && number > 0 ? number : 0;
+        }
+
+        function formatScore(value) {
+            const number = clampScore(value);
+            return Number.isInteger(number) ? String(number) : number.toFixed(2);
+        }
+
+        function groupNumberOf(card) {
+            return Number(card.dataset.group.split('-')[1]);
+        }
+
+        function cardOf(no) {
+            return groupCards.find(card => groupNumberOf(card) === no) || null;
+        }
+
+        function status(text, isError) {
+            if (!saveStatus) return;
+            saveStatus.textContent = text;
+            saveStatus.classList.toggle('error', !!isError);
+            saveStatus.title = isError ? '点击重新同步云端' : '';
+        }
+
+        /* ================= 教师端：卡片 ================= */
+        function paintCard(card) {
+            if (!card) return;
+            const no = groupNumberOf(card);
+            const value = scores[no] || 0;
+            card.querySelector('.group-score').firstChild.textContent = formatScore(value);
+            card.querySelector('.subtract-button').disabled = value <= 0;
+        }
+
+        function paintCards() {
+            for (const card of groupCards) paintCard(card);
+        }
+
+        // 按当前排序方式重排卡片（积分从高到低，同分按小组序号）
+        function applySort() {
+            const sorted = [...groupCards].sort((a, b) => {
+                if (sortMode === 'score') {
+                    const diff = (scores[groupNumberOf(b)] || 0) - (scores[groupNumberOf(a)] || 0);
+                    if (diff !== 0) return diff;
+                }
+                return groupNumberOf(a) - groupNumberOf(b);
+            });
+            for (const card of sorted) groupList.appendChild(card);
+            renderMedals(sorted);
+        }
+
+        const TROPHY_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+            '<path d="M7 4h10v4a5 5 0 0 1-10 0V4Z"/>' +
+            '<path d="M7 5H4v2a4 4 0 0 0 4 4"/>' +
+            '<path d="M17 5h3v2a4 4 0 0 1-4 4"/>' +
+            '<path d="M12 13v4"/>' +
+            '<path d="M10 17.5h4"/>' +
+            '<path d="M9 20h6"/>' +
+            '</svg>';
+        const MEDAL_NAMES = ['冠军', '亚军', '季军'];
+
+        // 只给有积分的组挂奖杯：同分并列同一名次（如 1、1、3）
+        function renderMedals(sorted) {
+            for (const card of groupCards) {
+                const medal = card.querySelector('.group-medal');
+                if (medal) medal.remove();
+                card.classList.remove('rank-1', 'rank-2', 'rank-3');
+            }
+            if (sortMode !== 'score') return;
+
+            let rank = 0;
+            let prevScore = null;
+            sorted.forEach((card, index) => {
+                const score = scores[groupNumberOf(card)] || 0;
+                if (score <= 0) return;
+                if (score !== prevScore) {
+                    rank = index + 1;
+                    prevScore = score;
+                }
+                if (rank > 3) return;
+
+                const medal = document.createElement('span');
+                medal.className = 'group-medal medal-' + rank;
+                medal.setAttribute('role', 'img');
+                medal.setAttribute('aria-label', MEDAL_NAMES[rank - 1]);
+                medal.title = MEDAL_NAMES[rank - 1];
+                medal.innerHTML = TROPHY_SVG;
+                card.querySelector('.group-identity').appendChild(medal);
+                card.classList.add('rank-' + rank);
+            });
+        }
+
+        function setSortMode(mode) {
+            sortMode = mode;
+            for (const button of sortButtons) {
+                const active = button.dataset.sort === mode;
+                button.classList.toggle('active', active);
+                button.setAttribute('aria-pressed', String(active));
+            }
+            applySort();
+        }
+
+        // 积分模式下改分后稍作延迟再重排，避免卡片在连续点击时从鼠标下方跳走
+        function scheduleResort() {
+            if (sortMode !== 'score') return;
+            clearTimeout(resortTimer);
+            resortTimer = setTimeout(applySort, 700);
+        }
+
+        for (const button of sortButtons) {
+            button.addEventListener('click', () => setSortMode(button.dataset.sort));
+        }
+
+        /* ================= 学生端：柱状图 ================= */
+        function niceScale(max) {
+            if (max <= 4) return 4;
+            const raw = max / 4;
+            const magnitude = Math.pow(10, Math.floor(Math.log10(raw)));
+            const normalized = raw / magnitude;
+            const step = (normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10) * magnitude;
+            return step * 4;
+        }
+
+        function renderChart() {
+            if (!chartPlot || !chartY || !chartX) return;
+
+            const entries = [];
+            for (let no = 1; no <= GROUP_COUNT; no += 1) {
+                entries.push({ no, score: scores[no] || 0 });
+            }
+            entries.sort((a, b) => (
+                chartSortMode === 'score'
+                    ? (b.score - a.score || a.no - b.no)
+                    : (a.no - b.no)
+            ));
+
+            const maxScore = entries.reduce((peak, item) => Math.max(peak, item.score), 0);
+            const scaleTop = niceScale(maxScore);
+            const step = scaleTop / 4;
+            const tickText = value => (Number.isInteger(value) ? String(value) : value.toFixed(1));
+
+            chartY.textContent = '';
+            for (let i = 0; i <= 4; i += 1) {
+                const label = document.createElement('span');
+                label.textContent = tickText(step * i);
+                label.style.bottom = (i / 4 * 100) + '%';
+                chartY.appendChild(label);
+            }
+
+            chartPlot.textContent = '';
+            for (let i = 1; i <= 4; i += 1) {
+                const line = document.createElement('div');
+                line.className = 'chart-line';
+                line.style.bottom = (i / 4 * 100) + '%';
+                chartPlot.appendChild(line);
+            }
+
+            chartX.textContent = '';
+            for (const item of entries) {
+                const ratio = scaleTop > 0 ? Math.min(1, item.score / scaleTop) : 0;
+
+                const column = document.createElement('div');
+                column.className = 'bar-col';
+                column.title = '第' + CN_INDEX[item.no - 1] + '组：' + formatScore(item.score) + ' 分';
+
+                const valueLabel = document.createElement('span');
+                valueLabel.className = 'bar-val';
+                valueLabel.textContent = formatScore(item.score) + ' 分';
+                valueLabel.style.bottom = 'calc(' + (ratio * 100).toFixed(3) + '% + 6px)';
+                column.appendChild(valueLabel);
+
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.setProperty('--bar-color', BAR_COLORS[(item.no - 1) % BAR_COLORS.length]);
+                bar.style.height = (ratio * 100).toFixed(3) + '%';
+                column.appendChild(bar);
+
+                chartPlot.appendChild(column);
+
+                const groupLabel = document.createElement('span');
+                groupLabel.textContent = CN_INDEX[item.no - 1];
+                chartX.appendChild(groupLabel);
+            }
+        }
+
+        function setChartSortMode(mode) {
+            chartSortMode = mode;
+            for (const button of chartSortButtons) {
+                const active = button.dataset.sort === mode;
+                button.classList.toggle('on', active);
+                button.setAttribute('aria-pressed', String(active));
+            }
+            renderChart();
+        }
+
+        for (const button of chartSortButtons) {
+            button.addEventListener('click', () => setChartSortMode(button.dataset.sort));
+        }
+
+        /* ================= 云端读写（Supabase REST） ================= */
+        const CLOUD_AUTH = {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: 'Bearer ' + SUPABASE_ANON_KEY
+        };
+        const CLOUD_JSON = Object.assign({ 'Content-Type': 'application/json' }, CLOUD_AUTH);
+        const REQUEST_TIMEOUT = 12000;
+        const OK_TEXT = isTeacher ? '已连接云端积分（可加减）' : '积分实时同步自云端（只读）';
+
+        // 离线期间攒下的加减分，联网后自动补传
+        const pendingDeltas = new Map();
+
+        // 网络被拦截时 fetch 只会抛 "Failed to fetch"，这里翻译成能看懂的提示
+        function describeError(error) {
+            const message = String((error && error.message) || error);
+            if (/abort/i.test(message)) return '连接云端超时，请检查网络或代理';
+            if (/Failed to fetch|NetworkError|Load failed|fetch failed/i.test(message)) {
+                return '无法连接云端，网络不通或被拦截';
+            }
+            if (/HTTP 40[13]/.test(message)) return '云端拒绝访问，请检查密钥或行级安全策略';
+            if (/HTTP 404/.test(message)) return '云端缺少 group_scores 表，请先执行建表 SQL';
+            if (/HTTP 5\d\d/.test(message)) return '云端服务异常，稍后自动重试';
+            return message;
+        }
+
+        // file:// 打开时个别网络环境会一直挂住，加超时避免一直转圈
+        async function request(url, options) {
+            const controller = typeof AbortController === 'function' ? new AbortController() : null;
+            const timer = controller ? setTimeout(() => controller.abort(), REQUEST_TIMEOUT) : null;
+            try {
+                const finalOptions = Object.assign({}, options);
+                if (controller) finalOptions.signal = controller.signal;
+                return await fetch(url, finalOptions);
+            } finally {
+                if (timer) clearTimeout(timer);
+            }
+        }
+
+        async function fetchCloudScores() {
+            const response = await request(
+                SUPABASE_URL + '/rest/v1/group_scores?select=group_no,score&order=group_no.asc',
+                { headers: CLOUD_AUTH, cache: 'no-store' }
+            );
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            return response.json();
+        }
+
+        // 原子加减，避免两台设备同时改分互相覆盖
+        async function pushDelta(no, delta) {
+            const response = await request(SUPABASE_URL + '/rest/v1/rpc/add_group_score', {
+                method: 'POST',
+                headers: CLOUD_JSON,
+                body: JSON.stringify({ p_group: no, p_delta: delta })
+            });
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            const text = await response.text();
+            if (!text) return null;
+            try {
+                return JSON.parse(text);
+            } catch (error) {
+                return null;
+            }
+        }
+
+        // 没建 RPC 时的兜底：直接写绝对值
+        async function pushAbsolute(no, value) {
+            const response = await request(
+                SUPABASE_URL + '/rest/v1/group_scores?on_conflict=group_no',
+                {
+                    method: 'POST',
+                    headers: Object.assign({}, CLOUD_JSON, { Prefer: 'resolution=merge-duplicates,return=minimal' }),
+                    body: JSON.stringify([{ group_no: no, score: value, updated_at: new Date().toISOString() }])
+                }
+            );
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            return null;
+        }
+
+        async function flushPendingDeltas() {
+            for (const [no, delta] of [...pendingDeltas]) {
+                await pushDelta(no, delta);
+                pendingDeltas.delete(no);
+            }
+        }
+
+        function cacheLocally() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(scores));
+            } catch (error) {
+                /* 无痕模式等场景下忽略 */
+            }
+        }
+
+        function loadLocalCache() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return false;
+                const saved = JSON.parse(raw);
+                let found = false;
+                for (const key of Object.keys(saved)) {
+                    const no = Number(String(key).replace('group-', ''));
+                    const value = Number(saved[key]);
+                    if (no >= 1 && no <= GROUP_COUNT && Number.isFinite(value)) {
+                        scores[no] = clampScore(value);
+                        found = true;
+                    }
+                }
+                return found;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function applyRows(rows) {
+            if (!Array.isArray(rows)) return;
+            for (const row of rows) {
+                const no = Number(row.group_no);
+                if (no >= 1 && no <= GROUP_COUNT) scores[no] = clampScore(row.score);
+            }
+            // 还没补传成功的改动盖在云端值上面，避免被轮询冲掉
+            for (const [no, delta] of pendingDeltas) {
+                scores[no] = clampScore((scores[no] || 0) + delta);
+            }
+            paintCards();
+            applySort();
+            renderChart();
+            cacheLocally();
+        }
+
+        async function syncFromCloud(verbose) {
+            if (syncing) return;
+            syncing = true;
+            const wasOnline = cloudOnline;
+            try {
+                if (pendingDeltas.size) await flushPendingDeltas();
+                const rows = await fetchCloudScores();
+                cloudOnline = true;
+                applyRows(rows);
+                if (verbose || !wasOnline) status(OK_TEXT);
+            } catch (error) {
+                console.warn('[积分] 云端同步失败', error);
+                cloudOnline = false;
+                if (verbose || wasOnline) {
+                    status('云端暂时不可用，先显示本机数据：' + describeError(error) + '（点此重试）', true);
+                }
+            } finally {
+                syncing = false;
+            }
+        }
+
+        async function changeScore(no, delta) {
+            if (!isTeacher) return;
+            const previous = scores[no] || 0;
+            const next = clampScore(previous + delta);
+            if (next === previous) return;
+
+            scores[no] = next;
+            paintCard(cardOf(no));
+            renderChart();
+            cacheLocally();
+            if (sortMode === 'score') scheduleResort();
+
+            const okText = '第' + CN_INDEX[no - 1] + '组 ' + formatScore(scores[no]) + ' 分，已同步到云端';
+            pendingOps.set(no, (pendingOps.get(no) || 0) + 1);
+            try {
+                const result = await pushDelta(no, delta);
+                cloudOnline = true;
+
+                // 只有在这一组没有其它请求在飞时才采用云端返回值，避免旧响应把新分数盖回去
+                if ((pendingOps.get(no) || 0) <= 1 && result !== null && result !== undefined && result !== '') {
+                    const authoritative = clampScore(result);
+                    if (Math.abs(authoritative - scores[no]) > 0.001) {
+                        scores[no] = authoritative;
+                        paintCard(cardOf(no));
+                        renderChart();
+                        cacheLocally();
+                    }
+                }
+                status(okText);
+            } catch (rpcError) {
+                console.warn('[积分] 云端写入失败', rpcError);
+                // 没建 add_group_score 函数时退回写绝对值
+                let saved = false;
+                if (/HTTP 404/.test(String(rpcError.message))) {
+                    try {
+                        await pushAbsolute(no, scores[no]);
+                        saved = true;
+                    } catch (patchError) {
+                        console.warn('[积分] 绝对值写入也失败', patchError);
+                    }
+                }
+
+                if (saved) {
+                    cloudOnline = true;
+                    status(okText);
+                } else {
+                    cloudOnline = false;
+                    pendingDeltas.set(no, (pendingDeltas.get(no) || 0) + delta);
+                    status('第' + CN_INDEX[no - 1] + '组 ' + formatScore(scores[no]) +
+                        ' 分已暂存本机，联网后自动补传：' + describeError(rpcError), true);
+                }
+            } finally {
+                pendingOps.set(no, Math.max(0, (pendingOps.get(no) || 1) - 1));
+            }
+        }
+
+        for (const card of groupCards) {
+            const no = groupNumberOf(card);
+            card.querySelector('.add-button').addEventListener('click', () => {
+                changeScore(no, 1);
+                playAddSound();
+            });
+            card.querySelector('.subtract-button').addEventListener('click', () => {
+                changeScore(no, -1);
+            });
+        }
+
+        function playAddSound() {
+            const AudioContextType = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextType) return;
+
+            try {
+                audioContext ||= new AudioContextType();
+                const oscillator = audioContext.createOscillator();
+                const volume = audioContext.createGain();
+                const startTime = audioContext.currentTime;
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, startTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1320, startTime + 0.12);
+                volume.gain.setValueAtTime(0.0001, startTime);
+                volume.gain.exponentialRampToValueAtTime(0.18, startTime + 0.015);
+                volume.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.32);
+                oscillator.connect(volume);
+                volume.connect(audioContext.destination);
+                oscillator.start(startTime);
+                oscillator.stop(startTime + 0.33);
+            } catch (error) {
+                /* 音效失败不影响积分 */
+            }
+        }
+
+        /* ================= 启动 ================= */
+        // 教师端：管理（可加减）/ 查看（与学生端一致的柱状图）；学生端只看图
+        function applyViewMode() {
+            const manageMode = isTeacher && teacherMode === 'manage';
+            const showChart = !isTeacher || teacherMode === 'view';
+
+            if (teacherTabs) teacherTabs.hidden = !isTeacher;
+            if (teacherView) teacherView.hidden = !manageMode;
+            if (studentView) studentView.hidden = !showChart;
+
+            for (const button of teacherTabButtons) {
+                const active = button.dataset.view === teacherMode;
+                button.classList.toggle('on', active);
+                button.setAttribute('aria-pressed', String(active));
+            }
+            if (showChart) renderChart();
+        }
+
+        for (const button of teacherTabButtons) {
+            button.addEventListener('click', () => {
+                teacherMode = button.dataset.view === 'view' ? 'view' : 'manage';
+                applyViewMode();
+            });
+        }
+
+        // 学生端直接把这个切换控件从 DOM 里移除，避免任何样式/缓存导致它又冒出来
+        if (!isTeacher && teacherTabs && teacherTabs.parentNode) teacherTabs.remove();
+
+        applyViewMode();
+
+        paintCards();
+        setSortMode(sortMode);
+        setChartSortMode(chartSortMode);
+        loadLocalCache();
+        paintCards();
+        applySort();
+        renderChart();
+
+        status(isTeacher ? '正在连接云端积分…' : '正在读取云端积分…');
+        syncFromCloud(true);
+        setInterval(() => {
+            if (!document.hidden) syncFromCloud(false);
+        }, POLL_MS);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) syncFromCloud(false);
+        });
+        // 点状态栏手动重试（离线时每 4 秒也会自动重试）
+        if (saveStatus) {
+            saveStatus.addEventListener('click', () => syncFromCloud(true));
+        }
+        window.addEventListener('online', () => syncFromCloud(true));
+
+        /* ---------- 返回平台：内嵌在平台面板里时也要可靠退出 ---------- */
+        const backLink = document.querySelector('.back-link');
+        if (backLink) {
+            backLink.addEventListener('click', () => {
+                let embedded = false;
+                try {
+                    embedded = !!(window.parent && window.parent !== window);
+                } catch (err) {
+                    embedded = true;
+                }
+                if (!embedded) return;   // 独立打开时按普通链接跳转
+
+                // 同源：直接调平台上的关闭函数
+                try {
+                    if (typeof window.parent.closeTool === 'function') window.parent.closeTool();
+                } catch (err) { /* 跨域时忽略 */ }
+                // 跨域 / 被隔离：用 postMessage 通知外层
+                try {
+                    window.parent.postMessage({ type: 'oc-close-tool' }, '*');
+                } catch (err) { /* 忽略 */ }
+            });
+        }
+
+        /* ---------- 全屏（与主界面一致的进入 / 退出） ---------- */
+        const fsBtn = document.getElementById('btnFullscreen');
+        const fsLabel = document.getElementById('fsLabel');
+
+        // 在平台的内嵌窗口里打开时，控制外层页面的全屏，保证内外按钮状态一致
+        function syncFsButton(on) {
+            const fs = (typeof on === 'boolean') ? on : OCFullscreen.isOn();
+            fsBtn.classList.toggle('is-fs', fs);
+            fsLabel.textContent = fs ? '退出全屏' : '全屏';
+            fsBtn.setAttribute('aria-label', fs ? '退出全屏' : '全屏显示');
+        }
+
+        fsBtn.addEventListener('click', () => OCFullscreen.toggle());
+        OCFullscreen.onChange(syncFsButton);
+    </script>
+</body>
+</html>

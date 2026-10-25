@@ -1,0 +1,2040 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>光的反射 · 3D 模拟实验室</title>
+<script src="oc-fullscreen.js?v=1"></script>
+<style>
+  :root{
+    --bg:#0b0e12;
+    --panel:#141a21;
+    --panel2:#1a222b;
+    --line:#243040;
+    --line2:#2d3b4d;
+    --ink:#dbe3ec;
+    --muted:#7b8798;
+    --green:#2ecc71;
+    --green-d:#1e9e56;
+    --amber:#ffd21e;
+    --red:#ff5c5c;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+    user-select:none;-webkit-user-select:none;
+    -webkit-tap-highlight-color:transparent;
+    -webkit-touch-callout:none;
+    overscroll-behavior:none;
+  }
+  #app{
+    display:grid;
+    grid-template-rows:auto 1fr;
+    height:100vh;
+    height:100dvh;
+  }
+
+  /* ---------- 顶栏 ---------- */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:16px;padding:10px 18px;
+    background:linear-gradient(180deg,#151c24,#111720);
+    border-bottom:1px solid var(--line);
+    z-index:20;
+  }
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{
+    width:34px;height:34px;border-radius:9px;
+    background:conic-gradient(from 210deg,#2ecc71,#1abc9c,#3498db,#2ecc71);
+    box-shadow:0 0 18px rgba(46,204,113,.35);
+    position:relative;flex:none;
+  }
+  .logo::after{
+    content:"";position:absolute;inset:7px;border-radius:5px;
+    background:#0f141a;
+  }
+  .brand h1{font-size:15px;font-weight:700;letter-spacing:.3px}
+  .brand p{font-size:11px;color:var(--muted);margin-top:2px}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap}
+  .tbtn{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:6px 13px;border-radius:999px;
+    border:1px solid var(--line2);
+    background:var(--panel2);color:var(--ink);
+    font-size:12.5px;font-weight:600;cursor:pointer;
+    transition:.16s;
+  }
+  .tbtn:hover{background:#22303e;border-color:#3a4e63}
+  .tbtn.on{background:var(--green);border-color:var(--green);color:#04140a}
+
+  /* ---------- 主体 ---------- */
+  .main{
+    display:grid;
+    grid-template-columns:1fr 342px;
+    min-height:0;
+  }
+  .stage{
+    position:relative;
+    display:grid;
+    grid-template-rows:1fr auto;
+    min-height:0;min-width:0;
+    background:
+      radial-gradient(120% 90% at 50% 0%,#182230 0%,#0d1218 55%,#0a0d11 100%);
+  }
+  #canvasHost{position:relative;min-height:0}
+  #canvasHost canvas{display:block;width:100%;height:100%}
+
+  /* 视角按钮 */
+  .viewbar{
+    position:absolute;left:14px;top:14px;
+    display:flex;gap:6px;flex-wrap:wrap;z-index:8;
+  }
+  .vbtn{
+    padding:6px 13px;border-radius:999px;
+    border:1px solid var(--line2);
+    background:rgba(20,26,33,.82);
+    backdrop-filter:blur(8px);
+    color:var(--ink);font-size:12px;font-weight:600;cursor:pointer;
+    transition:.16s;
+  }
+  .vbtn:hover{border-color:#3f5a75;color:#fff}
+  .vbtn.on{background:var(--green);border-color:var(--green);color:#04140a}
+
+  /* 光线开关 */
+  .drawbar{
+    position:absolute;right:14px;top:14px;
+    display:flex;gap:6px;z-index:8;
+  }
+  .dbtn{
+    padding:6px 13px;border-radius:999px;
+    border:1px solid var(--line2);
+    background:rgba(20,26,33,.82);
+    backdrop-filter:blur(8px);
+    color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;
+    transition:.16s;
+  }
+  .dbtn.on{color:#04140a;background:var(--green);border-color:var(--green)}
+  .dbtn:hover{color:#fff}
+
+  /* 提示条 */
+  .hint{
+    position:absolute;left:14px;bottom:14px;
+    padding:7px 14px;border-radius:8px;
+    background:rgba(20,26,33,.86);
+    border:1px solid var(--line2);
+    backdrop-filter:blur(8px);
+    font-size:12px;color:#9fb0c4;z-index:8;
+    pointer-events:none;
+    transition:opacity .3s;
+  }
+
+  /* ---------- 底部读数 ---------- */
+  .readouts{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:8px;
+    padding:10px 14px;
+    background:#10151b;
+    border-top:1px solid var(--line);
+  }
+  .card{
+    background:var(--panel2);
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:7px 10px 8px;
+    display:flex;flex-direction:column;gap:3px;
+    min-width:0;
+  }
+  .card em{
+    font-style:normal;font-size:10.5px;color:var(--muted);
+    letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .card strong{
+    font-size:18px;font-weight:700;
+    font-variant-numeric:tabular-nums;
+    letter-spacing:.2px;
+    line-height:1.1;
+    white-space:nowrap;
+  }
+  .card strong .u{font-size:11px;color:var(--muted);font-weight:600;margin-left:2px}
+  .card.hl strong{color:var(--green)}
+  .card.warn strong{color:var(--red)}
+
+  /* ---------- 右侧面板 ---------- */
+  .panel{
+    background:var(--panel);
+    border-left:1px solid var(--line);
+    overflow-y:auto;
+    padding:12px;
+    display:flex;flex-direction:column;gap:11px;
+  }
+  .panel::-webkit-scrollbar{width:7px}
+  .panel::-webkit-scrollbar-thumb{background:#26333f;border-radius:4px}
+
+  .pcard{
+    background:var(--panel2);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:11px 12px 13px;
+  }
+  .pcard h3{
+    font-size:12px;font-weight:700;color:#aebccd;
+    letter-spacing:.4px;display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:9px;
+  }
+  .pcard h3 span{font-size:11px;font-weight:500;color:var(--muted)}
+
+  .seg{
+    display:flex;gap:5px;background:rgba(255,255,255,.045);
+    padding:4px;border-radius:999px;
+  }
+  .seg button{
+    flex:1;padding:6px 4px;border:none;border-radius:999px;
+    background:transparent;color:var(--muted);
+    font-size:11.5px;font-weight:600;cursor:pointer;
+    font-family:inherit;transition:.16s;white-space:nowrap;
+  }
+  .seg button.on{background:var(--green);color:#04140a;box-shadow:0 2px 10px rgba(46,204,113,.3)}
+  .seg button:hover:not(.on){color:#dfe8f2}
+
+  /* 光色选择 */
+  .colorrow{
+    display:flex;align-items:center;gap:9px;
+    padding:8px 10px;border-radius:9px;
+    background:rgba(255,255,255,.03);border:1px solid var(--line);
+  }
+  .colorrow .clab{font-size:11.5px;color:#9aabbd;margin-right:auto}
+  .cbtn{
+    width:23px;height:23px;border-radius:50%;padding:0;flex:none;
+    border:2px solid rgba(255,255,255,.16);
+    background:var(--c);cursor:pointer;transition:.16s;
+  }
+  .cbtn:hover{transform:scale(1.12)}
+  .cbtn.on{border-color:#fff;box-shadow:0 0 12px var(--c)}
+
+  .slider{margin-top:11px}
+  .slider:first-of-type{margin-top:2px}
+  .slider .lab{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-size:11.5px;color:#9aabbd;margin-bottom:5px;
+  }
+  .slider .lab b{color:var(--green);font-weight:700;font-variant-numeric:tabular-nums;font-size:12.5px}
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;
+    width:100%;height:5px;border-radius:3px;
+    background:linear-gradient(90deg,var(--green) var(--p,0%),#253140 var(--p,0%));
+    outline:none;cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;
+    width:15px;height:15px;border-radius:50%;
+    background:#fff;border:3px solid var(--green);
+    box-shadow:0 1px 6px rgba(0,0,0,.6);cursor:grab;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:12px;height:12px;border-radius:50%;
+    background:#fff;border:3px solid var(--green);cursor:grab;
+  }
+
+  .row{display:flex;gap:7px;margin-top:10px}
+  .btn{
+    flex:1;padding:7px 10px;border-radius:8px;
+    border:1px solid var(--line2);background:#1e2833;
+    color:var(--ink);font-size:11.5px;font-weight:600;
+    cursor:pointer;font-family:inherit;transition:.16s;
+    display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  }
+  .btn:hover{background:#263442;border-color:#3a5068}
+  .btn.primary{background:var(--green);border-color:var(--green);color:#04140a}
+  .btn.primary:hover{background:#35dd7d}
+
+  .note{
+    font-size:11px;color:var(--muted);line-height:1.55;margin-top:9px;
+  }
+  .note b{color:#b9c8d8;font-weight:600}
+  .note .ok{color:var(--green);font-weight:700}
+
+  /* 判定清单 */
+  .checks{display:flex;flex-direction:column;gap:5px}
+  .chk{
+    display:flex;align-items:center;gap:8px;
+    padding:6px 9px;border-radius:7px;
+    background:rgba(255,255,255,.028);
+    border:1px solid transparent;
+    font-size:11.5px;color:#7d8b9c;
+    transition:.2s;
+  }
+  .chk .dot{
+    width:14px;height:14px;border-radius:50%;flex:none;
+    border:1.6px solid #34404e;position:relative;
+  }
+  .chk.done{color:#dfe9f4;background:rgba(46,204,113,.08);border-color:rgba(46,204,113,.25)}
+  .chk.done .dot{background:var(--green);border-color:var(--green)}
+  .chk.done .dot::after{
+    content:"";position:absolute;left:4px;top:1.5px;
+    width:4px;height:7px;border:solid #04140a;border-width:0 2px 2px 0;
+    transform:rotate(42deg);
+  }
+
+  /* 记录表 */
+  .records{max-height:132px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+  .records::-webkit-scrollbar{width:5px}
+  .records::-webkit-scrollbar-thumb{background:#26333f;border-radius:3px}
+  .rec{
+    display:grid;grid-template-columns:26px 1fr 1fr 1fr;
+    gap:4px;padding:5px 7px;border-radius:6px;
+    background:rgba(255,255,255,.035);
+    font-size:11px;font-variant-numeric:tabular-nums;
+    color:#b7c6d6;align-items:center;
+  }
+  .rec i{font-style:normal;color:var(--muted);font-size:10px}
+  .rec.head{background:transparent;color:var(--muted);font-size:10px;padding-bottom:1px}
+  .empty{font-size:11px;color:var(--muted);line-height:1.6;padding:4px 0}
+
+  @media (max-width:1100px){
+    .main{grid-template-columns:1fr 300px}
+    .readouts{grid-template-columns:repeat(3,1fr)}
+  }
+
+  /* ---------- 按钮自制图标 ---------- */
+  .tbtn .tico{width:14px;height:14px;flex:none;fill:currentColor}
+  .tbtn,.vbtn,.dbtn,.seg button,.btn,.cbtn{touch-action:manipulation}
+  #canvasHost canvas{touch-action:none;-webkit-touch-callout:none;-webkit-user-drag:none}
+  .panel{-webkit-overflow-scrolling:touch}
+
+  /* ---------- 触屏（平板 / 手机）：把可点区域放大，手指更好按 ---------- */
+  @media (pointer: coarse){
+    .tbtn{padding:9px 15px;font-size:13.5px;min-height:42px}
+    .tbtn .tico{width:15px;height:15px}
+    .vbtn,.dbtn{padding:9px 14px;font-size:12.5px}
+    .seg button{padding:11px 6px;font-size:12.5px}
+    .btn{padding:13px 12px;font-size:12.5px}
+    .cbtn{width:34px;height:34px}
+    .slider .lab{font-size:12.5px}
+    .slider .lab b{font-size:13.5px}
+    input[type=range]{height:10px}
+    input[type=range]::-webkit-slider-thumb{width:26px;height:26px}
+    input[type=range]::-moz-range-thumb{width:24px;height:24px}
+    .rec{font-size:12px;padding:8px}
+    .chk{padding:10px;font-size:12.5px}
+    .hint{font-size:11.5px}
+  }
+
+  /* ---------- 竖屏平板 / 手机：画布在上、控制面板在下 ---------- */
+  @media (max-width:900px){
+    .topbar{padding:8px 12px;gap:10px;flex-wrap:wrap}
+    .brand{min-width:0}
+    .brand h1{font-size:13.5px}
+    .brand p{display:none}
+    .toolbar{gap:6px;justify-content:flex-end}
+    .main{
+      grid-template-columns:1fr;
+      grid-template-rows:minmax(220px,46vh) minmax(0,1fr);
+    }
+    .panel{border-left:none;border-top:1px solid var(--line);padding-bottom:calc(14px + env(safe-area-inset-bottom, 0px))}
+    .readouts{grid-template-columns:repeat(3,1fr);padding:8px 10px;gap:6px}
+    .hint{left:10px;bottom:10px;max-width:calc(100% - 20px);white-space:normal}
+  }
+
+  /* ---------- 窄屏：视角 / 光线按钮改为上下两排，避免叠在一起 ---------- */
+  @media (max-width:680px){
+    .viewbar{left:8px;top:8px;gap:4px}
+    .drawbar{left:8px;right:auto;top:46px;gap:4px}
+    .vbtn,.dbtn{padding:6px 10px;font-size:11px}
+  }
+</style>
+    <link rel="stylesheet" href="oc-touch.css?v=1" />
+    <script src="oc-net.js?v=1"></script>
+</head>
+<body>
+<div id="app">
+
+  <!-- ================= 顶栏 ================= -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <h1>光的反射 · 3D 模拟实验室</h1>
+        <p>初中 · 光现象 / 实验 2 · 探究光的反射定律</p>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button class="tbtn" id="btnBack" type="button" onclick="location.href='open-class-smart-platform.html'">
+        <svg class="tico" viewBox="0 0 1024 1024" aria-hidden="true"><path d="M185.3952 511.232l398.2336 398.2336-72.3968 72.448L40.6016 511.232 511.232 40.6016 583.68 112.9984z" fill="currentColor"></path></svg>
+        返回平台
+      </button>
+      <button class="tbtn" id="btnGuide" type="button">
+        <svg class="tico" viewBox="0 0 1024 1024" aria-hidden="true"><path d="M888.105449 213.435067c-4.477988-4.441149-10.510378-6.940063-16.803711-6.940063-0.036839 0-0.036839 0-0.073678 0l-68.771293 0.222057 0-33.978882c0-7.142677-3.201925-13.916964-8.734942-18.414395-5.514597-4.51585-12.769838-6.348592-19.784602-4.904707l-262.738983 53.336766-262.721587-46.544059c-6.921643-1.240247-14.046924 0.666172-19.431561 5.182023-5.40408 4.53427-8.513908 11.195993-8.513908 18.228153l0 28.870538-68.918649 0.222057c-13.102413 0.036839-23.725354 10.69662-23.725354 23.800056l0 616.959493c0 6.330172 2.51631 12.399401 6.995321 16.859993 4.477988 4.441149 10.511401 6.939039 16.803711 6.939039 0.036839 0 0.036839 0 0.073678 0l719.616548-2.220574c13.103436-0.056282 23.726378-10.69662 23.726378-23.800056L895.102816 230.29506C895.101793 223.965911 892.58446 217.895659 888.105449 213.435067zM535.294031 814.830073 535.294031 246.414179l219.582067-44.582381L754.876098 770.266112 535.294031 814.830073zM268.110829 207.995171l219.583091 38.919405 0 568.636928L268.110829 776.651542 268.110829 207.995171zM175.485245 256.222569l45.045939-0.148379 0 540.525684c0 11.529591 8.272407 21.393239 19.636223 23.411199l29.925566 5.310959-94.606705 0.277316L175.486268 256.222569zM847.502705 823.546595l-117.703749 0.369414 53.595662-10.881838c11.104919-2.257413 19.062148-11.993149 19.062148-23.318078L802.456766 254.298753l45.046962-0.12996L847.503728 823.546595zM441.335079 297.659307l-121.69976-22.596647c-8.569166-1.610684-16.712637 4.071735-18.303878 12.5662-1.572822 8.512884 4.053316 16.711614 12.58462 18.284435l121.700783 22.597671c0.961908 0.185218 1.924839 0.258896 2.868327 0.258896 7.421017 0 14.009062-5.275143 15.416108-12.825097C455.474101 307.430858 449.866383 299.232129 441.335079 297.659307zM441.335079 381.180536l-121.69976-22.596647c-8.569166-1.62808-16.712637 4.033873-18.303878 12.5662-1.572822 8.512884 4.053316 16.711614 12.58462 18.284435l121.700783 22.596647c0.961908 0.185218 1.924839 0.277316 2.868327 0.277316 7.421017 0 14.009062-5.27412 15.416108-12.825097C455.474101 390.952086 449.866383 382.753357 441.335079 381.180536zM441.335079 464.701764l-121.69976-22.578228c-8.569166-1.647523-16.712637 4.052293-18.303878 12.546757-1.572822 8.532327 4.053316 16.731056 12.58462 18.303878l121.700783 22.578228c0.961908 0.185218 1.924839 0.258896 2.868327 0.258896 7.421017 0 14.009062-5.27412 15.416108-12.825097C455.474101 474.473315 449.866383 466.274586 441.335079 464.701764zM441.335079 548.240389l-121.69976-22.615067c-8.569166-1.647523-16.712637 4.053316-18.303878 12.565177-1.572822 8.532327 4.053316 16.711614 12.58462 18.302855l121.700783 22.597671c0.961908 0.185218 1.924839 0.258896 2.868327 0.258896 7.421017 0 14.009062-5.27412 15.416108-12.824073C455.474101 558.01194 449.866383 549.814234 441.335079 548.240389zM441.335079 631.743198l-121.69976-22.577205c-8.569166-1.684362-16.712637 4.052293-18.303878 12.565177-1.572822 8.512884 4.053316 16.711614 12.58462 18.284435l121.700783 22.577205c0.961908 0.204661 1.924839 0.277316 2.868327 0.277316 7.421017 0 14.009062-5.29254 15.416108-12.824073C455.474101 641.514749 449.866383 633.334439 441.335079 631.743198zM441.335079 715.282846l-121.69976-22.597671c-8.569166-1.701758-16.712637 4.033873-18.303878 12.5662-1.572822 8.512884 4.053316 16.71059 12.58462 18.284435l121.700783 22.596647c0.961908 0.185218 1.924839 0.258896 2.868327 0.258896 7.421017 0 14.009062-5.255701 15.416108-12.824073C455.474101 725.054397 449.866383 716.856691 441.335079 715.282846zM702.964798 269.88166l-121.701806 25.89067c-8.475022 1.795902-13.897521 10.123568-12.084223 18.618033 1.572822 7.364735 8.086166 12.417821 15.34243 12.417821 1.073448 0 2.164293-0.110517 3.25616-0.352017l121.700783-25.872251c8.476045-1.794879 13.917988-10.141988 12.103666-18.618033S711.43982 268.122597 702.964798 269.88166zM702.964798 353.420285l-121.701806 25.854854c-8.475022 1.794879-13.897521 10.141988-12.084223 18.61701 1.572822 7.384178 8.086166 12.417821 15.34243 12.417821 1.073448 0 2.164293-0.092098 3.25616-0.332575l121.700783-25.873274c8.476045-1.794879 13.917988-10.123568 12.103666-18.61701C719.768509 357.029486 711.43982 351.625406 702.964798 353.420285zM702.964798 436.923094l-121.701806 25.89067c-8.475022 1.794879-13.897521 10.123568-12.084223 18.61701 1.572822 7.365758 8.086166 12.417821 15.34243 12.417821 1.073448 0 2.164293-0.110517 3.25616-0.332575l121.700783-25.89067c8.476045-1.794879 13.917988-10.123568 12.103666-18.618033C719.768509 440.531272 711.43982 435.128215 702.964798 436.923094zM702.964798 520.462742l-121.701806 25.871227c-8.475022 1.796926-13.897521 10.124592-12.084223 18.599613 1.572822 7.385201 8.086166 12.43624 15.34243 12.43624 1.073448 0 2.164293-0.109494 3.25616-0.350994l121.700783-25.854854c8.476045-1.794879 13.917988-10.140964 12.103666-18.61701C719.768509 524.07092 711.43982 518.703679 702.964798 520.462742zM702.964798 603.983971l-121.701806 25.871227c-8.475022 1.794879-13.897521 10.141988-12.084223 18.618033 1.572822 7.384178 8.086166 12.417821 15.34243 12.417821 1.073448 0 2.164293-0.093121 3.25616-0.332575l121.700783-25.891693c8.476045-1.795902 13.917988-10.122545 12.103666-18.615986C719.768509 607.591125 711.43982 602.150206 702.964798 603.983971zM702.964798 687.504176l-121.701806 25.872251c-8.475022 1.794879-13.897521 10.124592-12.084223 18.618033 1.572822 7.365758 8.086166 12.417821 15.34243 12.417821 1.073448 0 2.164293-0.110517 3.25616-0.332575l121.700783-25.872251c8.476045-1.795902 13.917988-10.124592 12.103666-18.618033C719.768509 691.093934 711.43982 685.727717 702.964798 687.504176z" fill="currentColor"></path></svg>
+        实验指南
+      </button>
+      <button class="tbtn" id="btnReset">↺ 复位</button>
+      <button class="tbtn" id="btnFocus">⛶ 专注模式</button>
+      <button class="tbtn" id="btnFull">⤢ 全屏</button>
+    </div>
+  </header>
+
+  <!-- ================= 主体 ================= -->
+  <div class="main">
+
+    <!-- 左：舞台 -->
+    <div class="stage">
+      <div id="canvasHost">
+        <div class="viewbar" id="viewBar"></div>
+        <div class="drawbar" id="drawBar">
+          <button class="dbtn on" data-line="incident">入射光线</button>
+          <button class="dbtn on" data-line="reflected">反射光线</button>
+          <button class="dbtn on" data-line="normal">法线</button>
+          <button class="dbtn on" data-line="angles">反射角与入射角</button>
+        </div>
+        <div class="hint" id="hint">按住光源臂拖动（或用滑杆）—— 板上直接读入射角与反射角</div>
+      </div>
+
+      <!-- 底部读数 -->
+      <div class="readouts">
+        <div class="card"><em>板上刻度</em><strong id="rScale">34.5<span class="u">°</span></strong></div>
+        <div class="card"><em>入射角 ∠i</em><strong id="rInc">34.5<span class="u">°</span></strong></div>
+        <div class="card"><em>反射角 ∠r</em><strong id="rRef">34.5<span class="u">°</span></strong></div>
+        <div class="card hl"><em>两者之差</em><strong id="rDiff">0.000000<span class="u">°</span></strong></div>
+        <div class="card"><em>板上亮线</em><strong id="rLine">100.0<span class="u">mm</span></strong></div>
+        <div class="card"><em>反射线偏离板面</em><strong id="rOff">0.0<span class="u">°</span></strong></div>
+      </div>
+    </div>
+
+    <!-- 右：控制面板 -->
+    <aside class="panel">
+
+      <!-- ① 模式 -->
+      <section class="pcard">
+        <h3>① 这一档做什么 <span id="modeTag">反射规律</span></h3>
+        <div class="seg" id="modeSeg">
+          <button class="on" data-mode="reflect">反射规律</button>
+          <button data-mode="diffuse">镜面/漫反射</button>
+        </div>
+      </section>
+
+      <!-- ② 参数 -->
+      <section class="pcard">
+        <h3>② 实验参数</h3>
+        <div class="colorrow" id="colorRow">
+          <span class="clab">激光颜色</span>
+          <button class="cbtn" data-color="red"    style="--c:#ff3b30" title="红色激光"></button>
+          <button class="cbtn on" data-color="yellow" style="--c:#ffe23a" title="黄色激光"></button>
+          <button class="cbtn" data-color="green"  style="--c:#3dff85" title="绿色激光"></button>
+          <button class="cbtn" data-color="blue"   style="--c:#4da6ff" title="蓝色激光"></button>
+        </div>
+        <div class="slider" style="margin-top:12px">
+          <div class="lab"><span>光源臂</span><b id="vAngle">34.5 °</b></div>
+          <input type="range" id="sAngle" min="0" max="75" step="0.5" value="34.5">
+        </div>
+        <div class="slider">
+          <div class="lab"><span>整块板后仰</span><b id="vTilt">0.0 °</b></div>
+          <input type="range" id="sTilt" min="0" max="45" step="1" value="0">
+        </div>
+        <div class="slider">
+          <div class="lab"><span>法线板折转</span><b id="vFold">0.0 °</b></div>
+          <input type="range" id="sFold" min="0" max="60" step="1" value="0">
+        </div>
+      </section>
+
+      <!-- ③ 光路可逆 -->
+      <section class="pcard" id="laserCard">
+        <h3>③ 光路可逆 <span>拿支激光笔，沿反射线射回去</span></h3>
+        <div class="row" style="margin-top:0">
+          <button class="btn" id="btnLaser">放下激光笔</button>
+        </div>
+        <div class="slider">
+          <div class="lab"><span>激光笔瞄准</span><b id="vAim">0.0 °</b></div>
+          <input type="range" id="sAim" min="-75" max="75" step="0.5" value="0">
+        </div>
+        <div class="note" id="laserMsg">放下激光笔后，沿反射线射回去 —— 光会原路返回灯口。</div>
+      </section>
+
+      <!-- ④ 实验记录 -->
+      <section class="pcard">
+        <h3>④ 实验记录 <span id="recCount">0 行</span></h3>
+        <div class="records" id="recList">
+          <p class="empty">还没有记录。调好一摆之后按「记一行」。</p>
+        </div>
+        <div class="row">
+          <button class="btn primary" id="btnRec">记一行</button>
+          <button class="btn" id="btnClear">清空</button>
+        </div>
+      </section>
+
+      <!-- ⑤ 判定 -->
+      <section class="pcard">
+        <h3>⑤ 这一节走完了吗 <span id="chkCount">0 / 9</span></h3>
+        <div class="checks" id="checks"></div>
+      </section>
+
+    </aside>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+/* =========================================================
+   0. 基础常量
+   ========================================================= */
+const R_BOARD = 80;    // 纸板半径 mm
+const L_SRC   = 132;   // 激光笔出光口到 O 的距离 mm
+const D2R = Math.PI / 180;
+
+/* 四色激光 */
+const COLORS = {
+  red:    { name: '红', hex: 0xff3b30, css: '#ff5a4e' },
+  yellow: { name: '黄', hex: 0xffe23a, css: '#ffe94d' },
+  green:  { name: '绿', hex: 0x3dff85, css: '#4dff92' },
+  blue:   { name: '蓝', hex: 0x4da6ff, css: '#69b4ff' },
+};
+const COLOR_ORDER = ['red', 'yellow', 'green', 'blue'];
+
+/* =========================================================
+   1. 渲染器 / 场景 / 相机
+   ========================================================= */
+const host = document.getElementById('canvasHost');
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+host.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b0e12);
+scene.fog = new THREE.Fog(0x0b0e12, 900, 2200);
+
+const camera = new THREE.PerspectiveCamera(42, 1, 1, 6000);
+camera.position.set(285, 240, 350);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 60, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.075;
+controls.minDistance = 90;
+controls.maxDistance = 1400;
+controls.maxPolarAngle = Math.PI * 0.495;
+controls.update();
+
+/* 环境光照 */
+{
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const envRT = pmrem.fromScene(new RoomEnvironment(), 0.03);
+  scene.environment = envRT.texture;
+  pmrem.dispose();
+}
+scene.add(new THREE.HemisphereLight(0x88aaff, 0x0a0d11, 0.42));
+
+const keyLight = new THREE.DirectionalLight(0xffffff, 1.95);
+keyLight.position.set(280, 470, 380);
+scene.add(keyLight);
+
+const rimLight = new THREE.DirectionalLight(0x5599ff, 0.85);
+rimLight.position.set(-380, 190, -320);
+scene.add(rimLight);
+
+const warmFill = new THREE.PointLight(0xffcc88, 0.42, 2200, 2);
+warmFill.position.set(0, 280, 240);
+scene.add(warmFill);
+
+/* =========================================================
+   2. 纸板表面纹理（刻度 + 数字读数）
+   ---------------------------------------------------------
+   画布 2048×1024 px  ↔  纸板 160mm × 80mm，与 extrude 的
+   shape 坐标一一对应，所以贴图占满整块半圆。
+   ========================================================= */
+const TEX_W = 2048, TEX_H = 1024;
+
+function makeBoardTexture() {
+  const cv = document.createElement('canvas');
+  cv.width = TEX_W; cv.height = TEX_H;
+  const g  = cv.getContext('2d');
+  const k  = TEX_W / (R_BOARD * 2);      // 12.8 px / mm
+  const cx = TEX_W / 2, cy = TEX_H;      // 圆心落在底边中点
+
+  /* 底色：哑光白纸板 */
+  const grad = g.createLinearGradient(0, cy, 0, 0);
+  grad.addColorStop(0,    '#8e8c86');
+  grad.addColorStop(0.45, '#a09e97');
+  grad.addColorStop(1,    '#b3b1a9');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, TEX_W, TEX_H);
+
+  /* 纸纹噪点 */
+  for (let i = 0; i < 9000; i++) {
+    const bright = Math.random() > 0.5;
+    g.fillStyle = bright ? 'rgba(255,255,255,.018)' : 'rgba(0,0,0,.022)';
+    g.fillRect(Math.random() * TEX_W, Math.random() * TEX_H, 2.4, 2.4);
+  }
+
+  /* 外缘加粗圆环 */
+  g.beginPath();
+  g.arc(cx, cy, R_BOARD * k - 3, Math.PI, Math.PI * 2);
+  g.lineWidth = 7;
+  g.strokeStyle = 'rgba(38,35,30,.6)';
+  g.stroke();
+
+  /* 刻度线：每 5° 一根，每 10° 一根长线 */
+  for (let a = 0; a <= 90; a += 5) {
+    const major = (a % 10 === 0);
+    const rOut  = R_BOARD * k - 5;
+    const rIn   = (major ? R_BOARD - 13 : R_BOARD - 6.5) * k;
+    for (const s of [1, -1]) {
+      if (a === 0 && s === -1) continue;
+      const sa = Math.sin(a * D2R), ca = Math.cos(a * D2R);
+      g.beginPath();
+      g.moveTo(cx + s * sa * rIn,  cy - ca * rIn);
+      g.lineTo(cx + s * sa * rOut, cy - ca * rOut);
+      g.lineWidth   = major ? 7.5 : 3.4;
+      g.strokeStyle = major ? 'rgba(30,28,24,.9)' : 'rgba(56,52,46,.55)';
+      g.stroke();
+    }
+  }
+
+  /* 数字读数：沿半径方向排布 */
+  g.font = `600 ${Math.round(7.6 * k)}px "Segoe UI","Microsoft YaHei",sans-serif`;
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  const numR = (R_BOARD - 25) * k;
+
+  for (let a = 10; a <= 80; a += 10) {
+    const rad = a * D2R;
+    for (const s of [1, -1]) {
+      let th = Math.atan2(-Math.cos(rad), s * Math.sin(rad));
+      if (Math.abs(th) > Math.PI / 2) th += Math.PI;   // 避免倒置
+      g.save();
+      g.translate(cx + s * Math.sin(rad) * numR, cy - Math.cos(rad) * numR);
+      g.rotate(th);
+      g.fillStyle = 'rgba(26,24,20,.92)';
+      g.fillText(String(a), 0, 0);
+      g.restore();
+    }
+  }
+
+  /* 0°：落在法线（两扇板接缝）上 */
+  g.save();
+  g.translate(cx, cy - numR);
+  g.rotate(-Math.PI / 2);
+  g.fillStyle = 'rgba(26,24,20,.92)';
+  g.fillText('0', 0, 0);
+  g.restore();
+
+  /* 90°：贴着镜面的两个方向 */
+  for (const s of [1, -1]) {
+    g.save();
+    g.translate(cx + s * numR, cy);
+    g.fillStyle = 'rgba(26,24,20,.92)';
+    g.fillText('90', 0, 0);
+    g.restore();
+  }
+
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
+  tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+  tex.repeat.set(1 / (R_BOARD * 2), 1 / R_BOARD);
+  tex.offset.set(0.5, 0);
+  return tex;
+}
+
+/* =========================================================
+   3. 材质库
+   ========================================================= */
+const MAT = {
+  metal:      new THREE.MeshStandardMaterial({ color: 0x6d7883, metalness: 0.92, roughness: 0.30 }),
+  metalDark:  new THREE.MeshStandardMaterial({ color: 0x2e353e, metalness: 0.72, roughness: 0.55 }),
+  metalLight: new THREE.MeshStandardMaterial({ color: 0xa3b0bd, metalness: 0.95, roughness: 0.22 }),
+  boardFace:  new THREE.MeshStandardMaterial({
+                map: makeBoardTexture(), roughness: 0.98, metalness: 0.0, side: THREE.DoubleSide
+              }),
+  boardEdge:  new THREE.MeshStandardMaterial({ color: 0x55534e, roughness: 0.9, metalness: 0.0 }),
+  mirror:     new THREE.MeshStandardMaterial({
+                color: 0xeef6ff, metalness: 0.98, roughness: 0.045,
+                envMapIntensity: 3.2, emissive: 0x3b5166, emissiveIntensity: 0.4
+              }),
+  surface:    new THREE.MeshStandardMaterial({ color: 0x8d99a6, metalness: 0.85, roughness: 0.35 }),
+};
+
+/* =========================================================
+   4. 通用工具
+   ========================================================= */
+/** 一根「光束」——用圆柱体画，可实时改起止点 */
+class Beam {
+  constructor(radius, color, opacity = 0.95, additive = false) {
+    const geo = new THREE.CylinderGeometry(radius, radius, 1, 12, 1, true);
+    geo.translate(0, 0.5, 0);                       // 底面在原点，向 +Y 生长
+    const mat = new THREE.MeshBasicMaterial({
+      color, transparent: true, opacity,
+      depthWrite: false, toneMapped: false,
+      blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending
+    });
+    this.mesh = new THREE.Mesh(geo, mat);
+    this.mesh.renderOrder = additive ? 21 : 22;
+    this.mesh.frustumCulled = false;
+  }
+  set(from, to) {
+    const dir = new THREE.Vector3().subVectors(to, from);
+    const len = dir.length();
+    if (len < 1e-4) { this.mesh.visible = false; return; }
+    this.mesh.visible = true;
+    this.mesh.position.copy(from);
+    this.mesh.scale.set(1, len, 1);
+    this.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize());
+  }
+  setColor(hex) { this.mesh.material.color.setHex(hex); }
+}
+
+/**
+ * 一条光束：单根颜色干净的亮线，外部不再叠雾状光晕。
+ */
+class Ray {
+  constructor(radius, color) {
+    this.core = new Beam(radius, color, 1.0, false);
+    this.setColor(color);
+  }
+  addTo(parent) { parent.add(this.core.mesh); }
+  setColor(hex) {
+    this.core.setColor(new THREE.Color(hex)
+      .lerp(new THREE.Color(0xffffff), 0.12).getHex());
+  }
+  set(from, to) { this.core.set(from, to); }
+  show(v) { this.core.mesh.visible = v; }
+  get visible() { return this.core.mesh.visible; }
+}
+
+/** 板面上的文字读数标签（Sprite，始终面向相机） */
+class Label {
+  constructor(h = 13) {
+    this.cv  = document.createElement('canvas');
+    this.cv.width = 512; this.cv.height = 128;
+    this.tex = new THREE.CanvasTexture(this.cv);
+    this.tex.colorSpace = THREE.SRGBColorSpace;
+    this.mat = new THREE.SpriteMaterial({
+      map: this.tex, transparent: true, depthTest: false,
+      depthWrite: false, toneMapped: false
+    });
+    this.sprite = new THREE.Sprite(this.mat);
+    this.sprite.scale.set(h * 4, h, 1);
+    this.sprite.renderOrder = 30;
+    this._t = null;
+  }
+  set(text, css) {
+    if (this._t === text && this._c === css) return;
+    this._t = text; this._c = css;
+    const g = this.cv.getContext('2d');
+    g.clearRect(0, 0, 512, 128);
+
+    // 深色胶囊底，保证在亮纸板上也读得清
+    g.font = 'bold 58px "Segoe UI","Microsoft YaHei",sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    const w = Math.min(496, g.measureText(text).width + 36);
+    g.fillStyle = 'rgba(12,15,20,.78)';
+    g.beginPath();
+    g.roundRect((512 - w) / 2, 20, w, 88, 44);
+    g.fill();
+
+    g.fillStyle = css;
+    g.fillText(text, 256, 66);
+    this.tex.needsUpdate = true;
+  }
+  place(v) { this.sprite.position.copy(v); }
+  show(v) { this.sprite.visible = v; }
+}
+
+/** 反射向量：d 为入射方向（指向镜面），n 为镜面单位法线 */
+function reflectVec(d, n) {
+  return d.clone().sub(n.clone().multiplyScalar(2 * d.dot(n))).normalize();
+}
+
+/* =========================================================
+   5. 世界根节点
+   ========================================================= */
+const world = new THREE.Group();
+scene.add(world);
+
+/* 地面 + 网格 */
+{
+  const floor = new THREE.Mesh(
+    new THREE.CircleGeometry(760, 72),
+    new THREE.MeshStandardMaterial({ color: 0x0f141a, roughness: 1, metalness: 0 })
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = -38;
+  world.add(floor);
+
+  const grid = new THREE.GridHelper(1400, 46, 0x1c2630, 0x151c24);
+  grid.position.y = -37.6;
+  world.add(grid);
+}
+
+/* =========================================================
+   6. 实验台 + 小平面镜
+   ---------------------------------------------------------
+   镜面水平、镜心正落在 O(0,0,0)，纸板底边贴在镜面上。
+   ========================================================= */
+const mirrorBase = new THREE.Group();
+world.add(mirrorBase);
+
+const MIRROR_W = 98;    // 镜面宽（沿 X）
+const MIRROR_D = 42;    // 镜面深（沿 Z）
+const MIRROR_T = 5;     // 镜厚度
+
+/* 可更换的插片：平面镜 / 凹凸不平镜面（细纹、粗纹）/ 白纸（顶面都在 y = 0） */
+let plateMirror = null, plateFine = null, plateCoarse = null, platePaper = null;
+
+/** 凹凸不平镜面：等间距的细沟槽 —— 参考图片里的条纹镜面板 */
+function makeBumpyPlate(w, d, pitch = 4, amp = 0.75) {
+  const ridges = Math.max(8, Math.round(w / pitch));
+  const geo = new THREE.PlaneGeometry(w, d, ridges * 12, 10);
+  const pos = geo.attributes.position;
+  const k = (Math.PI * 2) / pitch;
+
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i);
+    const groove = Math.sin(x * k);                        // 主沟槽
+    const wobble = Math.sin(y * 0.55 + x * 0.35) * 0.08;   // 沿沟槽方向的轻微起伏
+    const grain = Math.sin(x * 13.7 + y * 9.1) * 0.04;     // 细微颗粒
+    pos.setZ(i, (groove + wobble + grain) * amp);
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
+
+/** 一整块凹凸不平插片：金属底托 + 起伏表面 */
+function makeRoughPlate(pitch, amp, color, rough) {
+  const g = new THREE.Group();
+
+  const backing = new THREE.Mesh(new THREE.BoxGeometry(MIRROR_W - 4, 4, MIRROR_D - 4), MAT.metalDark);
+  backing.position.y = -2;
+  g.add(backing);
+
+  const bump = new THREE.Mesh(makeBumpyPlate(MIRROR_W + 4, MIRROR_D + 4, pitch, amp),
+    new THREE.MeshStandardMaterial({
+      color, metalness: 0.95, roughness: rough, envMapIntensity: 2.4
+    }));
+  bump.rotation.x = -Math.PI / 2;
+  bump.position.y = 0;
+  g.add(bump);
+
+  g.visible = false;
+  return g;
+}
+
+{
+  // —— 台体 ——
+  const base = new THREE.Mesh(new THREE.BoxGeometry(220, 22, 112), MAT.metalDark);
+  base.position.y = -25;
+  mirrorBase.add(base);
+
+  // 台面金属条
+  const topPlate = new THREE.Mesh(new THREE.BoxGeometry(212, 8, 104), MAT.metal);
+  topPlate.position.y = -10;
+  mirrorBase.add(topPlate);
+
+  // 镜片衬座（四周略高一点的金属框）
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(MIRROR_W + 18, 13, MIRROR_D + 18), MAT.metalLight);
+  seat.position.y = -7;
+  mirrorBase.add(seat);
+
+  // 镜片凹槽：四条边条围成框，中间空出来放插片（不要用实心块，否则会盖住镜面）
+  const WELL_W = MIRROR_W + 6, WELL_D = MIRROR_D + 6;   // 104 × 48
+  const BAR = 4;
+  const seatWellMat = MAT.metalLight;
+  for (const s of [1, -1]) {
+    const longBar = new THREE.Mesh(new THREE.BoxGeometry(WELL_W, 6, BAR), seatWellMat);
+    longBar.position.set(0, -1.5, s * (WELL_D / 2 - BAR / 2));
+    mirrorBase.add(longBar);
+
+    const shortBar = new THREE.Mesh(new THREE.BoxGeometry(BAR, 6, WELL_D - BAR * 2), seatWellMat);
+    shortBar.position.set(s * (WELL_W / 2 - BAR / 2), -1.5, 0);
+    mirrorBase.add(shortBar);
+  }
+
+  // —— 插片本体（顶面 = y 0），三种插片叠放，按模式切换显示 ——
+  const plateGeo = new THREE.BoxGeometry(MIRROR_W - 4, MIRROR_T, MIRROR_D - 4);   // 94 × 38，四周留 1mm 缝
+
+  // ① 平面镜：亮银色镜面
+  plateMirror = new THREE.Mesh(plateGeo, MAT.mirror);
+
+  // ② 凹凸不平镜面：细纹（密而浅）/ 粗纹（疏而深）
+  plateFine   = makeRoughPlate(2.6, 0.45, 0xe6eff9, 0.2);
+  plateCoarse = makeRoughPlate(7.0, 1.15, 0xdfe8f3, 0.3);
+
+  // ③ 白纸：哑光纸面
+  platePaper = new THREE.Mesh(plateGeo, new THREE.MeshStandardMaterial({
+    color: 0xe8e3d6, metalness: 0.0, roughness: 0.96
+  }));
+
+  plateMirror.position.y = -MIRROR_T / 2;      // 顶面 y = 0
+  platePaper.position.y  = -MIRROR_T / 2;
+  mirrorBase.add(plateMirror, plateFine, plateCoarse, platePaper);
+  platePaper.visible = false;                  // 两块凹凸板在 makeRoughPlate 里默认隐藏
+
+  // 镜面边缘高光圈
+  const rim = new THREE.Mesh(
+    new THREE.BoxGeometry(MIRROR_W + 2.5, 1.4, MIRROR_D + 2.5), MAT.metalLight
+  );
+  rim.position.y = -MIRROR_T - 0.6;
+  mirrorBase.add(rim);
+
+  // 台前铭牌
+  const plate = new THREE.Mesh(new THREE.BoxGeometry(64, 2, 20), MAT.metalLight);
+  plate.position.set(0, -13.8, 52);
+  mirrorBase.add(plate);
+}
+
+/* =========================================================
+   7. 纸板装置（E / F 两扇，带刻度与读数）
+   ========================================================= */
+const BOARD_Z_SHIFT = -2.9;   // 整块板后移一点，让光束走在板面之前
+
+const tiltGroup = new THREE.Group();     // 整块板后仰
+world.add(tiltGroup);
+
+const eGroup = new THREE.Group();        // 左半扇 E（固定）
+const fGroup = new THREE.Group();        // 右半扇 F（可折转）
+tiltGroup.add(eGroup, fGroup);
+
+/* --- 生成半圆形状 --- */
+function makeHalfShape(sign) {
+  const s = new THREE.Shape();
+  s.moveTo(0, 0);
+  s.lineTo(0, R_BOARD);
+  if (sign < 0) {
+    s.absarc(0, 0, R_BOARD, Math.PI / 2, Math.PI, false);
+  } else {
+    s.absarc(0, 0, R_BOARD, Math.PI / 2, 0, true);
+  }
+  s.lineTo(0, 0);
+  return s;
+}
+
+/* --- E / F 两块板（贴刻度纹理）--- */
+const boardGeoOpts = { depth: 2.4, bevelEnabled: false, curveSegments: 72 };
+
+const geoE = new THREE.ExtrudeGeometry(makeHalfShape(-1), boardGeoOpts);
+geoE.translate(0, 0, -1.2 + BOARD_Z_SHIFT);
+eGroup.add(new THREE.Mesh(geoE, [MAT.boardFace, MAT.boardEdge]));
+
+const geoF = new THREE.ExtrudeGeometry(makeHalfShape(1), boardGeoOpts);
+geoF.translate(0, 0, -1.2 + BOARD_Z_SHIFT);
+fGroup.add(new THREE.Mesh(geoF, [MAT.boardFace, MAT.boardEdge]));
+
+/* --- 板面上的法线 ON（虚线）--- */
+const normalLine = (() => {
+  const g = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(0, 0, 1.5),
+    new THREE.Vector3(0, R_BOARD, 1.5)
+  ]);
+  const m = new THREE.LineDashedMaterial({
+    color: 0x1f1d1a, dashSize: 5.5, gapSize: 4, toneMapped: false
+  });
+  const l = new THREE.Line(g, m);
+  l.computeLineDistances();
+  return l;
+})();
+tiltGroup.add(normalLine);
+
+/* --- 板面上的角度弧 + 读数标签 --- */
+const ARC_I_R = 30, ARC_R_R = 46, ARC_W = 1.7;
+
+function makeArc(radius) {
+  const mat = new THREE.MeshBasicMaterial({
+    transparent: true, opacity: 0.95, toneMapped: false,
+    side: THREE.DoubleSide, depthWrite: false
+  });
+  const m = new THREE.Mesh(
+    new THREE.RingGeometry(radius - ARC_W, radius + ARC_W, 48, 1, 0, Math.PI / 2), mat);
+  m.position.z = 1.5;
+  m.renderOrder = 25;
+  m.frustumCulled = false;
+  m.userData.key = '';
+  return m;
+}
+const arcInc = makeArc(ARC_I_R);
+const arcRef = makeArc(ARC_R_R);
+tiltGroup.add(arcInc, arcRef);
+
+/** 重设一段弧（a0 → a1，弧度） */
+function setArc(mesh, radius, a0, a1) {
+  const len = Math.max(1e-3, a1 - a0);
+  const key = `${radius}|${a0.toFixed(3)}|${len.toFixed(3)}`;
+  if (mesh.userData.key === key) return;
+  mesh.userData.key = key;
+  mesh.geometry.dispose();
+  mesh.geometry = new THREE.RingGeometry(radius - ARC_W, radius + ARC_W, 48, 1, a0, len);
+}
+
+const labInc = new Label(11);
+const labRef = new Label(11);
+tiltGroup.add(labInc.sprite, labRef.sprite);
+
+/* O 点与法线 N 的标记 */
+const labO = new Label(10);
+labO.set('O', '#eef1f5');
+labO.place(new THREE.Vector3(-13, 8, 2.0));
+tiltGroup.add(labO.sprite);
+
+const labN = new Label(10);
+labN.set('N', '#eef1f5');
+labN.place(new THREE.Vector3(9, R_BOARD - 9, 2.0));
+tiltGroup.add(labN.sprite);
+
+/** 弧线 + 标签的逐帧更新 */
+function updateArcs() {
+  const th = state.angle * D2R;
+  const c  = COLORS[state.lightColor];
+  const H  = Math.PI / 2;                    // 法线方向（局部 +Y）
+
+  setArc(arcInc, ARC_I_R, H,        H + th);
+  setArc(arcRef, ARC_R_R, H - th,   H);
+
+  arcInc.material.color.set(c.css);
+  arcRef.material.color.set(c.css);
+  labInc.set(`∠i = ${state.angle.toFixed(1)}°`, c.css);
+  labRef.set(`∠r = ${state.angle.toFixed(1)}°`, c.css);
+
+  const on = state.mode === 'reflect' && state.showAngles && th > 0.02;
+  const showI = on && state.showIncident;
+  const showR = on && state.showReflected && state.fold < 0.4;
+
+  arcInc.visible = showI;
+  labInc.show(showI);
+  arcRef.visible = showR;
+  labRef.show(showR);
+
+  if (showI) {
+    const a = H + th / 2;
+    labInc.place(new THREE.Vector3(
+      Math.cos(a) * (ARC_I_R + 15), Math.sin(a) * (ARC_I_R + 15), 2.1));
+  }
+  if (showR) {
+    const a = H - th / 2;
+    labRef.place(new THREE.Vector3(
+      Math.cos(a) * (ARC_R_R + 11), Math.sin(a) * (ARC_R_R + 11), 2.1));
+  }
+}
+
+/* --- O 点（入射点）标记 + 镜面光斑 --- */
+const oDotMat  = new THREE.MeshBasicMaterial({ color: 0xffe23a, toneMapped: false });
+const oSpotMat = new THREE.MeshBasicMaterial({
+  color: 0xffe23a, transparent: true, opacity: 0.55, toneMapped: false,
+  depthWrite: false, blending: THREE.AdditiveBlending
+});
+
+const oDot = new THREE.Mesh(new THREE.SphereGeometry(2.6, 18, 14), oDotMat);
+oDot.position.set(0, 0.7, 0);
+world.add(oDot);
+
+const oSpot = new THREE.Mesh(new THREE.CircleGeometry(7.5, 32), oSpotMat);
+oSpot.rotation.x = -Math.PI / 2;
+oSpot.position.set(0, 0.22, 0);
+oSpot.renderOrder = 24;
+world.add(oSpot);
+
+/* =========================================================
+   8. 光源臂 · 激光笔（含四色滤光轮）
+   ========================================================= */
+const sourceGroup = new THREE.Group();
+tiltGroup.add(sourceGroup);   // 跟着纸板一起后仰
+
+/* 随光色变化的部件 */
+const lensMat = new THREE.MeshBasicMaterial({ color: 0xffe23a, toneMapped: false, side: THREE.DoubleSide });
+const haloMat = new THREE.MeshBasicMaterial({
+  color: 0xffe23a, transparent: true, opacity: 0.16,
+  toneMapped: false, depthWrite: false, blending: THREE.AdditiveBlending
+});
+
+/* 调色盘：固定盘座 / 自转轮盘 / 四个彩色滤片 */
+const wheelRoot = new THREE.Group();
+const wheelSpin = new THREE.Group();
+const colorChips = [];
+let wheelAngle = 0, wheelTarget = 0;
+
+{
+  /* ---------- 激光笔前锥（收口，朝 O 点） ---------- */
+  const nose = new THREE.Mesh(new THREE.CylinderGeometry(6.6, 11.6, 17, 28), MAT.metalLight);
+  nose.position.y = 140.5;                   // 132 ~ 149
+  sourceGroup.add(nose);
+
+  /* ---------- 笔身 ---------- */
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(11.6, 11.6, 46, 28), MAT.metalDark);
+  body.position.y = 172;                     // 149 ~ 195
+  sourceGroup.add(body);
+
+  /* 笔身滚花环 */
+  for (const y of [157, 168, 179, 190]) {
+    const r = new THREE.Mesh(new THREE.TorusGeometry(11.8, 1.05, 8, 28), MAT.metalLight);
+    r.rotation.x = Math.PI / 2;
+    r.position.y = y;
+    sourceGroup.add(r);
+  }
+
+  /* 尾部按键 */
+  const tail = new THREE.Mesh(new THREE.CylinderGeometry(8.2, 9.6, 8, 24), MAT.metalLight);
+  tail.position.y = 198;
+  sourceGroup.add(tail);
+
+  /* ---------- 出光口 ---------- */
+  const lens = new THREE.Mesh(new THREE.CircleGeometry(5.6, 28), lensMat);
+  lens.rotation.x = Math.PI / 2;
+  lens.position.y = 132.15;
+  sourceGroup.add(lens);
+
+  const halo = new THREE.Mesh(new THREE.SphereGeometry(4.4, 18, 14), haloMat);
+  halo.position.y = 132;
+  sourceGroup.add(halo);
+
+  /* ---------- 四色调色盘（盘面垂直于笔身，套在笔头上） ---------- */
+  wheelRoot.position.set(0, 122, 0);
+  sourceGroup.add(wheelRoot);
+  wheelRoot.add(wheelSpin);
+
+  // 盘面（环形，中间留孔让笔头穿过）
+  const disc = new THREE.Mesh(
+    new THREE.RingGeometry(7.2, 25, 56),
+    new THREE.MeshStandardMaterial({
+      color: 0x39414b, metalness: 0.55, roughness: 0.42, side: THREE.DoubleSide
+    })
+  );
+  disc.rotation.x = -Math.PI / 2;
+  wheelSpin.add(disc);
+
+  // 外圈
+  const rimRing = new THREE.Mesh(new THREE.TorusGeometry(25, 1.6, 12, 64), MAT.metal);
+  rimRing.rotation.x = Math.PI / 2;
+  wheelSpin.add(rimRing);
+
+  // 四个彩色滤片（绕笔身轴线一圈）
+  COLOR_ORDER.forEach((key, i) => {
+    const a  = -Math.PI / 2 + i * Math.PI / 2;
+    const mt = new THREE.MeshStandardMaterial({
+      color: COLORS[key].hex,
+      emissive: COLORS[key].hex,
+      emissiveIntensity: 0.6,
+      roughness: 0.22, metalness: 0.05,
+      transparent: true, opacity: 0.94
+    });
+    const chip = new THREE.Mesh(new THREE.CylinderGeometry(7.4, 7.4, 2.6, 28), mt);
+    chip.position.set(Math.cos(a) * 16, 0, Math.sin(a) * 16);
+    wheelSpin.add(chip);
+    colorChips.push({ key, mat: mt, mesh: chip });
+  });
+
+  // 盘心的透光孔（光线就是从这里射出的）
+  const hole = new THREE.Mesh(new THREE.CylinderGeometry(6.6, 6.6, 3, 28), lensMat);
+  wheelSpin.add(hole);
+}
+
+/** 转动滤光轮，把第 idx 个颜色送到光轴上 */
+function spinWheelTo(idx) {
+  const step = Math.PI / 2;
+  const cur  = ((wheelTarget / step) % 4 + 4) % 4;
+  let d = idx - cur;
+  if (d > 2)  d -= 4;
+  if (d < -2) d += 4;
+  wheelTarget += d * step;
+}
+
+/** 切换激光颜色 */
+function setLightColor(key, animate = true) {
+  if (!COLORS[key]) return;
+  state.lightColor = key;
+
+  const c = COLORS[key];
+  const idx = COLOR_ORDER.indexOf(key);
+
+  // 界面按钮
+  [...document.getElementById('colorRow').querySelectorAll('.cbtn')]
+    .forEach(b => b.classList.toggle('on', b.dataset.color === key));
+
+  // 光路相关颜色
+  incidentBeam.setColor(c.hex);
+  reflectedBeam.setColor(c.hex);
+  dIncBeams.forEach(b => b.setColor(c.hex));
+  dRefBeams.forEach(b => b.setColor(c.hex));
+  lensMat.color.setHex(c.hex);
+  haloMat.color.setHex(c.hex);
+  oDotMat.color.setHex(c.hex);
+  oSpotMat.color.setHex(c.hex);
+  parallelSlitMat.color.setHex(c.hex);
+
+  // 手持激光笔固定用另一种颜色
+  const hc = COLORS[handColorKey()];
+  laserBeam.setColor(hc.hex);
+  laserRefBeam.setColor(hc.hex);
+  laserLensMat.color.setHex(hc.hex);
+
+  // 调色盘：选中的片上亮，其余压暗
+  colorChips.forEach(ch => {
+    const on = (ch.key === key);
+    ch.mat.emissiveIntensity = on ? 1.8 : 0.12;
+    ch.mat.opacity = on ? 0.98 : 0.45;
+  });
+
+  if (animate) spinWheelTo(idx);
+  else { wheelTarget = idx * Math.PI / 2; wheelAngle = wheelTarget; }
+
+  update();
+}
+
+/* =========================================================
+   8.5 拖动光源臂（鼠标按住 / 手指按住光源臂，直接扳动）
+   ========================================================= */
+const armHost   = document.getElementById('canvasHost');
+const armCanvas = renderer.domElement;
+armCanvas.style.touchAction = 'none';
+
+const COARSE_POINTER = window.matchMedia('(pointer: coarse)').matches;
+const ARM_GRAB_PX = COARSE_POINTER ? 64 : 46;   // 手指比鼠标粗，抓取范围放宽
+const armRay   = new THREE.Raycaster();
+const _armNdc  = new THREE.Vector2();
+const _armPlane = new THREE.Plane();
+const _armQ    = new THREE.Quaternion();
+const _armV    = new THREE.Vector3();
+const _armOrigin = new THREE.Vector3();
+let armDragging = false;
+let armPointerId = null;
+
+/** 光源臂在屏幕上的两个端点（按当前相机投影） */
+function armScreenEnds() {
+  sourceGroup.updateWorldMatrix(true, false);
+  const w = armCanvas.clientWidth || 1;
+  const h = armCanvas.clientHeight || 1;
+  const a = new THREE.Vector3(0, 55, 0).applyMatrix4(sourceGroup.matrixWorld).project(camera);
+  const b = new THREE.Vector3(0, 205, 0).applyMatrix4(sourceGroup.matrixWorld).project(camera);
+  return {
+    ax: (a.x * .5 + .5) * w, ay: (-a.y * .5 + .5) * h,
+    bx: (b.x * .5 + .5) * w, by: (-b.y * .5 + .5) * h
+  };
+}
+
+function nearArm(e) {
+  const r = armCanvas.getBoundingClientRect();
+  const px = e.clientX - r.left, py = e.clientY - r.top;
+  const s = armScreenEnds();
+  const vx = s.bx - s.ax, vy = s.by - s.ay;
+  const l2 = vx * vx + vy * vy || 1;
+  let t = ((px - s.ax) * vx + (py - s.ay) * vy) / l2;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px - (s.ax + vx * t), py - (s.ay + vy * t)) < ARM_GRAB_PX;
+}
+
+/** 指针落在纸板平面上 → 换算成光源臂角度 */
+function armAngleFromPointer(e) {
+  const r = armCanvas.getBoundingClientRect();
+  _armNdc.set(
+    ((e.clientX - r.left) / r.width) * 2 - 1,
+    -((e.clientY - r.top) / r.height) * 2 + 1
+  );
+  armRay.setFromCamera(_armNdc, camera);
+
+  tiltGroup.updateWorldMatrix(true, false);
+  tiltGroup.getWorldQuaternion(_armQ);
+  _armV.set(0, 0, 1).applyQuaternion(_armQ);
+  _armOrigin.set(0, 0, 0).applyMatrix4(tiltGroup.matrixWorld);
+  _armPlane.setFromNormalAndCoplanarPoint(_armV, _armOrigin);
+
+  if (!armRay.ray.intersectPlane(_armPlane, _armV)) return null;
+  tiltGroup.worldToLocal(_armV);
+  if (Math.hypot(_armV.x, _armV.y) < 12) return null;     // 太贴 O 点，方向不可靠
+  const deg = Math.atan2(-_armV.x, _armV.y) / D2R;
+  return Math.max(0, Math.min(75, deg));
+}
+
+function setArmAngle(deg) {
+  const slider = document.getElementById('sAngle');
+  slider.value = deg;
+  slider.dispatchEvent(new Event('input'));
+}
+
+function onArmDown(e) {
+  if (state.mode !== 'reflect' || armDragging || e.button > 0) return;
+  if (e.target !== armCanvas) return;        // 顶栏按钮上的点击不算拖光源臂
+  if (!nearArm(e)) return;
+
+  armDragging = true;
+  armPointerId = e.pointerId;
+  controls.enabled = false;               // 拖动光源臂时不要转相机
+  armCanvas.setPointerCapture(e.pointerId);
+  armCanvas.style.cursor = 'grabbing';
+  e.preventDefault();
+  e.stopPropagation();                    // 抢在 OrbitControls 之前接管这次拖动
+}
+
+function onArmMove(e) {
+  if (!armDragging) {
+    if (state.mode === 'reflect' && e.buttons === 0) {
+      armCanvas.style.cursor = nearArm(e) ? 'grab' : '';
+    }
+    return;
+  }
+  if (e.pointerId !== armPointerId) return;
+  const deg = armAngleFromPointer(e);
+  if (deg !== null) setArmAngle(Math.round(deg * 2) / 2);   // 与滑杆一致，0.5° 一档
+  e.preventDefault();
+}
+
+function endArmDrag(e) {
+  if (!armDragging) return;
+  if (e && e.pointerId !== armPointerId) return;
+  armDragging = false;
+  armPointerId = null;
+  controls.enabled = true;
+  armCanvas.style.cursor = '';
+}
+
+armHost.addEventListener('pointerdown', onArmDown, true);
+armCanvas.addEventListener('pointermove', onArmMove);
+armCanvas.addEventListener('pointerup', endArmDrag);
+armCanvas.addEventListener('pointercancel', endArmDrag);
+armCanvas.addEventListener('lostpointercapture', endArmDrag);
+armCanvas.addEventListener('contextmenu', e => e.preventDefault());   // 平板上长按不弹菜单
+
+/* =========================================================
+   9. 光束
+   ========================================================= */
+const incidentBeam  = new Ray(1.35, COLORS.yellow.hex);
+const reflectedBeam = new Ray(1.35, COLORS.yellow.hex);
+incidentBeam.addTo(world);
+reflectedBeam.addTo(world);
+
+/* =========================================================
+   10. 手持激光笔（光路可逆）
+   ========================================================= */
+const laserGroup = new THREE.Group();
+laserGroup.visible = false;
+world.add(laserGroup);
+
+/* 手持的这支笔用另一种颜色，方便和原激光笔区分 */
+const HAND_TRY = ['red', 'green', 'blue', 'yellow'];
+function handColorKey() {
+  for (const k of HAND_TRY) if (k !== state.lightColor) return k;
+  return 'yellow';
+}
+
+const laserBeam    = new Ray(1.1, COLORS.red.hex);   // 笔口 → O
+const laserRefBeam = new Ray(1.1, COLORS.red.hex);   // O → 沿反射方向回到灯口
+laserBeam.addTo(world);
+laserRefBeam.addTo(world);
+
+const laserLensMat = new THREE.MeshBasicMaterial({
+  color: COLORS.red.hex, toneMapped: false, side: THREE.DoubleSide
+});
+
+const LASER_LEN = 43;     // 笔口到笔身的距离
+
+{
+  /* 笔身 */
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(9.2, 9.2, 58, 28), MAT.metalDark);
+  body.position.y = -2;                      // -31 ~ 27
+  laserGroup.add(body);
+
+  /* 滚花环 */
+  for (const y of [-22, -10, 2, 14]) {
+    const r = new THREE.Mesh(new THREE.TorusGeometry(9.4, 1.0, 8, 28), MAT.metalLight);
+    r.rotation.x = Math.PI / 2;
+    r.position.y = y;
+    laserGroup.add(r);
+  }
+
+  /* 尾部按键 */
+  const tail = new THREE.Mesh(new THREE.CylinderGeometry(7.6, 9.2, 7, 24), MAT.metalLight);
+  tail.position.y = 30.5;                    // 27 ~ 34
+  laserGroup.add(tail);
+
+  /* 尾部装饰环 */
+  const tailRing = new THREE.Mesh(new THREE.TorusGeometry(9.4, 1.0, 8, 28), MAT.metal);
+  tailRing.rotation.x = Math.PI / 2;
+  tailRing.position.y = 27.6;
+  laserGroup.add(tailRing);
+
+  /* 前锥（收口，朝 O 点） */
+  const nose = new THREE.Mesh(new THREE.CylinderGeometry(5.6, 9.2, 12, 28), MAT.metalLight);
+  nose.position.y = -37;                     // -43 ~ -31
+  laserGroup.add(nose);
+
+  /* 出光镜片 */
+  const lens = new THREE.Mesh(new THREE.CircleGeometry(4.6, 24), laserLensMat);
+  lens.rotation.x = Math.PI / 2;
+  lens.position.y = -43.05;
+  laserGroup.add(lens);
+}
+
+/* =========================================================
+   10. 镜面反射 / 漫反射 装置
+   ========================================================= */
+const diffuseRoot = new THREE.Group();
+diffuseRoot.visible = false;
+world.add(diffuseRoot);
+
+/* 平行光源：黑色灯箱 + 五条细缝的出光面（局部 +Z 指向插片） */
+const N_RAY = 5;
+const SRC_DIST = 132;                  // 出光面到 O 的距离 mm
+const parallelSource = new THREE.Group();
+diffuseRoot.add(parallelSource);
+
+const srcSlits = [];
+const parallelSlitMat = new THREE.MeshBasicMaterial({
+  color: COLORS.yellow.hex, toneMapped: false
+});
+
+{
+  // 灯箱主体
+  const body = new THREE.Mesh(new THREE.BoxGeometry(74, 30, 34), new THREE.MeshStandardMaterial({
+    color: 0x1b2026, metalness: 0.55, roughness: 0.55
+  }));
+  body.position.z = -19;
+  parallelSource.add(body);
+
+  // 出光面（哑光黑面板）
+  const face = new THREE.Mesh(new THREE.BoxGeometry(74, 30, 3), new THREE.MeshStandardMaterial({
+    color: 0x14181d, metalness: 0.3, roughness: 0.75
+  }));
+  face.position.z = -1.6;
+  parallelSource.add(face);
+
+  // 五条细缝：每条缝正好对应一束平行光
+  const slitGeo = new THREE.BoxGeometry(2.4, 20, 1.6);
+  for (let i = 0; i < N_RAY; i++) {
+    const slit = new THREE.Mesh(slitGeo, parallelSlitMat);
+    slit.position.set((i - (N_RAY - 1) / 2) * 12, 0, 0.2);
+    parallelSource.add(slit);
+    srcSlits.push(slit);
+  }
+
+  // 顶面提手 + 两侧旋钮，看起来像一件教具
+  const handle = new THREE.Mesh(new THREE.TorusGeometry(8, 1.6, 10, 32, Math.PI), MAT.metalLight);
+  handle.position.set(0, 15.2, -20);
+  handle.rotation.set(0, Math.PI / 2, 0);
+  parallelSource.add(handle);
+
+  for (const s of [1, -1]) {
+    const knob = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 4.2, 3, 20), MAT.metalLight);
+    knob.rotation.z = Math.PI / 2;
+    knob.position.set(s * 38.5, 0, -19);
+    parallelSource.add(knob);
+  }
+}
+
+/* 5 条入射光束 / 5 条反射光束 */
+const dIncBeams = [];
+const dRefBeams = [];
+for (let i = 0; i < N_RAY; i++) {
+  const bi = new Ray(1.05, COLORS.yellow.hex);
+  const br = new Ray(1.05, COLORS.yellow.hex);
+  bi.addTo(diffuseRoot);
+  br.addTo(diffuseRoot);
+  dIncBeams.push(bi);
+  dRefBeams.push(br);
+}
+
+/* 不同粗糙面的「局部法线张角」*/
+const SURFACES = {
+  mirror: { name: '平面镜',  halfDeg: 0.0,  color: 0xd7e6f7, metal: 0.92, rough: 0.08 },
+  fine:   { name: '细纹面',  halfDeg: 8.25, color: 0x93a2b2, metal: 0.75, rough: 0.35 },
+  rough:  { name: '粗纹面',  halfDeg: 33.0, color: 0x788594, metal: 0.35, rough: 0.75 },
+  paper:  { name: '白纸',    halfDeg: 34.7, color: 0xdfdcd2, metal: 0.0,  rough: 0.95 },
+};
+
+/* =========================================================
+   12. 状态
+   ========================================================= */
+const state = {
+  mode: 'reflect',
+  angle: 34.5,
+  fold: 0,
+  tilt: 0,
+  lightColor: 'yellow',
+  showIncident: true,
+  showReflected: true,
+  showNormal: true,
+  showAngles: true,
+  laserPlaced: false,
+  laserAim: 0,
+  surface: 'mirror',
+};
+
+/* =========================================================
+   13. 视角预设
+   ========================================================= */
+const VIEWS = [
+  { key: 'full',  label: '全景',      pos: new THREE.Vector3(285, 240, 350), tgt: new THREE.Vector3(0, 62, 0)  },
+  { key: 'board', label: '看法线板',  pos: new THREE.Vector3(0, 100, 450),    tgt: new THREE.Vector3(0, 72, 0)  },
+  { key: 'top',   label: '俯看镜台',  pos: new THREE.Vector3(0, 470, 52),     tgt: new THREE.Vector3(0, 0, 0)   },
+  { key: 'iso',   label: '斜看整体',  pos: new THREE.Vector3(-325, 265, 325), tgt: new THREE.Vector3(0, 55, 0)  },
+];
+let activeView = 'full';
+
+const viewBar = document.getElementById('viewBar');
+VIEWS.forEach(v => {
+  const b = document.createElement('button');
+  b.className = 'vbtn' + (v.key === 'full' ? ' on' : '');
+  b.textContent = v.label;
+  b.dataset.view = v.key;
+  b.addEventListener('click', () => {
+    activeView = v.key;
+    [...viewBar.children].forEach(c => c.classList.toggle('on', c.dataset.view === v.key));
+    flyTo(v.pos, v.tgt);
+  });
+  viewBar.appendChild(b);
+});
+
+/* 相机飞行 */
+let camAnim = null;
+function flyTo(pos, tgt) {
+  camAnim = {
+    t: 0,
+    p0: camera.position.clone(), p1: pos.clone(),
+    t0: controls.target.clone(), t1: tgt.clone()
+  };
+}
+
+/* =========================================================
+   14. 核心更新
+   ========================================================= */
+const _v1 = new THREE.Vector3();
+const _v2 = new THREE.Vector3();
+const _up = new THREE.Vector3(0, 1, 0);
+
+/** 计算当前几何：光源方向、入射方向、反射方向 */
+function computeOptics() {
+  const th   = state.angle * D2R;
+  const beta = state.tilt  * D2R;
+
+  // 光源方向（世界坐标，由 O 指向光源）
+  const srcDir = new THREE.Vector3(
+    -Math.sin(th),
+     Math.cos(th) * Math.cos(beta),
+    -Math.cos(th) * Math.sin(beta)
+  ).normalize();
+
+  // 入射方向（指向镜面）
+  const d = srcDir.clone().negate();
+
+  // 镜面法线
+  const n = new THREE.Vector3(0, 1, 0);
+
+  // 反射方向
+  const r = reflectVec(d, n);
+
+  return { srcDir, d, r, beta };
+}
+
+/** 更新所有可视元素 */
+function update() {
+  const { srcDir, d, r, beta } = computeOptics();
+
+  /* --- 纸板姿态（两种模式都保留刻度板） --- */
+  tiltGroup.visible = true;
+  tiltGroup.rotation.x = -beta;
+  fGroup.rotation.y = state.fold * D2R;
+
+  /* --- 光源臂姿态（只在反射规律里出现，漫反射用平行光源） --- */
+  sourceGroup.visible = state.mode === 'reflect';
+  sourceGroup.rotation.z = state.angle * D2R;
+
+  /* --- 入射点标记：只有单束光时才用得上 --- */
+  oDot.visible = state.mode === 'reflect';
+  oSpot.visible = state.mode === 'reflect';
+
+  /* --- 光束 --- */
+  const srcPos = srcDir.clone().multiplyScalar(L_SRC);
+  const refPos = r.clone().multiplyScalar(L_SRC);
+
+  const showInc = state.showIncident  && state.mode === 'reflect';
+  const showRef = state.showReflected && state.mode === 'reflect';
+
+  incidentBeam.show(showInc);
+  reflectedBeam.show(showRef);
+
+  if (showInc) incidentBeam.set(srcPos, new THREE.Vector3(0, 0, 0));
+  if (showRef) reflectedBeam.set(new THREE.Vector3(0, 0, 0), refPos);
+
+  /* --- 法线（板上的虚线）--- */
+  normalLine.visible = state.showNormal;
+  labN.show(normalLine.visible);
+
+  /* --- 板面上的角度弧与读数标签 --- */
+  updateArcs();
+
+  /* --- 激光笔 --- */
+  updateLaser();
+
+  /* --- 漫反射装置 --- */
+  updateDiffuse();
+
+  /* --- 读数 --- */
+  updateReadouts();
+}
+
+/* ---------- 手持激光笔 ---------- */
+const _N_UP = new THREE.Vector3(0, 1, 0);
+
+function updateLaser() {
+  const showLaser = state.mode === 'reflect' && state.laserPlaced;
+  laserGroup.visible = showLaser;
+
+  if (!showLaser) {
+    laserBeam.show(false);
+    laserRefBeam.show(false);
+    return;
+  }
+
+  const aim = state.laserAim * D2R;
+
+  // 激光笔沿瞄准方向摆放，笔口朝 O
+  const dirOut   = new THREE.Vector3(Math.sin(aim), Math.cos(aim), 0).normalize();
+  const laserPos = dirOut.clone().multiplyScalar(152);
+
+  laserGroup.position.copy(laserPos);
+  laserGroup.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dirOut.clone());
+
+  // 出射光束：笔口 → O
+  const mouthPos = laserPos.clone().sub(dirOut.clone().multiplyScalar(LASER_LEN));
+  laserBeam.show(true);
+  laserBeam.set(mouthPos, new THREE.Vector3(0, 0, 0));
+
+  // 反射光束：O → 被镜面反射后的方向（瞄准时正好回到原激光笔灯口）
+  const d = dirOut.clone().negate();
+  const r = reflectVec(d, _N_UP);
+  laserRefBeam.show(true);
+  laserRefBeam.set(new THREE.Vector3(0, 0, 0), r.multiplyScalar(L_SRC));
+}
+
+/* ---------- 漫反射模式 ---------- */
+const SURF_ORDER = ['mirror', 'fine', 'rough', 'paper'];
+
+function updateDiffuse() {
+  const active = state.mode === 'diffuse';
+  diffuseRoot.visible = active;
+
+  // 插片：平面镜 / 凹凸不平镜面（细纹、粗纹粗细不同）/ 白纸
+  const kind = !active || state.surface === 'mirror' ? 'mirror'
+             : state.surface === 'paper' ? 'paper'
+             : state.surface === 'fine' ? 'fine' : 'coarse';
+  plateMirror.visible = kind === 'mirror';
+  plateFine.visible   = kind === 'fine';
+  plateCoarse.visible = kind === 'coarse';
+  platePaper.visible  = kind === 'paper';
+
+  if (!active) return;
+
+  const th = state.angle * D2R;
+  const d  = new THREE.Vector3(Math.sin(th), -Math.cos(th), 0);   // 入射方向
+  const sf = SURFACES[state.surface];
+  const spread = sf.halfDeg * D2R;
+
+  const step = 12;
+  const x0 = -step * (N_RAY - 1) / 2;
+
+  for (let i = 0; i < N_RAY; i++) {
+    const hit = new THREE.Vector3(x0 + i * step, 0, 0);
+
+    // 入射光束
+    const start = hit.clone().sub(d.clone().multiplyScalar(132));
+    dIncBeams[i].set(start, hit);
+
+    // 局部法线
+    const alpha = (N_RAY === 1) ? 0 : (-spread + (2 * spread) * i / (N_RAY - 1));
+    const n = new THREE.Vector3(Math.sin(alpha), Math.cos(alpha), 0).normalize();
+
+    const r = reflectVec(d.clone(), n);
+    const end = hit.clone().add(r.clone().multiplyScalar(132));
+    dRefBeams[i].set(hit, end);
+  }
+
+  // 平行光源：出光面垂直于光束，五条缝各自对准一束光
+  const center = d.clone().multiplyScalar(-SRC_DIST);
+  const axisZ = d.clone().normalize();
+  const axisX = new THREE.Vector3(Math.cos(th), Math.sin(th), 0).normalize();
+  const axisY = new THREE.Vector3().crossVectors(axisZ, axisX).normalize();
+  parallelSource.position.copy(center);
+  parallelSource.quaternion.setFromRotationMatrix(
+    new THREE.Matrix4().makeBasis(axisX, axisY, axisZ));
+
+  const pitch = step * Math.cos(th);
+  srcSlits.forEach((s, i) => s.position.x = (i - (N_RAY - 1) / 2) * pitch);
+}
+
+/* ---------- 读数 ---------- */
+const el = {
+  rScale: document.getElementById('rScale'),
+  rInc:   document.getElementById('rInc'),
+  rRef:   document.getElementById('rRef'),
+  rDiff:  document.getElementById('rDiff'),
+  rLine:  document.getElementById('rLine'),
+  rOff:   document.getElementById('rOff'),
+};
+
+function updateReadouts() {
+  const th = state.angle;
+  el.rScale.innerHTML = th.toFixed(1) + '<span class="u">°</span>';
+  el.rInc.innerHTML   = th.toFixed(1) + '<span class="u">°</span>';
+  el.rRef.innerHTML   = th.toFixed(1) + '<span class="u">°</span>';
+  el.rDiff.innerHTML  = '0.000000<span class="u">°</span>';
+
+  // 板上亮线长度（随折转衰减的经验模型）
+  let lineLen;
+  if (state.fold < 0.3) {
+    lineLen = 100;
+  } else {
+    lineLen = Math.min(100, 2.8 / Math.tan(state.fold * D2R));
+    if (lineLen < 3) lineLen = 0;
+  }
+  el.rLine.innerHTML = lineLen.toFixed(1) + '<span class="u">mm</span>';
+  el.rLine.parentElement.classList.toggle('warn', lineLen === 0);
+
+  // 反射线偏离板面的角度： sin δ = cosθ · sin(2β)
+  const beta = state.tilt * D2R;
+  const sinD = Math.cos(th * D2R) * Math.sin(2 * beta);
+  const delta = Math.asin(Math.min(1, Math.abs(sinD))) / D2R;
+  el.rOff.innerHTML = (state.tilt > 0 ? delta.toFixed(2) : '0.0') + '<span class="u">°</span>';
+  el.rOff.parentElement.classList.toggle('warn', state.tilt > 0.5);
+
+  // 激光笔提示
+  const msg = document.getElementById('laserMsg');
+  if (state.laserPlaced) {
+    const diff = Math.abs(state.laserAim - state.angle);
+    const miss = L_SRC * 2 * Math.sin(diff * D2R / 2);
+    if (miss < 0.4) {
+      msg.innerHTML = `另一支笔瞄着 <b>${state.angle.toFixed(1)}°</b> · 正压在反射线上 · 它的反射光沿原入射方向回到灯口 <span class="ok">✓</span>`;
+    } else {
+      msg.innerHTML = `另一支笔瞄着 <b>${state.laserAim.toFixed(1)}°</b> · 回程打偏灯口 <b>${miss.toFixed(1)} mm</b>`;
+    }
+  }
+}
+
+/* =========================================================
+   15. UI 绑定
+   ========================================================= */
+
+/* --- 模式切换 --- */
+const modeSeg = document.getElementById('modeSeg');
+const modeTag = document.getElementById('modeTag');
+const MODE_LABEL = { reflect: '反射规律', diffuse: '镜面/漫反射' };
+
+modeSeg.addEventListener('click', e => {
+  const btn = e.target.closest('button[data-mode]');
+  if (!btn) return;
+  state.mode = btn.dataset.mode;
+  [...modeSeg.children].forEach(b => b.classList.toggle('on', b === btn));
+  modeTag.textContent = MODE_LABEL[state.mode];
+
+  document.getElementById('hint').textContent = {
+    reflect: '按住光源臂拖动（或用滑杆）—— 板上直接读入射角与反射角',
+    diffuse: '换不同插片，看反射光是“整束射出”还是“四散开”',
+  }[state.mode];
+
+  update();
+  evaluateChecks();
+});
+
+/* --- 激光颜色 --- */
+document.getElementById('colorRow').addEventListener('click', e => {
+  const b = e.target.closest('button[data-color]');
+  if (!b) return;
+  setLightColor(b.dataset.color);
+});
+
+/* --- 滑杆 --- */
+function bindSlider(id, valId, key, fmt, after) {
+  const s = document.getElementById(id);
+  const v = document.getElementById(valId);
+  const paint = () => {
+    const pct = (s.value - s.min) / (s.max - s.min) * 100;
+    s.style.setProperty('--p', pct + '%');
+    v.textContent = fmt(parseFloat(s.value));
+  };
+  s.addEventListener('input', () => {
+    state[key] = parseFloat(s.value);
+    paint();
+    if (after) after();
+    update();
+  });
+  paint();
+  return s;
+}
+
+bindSlider('sAngle', 'vAngle', 'angle', v => v.toFixed(1) + ' °');
+bindSlider('sTilt',  'vTilt',  'tilt',  v => v.toFixed(1) + ' °');
+bindSlider('sFold',  'vFold',  'fold',  v => v.toFixed(1) + ' °');
+const sAim = bindSlider('sAim', 'vAim', 'laserAim', v => v.toFixed(1) + ' °');
+
+/* --- 光线开关 --- */
+document.getElementById('drawBar').addEventListener('click', e => {
+  const b = e.target.closest('button[data-line]');
+  if (!b) return;
+  const KEY = {
+    incident:  'showIncident',
+    reflected: 'showReflected',
+    normal:    'showNormal',
+    angles:    'showAngles',
+  };
+  const k = KEY[b.dataset.line];
+  if (!k) return;
+  state[k] = !state[k];
+  b.classList.toggle('on', state[k]);
+  update();
+});
+
+/* --- 激光笔 --- */
+const btnLaser = document.getElementById('btnLaser');
+btnLaser.addEventListener('click', () => {
+  state.laserPlaced = !state.laserPlaced;
+  btnLaser.textContent = state.laserPlaced ? '收起激光笔' : '放下激光笔';
+  btnLaser.classList.toggle('primary', state.laserPlaced);
+
+  if (state.laserPlaced) {
+    // 初始瞄准到反射线方向
+    state.laserAim = state.angle;
+    sAim.value = state.angle;
+    sAim.dispatchEvent(new Event('input'));
+  }
+  update();
+});
+
+/* --- 记录 --- */
+const recList = document.getElementById('recList');
+const recCount = document.getElementById('recCount');
+const records = [];
+
+document.getElementById('btnRec').addEventListener('click', () => {
+  if (state.mode !== 'reflect') return;
+  records.push({
+    angle: state.angle,
+    fold: state.fold,
+    tilt: state.tilt,
+  });
+  renderRecords();
+  evaluateChecks();
+});
+
+document.getElementById('btnClear').addEventListener('click', () => {
+  records.length = 0;
+  renderRecords();
+  evaluateChecks();
+});
+
+function renderRecords() {
+  recCount.textContent = records.length + ' 行';
+  if (!records.length) {
+    recList.innerHTML = '<p class="empty">还没有记录。调好一摆之后按「记一行」。</p>';
+    return;
+  }
+  let html = `<div class="rec head"><i>#</i><i>光源臂</i><i>折转</i><i>后仰</i></div>`;
+  records.forEach((r, i) => {
+    html += `<div class="rec">
+      <i>${i + 1}</i>
+      <span>${r.angle.toFixed(1)}°</span>
+      <span>${r.fold.toFixed(0)}°</span>
+      <span>${r.tilt.toFixed(0)}°</span>
+    </div>`;
+  });
+  recList.innerHTML = html;
+}
+
+/* --- 判定清单 --- */
+const CHECK_DEFS = [
+  { id: 'eq',      text: '反射角 = 入射角',        test: () => new Set(records.map(r => r.angle)).size >= 3 },
+  { id: 'side',    text: '反射光线与入射光线分居法线两侧', test: () => records.length >= 1 },
+  { id: 'fold',    text: '三线共面',              test: () => records.some(r => r.fold >= 5) },
+  { id: 'perp',    text: '纸板必须与镜面垂直',    test: () => records.some(r => r.tilt >= 5) },
+  { id: 'rev',     text: '光路可逆',              test: () => state.laserPlaced && Math.abs(state.laserAim - state.angle) < 0.5 },
+  { id: 'color',   text: '换颜色不影响反射规律',  test: () => state.lightColor !== 'yellow' },
+  { id: 'diffuse', text: '漫反射也遵守反射定律',  test: () => state.mode === 'diffuse' && state.surface !== 'mirror' },
+  { id: 'seeevery',text: '能从各个方向看见白纸',  test: () => state.mode === 'diffuse' && state.surface === 'paper' },
+];
+
+const checksEl = document.getElementById('checks');
+const chkCount = document.getElementById('chkCount');
+const doneSet = new Set();
+
+function buildChecks() {
+  checksEl.innerHTML = '';
+  CHECK_DEFS.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'chk';
+    d.dataset.id = c.id;
+    d.innerHTML = `<span class="dot"></span><span>${c.text}</span>`;
+    checksEl.appendChild(d);
+  });
+}
+buildChecks();
+
+function evaluateChecks() {
+  CHECK_DEFS.forEach(c => {
+    if (c.test()) doneSet.add(c.id);
+  });
+  [...checksEl.children].forEach(el2 => {
+    el2.classList.toggle('done', doneSet.has(el2.dataset.id));
+  });
+  chkCount.textContent = `${doneSet.size} / ${CHECK_DEFS.length}`;
+}
+
+/* --- 表面切换（漫反射模式） --- */
+function buildSurfaceSwitcher() {
+  const card = document.createElement('section');
+  card.className = 'pcard';
+  card.id = 'surfaceCard';
+  card.style.display = 'none';
+  card.innerHTML = `<h3>③ 换一块插片 <span>底座上的反射面跟着换</span></h3>
+    <div class="seg" id="surfSeg"></div>
+    <p class="note"><b>平面镜</b>表面平整，平行光反射后仍然平行；<b>细纹面</b>沟纹密而浅、<b>粗纹面</b>沟纹疏而深，各处法线朝向不同，反射光就散开了；<b>白纸</b>最粗糙，光射向四面八方。</p>`;
+  document.querySelector('.panel').insertBefore(card, document.getElementById('recList').closest('.pcard'));
+
+  const seg = card.querySelector('#surfSeg');
+  Object.entries(SURFACES).forEach(([k, v]) => {
+    const b = document.createElement('button');
+    b.dataset.surf = k;
+    b.textContent = v.name;
+    if (k === state.surface) b.classList.add('on');
+    seg.appendChild(b);
+  });
+  seg.addEventListener('click', e => {
+    const b = e.target.closest('button[data-surf]');
+    if (!b) return;
+    state.surface = b.dataset.surf;
+    [...seg.children].forEach(x => x.classList.toggle('on', x === b));
+    update();
+    evaluateChecks();
+  });
+}
+buildSurfaceSwitcher();
+
+/* 模式切换时同步卡片可见性 */
+modeSeg.addEventListener('click', () => {
+  document.getElementById('surfaceCard').style.display = state.mode === 'diffuse' ? '' : 'none';
+  document.getElementById('laserCard').style.display  = state.mode === 'reflect'  ? '' : 'none';
+});
+
+/* --- 顶栏按钮 --- */
+document.getElementById('btnReset').addEventListener('click', () => {
+  state.angle = 34.5; state.fold = 0; state.tilt = 0;
+  state.laserPlaced = false; state.laserAim = 0;
+
+  document.getElementById('sAngle').value = 34.5;
+  document.getElementById('sTilt').value = 0;
+  document.getElementById('sFold').value = 0;
+  document.getElementById('sAim').value = 0;
+  ['sAngle', 'sTilt', 'sFold', 'sAim'].forEach(id => {
+    document.getElementById(id).dispatchEvent(new Event('input'));
+  });
+
+  btnLaser.textContent = '放下激光笔';
+  btnLaser.classList.remove('primary');
+
+  activeView = 'full';
+  [...viewBar.children].forEach(c => c.classList.toggle('on', c.dataset.view === 'full'));
+  flyTo(VIEWS[0].pos, VIEWS[0].tgt);
+
+  update();
+});
+
+let focused = false;
+document.getElementById('btnFocus').addEventListener('click', e => {
+  focused = !focused;
+  document.querySelector('.panel').style.display = focused ? 'none' : '';
+  document.querySelector('.main').style.gridTemplateColumns = focused ? '1fr' : '';
+  e.currentTarget.classList.toggle('on', focused);
+  setTimeout(resize, 60);
+});
+
+const btnFullEl = document.getElementById('btnFull');
+btnFullEl.addEventListener('click', () => OCFullscreen.toggle());
+OCFullscreen.onChange(on => {
+  btnFullEl.textContent = on ? '⤢ 退出全屏' : '⤢ 全屏';
+  setTimeout(resize, 60);
+});
+
+document.getElementById('btnGuide').addEventListener('click', () => {
+  alert(
+`【实验目的】
+探究光反射时遵循的规律。
+
+【实验器材】
+激光笔（可换红/黄/绿/蓝四种颜色）、小平面镜、带量角刻度的白色硬纸板
+（可折转的 E/F 两扇）。
+
+【实验步骤】
+1. 纸板竖直立在平面镜上，底边帖住镜面，ON 垂直于镜面。
+2. 用激光沿纸板射向镜面上的 O 点，板上直接读出 ∠i 与 ∠r。
+3. 改变光源臂角度，重复三次，把读数记入表格。
+4. 把纸板 F 绕 ON 向前或向后折转，观察 F 上是否还有反射光。
+5. 让光逆着原反射光方向射向 O，观察反射光方向。
+6. 换一种激光颜色再做一次，看规律是否改变。
+
+【结论 —— 光的反射定律】
+· 三线共面：反射光线、入射光线、法线在同一平面内
+· 两线分居：反射光线与入射光线分居法线两侧
+· 两角相等：反射角等于入射角
+· 光路可逆`
+  );
+});
+
+/* =========================================================
+   16. 尺寸 / 渲染循环
+   ========================================================= */
+function resize() {
+  const w = host.clientWidth || 1;
+  const h = host.clientHeight || 1;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+resize();
+
+let last = performance.now();
+function loop(now) {
+  requestAnimationFrame(loop);
+  const dt = Math.min((now - last) / 1000, 0.05);
+  last = now;
+
+  // 相机飞行动画
+  if (camAnim) {
+    camAnim.t = Math.min(1, camAnim.t + dt * 2.2);
+    const e = 1 - Math.pow(1 - camAnim.t, 3);   // easeOutCubic
+    camera.position.lerpVectors(camAnim.p0, camAnim.p1, e);
+    controls.target.lerpVectors(camAnim.t0, camAnim.t1, e);
+    if (camAnim.t >= 1) camAnim = null;
+  }
+
+  // 滤光轮转动动画
+  wheelAngle += (wheelTarget - wheelAngle) * Math.min(1, dt * 9);
+  if (Math.abs(wheelTarget - wheelAngle) < 0.0005) wheelAngle = wheelTarget;
+  wheelSpin.rotation.y = wheelAngle;
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+/* 启动 */
+setLightColor('yellow', false);
+update();
+evaluateChecks();
+document.getElementById('surfaceCard').style.display = 'none';
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
