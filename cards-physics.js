@@ -70,12 +70,12 @@ window.CARDS_PHYSICS = [
         video: ''
     },
      {
-        title: '澳门公开课平台',
-        desc: '仅供10月24日公开课使用',
-        date: '2026.10.20',
+        title: '2026香洲区公开课智慧平台',
+        desc: '仅供10月29日公开课使用',
+        date: '2026.10.25',
         version: 'v1.0',
-        file: 'physics/macao/macao-class.html',
-        href: 'physics/macao/macao-class.html',
+        file: 'physics/youth-teacher-competition/open-class-smart-platform.html',
+        href: 'physics/youth-teacher-competition/open-class-smart-platform.html',
         action: 'link',
         actionText: '立即使用',
         video: ''
