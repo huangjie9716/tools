@@ -48,7 +48,7 @@ body { font-family: "Microsoft YaHei", sans-serif; background: linear-gradient(1
 .topic-badge { color: #cbd5e1; font-size: 1.1rem; }
 .main-area { display: grid; grid-template-columns: 280px 1fr 280px; gap: 16px; align-items: start; }
 
-.start-screen, .result-screen { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: rgba(2,6,23,0.92); padding: 20px; }
+.start-screen, .result-screen { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: rgba(2,6,23,0.92); padding: 20px; }
 .start-card, .result-card { width: min(1000px, 96vw); background: linear-gradient(135deg, #111827, #1e293b); border-radius: 40px; padding: 60px 50px; border: 1px solid rgba(255,255,255,0.12); text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
 .result-card { position: relative; padding: 46px 44px 40px; }
 .start-card h1, .result-title { background: linear-gradient(90deg, #f7971e, #ffd200); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: 2px; }
@@ -228,7 +228,7 @@ body { font-family: "Microsoft YaHei", sans-serif; background: linear-gradient(1
    覆盖层样式：错题回顾面板、彩带庆祝动画
    =================================================================== */
 
-.mistakes-overlay { position: fixed; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center; background: rgba(2,6,23,0.9); padding: 20px; }
+.mistakes-overlay { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 200; display: none; align-items: center; justify-content: center; background: rgba(2,6,23,0.9); padding: 20px; }
 .mistakes-overlay.show { display: flex; }
 .mistakes-panel { width: min(1200px, 96vw); height: 90vh; background: linear-gradient(135deg, #111827, #1e293b); border-radius: 24px; border: 1px solid rgba(255,255,255,0.12); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
 .mistakes-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; position: relative; }
@@ -247,7 +247,7 @@ body { font-family: "Microsoft YaHei", sans-serif; background: linear-gradient(1
 .mistake-item .q-opt.correct { color: #2ed573; font-weight: bold; }
 .mistake-item .q-result { color: #94a3b8; margin-top: 8px; font-size: 0.95rem; }
 .mistake-item img { display: block; max-width: 100% !important; max-height: clamp(90px, 20vh, 280px) !important; width: auto !important; height: auto !important; object-fit: contain; margin: 8px auto; border-radius: 6px; }
-.confetti-container { position: fixed; inset: 0; pointer-events: none; display: none; z-index: 99; overflow: hidden; }
+.confetti-container { position: fixed; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; display: none; z-index: 99; overflow: hidden; }
 .confetti-container.show { display: block; }
 .confetti { position: absolute; animation: fall linear forwards; }
 @keyframes fall { 0% { transform: translateY(-30px) rotate(0deg); opacity: 1; } 100% { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
@@ -296,7 +296,7 @@ body.dragging { cursor: grabbing !important; user-select: none; -webkit-user-sel
 /* 图片放大查看器 */
 body.lightbox-open { overflow: hidden; }
 .img-viewer {
-  position: fixed; inset: 0; z-index: 9000; display: none;
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 9000; display: none;
   align-items: center; justify-content: center;
   background: rgba(2, 6, 23, 0.94);
   padding: 24px; cursor: zoom-out;
