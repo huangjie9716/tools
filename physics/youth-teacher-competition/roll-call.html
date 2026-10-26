@@ -33,7 +33,10 @@
         body::before {
             content: "";
             position: absolute;
-            inset: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
             background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.08"><path d="M20 20 L30 15 L40 20 L35 30 L25 30 Z" fill="%23d4a017"/><circle cx="70" cy="30" r="4" fill="%23d4a017"/><circle cx="50" cy="70" r="6" fill="%23d4a017"/><path d="M75 65 L85 60 L90 70 L80 80 Z" fill="%23d4a017"/></svg>');
             pointer-events: none;
         }
@@ -121,11 +124,20 @@
             position: relative;
             width: 100%;
             max-width: 820px;
+            /* 高度不足时（横屏平板）按视口高度等比缩小，避免上下名字被裁掉 */
+            max-width: min(820px, calc(100vh - 40px));
             aspect-ratio: 1 / 1;
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 10;
+        }
+
+        /* 旧版安卓浏览器不支持 aspect-ratio 时，用视口尺寸补一个正方形，避免圆盘塌陷看不见 */
+        @supports not (aspect-ratio: 1 / 1) {
+            .container {
+                height: min(820px, 100vw, calc(100vh - 40px));
+            }
         }
 
         /* ===== 名字环绕轨道 ===== */
@@ -461,7 +473,10 @@
         /* ===== 模态框（名单管理） ===== */
         .modal-overlay {
             position: fixed;
-            inset: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
             z-index: 500;
             display: none;
             align-items: center;
