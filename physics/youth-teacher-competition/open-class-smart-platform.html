@@ -685,7 +685,7 @@
     (function () {
         /* ================= 账号名单（优先读 accounts.json） ================= */
         const FALLBACK_ACCOUNTS = {
-            students: Array.from({ length: 20 }, function (_, i) {
+            students: Array.from({ length: 9 }, function (_, i) {
                 const id = String(i + 1).padStart(3, '0');
                 return { account: id, password: id, group: i + 1 };
             }),
