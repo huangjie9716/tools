@@ -8,18 +8,7 @@
     { "account": "006", "password": "006", "group": 6 },
     { "account": "007", "password": "007", "group": 7 },
     { "account": "008", "password": "008", "group": 8 },
-    { "account": "009", "password": "009", "group": 9 },
-    { "account": "010", "password": "010", "group": 10 },
-    { "account": "011", "password": "011", "group": 11 },
-    { "account": "012", "password": "012", "group": 12 },
-    { "account": "013", "password": "013", "group": 13 },
-    { "account": "014", "password": "014", "group": 14 },
-    { "account": "015", "password": "015", "group": 15 },
-    { "account": "016", "password": "016", "group": 16 },
-    { "account": "017", "password": "017", "group": 17 },
-    { "account": "018", "password": "018", "group": 18 },
-    { "account": "019", "password": "019", "group": 19 },
-    { "account": "020", "password": "020", "group": 20 }
+    { "account": "009", "password": "009", "group": 9 }
   ],
   "teachers": [
     { "account": "admin01", "password": "admin01" },
