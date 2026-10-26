@@ -120,6 +120,21 @@
     .answer-row .opt { min-width: 0; padding: 8px 10px; justify-content: center; }
     .answer-row .opt .key { width: 26px; height: 26px; font-size: 14.5px; }
 
+    /* ---------- 学生端：一题一题提交 ---------- */
+    .q-steps { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+    .step-label { font-size: 13.5px; color: var(--muted); letter-spacing: 1px; margin-right: 2px; }
+    .q-tip { margin: 8px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+    .step-chip {
+        width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--line);
+        background: rgba(255,255,255,.03); color: var(--muted); font: inherit; font-size: 15px;
+        font-weight: 800; cursor: pointer; transition: all 160ms ease;
+    }
+    .step-chip.done { border-color: rgba(93,224,161,.45); background: rgba(93,224,161,.14); color: var(--green); }
+    .step-chip.on { border-color: transparent; background: linear-gradient(120deg, var(--cyan), #7c8cff); color: #04131d; }
+    .step-chip.done.on { background: linear-gradient(120deg, var(--green), var(--cyan)); color: #04131d; }
+    .q-progress { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+    .q-progress.ok { color: var(--green); }
+
     .status { margin: 12px 0 0; font-size: 13.5px; color: var(--muted); min-height: 20px; }
     .status.ok { color: var(--green); }
     .status.error { color: var(--red); }
@@ -136,7 +151,7 @@
         background: conic-gradient(var(--green) 0deg, var(--green) 0deg, rgba(255,255,255,.1) 0deg);
         display: grid; place-items: center; position: relative;
     }
-    .pie::after { content: ''; position: absolute; inset: 12px; border-radius: 50%; background: #0d1522; }
+    .pie::after { content: ''; position: absolute; top: 12px; right: 12px; bottom: 12px; left: 12px; border-radius: 50%; background: #0d1522; }
     .pie span { position: relative; z-index: 1; font-size: 17px; font-weight: 800; }
     .stat-meta { color: var(--muted); font-size: 12.5px; }
     .stat-card .q-short { margin: 0 0 6px; font-size: 12.5px; color: var(--text); opacity: .85; line-height: 1.5; }
@@ -224,18 +239,25 @@
                 <span class="spacer"></span>
                 <button class="tool-btn on" id="btnToggleQuestions" type="button">题目显示中</button>
             </div>
+            <p class="panel-title" style="margin:16px 0 8px">本组人数 <small>先选人数，再选你是第几位</small></p>
+            <div class="chips" id="sizeChips"></div>
+            <div id="memberBlock" hidden>
+                <p class="panel-title" style="margin:16px 0 8px">先选你是第几位 <small>每人只填自己的答案</small></p>
+                <div class="chips" id="memberChips"></div>
+            </div>
+            <div class="q-steps" id="questionSteps"></div>
+            <p class="q-progress" id="myProgress"></p>
+            <p class="q-tip">做完一题会自动换下一位同学，最后一位交完自动进入下一题。</p>
         </div>
 
-        <div id="questionArea"></div>
-
         <div class="panel">
-            <p class="panel-title">提交你的答案 <small>先选你是第几位，再提交</small></p>
-            <div class="chips" id="memberChips"></div>
-            <div id="answerArea" hidden></div>
+            <p class="panel-title" id="questionTitle">第 1 题 <small>选好答案点“提交本题”，会自动换下一位同学</small></p>
+            <div id="questionArea"></div>
+            <div id="answerArea"></div>
             <div class="actions">
-                <button class="tool-btn primary" id="btnSubmitMine" type="button">提交我的答案</button>
-                <span class="sep"></span>
-                <button class="tool-btn" id="btnSubmitGroup" type="button">提交小组结果</button>
+                <button class="tool-btn primary" id="btnSubmitMine" type="button">提交本题</button>
+                <button class="tool-btn" id="btnPrevQuestion" type="button">上一题</button>
+                <button class="tool-btn" id="btnNextQuestion" type="button">下一题</button>
             </div>
             <p class="status" id="submitStatus"></p>
         </div>
@@ -248,12 +270,12 @@
                 <button class="tool-btn" id="btnRefresh" type="button">刷新</button>
                 <button class="tool-btn" id="btnReset" type="button">清空本次数据</button>
             </div>
-            <p class="panel-title">每题正确率 <small>答对人数 ÷ 已提交人数</small></p>
+            <p class="panel-title">每题正确率 <small>答对人数 ÷ 已作答人数</small></p>
             <div class="stat-grid" id="statGrid"></div>
         </div>
 
         <div class="panel">
-            <p class="panel-title">班级整体 <small>按各组已提交上来的总人数计算</small></p>
+            <p class="panel-title">班级整体 <small>按已作答的题目计算</small></p>
             <div class="overview">
                 <div class="overview-num" id="classRate">—</div>
                 <div class="overview-meta" id="classMeta">还没有人提交</div>
@@ -262,7 +284,7 @@
         </div>
 
         <div class="panel">
-            <p class="panel-title">小组提交情况 <small id="submitSummary"></small></p>
+            <p class="panel-title">小组完成情况 <small id="submitSummary"></small></p>
             <div class="group-grid" id="groupGrid"></div>
         </div>
 
@@ -315,12 +337,18 @@
     var teacherView = el('teacherView');
     var roleChip = el('roleChip');
     var groupLabel = el('groupLabel');
+    var sizeChips = el('sizeChips');
+    var memberBlock = el('memberBlock');
     var memberChips = el('memberChips');
+    var questionSteps = el('questionSteps');
+    var myProgress = el('myProgress');
+    var questionTitle = el('questionTitle');
     var questionArea = el('questionArea');
     var answerArea = el('answerArea');
     var submitStatus = el('submitStatus');
     var btnSubmitMine = el('btnSubmitMine');
-    var btnSubmitGroup = el('btnSubmitGroup');
+    var btnPrevQuestion = el('btnPrevQuestion');
+    var btnNextQuestion = el('btnNextQuestion');
     var btnToggleQuestions = el('btnToggleQuestions');
     var statGrid = el('statGrid');
     var groupGrid = el('groupGrid');
@@ -330,11 +358,16 @@
     var globalStatus = el('globalStatus');
 
     var picks = {};
+    var submitted = {};
+    var currentQ = 1;
+    var memberProgress = {};
+    var groupSize = 0;
     var memberNo = 0;
     var groupNo = 0;
     var isTeacher = false;
     var detailQuestion = 1;
     var polling = null;
+    var progressTimer = null;
     var showQuestions = false;
 
     /* ---------------- 身份 ---------------- */
@@ -385,11 +418,26 @@
         globalStatus.className = 'status' + (type ? ' ' + type : '');
     }
 
-    /* ---------------- 学生端：题目 ---------------- */
-    function optionButton(q, key, compact, container) {
+    /* ---------------- 学生端：题目（一次只做一题） ---------------- */
+    function questionOf(no) {
+        for (var i = 0; i < QUESTIONS.length; i += 1) if (QUESTIONS[i].no === no) return QUESTIONS[i];
+        return null;
+    }
+
+    function questionIndex(no) {
+        for (var i = 0; i < QUESTIONS.length; i += 1) if (QUESTIONS[i].no === no) return i;
+        return -1;
+    }
+
+    function clearStatus(node) {
+        node.textContent = '';
+        node.className = 'status';
+    }
+
+    function optionButton(q, key, compact, container, store, onChange) {
         var btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'opt' + (picks[q.no] === key ? ' on' : '');
+        btn.className = 'opt' + (store[q.no] === key ? ' on' : '');
         var k = document.createElement('span');
         k.className = 'key';
         k.textContent = key;
@@ -400,81 +448,196 @@
             btn.appendChild(label);
         }
         btn.addEventListener('click', function () {
-            picks[q.no] = key;
+            store[q.no] = key;
             Array.prototype.forEach.call(container.children, function (b) { b.classList.toggle('on', b === btn); });
-            submitStatus.textContent = '';
-            submitStatus.className = 'status';
+            if (onChange) onChange(key);
         });
         return btn;
     }
 
-    function renderQuestions() {
+    // 一道题一块：显示题目时给完整题干，隐藏题目时只留题号 + A B C D
+    function buildQuestionBlock(q, store, onChange) {
+        if (!showQuestions) {
+            var row = document.createElement('div');
+            row.className = 'answer-row';
+            var no = document.createElement('span');
+            no.className = 'row-no';
+            no.textContent = q.no;
+            row.appendChild(no);
+            var opts = document.createElement('div');
+            opts.className = 'opts inline';
+            Object.keys(q.options).forEach(function (key) {
+                opts.appendChild(optionButton(q, key, true, opts, store, onChange));
+            });
+            row.appendChild(opts);
+            return row;
+        }
+
+        var card = document.createElement('div');
+        card.className = 'q-card';
+
+        var head = document.createElement('div');
+        head.className = 'q-head';
+        var qno = document.createElement('span');
+        qno.className = 'q-no';
+        qno.textContent = q.no;
+        head.appendChild(qno);
+
+        var text = document.createElement('p');
+        text.className = 'q-text';
+        text.textContent = q.text;
+        if (q.img) {
+            var img = document.createElement('img');
+            img.src = q.img;
+            img.alt = '第' + q.no + '题配图';
+            text.appendChild(img);
+        }
+        head.appendChild(text);
+        var topic = document.createElement('span');
+        topic.className = 'q-topic';
+        topic.textContent = q.topic;
+        head.appendChild(topic);
+        card.appendChild(head);
+
+        var options = document.createElement('div');
+        options.className = 'opts';
+        Object.keys(q.options).forEach(function (key) {
+            options.appendChild(optionButton(q, key, false, options, store, onChange));
+        });
+        card.appendChild(options);
+        return card;
+    }
+
+    function hasSubmitted(no) { return !!submitted[no]; }
+
+    function answeredCount() {
+        return QUESTIONS.filter(function (q) { return hasSubmitted(q.no); }).length;
+    }
+
+    function firstUnanswered() {
+        var q = QUESTIONS.filter(function (item) { return !hasSubmitted(item.no); })[0];
+        return q ? q.no : 0;
+    }
+
+    // ---- 全组接力：同一题换下一位同学，最后一位交完再进入下一题 ----
+    function memberAnswered(member, qno) {
+        var map = memberProgress[member];
+        return !!(map && map[qno]);
+    }
+
+    function firstMemberMissing(qno) {
+        for (var m = 1; m <= groupSize; m += 1) {
+            if (!memberAnswered(m, qno)) return m;
+        }
+        return 0;
+    }
+
+    function nextStepTarget(fromQ, fromMember) {
+        for (var m = fromMember + 1; m <= groupSize; m += 1) {
+            if (!memberAnswered(m, fromQ)) return { member: m, q: fromQ };
+        }
+        var start = questionIndex(fromQ);
+        for (var i = start + 1; i < QUESTIONS.length; i += 1) {
+            var q = QUESTIONS[i].no;
+            var next = firstMemberMissing(q);
+            if (next) return { member: next, q: q };
+        }
+        for (var j = 0; j < QUESTIONS.length; j += 1) {
+            var qq = QUESTIONS[j].no;
+            var rest = firstMemberMissing(qq);
+            if (rest) return { member: rest, q: qq };
+        }
+        return null;
+    }
+
+    function renderCurrentQuestion() {
+        var q = questionOf(currentQ);
         questionArea.textContent = '';
         answerArea.textContent = '';
         questionArea.hidden = !showQuestions;
         answerArea.hidden = showQuestions;
+        if (!q) return;
 
-        // 隐藏题目：题目和选项文字全部不显示，只留题号 + A B C D
-        if (!showQuestions) {
-            QUESTIONS.forEach(function (q) {
-                var row = document.createElement('div');
-                row.className = 'answer-row';
-                var no = document.createElement('span');
-                no.className = 'row-no';
-                no.textContent = q.no;
-                row.appendChild(no);
-                var opts = document.createElement('div');
-                opts.className = 'opts inline';
-                Object.keys(q.options).forEach(function (key) {
-                    opts.appendChild(optionButton(q, key, true, opts));
-                });
-                row.appendChild(opts);
-                answerArea.appendChild(row);
-            });
-            return;
-        }
+        var host = showQuestions ? questionArea : answerArea;
+        host.appendChild(buildQuestionBlock(q, picks, function () { clearStatus(submitStatus); }));
+
+        questionTitle.innerHTML = '第 ' + q.no + ' 题 <small>选好答案点“提交本题”，会自动换下一位同学</small>';
+        btnSubmitMine.textContent = hasSubmitted(q.no) ? '保存本题' : '提交本题';
+        var index = questionIndex(q.no);
+        btnPrevQuestion.disabled = index <= 0;
+        btnNextQuestion.disabled = index >= QUESTIONS.length - 1;
+    }
+
+    function renderSteps() {
+        questionSteps.textContent = '';
+        var label = document.createElement('span');
+        label.className = 'step-label';
+        label.textContent = '题号：';
+        questionSteps.appendChild(label);
 
         QUESTIONS.forEach(function (q) {
-            var card = document.createElement('div');
-            card.className = 'q-card';
-
-            var head = document.createElement('div');
-            head.className = 'q-head';
-            var no = document.createElement('span');
-            no.className = 'q-no';
-            no.textContent = q.no;
-            head.appendChild(no);
-
-            var text = document.createElement('p');
-            text.className = 'q-text';
-            text.textContent = q.text;
-            if (q.img) {
-                var img = document.createElement('img');
-                img.src = q.img;
-                img.alt = '第' + q.no + '题配图';
-                text.appendChild(img);
-            }
-            head.appendChild(text);
-            var topic = document.createElement('span');
-            topic.className = 'q-topic';
-            topic.textContent = q.topic;
-            head.appendChild(topic);
-            card.appendChild(head);
-
-            var opts = document.createElement('div');
-            opts.className = 'opts';
-            Object.keys(q.options).forEach(function (key) {
-                opts.appendChild(optionButton(q, key, false, opts));
-            });
-            card.appendChild(opts);
-            questionArea.appendChild(card);
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'step-chip' + (hasSubmitted(q.no) ? ' done' : '') + (currentQ === q.no ? ' on' : '');
+            btn.textContent = q.no;
+            btn.title = '第 ' + q.no + ' 题 · ' + (hasSubmitted(q.no) ? '已提交' : '未提交');
+            btn.addEventListener('click', function () { selectQuestion(q.no); });
+            questionSteps.appendChild(btn);
         });
+    }
+
+    // 手动点题号：如果当前这位同学一题都还没交（或还没选成员），
+    // 自动回到还没交这一题的第一位同学
+    function selectQuestion(qno) {
+        if (!groupSize) {
+            submitStatus.textContent = '请先选择本组人数';
+            submitStatus.className = 'status error';
+            return;
+        }
+        var map = memberProgress[memberNo];
+        if (!map || !Object.keys(map).length) {
+            var target = firstMemberMissing(qno);
+            if (target && target !== memberNo) {
+                setMember(target, qno);
+                return;
+            }
+        }
+        currentQ = qno;
+        renderSteps();
+        renderCurrentQuestion();
+    }
+
+    function renderProgress() {
+        var done = answeredCount();
+        var total = QUESTIONS.length;
+        if (!groupSize) {
+            myProgress.textContent = '先选本组人数（1～5 人），再选你是第几位';
+            myProgress.className = 'q-progress';
+            return;
+        }
+        if (!memberNo) {
+            myProgress.textContent = groupSize > 1
+                ? '还没有选择成员，先点上面的成员1～成员' + groupSize
+                : '还没有选择成员，先点上面的成员1';
+            myProgress.className = 'q-progress';
+            return;
+        }
+        myProgress.textContent = done >= total
+            ? '成员' + memberNo + ' 的 ' + total + ' 题已全部提交，等全组同学做完即可'
+            : '成员' + memberNo + ' 的进度 ' + done + ' / ' + total + ' 题';
+        myProgress.className = 'q-progress' + (done >= total ? ' ok' : '');
+    }
+
+    function renderMyArea() {
+        renderSteps();
+        renderCurrentQuestion();
+        renderProgress();
     }
 
     function applyShowQuestions() {
         btnToggleQuestions.textContent = showQuestions ? '题目显示中' : '题目已隐藏';
         btnToggleQuestions.classList.toggle('on', showQuestions);
-        renderQuestions();
+        renderCurrentQuestion();
     }
 
     btnToggleQuestions.addEventListener('click', function () {
@@ -483,51 +646,127 @@
         applyShowQuestions();
     });
 
-    /* ---------------- 学生端：成员 ---------------- */
+    btnPrevQuestion.addEventListener('click', function () {
+        var index = questionIndex(currentQ);
+        if (index > 0) {
+            currentQ = QUESTIONS[index - 1].no;
+            renderSteps();
+            renderCurrentQuestion();
+        }
+    });
+
+    btnNextQuestion.addEventListener('click', function () {
+        var index = questionIndex(currentQ);
+        if (index >= 0 && index < QUESTIONS.length - 1) {
+            currentQ = QUESTIONS[index + 1].no;
+            renderSteps();
+            renderCurrentQuestion();
+        }
+    });
+
+    /* ---------------- 学生端：本组人数 / 成员 ---------------- */
+    function groupSizeKey() {
+        return 'oc_lr_group_size_' + groupNo;
+    }
+
+    function readGroupSize() {
+        try {
+            var n = Number(localStorage.getItem(groupSizeKey()));
+            if (n >= 1 && n <= MEMBERS) return n;
+        } catch (err) { /* 忽略 */ }
+        return 0;
+    }
+
+    function renderSizeChips() {
+        sizeChips.textContent = '';
+        for (var n = 1; n <= MEMBERS; n += 1) {
+            (function (count) {
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'chip' + (groupSize === count ? ' on' : '');
+                btn.textContent = count + ' 人';
+                btn.addEventListener('click', function () { setGroupSize(count); });
+                sizeChips.appendChild(btn);
+            })(n);
+        }
+    }
+
+    function setGroupSize(count) {
+        if (groupSize === count) return;
+        groupSize = count;
+        try { localStorage.setItem(groupSizeKey(), String(count)); } catch (err) { /* 忽略 */ }
+        if (memberNo > count) {
+            memberNo = 0;
+            try { localStorage.removeItem(MEMBER_KEY); } catch (err) { /* 忽略 */ }
+        }
+        renderSizeChips();
+        renderMembers();
+        memberBlock.hidden = false;
+        picks = {};
+        submitted = {};
+        currentQ = QUESTIONS[0].no;
+        clearStatus(submitStatus);
+        renderMyArea();
+        if (memberNo) loadMySubmission();
+    }
+
     function renderMembers() {
         memberChips.textContent = '';
-        for (var m = 1; m <= MEMBERS; m += 1) {
+        for (var m = 1; m <= groupSize; m += 1) {
             (function (no) {
                 var chip = document.createElement('button');
                 chip.type = 'button';
+                chip.dataset.member = String(no);
                 chip.className = 'chip' + (no === memberNo ? ' on' : '');
                 chip.textContent = '成员' + no;
                 chip.addEventListener('click', function () {
-                    // 换成另一个人时才清空选择；首次点选（还没选人）不要抹掉已经做好的答案
-                    var changed = memberNo !== 0 && memberNo !== no;
-                    memberNo = no;
-                    try { localStorage.setItem(MEMBER_KEY, String(no)); } catch (err) { /* 忽略 */ }
-                    Array.prototype.forEach.call(memberChips.children, function (c) {
-                        c.classList.toggle('on', c === chip);
-                    });
-                    if (changed) {
-                        picks = {};
-                        renderQuestions();
-                    }
-                    submitStatus.textContent = '';
-                    submitStatus.className = 'status';
-                    loadMySubmission();
+                    if (memberNo === no) return;
+                    setMember(no, 0);
                 });
                 memberChips.appendChild(chip);
             })(m);
         }
     }
 
+    function setMember(no, preferQ) {
+        if (no > groupSize) return;
+        memberNo = no;
+        try { localStorage.setItem(MEMBER_KEY, String(no)); } catch (err) { /* 忽略 */ }
+        Array.prototype.forEach.call(memberChips.children, function (c) {
+            c.classList.toggle('on', c.dataset.member === String(no));
+        });
+        // 换人：清空本地状态，再从云端读回这个人已提交的题目
+        picks = {};
+        submitted = {};
+        currentQ = preferQ || QUESTIONS[0].no;
+        clearStatus(submitStatus);
+        renderMyArea();
+        loadMySubmission(preferQ);
+    }
+
     /* ---------------- 学生端：读取自己已提交的答案 ---------------- */
-    function loadMySubmission() {
+    function loadMySubmission(preferQ) {
         if (!groupNo || !memberNo) return;
         api('/lr_submissions?select=q1,q2,q3,q4,q5&group_no=eq.' + groupNo +
             '&member_no=eq.' + memberNo + '&is_group_result=eq.false')
             .then(function (rows) {
+                picks = {};
+                submitted = {};
                 if (rows && rows[0]) {
                     var row = rows[0];
-                    picks = {};
                     QUESTIONS.forEach(function (q) {
                         var v = row['q' + q.no];
-                        if (v) picks[q.no] = v;
+                        if (v) {
+                            picks[q.no] = v;
+                            submitted[q.no] = true;
+                        }
                     });
-                    renderQuestions();
-                    submitStatus.textContent = '读取到你之前提交的答案，可直接修改后重新提交。';
+                }
+                currentQ = preferQ || firstUnanswered() || QUESTIONS[0].no;
+                renderMyArea();
+                var done = answeredCount();
+                if (done && !submitStatus.textContent) {
+                    submitStatus.textContent = '读取到成员' + memberNo + ' 之前提交的 ' + done + ' 题，可修改后重新提交。';
                     submitStatus.className = 'status ok';
                 }
             })
@@ -537,36 +776,34 @@
             });
     }
 
-    /* ---------------- 学生端：提交 ---------------- */
-    function buildRow(isGroup) {
-        var missing = QUESTIONS.filter(function (q) { return !picks[q.no]; })
-            .map(function (q) { return q.no; });
-        if (missing.length) {
-            throw new Error('第 ' + missing.join('、') + ' 题还没选答案');
-        }
+    /* ---------------- 学生端：一题一提交 ---------------- */
+    function buildAnswerRow(no, value) {
         var row = {
             group_no: groupNo,
-            member_no: isGroup ? 0 : memberNo,
-            is_group_result: !!isGroup,
+            member_no: memberNo,
+            is_group_result: false,
             submitted_at: new Date().toISOString()
         };
-        QUESTIONS.forEach(function (q) { row['q' + q.no] = picks[q.no]; });
+        row['q' + no] = value;
         return row;
     }
 
-    function send(row, okText) {
+    function send(row, okText, target) {
+        var status = target || submitStatus;
         return postRow(row).then(function () {
-            submitStatus.textContent = okText;
-            submitStatus.className = 'status ok';
+            status.textContent = okText;
+            status.className = 'status ok';
+            return 'ok';
         }).catch(function (error) {
             if (isNetworkError(error)) {
                 queueRow(row);
-                submitStatus.textContent = '网络断开：答案已暂存在这台设备，连上 Wi-Fi 后自动提交（同一人只保留最新一版）';
-                submitStatus.className = 'status error';
-            } else {
-                submitStatus.textContent = '提交失败：' + error.message;
-                submitStatus.className = 'status error';
+                status.textContent = '网络断开：本题已暂存在这台设备，连上 Wi-Fi 后会自动补交';
+                status.className = 'status error';
+                return 'queued';
             }
+            status.textContent = '提交失败：' + error.message;
+            status.className = 'status error';
+            return 'error';
         });
     }
 
@@ -600,12 +837,26 @@
     }
 
     function queueRow(row) {
-        var list = readQueue().filter(function (item) {
-            return !(item.group_no === row.group_no &&
-                     item.member_no === row.member_no &&
-                     !!item.is_group_result === !!row.is_group_result);
-        });
-        list.push(row);
+        var list = readQueue();
+        var index = -1;
+        for (var i = 0; i < list.length; i += 1) {
+            if (list[i].group_no === row.group_no &&
+                list[i].member_no === row.member_no &&
+                !!list[i].is_group_result === !!row.is_group_result) {
+                index = i;
+                break;
+            }
+        }
+        if (index >= 0) {
+            // 逐题提交：把同一人的多次提交合并成一条，避免后一题把前一题覆盖掉
+            var merged = list[index];
+            for (var key in row) {
+                if (row[key] !== undefined) merged[key] = row[key];
+            }
+            list[index] = merged;
+        } else {
+            list.push(row);
+        }
         writeQueue(list);
     }
 
@@ -615,53 +866,104 @@
 
     function flushQueue(silent) {
         var pending = readQueue();
-        if (!pending.length) return;
-        if (typeof OCNet !== 'undefined' && !OCNet.isOnline()) return;
+        if (!pending.length) return Promise.resolve();
+        if (typeof OCNet !== 'undefined' && !OCNet.isOnline()) return Promise.resolve();
 
         var current = pending.slice();
-        (function step() {
-            if (!current.length) {
-                writeQueue([]);
-                if (!silent) setGlobal('暂存的答案已补传到云端', 'ok');
-                return;
-            }
-            postRow(current[0]).then(function () {
-                current.shift();
-                writeQueue(current);
-                step();
-            }).catch(function (error) {
-                writeQueue(current);
-                if (!silent) setGlobal('补传失败：' + error.message + '（联网后会再试）', 'error');
-            });
-        })();
+        return new Promise(function (resolve) {
+            (function step() {
+                if (!current.length) {
+                    writeQueue([]);
+                    if (!silent) setGlobal('暂存的答案已补传到云端', 'ok');
+                    // 补传完成后再读一次：暂存的题目要同步回界面
+                    if (memberNo) loadMySubmission();
+                    if (groupNo) refreshGroupProgress();
+                    resolve();
+                    return;
+                }
+                postRow(current[0]).then(function () {
+                    current.shift();
+                    writeQueue(current);
+                    step();
+                }).catch(function (error) {
+                    writeQueue(current);
+                    if (!silent) setGlobal('补传失败：' + error.message + '（联网后会再试）', 'error');
+                    resolve();
+                });
+            })();
+        });
     }
 
     btnSubmitMine.addEventListener('click', function () {
-        if (!memberNo) {
-            submitStatus.textContent = '请先选择你是第几位（成员1～成员5）';
+        if (!groupSize) {
+            submitStatus.textContent = '请先选择本组人数（1～5 人）';
             submitStatus.className = 'status error';
             return;
         }
-        var row;
-        try { row = buildRow(false); }
-        catch (error) { submitStatus.textContent = error.message; submitStatus.className = 'status error'; return; }
+        if (!memberNo) {
+            submitStatus.textContent = '请先选择你是第几位（成员1～成员' + groupSize + '）';
+            submitStatus.className = 'status error';
+            return;
+        }
+        var value = picks[currentQ];
+        if (!value) {
+            submitStatus.textContent = '第 ' + currentQ + ' 题还没选答案';
+            submitStatus.className = 'status error';
+            return;
+        }
 
+        var submitting = currentQ;
+        var submittedBy = memberNo;
         btnSubmitMine.disabled = true;
-        send(row, '提交成功：第 ' + groupNo + ' 组 成员' + memberNo + ' 已记录').then(function () {
+        send(buildAnswerRow(submitting, value), '第 ' + submitting + ' 题已提交', submitStatus).then(function (result) {
             btnSubmitMine.disabled = false;
+            if (result === 'error') return;
+
+            submitted[submitting] = true;
+            var map = memberProgress[submittedBy] || (memberProgress[submittedBy] = {});
+            map[submitting] = true;
+
+            // 接力：同一题交给下一位同学；最后一位交完再进入下一题
+            var target = nextStepTarget(submitting, submittedBy);
+            if (target && target.member !== submittedBy) {
+                setMember(target.member, target.q);
+            } else if (target) {
+                currentQ = target.q;
+                renderSteps();
+                renderCurrentQuestion();
+            }
+            renderProgress();
+            refreshGroupProgress();
+
+            if (!target) {
+                submitStatus.textContent = '全组所有题目都已提交完成';
+                submitStatus.className = 'status ok';
+            } else if (result === 'queued') {
+                submitStatus.textContent = '第 ' + submitting + ' 题已暂存（成员' + submittedBy + '），联网后自动补交 · 下一位：成员' + target.member + ' 第 ' + target.q + ' 题';
+                submitStatus.className = 'status error';
+            } else {
+                submitStatus.textContent = '第 ' + submitting + ' 题已提交（成员' + submittedBy + '）· 下一位：成员' + target.member + ' 第 ' + target.q + ' 题';
+                submitStatus.className = 'status ok';
+            }
         });
     });
 
-    btnSubmitGroup.addEventListener('click', function () {
-        var row;
-        try { row = buildRow(true); }
-        catch (error) { submitStatus.textContent = error.message; submitStatus.className = 'status error'; return; }
-
-        btnSubmitGroup.disabled = true;
-        send(row, '提交成功：第 ' + groupNo + ' 组的小组结果已记录').then(function () {
-            btnSubmitGroup.disabled = false;
-        });
-    });
+    /* ---------------- 学生端：全组进度（仅用于自动接力，不再提交小组结果） ---------------- */
+    function refreshGroupProgress() {
+        if (!groupNo) return;
+        api('/lr_submissions?select=member_no,q1,q2,q3,q4,q5&group_no=eq.' + groupNo + '&is_group_result=eq.false')
+            .then(function (rows) {
+                var progressMap = {};
+                (rows || []).forEach(function (r) {
+                    var map = progressMap[r.member_no] || (progressMap[r.member_no] = {});
+                    QUESTIONS.forEach(function (q) {
+                        if (r['q' + q.no]) map[q.no] = true;
+                    });
+                });
+                memberProgress = progressMap;
+            })
+            .catch(function () { /* 读不到就按本机已知的进度继续接力 */ });
+    }
 
     /* ---------------- 教师端 ---------------- */
     function makePie(rate) {
@@ -696,20 +998,19 @@
             card.appendChild(makePie(Number(row.rate) || 0));
             var meta = document.createElement('p');
             meta.className = 'stat-meta';
-            meta.textContent = '答对 ' + row.correct + ' / 已提交 ' + row.submitted + ' 人';
+            meta.textContent = '答对 ' + row.correct + ' / 已作答 ' + row.answered + ' 人';
             card.appendChild(meta);
             statGrid.appendChild(card);
         });
     }
 
-    // 每题正确率：答对人数 ÷ 各组已提交上来的总人数
+    // 每题正确率：答对人数 ÷ 该题已作答人数（支持一题一交，未作答的人不计入分母）
     function buildStats(rows) {
-        var submitted = (rows || []).filter(function (r) { return !r.is_group_result; });
-        var total = submitted.length;
+        var memberRows = (rows || []).filter(function (r) { return !r.is_group_result; });
         return QUESTIONS.map(function (q) {
             var correct = 0;
             var answered = 0;
-            submitted.forEach(function (r) {
+            memberRows.forEach(function (r) {
                 var value = r['q' + q.no];
                 if (value) answered += 1;
                 if (value && value === q.answer) correct += 1;
@@ -719,47 +1020,49 @@
                 answer: q.answer,
                 answered: answered,
                 correct: correct,
-                submitted: total,
-                rate: total ? Math.round(correct * 100 / total) : 0
+                submitted: memberRows.length,
+                rate: answered ? Math.round(correct * 100 / answered) : 0
             };
         });
     }
 
     function renderClassOverview(rows) {
-        var submitted = (rows || []).filter(function (r) { return !r.is_group_result; });
-        var total = submitted.length;
+        var memberRows = (rows || []).filter(function (r) { return !r.is_group_result; });
+        var total = memberRows.length;
         var groups = {};
         var totalCorrect = 0;
+        var totalAnswered = 0;
 
-        submitted.forEach(function (r) {
-            if (!groups[r.group_no]) groups[r.group_no] = { submitted: 0, correct: 0 };
+        memberRows.forEach(function (r) {
+            if (!groups[r.group_no]) groups[r.group_no] = { submitted: 0, correct: 0, answered: 0 };
             var g = groups[r.group_no];
             g.submitted += 1;
             QUESTIONS.forEach(function (q) {
-                if (r['q' + q.no] === q.answer) {
+                var value = r['q' + q.no];
+                if (!value) return;
+                g.answered += 1;
+                totalAnswered += 1;
+                if (value === q.answer) {
                     g.correct += 1;
                     totalCorrect += 1;
                 }
             });
         });
 
-        var slots = total * QUESTIONS.length;
-        var rate = slots ? Math.round(totalCorrect * 100 / slots) : 0;
-        el('classRate').textContent = total ? rate + '%' : '—';
-        el('classMeta').textContent = total
-            ? '已提交 ' + total + ' 人（各组累计）　·　答对 ' + totalCorrect + ' / ' + slots +
-              ' 题（分母 = 提交人数 × ' + QUESTIONS.length + ' 题）'
+        var rate = totalAnswered ? Math.round(totalCorrect * 100 / totalAnswered) : 0;
+        el('classRate').textContent = totalAnswered ? rate + '%' : '—';
+        el('classMeta').textContent = totalAnswered
+            ? '已作答 ' + totalAnswered + ' 题（' + total + ' 人提交过答案）　·　答对 ' + totalCorrect + ' 题'
             : '还没有人提交';
 
         var list = Object.keys(groups).map(function (key) {
             var g = groups[key];
-            var groupSlots = g.submitted * QUESTIONS.length;
             return {
                 group: Number(key),
                 submitted: g.submitted,
                 correct: g.correct,
-                slots: groupSlots,
-                rate: groupSlots ? Math.round(g.correct * 100 / groupSlots) : 0
+                answered: g.answered,
+                rate: g.answered ? Math.round(g.correct * 100 / g.answered) : 0
             };
         }).sort(function (a, b) {
             return b.rate - a.rate || b.correct - a.correct || a.group - b.group;
@@ -770,7 +1073,7 @@
         if (!list.length) {
             var empty = document.createElement('p');
             empty.className = 'status';
-            empty.textContent = '还没有小组提交';
+            empty.textContent = '还没有小组作答';
             box.appendChild(empty);
             return;
         }
@@ -789,7 +1092,7 @@
 
             var meta = document.createElement('span');
             meta.className = 'rank-meta';
-            meta.textContent = '提交 ' + item.submitted + ' 人 · 答对 ' + item.correct + '/' + item.slots;
+            meta.textContent = '提交 ' + item.submitted + ' 人 · 答对 ' + item.correct + '/' + item.answered;
             row.appendChild(meta);
 
             var rateNode = document.createElement('span');
@@ -803,25 +1106,47 @@
 
     function renderGroupStatus(rows) {
         groupGrid.textContent = '';
-        var done = 0;
+        var byGroup = {};
+
         (rows || []).forEach(function (r) {
+            if (r.is_group_result) return;
+            var answered = 0;
+            QUESTIONS.forEach(function (q) { if (r['q' + q.no]) answered += 1; });
+            // 逐题提交后行里可能只有部分题目，只有 5 题都答完才算这位同学已交
+            var byMember = byGroup[r.group_no] || (byGroup[r.group_no] = {});
+            byMember[r.member_no] = Math.max(byMember[r.member_no] || 0, answered);
+        });
+
+        var finished = 0;
+        for (var g = 1; g <= GROUP_COUNT; g += 1) {
+            var byMember2 = byGroup[g] || {};
+            var size = 0;
+            for (var last = MEMBERS; last >= 1; last -= 1) {
+                if ((byMember2[last] || 0) > 0) { size = last; break; }
+            }
+            var completed = 0;
+            for (var m = 1; m <= size; m += 1) {
+                if ((byMember2[m] || 0) >= QUESTIONS.length) completed += 1;
+            }
+            var allDone = size > 0 && completed >= size;
+
             var cell = document.createElement('div');
-            cell.className = 'group-cell ' + (r.group_submitted ? 'done' : 'missing');
+            cell.className = 'group-cell ' + (allDone ? 'done' : 'missing');
             var title = document.createElement('b');
-            title.textContent = '第 ' + r.group_no + ' 组';
+            title.textContent = '第 ' + g + ' 组';
             cell.appendChild(title);
             var tag = document.createElement('span');
-            tag.className = 'tag ' + (r.group_submitted ? 'ok' : 'no');
-            tag.textContent = r.group_submitted ? '已交' : '未交';
+            tag.className = 'tag ' + (allDone ? 'ok' : 'no');
+            tag.textContent = allDone ? '已完成' : (size ? '进行中' : '未开始');
             cell.appendChild(tag);
             var meta = document.createElement('span');
             meta.className = 'meta';
-            meta.textContent = '成员已交 ' + r.member_submitted + ' 人';
+            meta.textContent = size ? '成员完成 ' + completed + ' / ' + size + ' 人' : '还没有人提交';
             cell.appendChild(meta);
             groupGrid.appendChild(cell);
-            if (r.group_submitted) done += 1;
-        });
-        submitSummary.textContent = '（' + done + ' / ' + GROUP_COUNT + ' 组已提交小组结果）';
+            if (allDone) finished += 1;
+        }
+        submitSummary.textContent = '（' + finished + ' / ' + GROUP_COUNT + ' 组已全部完成）';
     }
 
     function renderDetailSwitch() {
@@ -854,14 +1179,14 @@
         var q = QUESTIONS[detailQuestion - 1];
         var cellOf = {};
         (rows || []).forEach(function (r) {
-            if (r.is_group_result) cellOf['g' + r.group_no] = r['q' + q.no];
-            else cellOf['g' + r.group_no + 'm' + r.member_no] = r['q' + q.no];
+            if (r.is_group_result) return;
+            cellOf['g' + r.group_no + 'm' + r.member_no] = r['q' + q.no];
         });
 
         var table = document.createElement('table');
         var thead = document.createElement('thead');
         var hr = document.createElement('tr');
-        ['小组'].concat(Array.from({ length: MEMBERS }, function (_, i) { return '成员' + (i + 1); })).concat(['小组结果'])
+        ['小组'].concat(Array.from({ length: MEMBERS }, function (_, i) { return '成员' + (i + 1); }))
             .forEach(function (t) {
                 var th = document.createElement('th');
                 th.textContent = t;
@@ -880,7 +1205,6 @@
             for (var m = 1; m <= MEMBERS; m += 1) {
                 tr.appendChild(markCell(cellOf['g' + g + 'm' + m], q.answer));
             }
-            tr.appendChild(markCell(cellOf['g' + g], q.answer));
             tbody.appendChild(tr);
         }
         table.appendChild(tbody);
@@ -890,15 +1214,12 @@
     }
 
     function refreshTeacher(silent) {
-        Promise.all([
-            api('/lr_group_status?select=*'),
-            api('/lr_detail?select=group_no,member_no,is_group_result,q1,q2,q3,q4,q5')
-        ]).then(function (res) {
-            var detail = res[1] || [];
-            renderStats(buildStats(detail));
-            renderGroupStatus(res[0]);
-            renderClassOverview(detail);
-            renderDetail(detail);
+        api('/lr_detail?select=group_no,member_no,is_group_result,q1,q2,q3,q4,q5').then(function (detail) {
+            var rows = detail || [];
+            renderStats(buildStats(rows));
+            renderGroupStatus(rows);
+            renderClassOverview(rows);
+            renderDetail(rows);
             if (!silent) setGlobal('已连接云端 · 每 ' + (POLL_MS / 1000) + ' 秒自动刷新');
         }).catch(function (error) {
             setGlobal('读取统计失败：' + error.message, 'error');
@@ -963,11 +1284,22 @@
             setGlobal('备用账号（' + account + '）不参与小组答题统计', 'error');
         } else {
             groupLabel.textContent = '第 ' + groupNo + ' 组 · 账号 ' + account;
+            groupSize = readGroupSize();
             var saved = Number(localStorage.getItem(MEMBER_KEY));
-            memberNo = (saved >= 1 && saved <= MEMBERS) ? saved : 0;
+            memberNo = (groupSize && saved >= 1 && saved <= groupSize) ? saved : 0;
+            renderSizeChips();
+            memberBlock.hidden = !groupSize;
             renderMembers();
+            renderMyArea();
             applyShowQuestions();
             if (memberNo) loadMySubmission();
+            refreshGroupProgress();
+            progressTimer = setInterval(function () {
+                if (!document.hidden) refreshGroupProgress();
+            }, POLL_MS);
+            document.addEventListener('visibilitychange', function () {
+                if (!document.hidden) refreshGroupProgress();
+            });
             var queued = pendingCount();
             if (queued > 0) {
                 setGlobal('这台设备还有 ' + queued + ' 份暂存答案，正在尝试补传…');
@@ -979,7 +1311,10 @@
         }
     }
 
-    window.addEventListener('beforeunload', function () { if (polling) clearInterval(polling); });
+    window.addEventListener('beforeunload', function () {
+        if (polling) clearInterval(polling);
+        if (progressTimer) clearInterval(progressTimer);
+    });
 })();
 </script>
 </body>
