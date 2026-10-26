@@ -392,7 +392,7 @@
     (function () {
         'use strict';
 
-        var GROUP_COUNT = 12;
+        var GROUP_COUNT = 9;
         var CN_INDEX = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
         var REFRESH_MS_TEACHER = 8000;
         var REFRESH_MS_STUDENT = 15000;
@@ -443,7 +443,7 @@
 
         var isTeacher = currentRole() === 'teacher';
 
-        // 组别由登录账号决定：001 → 第 1 组 … 012 → 第 12 组；013 起是备用账号
+        // 组别由登录账号决定：001 → 第 1 组 … 009 → 第 9 组；010 起是备用账号
         function accountOf() {
             var session = readLoginSession();
             return session && session.account ? String(session.account) : '';
@@ -547,6 +547,13 @@
             return match ? Number(match[1]) : 0;
         }
 
+        // 本班现在是 1~GROUP_COUNT 组；旧分组（如原来的第 10~12 组）单独标注，方便老师清理
+        function groupLabelOf(group) {
+            if (group >= 1 && group <= GROUP_COUNT) return '第' + CN_INDEX[group - 1] + '组';
+            if (group > GROUP_COUNT && CN_INDEX[group - 1]) return '第' + CN_INDEX[group - 1] + '组（旧分组）';
+            return '未分组';
+        }
+
         function formatTime(seconds) {
             if (!seconds) return '';
             var date = new Date(seconds * 1000);
@@ -556,7 +563,7 @@
 
         function makeThumb(item, allowDelete) {
             var group = groupOfKey(item.key);
-            var groupLabel = group >= 1 && group <= GROUP_COUNT ? ('第' + CN_INDEX[group - 1] + '组') : '未分组';
+            var groupLabel = groupLabelOf(group);
 
             var box = document.createElement('div');
             box.className = 'thumb';
@@ -765,7 +772,7 @@
                 dot.className = 'dot';
                 head.appendChild(dot);
                 var label = document.createElement('span');
-                label.textContent = group >= 1 && group <= GROUP_COUNT ? ('第' + CN_INDEX[group - 1] + '组') : '未分组';
+                label.textContent = groupLabelOf(group);
                 head.appendChild(label);
                 var count = document.createElement('span');
                 count.className = 'count';
