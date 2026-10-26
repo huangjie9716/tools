@@ -746,30 +746,6 @@
                     <button class="score-button add-button" type="button" aria-label="第九组加 1 分">+</button>
                 </div>
             </article>
-            <article class="group-card" data-group="group-10">
-                <div class="group-identity"><span class="group-rank">10</span><h2 class="group-name">第十组</h2></div>
-                <div class="group-score" aria-live="polite">0<span class="score-unit">分</span></div>
-                <div class="score-actions" aria-label="第十组积分操作">
-                    <button class="score-button subtract-button" type="button" aria-label="第十组减 1 分" disabled>−</button>
-                    <button class="score-button add-button" type="button" aria-label="第十组加 1 分">+</button>
-                </div>
-            </article>
-            <article class="group-card" data-group="group-11">
-                <div class="group-identity"><span class="group-rank">11</span><h2 class="group-name">第十一组</h2></div>
-                <div class="group-score" aria-live="polite">0<span class="score-unit">分</span></div>
-                <div class="score-actions" aria-label="第十一组积分操作">
-                    <button class="score-button subtract-button" type="button" aria-label="第十一组减 1 分" disabled>−</button>
-                    <button class="score-button add-button" type="button" aria-label="第十一组加 1 分">+</button>
-                </div>
-            </article>
-            <article class="group-card" data-group="group-12">
-                <div class="group-identity"><span class="group-rank">12</span><h2 class="group-name">第十二组</h2></div>
-                <div class="group-score" aria-live="polite">0<span class="score-unit">分</span></div>
-                <div class="score-actions" aria-label="第十二组积分操作">
-                    <button class="score-button subtract-button" type="button" aria-label="第十二组减 1 分" disabled>−</button>
-                    <button class="score-button add-button" type="button" aria-label="第十二组加 1 分">+</button>
-                </div>
-            </article>
         </section>
         </div>
 
@@ -800,7 +776,7 @@
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5td3RneG1xbG1lemNqdG54Z3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4MzI2OTAsImV4cCI6MjEwMTQwODY5MH0.90TChC0s47NOGJlEkRNhD0uePRfcwdndK5SyeRRKgWo';
 
         const STORAGE_KEY = 'macau-st-paul-group-scores';
-        const GROUP_COUNT = 12;
+        const GROUP_COUNT = 9;
         const POLL_MS = 4000;
 
         const groupCards = [...document.querySelectorAll('.group-card')];
