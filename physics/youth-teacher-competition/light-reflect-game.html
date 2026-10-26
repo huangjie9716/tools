@@ -141,6 +141,41 @@
   .modal-body b, .modal-body span { color: #7fd0ff; font-weight: 700; }
   .modal-body .k { color: #ffd166; }
   .modal-actions { margin-top: 22px; }
+
+  /* ---------- 排行榜 ---------- */
+  .rank-entry { margin-top: clamp(14px, 2.4vh, 26px); text-align: center; }
+  .rank-entry .ghost-btn { margin-left: 0; }
+  .rank-card { width: min(560px, 94%); }
+  .rank-tabs { display: flex; gap: 10px; justify-content: center; margin: 2px 0 10px; }
+  .rank-tab {
+    font-family: inherit; cursor: pointer; font-weight: 800; letter-spacing: 1px;
+    padding: 9px 22px; border-radius: 999px; font-size: 15px;
+    background: rgba(16, 26, 48, .9); border: 1px solid rgba(110, 170, 255, .32); color: #b9d3f5;
+    transition: .15s ease; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  }
+  .rank-tab.on { background: linear-gradient(120deg, #5ac8fa, #6c8cff); border-color: transparent; color: #05121f; }
+  .rank-sub { margin: 0 0 14px; font-size: 12.5px; color: #7f9ac4; }
+  .rank-list {
+    display: flex; flex-direction: column; gap: 8px; text-align: left;
+    max-height: min(50vh, 400px); overflow-y: auto; -webkit-overflow-scrolling: touch;
+  }
+  .rank-row {
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px;
+    background: rgba(255,255,255,.04); border: 1px solid rgba(110,170,255,.18); font-size: 15px;
+  }
+  .rank-row.me { border-color: rgba(90, 200, 250, .8); background: rgba(90, 200, 250, .14); }
+  .rank-row .pos {
+    flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
+    font-weight: 900; font-size: 14px; background: rgba(255,255,255,.08); color: #9fc4ff;
+  }
+  .rank-row.top1 .pos { background: linear-gradient(140deg, #ffd76e, #ff9f43); color: #2a1500; }
+  .rank-row.top2 .pos { background: linear-gradient(140deg, #e2ecff, #9fb4d8); color: #1a2438; }
+  .rank-row.top3 .pos { background: linear-gradient(140deg, #ffc79a, #d98a4b); color: #2a1500; }
+  .rank-row .name { font-weight: 800; white-space: nowrap; }
+  .rank-row .meta { color: #7f9ac4; font-size: 12.5px; }
+  .rank-row .score { margin-left: auto; font-weight: 900; color: #ffd166; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .rank-row .score span { font-size: 12px; color: #7f9ac4; font-weight: 600; margin-left: 3px; }
+  .rank-empty { color: #7f9ac4; font-size: 14px; text-align: center; padding: 18px 0; }
   @media (min-width: 1100px) { .shell-btn { font-size: 17px; } }
   </style>
 
@@ -545,6 +580,9 @@
       <span class="meta" data-base="限时 60 秒 · 每只怪物 +10 分">限时 60 秒 · 每只怪物 +10 分</span>
     </button>
   </div>
+  <div class="rank-entry">
+    <button class="ghost-btn" id="btnRank" type="button">🏆 排行榜</button>
+  </div>
   <p class="ios-tip" id="iosTip">iPhone / iPad 可在浏览器菜单里选择「添加到主屏幕」，之后就能全屏游玩。</p>
   </div>
 </div>
@@ -582,6 +620,20 @@
     <div class="modal-title">玩 法 说 明</div>
     <div class="modal-body" id="helpBody"></div>
     <div class="modal-actions"><button class="shell-btn" id="btnHelpClose" type="button">继 续 游 戏</button></div>
+  </div>
+</div>
+
+<!-- 排行榜（简单 / 困难分开排名，每组取最好成绩） -->
+<div class="modal hidden" id="rankModal">
+  <div class="modal-card rank-card">
+    <div class="modal-title">排 行 榜</div>
+    <div class="rank-tabs" role="group" aria-label="选择模式">
+      <button class="rank-tab on" type="button" data-mode="easy">简单模式</button>
+      <button class="rank-tab" type="button" data-mode="hard">困难模式</button>
+    </div>
+    <p class="rank-sub" id="rankSub">简单模式 · 每组取最好成绩</p>
+    <div class="rank-list" id="rankList"></div>
+    <div class="modal-actions"><button class="shell-btn" id="btnRankClose" type="button">关 闭</button></div>
   </div>
 </div>
 
@@ -667,7 +719,7 @@
     <div class="final" style="font-size:15px" id="bestLine"></div>
     <div class="encourage" id="encourageEl"></div>
     <div style="margin-top:30px">
-      <button class="big-btn" id="btnAgain">再 来 一 局</button><button class="ghost-btn" id="btnEndBack">返回选择</button>
+      <button class="big-btn" id="btnAgain">再 来 一 局</button><button class="ghost-btn" id="btnEndBack">返回选择</button><button class="ghost-btn" id="btnEndRank" type="button">排行榜</button>
     </div>
     <div class="tip">想一想：镜子多转 10°，反射光会转多少度？</div>
   </div>
@@ -735,6 +787,214 @@
       meta.textContent = meta.getAttribute('data-base') + (best > 0 ? '　·　最高分 ' + best + ' 分' : '');
     });
   }
+
+  /* ==================== 排行榜（云端 · 按小组） ====================
+     账号 001~009 即第 1~9 组；老师账号不上榜，只看榜。
+     每局结束都会写一条记录，榜单显示每组的最好成绩。 */
+  const RANK_URL = 'https://nmwtgxmqlmezcjtnxgqk.supabase.co';
+  const RANK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5td3RneG1xbG1lemNqdG54Z3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4MzI2OTAsImV4cCI6MjEwMTQwODY5MH0.90TChC0s47NOGJlEkRNhD0uePRfcwdndK5SyeRRKgWo';
+  const RANK_PATH = '/rest/v1/lr_game_scores';
+  const RANK_QUEUE_KEY = 'reflect.rank.queue';
+  const RANK_GROUPS = 9;
+  const rankModal = document.getElementById('rankModal');
+  const rankList = document.getElementById('rankList');
+  const rankSub = document.getElementById('rankSub');
+  const btnRank = document.getElementById('btnRank');
+  let rankMode = 'easy';
+  let rankBusy = false;
+
+  function rankHeaders(extra) {
+    const base = { apikey: RANK_KEY, Authorization: 'Bearer ' + RANK_KEY };
+    if (extra) Object.assign(base, extra);
+    return base;
+  }
+
+  function readSession() {
+    try { return JSON.parse(localStorage.getItem('oc_login_session') || 'null'); }
+    catch (e) { return null; }
+  }
+
+  function myGroup() {
+    const session = readSession();
+    const no = session && session.account ? parseInt(String(session.account), 10) : 0;
+    return no >= 1 && no <= RANK_GROUPS ? no : 0;
+  }
+  window.reflectMyGroup = myGroup;
+
+  function sendScore(row) {
+    return fetch(RANK_URL + RANK_PATH, {
+      method: 'POST',
+      headers: rankHeaders({ 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
+      body: JSON.stringify([row])
+    }).then(function (res) { return res.ok; }).catch(function () { return false; });
+  }
+
+  function readScoreQueue() {
+    try {
+      const list = JSON.parse(localStorage.getItem(RANK_QUEUE_KEY) || '[]');
+      return Array.isArray(list) ? list : [];
+    } catch (e) { return []; }
+  }
+
+  function writeScoreQueue(list) {
+    try {
+      if (list && list.length) localStorage.setItem(RANK_QUEUE_KEY, JSON.stringify(list));
+      else localStorage.removeItem(RANK_QUEUE_KEY);
+    } catch (e) { /* 隐私模式忽略 */ }
+  }
+
+  function queueScore(row) {
+    const list = readScoreQueue();
+    list.push(row);
+    writeScoreQueue(list.slice(-30));
+  }
+
+  // 断网时暂存在本机，下次打开自动补传
+  function flushScoreQueue() {
+    const pending = readScoreQueue();
+    if (!pending.length) return;
+    writeScoreQueue([]);
+    (function step() {
+      if (!pending.length) return;
+      sendScore(pending[0]).then(function (ok) {
+        if (!ok) { writeScoreQueue(pending); return; }
+        pending.shift();
+        step();
+      });
+    })();
+  }
+
+  // 一局结束后由两个模式调用：老师账号不上榜，其余每局都记一条
+  window.submitReflectScore = function (modeName, score, hits) {
+    const group = myGroup();
+    if (!group) return;
+    const value = Math.round(Number(score) || 0);
+    const row = {
+      group_no: group,
+      member_no: 0,
+      mode: modeName === 'hard' ? 'hard' : 'easy',
+      score: Math.max(0, value),
+      hits: Math.max(0, Math.round(Number(hits) || 0))
+    };
+    sendScore(row).then(function (ok) { if (!ok) queueScore(row); });
+  };
+
+  function setRankTab() {
+    Array.prototype.forEach.call(document.querySelectorAll('.rank-tab'), function (tab) {
+      tab.classList.toggle('on', tab.getAttribute('data-mode') === rankMode);
+    });
+    if (rankSub) rankSub.textContent = (rankMode === 'easy' ? '简单模式' : '困难模式') + ' · 每组取最好成绩';
+  }
+
+  function openRank(defaultMode) {
+    if (defaultMode === 'easy' || defaultMode === 'hard') rankMode = defaultMode;
+    setRankTab();
+    rankModal.classList.remove('hidden');
+    loadRank();
+  }
+  window.reflectOpenRank = openRank;
+
+  function closeRank() {
+    rankModal.classList.add('hidden');
+  }
+
+  function loadRank() {
+    if (rankBusy) return;
+    rankBusy = true;
+    rankList.innerHTML = '<p class="rank-empty">正在读取排行榜…</p>';
+    fetch(RANK_URL + RANK_PATH + '?select=group_no,score,hits,created_at&mode=eq.' + rankMode +
+          '&order=score.desc,created_at.asc&limit=300', { headers: rankHeaders() })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (rows) {
+        renderRank(rows);
+        rankBusy = false;
+      })
+      .catch(function (err) {
+        const notReady = /404/.test(String((err && err.message) || ''));
+        rankList.innerHTML = '<p class="rank-empty">' +
+          (notReady ? '排行榜数据表还没创建，请先在 Supabase 执行建表 SQL' : '排行榜读取失败，请检查网络后再试') +
+          '</p>';
+        rankBusy = false;
+      });
+  }
+
+  function renderRank(rows) {
+    const mine = myGroup();
+    const best = {};
+    (rows || []).forEach(function (row) {
+      const group = Number(row.group_no) || 0;
+      if (group < 1 || group > RANK_GROUPS) return;
+      const score = Number(row.score) || 0;
+      const item = best[group];
+      if (!item) {
+        best[group] = { group: group, score: score, hits: Number(row.hits) || 0, games: 1 };
+        return;
+      }
+      item.games += 1;
+      if (score > item.score) {
+        item.score = score;
+        item.hits = Number(row.hits) || 0;
+      }
+    });
+
+    const list = [];
+    for (let no = 1; no <= RANK_GROUPS; no += 1) {
+      list.push(best[no] || { group: no, score: -1, hits: 0, games: 0 });
+    }
+    list.sort(function (a, b) { return b.score - a.score || a.group - b.group; });
+
+    rankList.innerHTML = '';
+    let shown = 0;
+    list.forEach(function (item) {
+      const has = item.games > 0;
+      const rankNo = has ? shown + 1 : 0;
+      const row = document.createElement('div');
+      row.className = 'rank-row' +
+        (rankNo && rankNo <= 3 ? ' top' + rankNo : '') +
+        (mine && item.group === mine ? ' me' : '');
+
+      const pos = document.createElement('span');
+      pos.className = 'pos';
+      pos.textContent = has ? String(rankNo) : '—';
+
+      const name = document.createElement('span');
+      name.className = 'name';
+      name.textContent = '第 ' + item.group + ' 组' + (mine && item.group === mine ? '（本组）' : '');
+
+      const meta = document.createElement('span');
+      meta.className = 'meta';
+      meta.textContent = has ? ('击中 ' + item.hits + ' 只 · 共 ' + item.games + ' 局') : '还没有成绩';
+
+      const score = document.createElement('span');
+      score.className = 'score';
+      score.innerHTML = has ? (item.score + '<span>分</span>') : '—';
+
+      row.appendChild(pos);
+      row.appendChild(name);
+      row.appendChild(meta);
+      row.appendChild(score);
+      rankList.appendChild(row);
+      if (has) shown += 1;
+    });
+  }
+
+  btnRank.addEventListener('click', function () { openRank(); });
+  document.getElementById('btnRankClose').addEventListener('click', closeRank);
+  rankModal.addEventListener('click', function (e) { if (e.target === rankModal) closeRank(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.rank-tab'), function (tab) {
+    tab.addEventListener('click', function () {
+      const target = tab.getAttribute('data-mode');
+      if (target === rankMode) return;
+      rankMode = target;
+      setRankTab();
+      loadRank();
+    });
+  });
+  const btnEndRank = document.getElementById('btnEndRank');
+  if (btnEndRank) btnEndRank.addEventListener('click', function () { openRank('hard'); });
 
   /* ---------- 全屏（统一控制外层页面） ---------- */
   function updateFullBtn() {
@@ -874,6 +1134,7 @@
   updateFullBtn();
   updateCardMeta();
   syncShellInset();
+  flushScoreQueue();
 })();
 </script>
 
@@ -1251,6 +1512,7 @@ function endGame(){
   hintEl.style.opacity = '0';
 
   const killed = state.score / 10;
+  if (window.submitReflectScore) window.submitReflectScore('easy', state.score, killed);
   const rank = killed >= 12 ? '反射大师 🏆'
              : killed >= 8  ? '光路高手 ⭐'
              : killed >= 4  ? '小有心得 👍'
@@ -1276,13 +1538,19 @@ function endGame(){
       反射光线和入射光线位于法线两侧<br>
       反射角等于入射角
     </div>
-    <button class="btn" id="ovBtn">再来一局</button><button class="ghost-btn" id="ovBack">返回选择</button>
+    <button class="btn" id="ovBtn">再来一局</button><button class="ghost-btn" id="ovBack">返回选择</button><button class="ghost-btn" id="ovRank">排行榜</button>
   `;
   overlay.classList.add('show');
   document.getElementById('ovBtn').addEventListener('click', startGame);
   document.getElementById('ovBack').addEventListener('click', function () {
     if (window.reflectBackToSelect) window.reflectBackToSelect();
   });
+  const ovRank = document.getElementById('ovRank');
+  if (ovRank) {
+    ovRank.addEventListener('click', function () {
+      if (window.reflectOpenRank) window.reflectOpenRank('easy');
+    });
+  }
   beep(520, 0.15, 'sine', 0.09);
   setTimeout(() => beep(392, 0.35, 'sine', 0.09), 160);
 }
@@ -2556,6 +2824,7 @@ function endGame() {
 
   finalScoreEl.textContent = score;
   finalHitsEl.textContent = hits;
+  if (window.submitReflectScore) window.submitReflectScore('hard', score, hits);
 
   // 本机最高分（只存在本地，不上传）
   const prevBest = window.getBestScore ? window.getBestScore('hard') : 0;
