@@ -312,8 +312,8 @@
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5td3RneG1xbG1lemNqdG54Z3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4MzI2OTAsImV4cCI6MjEwMTQwODY5MH0.90TChC0s47NOGJlEkRNhD0uePRfcwdndK5SyeRRKgWo';
 
     var IMG_BASE = 'https://pub-3827e3697a0b44428ab555d41c8d38f3.r2.dev';
-    var GROUP_COUNT = 12;
-    var MEMBERS = 5;
+    var GROUP_COUNT = 9;
+    var MEMBERS = 6;
     var MEMBER_KEY = 'oc_lr_member';
     var SHOW_Q_KEY = 'oc_lr_show_questions';
     var QUEUE_KEY = 'oc_lr_queue';
@@ -611,7 +611,7 @@
         var done = answeredCount();
         var total = QUESTIONS.length;
         if (!groupSize) {
-            myProgress.textContent = '先选本组人数（1～5 人），再选你是第几位';
+            myProgress.textContent = '先选本组人数（1～' + MEMBERS + ' 人），再选你是第几位';
             myProgress.className = 'q-progress';
             return;
         }
@@ -896,7 +896,7 @@
 
     btnSubmitMine.addEventListener('click', function () {
         if (!groupSize) {
-            submitStatus.textContent = '请先选择本组人数（1～5 人）';
+            submitStatus.textContent = '请先选择本组人数（1～' + MEMBERS + ' 人）';
             submitStatus.className = 'status error';
             return;
         }
@@ -966,6 +966,11 @@
     }
 
     /* ---------------- 教师端 ---------------- */
+    // 只统计本班 1~GROUP_COUNT 组的成员行（历史遗留的 10~12 组数据不参与统计）
+    function isOurMemberRow(r) {
+        return !!r && !r.is_group_result && r.group_no >= 1 && r.group_no <= GROUP_COUNT;
+    }
+
     function makePie(rate) {
         var deg = Math.max(0, Math.min(100, rate)) * 3.6;
         var pie = document.createElement('div');
@@ -1006,7 +1011,7 @@
 
     // 每题正确率：答对人数 ÷ 该题已作答人数（支持一题一交，未作答的人不计入分母）
     function buildStats(rows) {
-        var memberRows = (rows || []).filter(function (r) { return !r.is_group_result; });
+        var memberRows = (rows || []).filter(isOurMemberRow);
         return QUESTIONS.map(function (q) {
             var correct = 0;
             var answered = 0;
@@ -1027,7 +1032,7 @@
     }
 
     function renderClassOverview(rows) {
-        var memberRows = (rows || []).filter(function (r) { return !r.is_group_result; });
+        var memberRows = (rows || []).filter(isOurMemberRow);
         var total = memberRows.length;
         var groups = {};
         var totalCorrect = 0;
@@ -1110,6 +1115,7 @@
 
         (rows || []).forEach(function (r) {
             if (r.is_group_result) return;
+            if (!(r.group_no >= 1 && r.group_no <= GROUP_COUNT)) return;
             var answered = 0;
             QUESTIONS.forEach(function (q) { if (r['q' + q.no]) answered += 1; });
             // 逐题提交后行里可能只有部分题目，只有 5 题都答完才算这位同学已交
