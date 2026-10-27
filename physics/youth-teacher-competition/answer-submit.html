@@ -1487,8 +1487,16 @@
         el('btnReset').addEventListener('click', function () {
             if (!window.confirm('确定清空本次所有答题数据吗？（开课前用）')) return;
             if (!window.confirm('再确认一次：清空后无法恢复，真的要清空吗？')) return;
-            api('/lr_submissions?id=gt.0', { method: 'DELETE' })
-                .then(function () { refreshTeacher(true); setGlobal('已清空本次数据', 'ok'); })
+            api('/lr_submissions?id=gt.0', {
+                method: 'DELETE',
+                headers: { Prefer: 'return=representation' }
+            })
+                .then(function (deleted) {
+                    var count = Array.isArray(deleted) ? deleted.length : 0;
+                    refreshTeacher(true);
+                    if (count > 0) setGlobal('已清空 ' + count + ' 条答题数据', 'ok');
+                    else setGlobal('云端没有删除任何数据（可能 Supabase 未开放删除权限），请查看数据库策略', 'error');
+                })
                 .catch(function (error) { setGlobal('清空失败：' + error.message, 'error'); });
         });
         refreshTeacher();
