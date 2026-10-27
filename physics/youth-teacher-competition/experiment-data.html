@@ -423,6 +423,7 @@
         var pendingBlob = null;
         var configured = false;
         var refreshing = false;
+        var refreshToken = 0;   // 只让最后一次请求的结果上屏
 
         /* ---------------- 角色 & 小组 ---------------- */
         function readLoginSession() {
@@ -507,11 +508,12 @@
             });
         }
 
-        function storageList() {
+        function storageList(signal) {
             return fetch(SUPABASE_URL + '/storage/v1/object/list/' + BUCKET, {
                 method: 'POST',
                 headers: sbHeaders({ 'Content-Type': 'application/json' }),
-                body: JSON.stringify({ prefix: '', limit: 1000, offset: 0, sortBy: { column: 'name', order: 'asc' } })
+                body: JSON.stringify({ prefix: '', limit: 1000, offset: 0, sortBy: { column: 'name', order: 'asc' } }),
+                signal: signal || undefined
             }).then(function (res) {
                 if (!res.ok) {
                     return res.text().then(function (text) { throw new Error(sbError(res, text, '读取')); });
@@ -736,7 +738,7 @@
             if (!window.confirm('确定删除这张照片吗？（删除后无法恢复）')) return;
             storageDelete(item.key).then(function () {
                 setGlobal('已删除一张照片', 'ok');
-                refresh();
+                refresh(true);
             }).catch(function (error) {
                 setGlobal('删除失败：' + error.message, 'error');
             });
@@ -791,10 +793,16 @@
             });
         }
 
-        function refresh() {
-            if (refreshing) return;
+        // force=true 时忽略“正在刷新”的锁，并让旧请求的结果作废
+        function refresh(force) {
+            if (refreshing && !force) return;
             refreshing = true;
-            storageList().then(function (items) {
+            var token = ++refreshToken;
+            var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            var timer = controller ? setTimeout(function () { controller.abort(); }, 15000) : null;
+
+            storageList(controller ? controller.signal : undefined).then(function (items) {
+                if (token !== refreshToken) return;
                 configured = true;
                 if (isTeacher) {
                     renderTeacher(items);
@@ -804,9 +812,14 @@
                     setGlobal('已连接云端存储 · 当前：第' + CN_INDEX[currentGroup - 1] + '组');
                 }
             }).catch(function (error) {
-                setGlobal('读取照片列表失败：' + error.message, 'error');
+                if (token !== refreshToken) return;
+                var timeout = error && error.name === 'AbortError';
+                setGlobal(timeout
+                    ? '读取照片列表超时：请检查网络（可点“刷新”重试，稍后也会自动重试）'
+                    : '读取照片列表失败：' + error.message, 'error');
             }).then(function () {
-                refreshing = false;
+                if (timer) clearTimeout(timer);
+                if (token === refreshToken) refreshing = false;
             });
         }
 
@@ -884,7 +897,7 @@
                 pendingBlob = null;
                 previewWrap.hidden = true;
                 setUploadStatus('上传成功！老师那边刷新就能看到 ✅', 'ok');
-                refresh();
+                refresh(true);
             }).catch(function (error) {
                 var netErr = (typeof OCNet !== 'undefined' && !OCNet.isOnline()) ||
                     /Failed to fetch|NetworkError|Load failed|ERR_INTERNET|network/i.test(error.message || '');
@@ -944,7 +957,7 @@
             roleChip.textContent = '教师端';
             studentView.hidden = true;
             teacherView.hidden = false;
-            btnRefresh.addEventListener('click', function () { refresh(); });
+            btnRefresh.addEventListener('click', function () { refresh(true); });
         } else if (!currentGroup) {
             roleChip.textContent = '学生端';
             studentView.hidden = true;
