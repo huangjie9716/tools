@@ -176,6 +176,12 @@
   .rank-row .score { margin-left: auto; font-weight: 900; color: #ffd166; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .rank-row .score span { font-size: 12px; color: #7f9ac4; font-weight: 600; margin-left: 3px; }
   .rank-empty { color: #7f9ac4; font-size: 14px; text-align: center; padding: 18px 0; }
+  .modal-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .rank-clear {
+    border-color: rgba(255, 120, 120, .55); color: #ff9e9e;
+  }
+  .rank-clear:hover { background: rgba(255, 90, 90, .18); border-color: rgba(255, 120, 120, .9); color: #ffd0d0; }
+  .rank-clear:disabled { opacity: .55; cursor: not-allowed; }
   @media (min-width: 1100px) { .shell-btn { font-size: 17px; } }
   </style>
 
@@ -588,7 +594,7 @@
 </div>
 
 <div class="shell-bar" id="shellBar">
-  <button class="shell-btn" id="btnPlatform" type="button" aria-label="返回公开课智慧平台" onclick="location.href='open-class-smart-platform.html'"><svg class="back-icon" viewBox="0 0 1024 1024" aria-hidden="true"><path d="M185.3952 511.232l398.2336 398.2336-72.3968 72.448L40.6016 511.232 511.232 40.6016 583.68 112.9984z" fill="currentColor"></path></svg>返回平台</button>
+  <button class="shell-btn" id="btnPlatform" type="button" aria-label="返回课堂智慧平台" onclick="location.href='open-class-smart-platform.html'"><svg class="back-icon" viewBox="0 0 1024 1024" aria-hidden="true"><path d="M185.3952 511.232l398.2336 398.2336-72.3968 72.448L40.6016 511.232 511.232 40.6016 583.68 112.9984z" fill="currentColor"></path></svg>返回平台</button>
   <button class="shell-btn hidden" id="btnHelp" type="button" aria-label="查看玩法说明">玩法</button>
   <button class="shell-btn hidden" id="btnPause" type="button" aria-label="暂停游戏">暂停</button>
   <button class="shell-btn hidden" id="btnBack" type="button" aria-label="返回模式选择">返回选择</button>
@@ -633,7 +639,7 @@
     </div>
     <p class="rank-sub" id="rankSub">简单模式 · 每组取最好成绩</p>
     <div class="rank-list" id="rankList"></div>
-    <div class="modal-actions"><button class="shell-btn" id="btnRankClose" type="button">关 闭</button></div>
+    <div class="modal-actions"><button class="shell-btn rank-clear hidden" id="btnRankClear" type="button">清除数据</button><button class="shell-btn" id="btnRankClose" type="button">关 闭</button></div>
   </div>
 </div>
 
@@ -800,6 +806,7 @@
   const rankList = document.getElementById('rankList');
   const rankSub = document.getElementById('rankSub');
   const btnRank = document.getElementById('btnRank');
+  const btnRankClear = document.getElementById('btnRankClear');
   let rankMode = 'easy';
   let rankBusy = false;
 
@@ -812,6 +819,15 @@
   function readSession() {
     try { return JSON.parse(localStorage.getItem('oc_login_session') || 'null'); }
     catch (e) { return null; }
+  }
+
+  // 只有教师端才有清除排行榜数据的权限
+  function isTeacherRole() {
+    const forced = new URLSearchParams(location.search).get('role');
+    if (forced === 'teacher') return true;
+    if (forced === 'student') return false;
+    const session = readSession();
+    return !!(session && session.role === 'teacher');
   }
 
   function myGroup() {
@@ -983,6 +999,39 @@
 
   btnRank.addEventListener('click', function () { openRank(); });
   document.getElementById('btnRankClose').addEventListener('click', closeRank);
+
+  // 清除排行榜数据：仅教师端可见、可用
+  function clearLocalBest() {
+    try {
+      localStorage.removeItem(bestKey('easy'));
+      localStorage.removeItem(bestKey('hard'));
+    } catch (e) { /* 忽略 */ }
+    updateCardMeta();
+  }
+
+  if (btnRankClear && isTeacherRole()) {
+    btnRankClear.classList.remove('hidden');
+    btnRankClear.addEventListener('click', function () {
+      if (!isTeacherRole()) return;
+      if (!window.confirm('确定清除游戏排行榜数据吗？所有小组的成绩都会被删除。')) return;
+      if (!window.confirm('再确认一次：清除后无法恢复，真的要清除吗？')) return;
+      btnRankClear.disabled = true;
+      fetch(RANK_URL + RANK_PATH + '?group_no=gte.0', {
+        method: 'DELETE',
+        headers: rankHeaders({ Prefer: 'return=minimal' })
+      }).then(function (res) {
+        btnRankClear.disabled = false;
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        writeScoreQueue([]);
+        clearLocalBest();
+        loadRank();
+      }).catch(function (err) {
+        btnRankClear.disabled = false;
+        rankList.innerHTML = '<p class="rank-empty">清除失败：' +
+          String((err && err.message) || '请检查网络后再试') + '</p>';
+      });
+    });
+  }
   rankModal.addEventListener('click', function (e) { if (e.target === rankModal) closeRank(); });
   Array.prototype.forEach.call(document.querySelectorAll('.rank-tab'), function (tab) {
     tab.addEventListener('click', function () {
