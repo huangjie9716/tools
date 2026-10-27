@@ -801,6 +801,7 @@
   const RANK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5td3RneG1xbG1lemNqdG54Z3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4MzI2OTAsImV4cCI6MjEwMTQwODY5MH0.90TChC0s47NOGJlEkRNhD0uePRfcwdndK5SyeRRKgWo';
   const RANK_PATH = '/rest/v1/lr_game_scores';
   const RANK_QUEUE_KEY = 'reflect.rank.queue';
+  const RANK_CLEARED_KEY = 'reflect.rank.cleared_at';
   const RANK_GROUPS = 9;
   const rankModal = document.getElementById('rankModal');
   const rankList = document.getElementById('rankList');
@@ -809,6 +810,7 @@
   const btnRankClear = document.getElementById('btnRankClear');
   let rankMode = 'easy';
   let rankBusy = false;
+  let rankToken = 0;   // 只让最后一次请求的结果上屏，避免旧请求把新榜单覆盖回去
 
   function rankHeaders(extra) {
     const base = { apikey: RANK_KEY, Authorization: 'Bearer ' + RANK_KEY };
@@ -895,15 +897,41 @@
     sendScore(row).then(function (ok) { if (!ok) queueScore(row); });
   };
 
+  // 清除数据后记下的时间点：早于它的成绩一律不显示
+  // （Supabase 若因行级权限没真正删除，本机也能显示成“已清空”）
+  function readClearedAt() {
+    try { return Number(localStorage.getItem(RANK_CLEARED_KEY)) || 0; }
+    catch (e) { return 0; }
+  }
+
+  function writeClearedAt(ms) {
+    try {
+      if (ms > 0) localStorage.setItem(RANK_CLEARED_KEY, String(ms));
+      else localStorage.removeItem(RANK_CLEARED_KEY);
+    } catch (e) { /* 隐私模式忽略 */ }
+  }
+
+  let rankNote = '';
+  let latestScoreAt = 0;
+
+  function setRankNote(text) {
+    rankNote = text || '';
+    setRankTab();
+  }
+
   function setRankTab() {
     Array.prototype.forEach.call(document.querySelectorAll('.rank-tab'), function (tab) {
       tab.classList.toggle('on', tab.getAttribute('data-mode') === rankMode);
     });
-    if (rankSub) rankSub.textContent = (rankMode === 'easy' ? '简单模式' : '困难模式') + ' · 每组取最好成绩';
+    if (!rankSub) return;
+    const base = (rankMode === 'easy' ? '简单模式' : '困难模式') + ' · 每组取最好成绩';
+    const hidden = readClearedAt() ? '　·　清除前的旧成绩已隐藏' : '';
+    rankSub.textContent = base + hidden + (rankNote ? '　·　' + rankNote : '');
   }
 
   function openRank(defaultMode) {
     if (defaultMode === 'easy' || defaultMode === 'hard') rankMode = defaultMode;
+    rankNote = '';
     setRankTab();
     rankModal.classList.remove('hidden');
     loadRank();
@@ -914,35 +942,61 @@
     rankModal.classList.add('hidden');
   }
 
-  function loadRank() {
-    if (rankBusy) return;
+  function loadRank(force) {
+    if (rankBusy && !force) return;
     rankBusy = true;
+    const token = ++rankToken;
     rankList.innerHTML = '<p class="rank-empty">正在读取排行榜…</p>';
+    // 保持和原来完全一致的请求（查询串里不能加自定义参数：PostgREST 会把它当成
+    // 列名过滤条件而报“column does not exist”，也不要额外加缓存控制头，避免触发预检失败）
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = controller ? setTimeout(function () { controller.abort(); }, 15000) : null;
     fetch(RANK_URL + RANK_PATH + '?select=group_no,score,hits,created_at&mode=eq.' + rankMode +
-          '&order=score.desc,created_at.asc&limit=300', { headers: rankHeaders() })
+          '&order=score.desc,created_at.asc&limit=300',
+          { headers: rankHeaders(), signal: controller ? controller.signal : undefined })
       .then(function (res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+        if (!res.ok) {
+          return res.text().then(function (text) {
+            throw new Error('HTTP ' + res.status + (text ? '（' + String(text).slice(0, 120) + '）' : ''));
+          });
+        }
         return res.json();
       })
       .then(function (rows) {
+        if (token !== rankToken) return;
+        (rows || []).forEach(function (row) {
+          const t = Date.parse(row.created_at) || 0;
+          if (t > latestScoreAt) latestScoreAt = t;
+        });
         renderRank(rows);
         rankBusy = false;
       })
       .catch(function (err) {
-        const notReady = /404/.test(String((err && err.message) || ''));
+        if (token !== rankToken) return;
+        const msg = String((err && err.message) || '');
+        const notReady = /404/.test(msg);
+        const timeout = err && err.name === 'AbortError';
         rankList.innerHTML = '<p class="rank-empty">' +
-          (notReady ? '排行榜数据表还没创建，请先在 Supabase 执行建表 SQL' : '排行榜读取失败，请检查网络后再试') +
+          (notReady ? '排行榜数据表还没创建，请先在 Supabase 执行建表 SQL'
+            : timeout ? '排行榜读取超时，请检查网络后重新打开排行榜'
+              : '排行榜读取失败：' + (msg || '请检查网络后再试')) +
           '</p>';
         rankBusy = false;
-      });
+      })
+      .then(function () { if (timer) clearTimeout(timer); });
   }
 
   function renderRank(rows) {
     const mine = myGroup();
+    const clearedAt = readClearedAt();
     const best = {};
     (rows || []).forEach(function (row) {
       const group = Number(row.group_no) || 0;
       if (group < 1 || group > RANK_GROUPS) return;
+      if (clearedAt) {
+        const t = Date.parse(row.created_at) || 0;
+        if (!t || t <= clearedAt) return;   // 清除数据之前的旧成绩
+      }
       const score = Number(row.score) || 0;
       const item = best[group];
       if (!item) {
@@ -1016,20 +1070,43 @@
       if (!window.confirm('确定清除游戏排行榜数据吗？所有小组的成绩都会被删除。')) return;
       if (!window.confirm('再确认一次：清除后无法恢复，真的要清除吗？')) return;
       btnRankClear.disabled = true;
+      rankList.innerHTML = '<p class="rank-empty">正在清除排行榜数据…</p>';
+
+      // 用 return=representation 拿回被删除的记录数：
+      // Supabase 若因行级权限拦下了删除，接口仍会返回成功但一条都没删，必须能看出来
+      const delController = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const delTimer = delController ? setTimeout(function () { delController.abort(); }, 20000) : null;
       fetch(RANK_URL + RANK_PATH + '?group_no=gte.0', {
         method: 'DELETE',
-        headers: rankHeaders({ Prefer: 'return=minimal' })
+        headers: rankHeaders({ Prefer: 'return=representation' }),
+        signal: delController ? delController.signal : undefined
       }).then(function (res) {
-        btnRankClear.disabled = false;
         if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json().catch(function () { return []; });
+      }).then(function (deleted) {
+        btnRankClear.disabled = false;
+        const count = Array.isArray(deleted) ? deleted.length : 0;
         writeScoreQueue([]);
         clearLocalBest();
-        loadRank();
+        if (count > 0) {
+          writeClearedAt(0);
+          setRankNote('已清除 ' + count + ' 条成绩');
+        } else {
+          // 云端一条也没删掉（多半是只开放了查询/写入权限），改为在本机隐藏旧成绩
+          const cutoff = Math.max(readClearedAt(), latestScoreAt);
+          writeClearedAt(cutoff || Date.now());
+          setRankNote('云端未真正删除（数据库权限限制），已隐藏旧成绩');
+        }
+        rankBusy = false;
+        loadRank(true);
       }).catch(function (err) {
         btnRankClear.disabled = false;
+        rankBusy = false;
+        const timeout = err && err.name === 'AbortError';
         rankList.innerHTML = '<p class="rank-empty">清除失败：' +
-          String((err && err.message) || '请检查网络后再试') + '</p>';
-      });
+          (timeout ? '云端响应超时，请检查网络后重试' : String((err && err.message) || '请检查网络后再试')) +
+          '</p>';
+      }).then(function () { if (delTimer) clearTimeout(delTimer); });
     });
   }
   rankModal.addEventListener('click', function (e) { if (e.target === rankModal) closeRank(); });
