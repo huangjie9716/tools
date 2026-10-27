@@ -582,12 +582,14 @@
         answerArea.hidden = showQuestions;
         var host = showQuestions ? questionArea : answerArea;
         QUESTIONS.forEach(function (q) {
-            host.appendChild(buildQuestionBlock(q, picks, function () { clearStatus(submitStatus); }));
+            host.appendChild(buildQuestionBlock(q, picks, function () {
+                clearStatus(submitStatus);
+                renderProgress();   // 选一项就刷新“已选 X / 5 题”
+            }));
         });
     }
 
     function renderProgress() {
-        var done = answeredCount();
         var total = QUESTIONS.length;
         if (!groupSize) {
             myProgress.textContent = '先选本组人数（1～' + MEMBERS + ' 人），再选你是第几位';
@@ -601,9 +603,12 @@
             myProgress.className = 'q-progress';
             return;
         }
-        myProgress.textContent = '成员' + memberNo + '：已选 ' + done + ' / ' + total + ' 题' +
-            (done >= total ? '，可以提交了' : '');
-        myProgress.className = 'q-progress' + (done >= total ? ' ok' : '');
+        var selected = QUESTIONS.filter(function (q) { return !!picks[q.no]; }).length;
+        var text = '成员' + memberNo + '：已选 ' + selected + ' / ' + total + ' 题';
+        if (selected >= total) text += '，可以提交了';
+        else if (selected) text += '，还差 ' + (total - selected) + ' 题';
+        myProgress.textContent = text;
+        myProgress.className = 'q-progress' + (selected >= total ? ' ok' : '');
     }
 
     function renderMyArea() {
