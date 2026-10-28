@@ -468,6 +468,12 @@
 
         var isTeacher = currentRole() === 'teacher';
 
+        // 评委（游客）账号：能看教师端全部内容，但不能删除照片
+        function isViewer() {
+            var session = readLoginSession();
+            return !!(session && session.viewer);
+        }
+
         // 组别由登录账号决定：001 → 第 1 组 … 009 → 第 9 组；010 起是备用账号
         function accountOf() {
             var session = readLoginSession();
@@ -852,7 +858,7 @@
                 gallery.className = 'gallery';
                 byGroup.get(group)
                     .sort(function (a, b) { return b.time - a.time; })
-                    .forEach(function (item) { gallery.appendChild(makeThumb(item, true)); });
+                    .forEach(function (item) { gallery.appendChild(makeThumb(item, !isViewer())); });
                 block.appendChild(gallery);
 
                 teacherGallery.appendChild(block);
@@ -1020,7 +1026,7 @@
         roleChip.classList.toggle('teacher', isTeacher);
 
         if (isTeacher) {
-            roleChip.textContent = '教师端';
+            roleChip.textContent = isViewer() ? '评委端' : '教师端';
             studentView.hidden = true;
             teacherView.hidden = false;
             btnRefresh.addEventListener('click', function () { refresh(true); });
