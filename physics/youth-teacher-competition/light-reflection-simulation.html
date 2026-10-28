@@ -109,7 +109,8 @@
   /* 光线开关 */
   .drawbar{
     position:absolute;right:14px;top:14px;
-    display:flex;gap:6px;z-index:8;
+    display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;
+    max-width:calc(100% - 28px);z-index:8;
   }
   .dbtn{
     padding:6px 13px;border-radius:999px;
@@ -389,8 +390,9 @@
         <div class="drawbar" id="drawBar">
           <button class="dbtn on" data-line="incident">入射光线</button>
           <button class="dbtn on" data-line="reflected">反射光线</button>
+          <button class="dbtn on" data-line="arrows">光线箭头</button>
           <button class="dbtn on" data-line="normal">法线</button>
-          <button class="dbtn on" data-line="angles">反射角与入射角</button>
+          <button class="dbtn" data-line="angles">反射角与入射角</button>
         </div>
         <div class="hint" id="hint">按住光源臂拖动（或用滑杆）—— 板上直接读入射角与反射角</div>
       </div>
@@ -721,6 +723,47 @@ class Ray {
   get visible() { return this.core.mesh.visible; }
 }
 
+/**
+ * 光线上的方向箭头（圆锥）：顶点即箭头指向的位置。
+ * 视线几乎顺着光线时箭头只剩一个圆片、看不出方向，这种情况下干脆不画。
+ */
+const _arrowA = new THREE.Vector3();
+const _arrowB = new THREE.Vector3();
+const _arrowY = new THREE.Vector3(0, 1, 0);
+
+class ArrowHead {
+  constructor(color, len = 20, radius = 6) {
+    const geo = new THREE.ConeGeometry(radius, len, 20, 1, false);
+    geo.translate(0, -len / 2, 0);          // 顶点移到原点，锥身向 -Y 展开
+    this.mat = new THREE.MeshBasicMaterial({
+      color, toneMapped: false, depthWrite: false, depthTest: false
+    });
+    this.mesh = new THREE.Mesh(geo, this.mat);
+    this.mesh.renderOrder = 23;
+    this.mesh.frustumCulled = false;
+    this.shown = false;
+  }
+  addTo(parent) { parent.add(this.mesh); }
+  setColor(hex) {
+    this.mat.color.setHex(new THREE.Color(hex)
+      .lerp(new THREE.Color(0xffffff), 0.12).getHex());
+  }
+  show(v) { this.shown = v; this.mesh.visible = v; }
+  /** pos：箭头摆在光线上的位置；dir：光的传播方向 */
+  place(pos, dir) {
+    if (!this.shown) { this.mesh.visible = false; return; }
+    this.mesh.position.copy(pos);
+    _arrowA.copy(dir).normalize();
+    camera.getWorldDirection(_arrowB);
+    if (Math.abs(_arrowA.dot(_arrowB)) > 0.94) {   // 视线顺着光线：看不出箭头方向，先不画
+      this.mesh.visible = false;
+      return;
+    }
+    this.mesh.quaternion.setFromUnitVectors(_arrowY, _arrowA);
+    this.mesh.visible = true;
+  }
+}
+
 /** 板面上的文字读数标签（Sprite，始终面向相机） */
 class Label {
   constructor(h = 13) {
@@ -940,20 +983,23 @@ const geoF = new THREE.ExtrudeGeometry(makeHalfShape(1), boardGeoOpts);
 geoF.translate(0, 0, -1.2 + BOARD_Z_SHIFT);
 fGroup.add(new THREE.Mesh(geoF, [MAT.boardFace, MAT.boardEdge]));
 
-/* --- 板面上的法线 ON（虚线）--- */
+/* --- 法线 ON（加粗虚线）---
+   法线过入射点 O 且垂直于反射面（镜面），属于世界的固定方向，
+   不能挂到 tiltGroup 上：整块板后仰时法线必须保持竖直不动。 */
 const normalLine = (() => {
-  const g = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(0, 0, 1.5),
-    new THREE.Vector3(0, R_BOARD, 1.5)
-  ]);
-  const m = new THREE.LineDashedMaterial({
-    color: 0x1f1d1a, dashSize: 5.5, gapSize: 4, toneMapped: false
-  });
-  const l = new THREE.Line(g, m);
-  l.computeLineDistances();
-  return l;
+  const g = new THREE.Group();
+  const mat = new THREE.MeshBasicMaterial({ color: 0x14120f, toneMapped: false });
+  const dashLen = 6.2, gap = 3.8, thick = 1.35;   // thick 是虚线的「粗细」半径 mm
+  for (let y = 1.2; y < R_BOARD - 1; y += dashLen + gap) {
+    const h = Math.min(dashLen, R_BOARD - 1 - y);
+    const dash = new THREE.Mesh(
+      new THREE.CylinderGeometry(thick, thick, h, 10), mat);
+    dash.position.set(0, y + h / 2, 1.5);
+    g.add(dash);
+  }
+  return g;
 })();
-tiltGroup.add(normalLine);
+world.add(normalLine);          // 固定在世界坐标：不随纸板后仰
 
 /* --- 板面上的角度弧 + 读数标签 --- */
 const ARC_I_R = 30, ARC_R_R = 46, ARC_W = 1.7;
@@ -989,16 +1035,16 @@ const labInc = new Label(11);
 const labRef = new Label(11);
 tiltGroup.add(labInc.sprite, labRef.sprite);
 
-/* O 点与法线 N 的标记 */
+/* O 点与法线 N 的标记（都跟着世界坐标，不随纸板后仰） */
 const labO = new Label(10);
 labO.set('O', '#eef1f5');
 labO.place(new THREE.Vector3(-13, 8, 2.0));
-tiltGroup.add(labO.sprite);
+world.add(labO.sprite);
 
 const labN = new Label(10);
 labN.set('N', '#eef1f5');
 labN.place(new THREE.Vector3(9, R_BOARD - 9, 2.0));
-tiltGroup.add(labN.sprite);
+world.add(labN.sprite);
 
 /** 弧线 + 标签的逐帧更新 */
 function updateArcs() {
@@ -1171,6 +1217,8 @@ function setLightColor(key, animate = true) {
   // 光路相关颜色
   incidentBeam.setColor(c.hex);
   reflectedBeam.setColor(c.hex);
+  incArrow.setColor(c.hex);
+  refArrow.setColor(c.hex);
   dIncBeams.forEach(b => b.setColor(c.hex));
   dRefBeams.forEach(b => b.setColor(c.hex));
   lensMat.color.setHex(c.hex);
@@ -1318,6 +1366,40 @@ const incidentBeam  = new Ray(1.35, COLORS.yellow.hex);
 const reflectedBeam = new Ray(1.35, COLORS.yellow.hex);
 incidentBeam.addTo(world);
 reflectedBeam.addTo(world);
+
+/* 光线方向箭头（入射光射向 O，反射光由 O 射出） */
+const ARROW_R = L_SRC * 0.5;   // 箭头放在光线中部，严格落在光线上
+const incArrow = new ArrowHead(COLORS.yellow.hex);
+const refArrow = new ArrowHead(COLORS.yellow.hex);
+incArrow.addTo(world);
+refArrow.addTo(world);
+
+/* 箭头每帧都要重摆：相机一转，光线在屏幕里的角度就变了 */
+const arrowLayout = {
+  inc: { on: false, pos: new THREE.Vector3(), dir: new THREE.Vector3() },
+  ref: { on: false, pos: new THREE.Vector3(), dir: new THREE.Vector3() },
+};
+function aimArrow(which, on, pos, dir) {
+  const a = arrowLayout[which];
+  a.on = on;
+  if (on) { a.pos.copy(pos); a.dir.copy(dir); }
+}
+/* 纸板正面的世界法线：纸板绕 X 轴后仰 beta 后，正面法线为 (0, sinβ, cosβ)。
+   相机跑到板背面时，纸板挡在箭头前面，箭头不该再透出来。 */
+const _boardNormal = new THREE.Vector3();
+function cameraBehindBoard() {
+  const beta = state.tilt * D2R;
+  _boardNormal.set(0, Math.sin(beta), Math.cos(beta));
+  return camera.position.dot(_boardNormal) <= 0;
+}
+function refreshArrows() {
+  const inc = arrowLayout.inc, ref = arrowLayout.ref;
+  const hidden = cameraBehindBoard();
+  incArrow.show(inc.on && !hidden);
+  refArrow.show(ref.on && !hidden);
+  if (inc.on && !hidden) incArrow.place(inc.pos, inc.dir);
+  if (ref.on && !hidden) refArrow.place(ref.pos, ref.dir);
+}
 
 /* =========================================================
    10. 手持激光笔（光路可逆）
@@ -1469,7 +1551,8 @@ const state = {
   showIncident: true,
   showReflected: true,
   showNormal: true,
-  showAngles: true,
+  showAngles: false,
+  showArrows: true,
   laserPlaced: false,
   laserAim: 0,
   surface: 'mirror',
@@ -1570,6 +1653,14 @@ function update() {
 
   if (showInc) incidentBeam.set(srcPos, new THREE.Vector3(0, 0, 0));
   if (showRef) reflectedBeam.set(new THREE.Vector3(0, 0, 0), refPos);
+
+  /* --- 光线箭头：摆在光线正中，一律指向光的传播方向 --- */
+  const showArrow = state.showArrows && state.mode === 'reflect';
+  aimArrow('inc', showInc && showArrow,
+           srcDir.clone().multiplyScalar(ARROW_R), srcDir.clone().negate());  // 射向 O
+  aimArrow('ref', showRef && showArrow,
+           r.clone().multiplyScalar(ARROW_R), r);                             // 由 O 射出
+  refreshArrows();
 
   /* --- 法线（板上的虚线）--- */
   normalLine.visible = state.showNormal;
@@ -1790,6 +1881,7 @@ document.getElementById('drawBar').addEventListener('click', e => {
     reflected: 'showReflected',
     normal:    'showNormal',
     angles:    'showAngles',
+    arrows:    'showArrows',
   };
   const k = KEY[b.dataset.line];
   if (!k) return;
@@ -2026,6 +2118,8 @@ function loop(now) {
   wheelSpin.rotation.y = wheelAngle;
 
   controls.update();
+  camera.updateMatrixWorld();
+  refreshArrows();            // 相机一动，箭头的屏幕角度要跟着重算
   renderer.render(scene, camera);
 }
 
