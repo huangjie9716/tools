@@ -183,6 +183,53 @@
         color: var(--muted);
     }
 
+    /* ---------- 课堂环节锁：教师端可点，学生端只显示"已锁" ---------- */
+    .card-lock {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 3;
+        padding: 5px 11px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--muted);
+        font-family: inherit;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+    }
+
+    .card-lock[data-locked="1"] {
+        color: #ffb4b4;
+        border-color: rgba(255, 128, 132, 0.55);
+        background: rgba(255, 110, 116, 0.16);
+    }
+
+    .card-lock:hover:not(:disabled) { border-color: rgba(120, 170, 255, 0.6); }
+    .card-lock:disabled { cursor: default; pointer-events: none; }
+
+    .lock-toast {
+        position: fixed;
+        left: 50%;
+        bottom: 42px;
+        transform: translateX(-50%) translateY(12px);
+        z-index: 300;
+        padding: 12px 22px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 128, 132, 0.5);
+        background: rgba(48, 16, 20, 0.95);
+        color: #ffd2d4;
+        font-size: 14px;
+        letter-spacing: 1px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .lock-toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
     /* ---------- 全屏按钮（固定右上角） ---------- */
     /* ---------- 右上角操作区：学生端/教师端 · 全屏 · 退出登录 ---------- */
     .top-actions {
@@ -522,6 +569,7 @@
 </style>
     <link rel="stylesheet" href="oc-touch.css?v=1" />
     <script src="oc-net.js?v=1"></script>
+    <script src="oc-lock.js?v=1"></script>
 </head>
 <body data-role="student">
 <!-- ================= 登录界面 ================= -->
@@ -605,6 +653,7 @@
 
         <a class="card" href="experiment-data.html" data-order-student="2" data-order-teacher="3"
            data-hint-student="拍照上传" data-hint-teacher="查看照片" style="--accent:#4dd0ff">
+            <button class="card-lock" type="button" data-lock="experiment-data" hidden>🔒 已锁</button>
             <span class="icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M3.5 8.5h3l1.6-2.4h6.8L16.5 8.5h4v10a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5v-10Z" />
@@ -618,6 +667,7 @@
         </a>
 
         <a class="card" href="light-reflection-simulation.html" data-order-student="3" data-order-teacher="4" style="--accent:#5de0a1">
+            <button class="card-lock" type="button" data-lock="simulation" hidden>🔒 已锁</button>
             <span class="icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M9.5 3h5" />
@@ -648,6 +698,7 @@
         <a class="card" href="answer-submit.html" data-order-student="4" data-order-teacher="6"
            data-name-student="题目答案" data-name-teacher="答题结果"
            data-hint-student="光的反射 · 提交答案" data-hint-teacher="学生答题结果查看" style="--accent:#8b7cff">
+            <button class="card-lock" type="button" data-lock="answer-submit" hidden>🔒 已锁</button>
             <span class="icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M6 3.5h9l3.5 3.5v13.5H6z" />
@@ -661,6 +712,7 @@
         </a>
 
         <a class="card" href="light-reflect-game.html" data-order-student="5" data-order-teacher="7" style="--accent:#ff8a5c">
+            <button class="card-lock" type="button" data-lock="reflect-game" hidden>🔒 已锁</button>
             <span class="icon">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                     <circle cx="12" cy="12" r="8" />
@@ -738,6 +790,7 @@
             });
             applyCardOrder(isTeacher);
             applyCardLabels(isTeacher);
+            applyLockUi();
 
             if (!session) {
                 loginScreen.classList.remove('hidden');
@@ -910,10 +963,101 @@
             }
         } catch (err) { /* 忽略 */ }
 
+        /* ================= 课堂环节加锁（教师端控制 / 学生端受限） ================= */
+        const LOCK_MODULES = {
+            'experiment-data.html': 'experiment-data',
+            'light-reflection-simulation.html': 'simulation',
+            'answer-submit.html': 'answer-submit',
+            'light-reflect-game.html': 'reflect-game'
+        };
+        const lockState = {};
+        let lockToastTimer = null;
+
+        function showLockToast(text) {
+            let toast = document.getElementById('lockToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'lockToast';
+                toast.className = 'lock-toast';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = text;
+            toast.classList.add('on');
+            clearTimeout(lockToastTimer);
+            lockToastTimer = setTimeout(function () { toast.classList.remove('on'); }, 2200);
+        }
+
+        function applyLockUi() {
+            const isTeacherNow = document.body.dataset.role === 'teacher';
+            const logged = !!readSession();
+            Array.prototype.forEach.call(document.querySelectorAll('.card-lock'), function (btn) {
+                const locked = !!lockState[btn.dataset.lock];
+                if (!logged) { btn.hidden = true; return; }
+                btn.dataset.locked = locked ? '1' : '0';
+                if (isTeacherNow) {
+                    btn.hidden = false;
+                    btn.disabled = false;
+                    btn.textContent = locked ? '🔒 已锁' : '🔓 未锁';
+                    btn.title = locked ? '点击解锁，学生就能进入' : '点击加锁，学生将无法进入';
+                } else {
+                    // 学生端只显示状态，不能操作；点卡片时由下面的点击处理给出提示
+                    btn.hidden = !locked;
+                    btn.disabled = true;
+                    btn.textContent = '🔒 已锁';
+                    btn.title = '该环节已被老师锁定';
+                }
+            });
+        }
+
+        function refreshLocks() {
+            if (!window.OCLock) return;
+            OCLock.listLocks().then(function (rows) {
+                if (rows === null) return;                 // 超时：保持原状态
+                const next = OCLock.toMap(rows);
+                let changed = false;
+                Object.keys(next).forEach(function (k) {
+                    if (lockState[k] !== next[k]) changed = true;
+                });
+                Object.keys(lockState).forEach(function (k) {
+                    if (lockState[k] !== next[k]) changed = true;
+                });
+                if (!changed) return;
+                Object.keys(lockState).forEach(function (k) { delete lockState[k]; });
+                Object.keys(next).forEach(function (k) { lockState[k] = next[k]; });
+                applyLockUi();
+            }).catch(function () { /* 没建表时静默忽略，不影响正常上课 */ });
+        }
+
+        Array.prototype.forEach.call(document.querySelectorAll('.card-lock'), function (btn) {
+            btn.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                const key = btn.dataset.lock;
+                const next = btn.dataset.locked !== '1';
+                btn.disabled = true;
+                OCLock.setLock(key, next).then(function () {
+                    lockState[key] = next;
+                    applyLockUi();
+                    showLockToast(next ? '已锁定：学生将无法进入这个环节' : '已解锁：学生可以进入这个环节');
+                }).catch(function (error) {
+                    applyLockUi();
+                    showLockToast('设置失败：' + ((error && error.message) || '未知错误'));
+                });
+            });
+        });
+
+        refreshLocks();
+        setInterval(refreshLocks, 8000);
+
         Array.prototype.forEach.call(document.querySelectorAll('.card'), function (card) {
             card.addEventListener('click', function (e) {
                 e.preventDefault();
                 if (!readSession()) { applySession(null); return; }
+                const moduleKey = LOCK_MODULES[card.getAttribute('href')];
+                if (moduleKey && document.body.dataset.role !== 'teacher' && lockState[moduleKey]) {
+                    showLockToast('该环节已被老师锁定，请等待解锁');
+                    return;
+                }
                 openTool(card.getAttribute('href'));
             });
         });
