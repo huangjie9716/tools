@@ -1235,10 +1235,41 @@
         });
     }
 
-    /* ---------------- 教师端：AI 学情分析（DeepSeek） ---------------- */
-    var AI_ENDPOINT = 'https://api.deepseek.com/chat/completions';
-    var AI_MODEL = 'deepseek-chat';
-    var AI_KEY = 'sk-7ed6aa3720174ed588e20f3555216bfe';
+    /* ---------------- 教师端：AI 学情分析（DeepSeek） ----------------
+       接口地址、模型名、API Key 统一放在同目录的 deepseek-config.json，
+       页面运行时再读取，不在源码里写死密钥。 */
+    var AI_CONFIG_URL = 'deepseek-config.json';
+    var AI_DEFAULTS = {
+        endpoint: 'https://api.deepseek.com/chat/completions',
+        model: 'deepseek-chat'
+    };
+    var aiConfigPromise = null;
+
+    function loadAiConfig() {
+        if (!aiConfigPromise) {
+            aiConfigPromise = fetch(AI_CONFIG_URL, { cache: 'no-store' })
+                .then(function (res) {
+                    if (!res.ok) throw new Error('读取 ' + AI_CONFIG_URL + ' 失败（HTTP ' + res.status + '）');
+                    return res.json();
+                })
+                .then(function (cfg) {
+                    cfg = cfg || {};
+                    var key = String(cfg.apiKey == null ? '' : cfg.apiKey).trim();
+                    if (!key) throw new Error(AI_CONFIG_URL + ' 中没有填写 apiKey');
+                    return {
+                        endpoint: cfg.endpoint || AI_DEFAULTS.endpoint,
+                        model: cfg.model || AI_DEFAULTS.model,
+                        apiKey: key
+                    };
+                })
+                .catch(function (err) {
+                    aiConfigPromise = null;   // 失败后允许下次点击重试
+                    throw err;
+                });
+        }
+        return aiConfigPromise;
+    }
+
     var aiModal = el('aiModal');
     var aiBody = el('aiBody');
     var aiMeta = el('aiMeta');
@@ -1401,19 +1432,21 @@
         aiMeta.textContent = 'DeepSeek · 已统计 ' + memberRows.length + ' 条成员作答记录';
         setAiBody('<div class="ai-loading"><span class="ai-dot"></span><span>AI 正在分析班级整体、各小组和每位成员的作答情况，请稍候…</span></div>');
 
-        fetch(AI_ENDPOINT, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + AI_KEY },
-            body: JSON.stringify({
-                model: AI_MODEL,
-                messages: [
-                    { role: 'system', content: '你是一位经验丰富的初中物理教师和教研员，擅长根据课堂答题数据做精准、可操作的学情分析。' },
-                    { role: 'user', content: buildAiPrompt(latestRows) }
-                ],
-                temperature: 0.3,
-                max_tokens: 2400,
-                stream: false
-            })
+        loadAiConfig().then(function (cfg) {
+            return fetch(cfg.endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + cfg.apiKey },
+                body: JSON.stringify({
+                    model: cfg.model,
+                    messages: [
+                        { role: 'system', content: '你是一位经验丰富的初中物理教师和教研员，擅长根据课堂答题数据做精准、可操作的学情分析。' },
+                        { role: 'user', content: buildAiPrompt(latestRows) }
+                    ],
+                    temperature: 0.3,
+                    max_tokens: 2400,
+                    stream: false
+                })
+            });
         }).then(function (res) {
             return res.text().then(function (text) {
                 var data = null;
@@ -1430,9 +1463,13 @@
             setAiBody('<p class="ai-stats">分析时间：' + new Date().toLocaleString() + ' · 数据来源：云端答题记录</p>' + renderAiText(text));
         }).catch(function (error) {
             var msg = (error && error.message) || '未知错误';
-            var hint = /Failed to fetch|NetworkError|Load failed/i.test(msg)
-                ? '<br>浏览器无法访问 DeepSeek 接口，请检查网络或代理后重试。'
-                : '';
+            var hint = '';
+            if (/deepseek-config\.json|apiKey/i.test(msg)) {
+                hint = '<br>请检查同目录下的 deepseek-config.json 是否存在并已填写 apiKey；' +
+                       '若本页是直接双击打开的，浏览器会禁止读取本地文件，请改用本地服务器访问（如 python -m http.server）。';
+            } else if (/Failed to fetch|NetworkError|Load failed/i.test(msg)) {
+                hint = '<br>浏览器无法访问 DeepSeek 接口，请检查网络或代理后重试。';
+            }
             setAiBody('<p class="ai-error">AI 分析失败：' + escapeHtml(msg) + hint + '</p>');
         }).then(function () {
             aiBusy = false;
