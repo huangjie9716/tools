@@ -217,6 +217,18 @@
     .ai-head h2 { margin: 0; font-size: 17px; letter-spacing: 1px; }
     .ai-head .ai-meta { color: var(--muted); font-size: 12.5px; }
     .ai-head .ai-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+    .ai-token {
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        padding: 12px 20px; border-bottom: 1px solid var(--line);
+        background: rgba(93, 224, 161, .06); font-size: 13px; color: var(--muted);
+    }
+    .ai-token[hidden] { display: none !important; }
+    .ai-token input {
+        flex: 1 1 220px; min-width: 160px; padding: 8px 10px; border-radius: 9px;
+        border: 1px solid var(--line); background: rgba(255, 255, 255, .05);
+        color: #eaf2ff; font-size: 13px; font-family: inherit;
+    }
+    .ai-token input:focus { outline: none; border-color: rgba(93, 224, 161, .6); }
     .ai-body {
         padding: 18px 22px 26px; overflow-y: auto;
         font-size: 14.5px; line-height: 1.9; color: #dbe6f5;
@@ -361,9 +373,17 @@
             <h2 id="aiTitle">AI 学情分析</h2>
             <span class="ai-meta" id="aiMeta">DeepSeek · 班级 / 小组 / 成员逐层分析</span>
             <div class="ai-actions">
+                <button class="tool-btn" id="btnAiToken" type="button">设置口令</button>
                 <button class="tool-btn" id="btnAiRefresh" type="button">重新分析</button>
                 <button class="tool-btn" id="btnAiClose" type="button">关闭</button>
             </div>
+        </div>
+        <div class="ai-token" id="aiTokenBar" hidden>
+            <label for="aiTokenInput">AI 访问口令</label>
+            <input id="aiTokenInput" type="password" autocomplete="off" spellcheck="false"
+                   placeholder="Supabase 函数里的 AI_ACCESS_TOKEN">
+            <button class="tool-btn" id="btnAiTokenSave" type="button">保存</button>
+            <button class="tool-btn" id="btnAiTokenCancel" type="button">取消</button>
         </div>
         <div class="ai-body" id="aiBody"></div>
     </div>
@@ -1236,39 +1256,53 @@
     }
 
     /* ---------------- 教师端：AI 学情分析（DeepSeek） ----------------
-       接口地址、模型名、API Key 统一放在同目录的 deepseek-config.json，
-       页面运行时再读取，不在源码里写死密钥。 */
-    var AI_CONFIG_URL = 'deepseek-config.json';
-    var AI_DEFAULTS = {
-        endpoint: 'https://api.deepseek.com/chat/completions',
-        model: 'deepseek-chat'
-    };
-    var aiConfigPromise = null;
+       DeepSeek 密钥只保存在 Supabase 的 Edge Function 环境变量里，
+       浏览器只把答题数据发给 rapid-action 函数，永远拿不到密钥。
+       前端需要的是访问口令（函数环境变量 AI_ACCESS_TOKEN），保存在本机浏览器。 */
+    var AI_ENDPOINT = SUPABASE_URL + '/functions/v1/rapid-action';
+    var AI_TOKEN_KEY = 'oc_ai_access_token';
+    var aiTokenBar = el('aiTokenBar');
+    var aiTokenInput = el('aiTokenInput');
 
-    function loadAiConfig() {
-        if (!aiConfigPromise) {
-            aiConfigPromise = fetch(AI_CONFIG_URL, { cache: 'no-store' })
-                .then(function (res) {
-                    if (!res.ok) throw new Error('读取 ' + AI_CONFIG_URL + ' 失败（HTTP ' + res.status + '）');
-                    return res.json();
-                })
-                .then(function (cfg) {
-                    cfg = cfg || {};
-                    var key = String(cfg.apiKey == null ? '' : cfg.apiKey).trim();
-                    if (!key) throw new Error(AI_CONFIG_URL + ' 中没有填写 apiKey');
-                    return {
-                        endpoint: cfg.endpoint || AI_DEFAULTS.endpoint,
-                        model: cfg.model || AI_DEFAULTS.model,
-                        apiKey: key
-                    };
-                })
-                .catch(function (err) {
-                    aiConfigPromise = null;   // 失败后允许下次点击重试
-                    throw err;
-                });
-        }
-        return aiConfigPromise;
+    function readAiToken() {
+        try { return String(localStorage.getItem(AI_TOKEN_KEY) || '').trim(); }
+        catch (err) { return ''; }
     }
+
+    function saveAiToken(value) {
+        try {
+            if (value) localStorage.setItem(AI_TOKEN_KEY, value);
+            else localStorage.removeItem(AI_TOKEN_KEY);
+        } catch (err) { /* 隐私模式下写入失败时忽略 */ }
+    }
+
+    // 展开口令输入条；点「保存」后由「重新分析」重新发起请求
+    function showAiTokenBar() {
+        aiTokenBar.hidden = false;
+        aiTokenInput.value = readAiToken();
+        aiTokenInput.focus();
+        aiTokenInput.select();
+    }
+
+    function hideAiTokenBar() {
+        aiTokenBar.hidden = true;
+    }
+
+    el('btnAiTokenSave').addEventListener('click', function () {
+        var value = aiTokenInput.value.trim();
+        if (!value) { aiTokenInput.focus(); return; }
+        saveAiToken(value);
+        hideAiTokenBar();
+        setAiBody('<p class="ai-stats">AI 访问口令已保存，点击「重新分析」开始分析。</p>');
+    });
+
+    el('btnAiTokenCancel').addEventListener('click', function () {
+        hideAiTokenBar();
+    });
+
+    aiTokenInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') el('btnAiTokenSave').click();
+    });
 
     var aiModal = el('aiModal');
     var aiBody = el('aiBody');
@@ -1426,49 +1460,58 @@
 
     function runAiAnalysis() {
         if (aiBusy) return;
+        var token = readAiToken();
+        if (!token) {
+            showAiTokenBar();
+            setAiBody('<p class="ai-error">请先在上方输入 AI 访问口令并保存，然后点击「重新分析」。</p>');
+            return;
+        }
+        hideAiTokenBar();
         aiBusy = true;
         btnAiAnalyze.disabled = true;
         var memberRows = (latestRows || []).filter(isOurMemberRow);
         aiMeta.textContent = 'DeepSeek · 已统计 ' + memberRows.length + ' 条成员作答记录';
         setAiBody('<div class="ai-loading"><span class="ai-dot"></span><span>AI 正在分析班级整体、各小组和每位成员的作答情况，请稍候…</span></div>');
 
-        loadAiConfig().then(function (cfg) {
-            return fetch(cfg.endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + cfg.apiKey },
-                body: JSON.stringify({
-                    model: cfg.model,
-                    messages: [
-                        { role: 'system', content: '你是一位经验丰富的初中物理教师和教研员，擅长根据课堂答题数据做精准、可操作的学情分析。' },
-                        { role: 'user', content: buildAiPrompt(latestRows) }
-                    ],
-                    temperature: 0.3,
-                    max_tokens: 2400,
-                    stream: false
-                })
-            });
+        fetch(AI_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-AI-Token': token,
+                apikey: SUPABASE_ANON_KEY,
+                Authorization: 'Bearer ' + SUPABASE_ANON_KEY
+            },
+            body: JSON.stringify({ prompt: buildAiPrompt(latestRows) })
         }).then(function (res) {
             return res.text().then(function (text) {
                 var data = null;
                 try { data = text ? JSON.parse(text) : null; } catch (err) { data = null; }
                 if (!res.ok) {
-                    var msg = (data && data.error && (data.error.message || data.error)) || ('HTTP ' + res.status);
-                    throw new Error(msg);
+                    var err = new Error((data && data.error) || ('HTTP ' + res.status));
+                    err.status = res.status;
+                    throw err;
                 }
-                var content = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-                if (!content) throw new Error('AI 没有返回内容');
-                return content;
+                if (!data || !data.content) throw new Error('AI 没有返回内容');
+                return data.content;
             });
         }).then(function (text) {
             setAiBody('<p class="ai-stats">分析时间：' + new Date().toLocaleString() + ' · 数据来源：云端答题记录</p>' + renderAiText(text));
         }).catch(function (error) {
             var msg = (error && error.message) || '未知错误';
             var hint = '';
-            if (/deepseek-config\.json|apiKey/i.test(msg)) {
-                hint = '<br>请检查同目录下的 deepseek-config.json 是否存在并已填写 apiKey；' +
-                       '若本页是直接双击打开的，浏览器会禁止读取本地文件，请改用本地服务器访问（如 python -m http.server）。';
+            if (error && error.status === 401) {
+                saveAiToken('');
+                showAiTokenBar();
+                hint = '<br>口令不正确，或 Supabase 函数开启了 JWT 校验。请在上方重新输入 AI_ACCESS_TOKEN，' +
+                       '并在函数设置里关闭「Verify JWT」。';
+            } else if (error && error.status === 429) {
+                hint = '<br>已触发调用频率限制，请稍后再试。';
+            } else if (error && error.status === 404) {
+                hint = '<br>没有找到这个函数：请确认 Supabase 里函数名与 AI_ENDPOINT 一致（当前是 rapid-action）。';
             } else if (/Failed to fetch|NetworkError|Load failed/i.test(msg)) {
-                hint = '<br>浏览器无法访问 DeepSeek 接口，请检查网络或代理后重试。';
+                hint = '<br>连不上 Supabase，请检查网络，或确认 rapid-action 函数已经部署。';
+            } else if (error && error.status === 502) {
+                hint = '<br>函数已连上，但 DeepSeek 调用失败，请检查 Supabase 里的 DEEPSEEK_API_KEY 与账户余额。';
             }
             setAiBody('<p class="ai-error">AI 分析失败：' + escapeHtml(msg) + hint + '</p>');
         }).then(function () {
@@ -1484,6 +1527,7 @@
 
     btnAiAnalyze.addEventListener('click', analyzeWithFreshData);
     el('btnAiRefresh').addEventListener('click', analyzeWithFreshData);
+    el('btnAiToken').addEventListener('click', showAiTokenBar);
     el('btnAiClose').addEventListener('click', function () { aiModal.hidden = true; });
     aiModal.addEventListener('click', function (e) { if (e.target === aiModal) aiModal.hidden = true; });
     document.addEventListener('keydown', function (e) {
