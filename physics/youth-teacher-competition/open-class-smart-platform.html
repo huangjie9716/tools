@@ -744,7 +744,10 @@
             teachers: [
                 { account: 'admin01', password: 'admin01' },
                 { account: 'admin02', password: 'admin02' }
-            ]
+            ].concat(Array.from({ length: 8 }, function (_, i) {
+                const id = 'admin' + String(i + 3).padStart(2, '0');   // admin03 ~ admin10
+                return { account: id, password: id, viewer: true };    // 评委只读账号
+            }))
         };
 
         let accountsPromise = null;
@@ -799,7 +802,8 @@
                 return;
             }
             loginScreen.classList.add('hidden');
-            roleBadge.textContent = (isTeacher ? '教师端' : '学生端') + ' · ' + session.account;
+            const isViewer = !!session.viewer;
+            roleBadge.textContent = (isViewer ? '评委端' : (isTeacher ? '教师端' : '学生端')) + ' · ' + session.account;
             roleBadge.classList.toggle('teacher', isTeacher);
         }
 
@@ -850,13 +854,17 @@
 
             const data = await getAccounts();
             let account = null;
+            let viewer = false;
 
             if (role === 'teacher') {
                 const list = data.teachers || (data.teacher ? [data.teacher] : []);
                 const found = list.find(function (t) {
                     return String(user).toLowerCase() === String(t.account).toLowerCase() && pass === t.password;
                 });
-                if (found) account = found.account;
+                if (found) {
+                    account = found.account;
+                    viewer = !!found.viewer;      // 评委账号：看得到、改不了
+                }
             } else {
                 const id = /^\d{1,3}$/.test(user) ? user.padStart(3, '0') : user;
                 const found = (data.students || []).find(function (s) { return s.account === id; });
@@ -869,7 +877,7 @@
                 return;
             }
 
-            writeSession({ role: role, account: account, loginAt: Date.now() });
+            writeSession({ role: role, account: account, viewer: viewer, loginAt: Date.now() });
             passInput.value = '';
             applySession(readSession());
         }
@@ -989,16 +997,20 @@
 
         function applyLockUi() {
             const isTeacherNow = document.body.dataset.role === 'teacher';
-            const logged = !!readSession();
+            const session = readSession();
+            const logged = !!session;
+            const viewer = !!(session && session.viewer);
             Array.prototype.forEach.call(document.querySelectorAll('.card-lock'), function (btn) {
                 const locked = !!lockState[btn.dataset.lock];
                 if (!logged) { btn.hidden = true; return; }
                 btn.dataset.locked = locked ? '1' : '0';
                 if (isTeacherNow) {
                     btn.hidden = false;
-                    btn.disabled = false;
+                    btn.disabled = viewer;                 // 评委账号只读，不能加解锁
                     btn.textContent = locked ? '🔒 已锁' : '🔓 未锁';
-                    btn.title = locked ? '点击解锁，学生就能进入' : '点击加锁，学生将无法进入';
+                    btn.title = viewer
+                        ? '评委账号只读，不能加解锁'
+                        : (locked ? '点击解锁，学生就能进入' : '点击加锁，学生将无法进入');
                 } else {
                     // 学生端只显示状态，不能操作；点卡片时由下面的点击处理给出提示
                     btn.hidden = !locked;
