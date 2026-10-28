@@ -12,6 +12,14 @@
   ],
   "teachers": [
     { "account": "admin01", "password": "admin01" },
-    { "account": "admin02", "password": "admin02" }
+    { "account": "admin02", "password": "admin02" },
+    { "account": "admin03", "password": "admin03", "viewer": true },
+    { "account": "admin04", "password": "admin04", "viewer": true },
+    { "account": "admin05", "password": "admin05", "viewer": true },
+    { "account": "admin06", "password": "admin06", "viewer": true },
+    { "account": "admin07", "password": "admin07", "viewer": true },
+    { "account": "admin08", "password": "admin08", "viewer": true },
+    { "account": "admin09", "password": "admin09", "viewer": true },
+    { "account": "admin10", "password": "admin10", "viewer": true }
   ]
 }
