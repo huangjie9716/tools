@@ -799,7 +799,14 @@
                 }
             })
             .catch(function (error) {
-                submitStatus.textContent = '读取历史答案失败：' + error.message;
+                // 断网时这里也会失败，别把「已暂存」的提示冲掉
+                if (isNetworkError(error) && pendingCount() > 0) {
+                    if (submitStatus.textContent.indexOf('暂存') < 0) {
+                        submitStatus.textContent = '网络未连上：答案已暂存在本机，连上 Wi-Fi 后会自动补交';
+                    }
+                } else {
+                    submitStatus.textContent = '读取历史答案失败：' + error.message;
+                }
                 submitStatus.className = 'status error';
             });
     }
@@ -829,6 +836,7 @@
                 queueRow(row);
                 status.textContent = '网络断开：这份答案已暂存在这台设备，连上 Wi-Fi 后会自动补交';
                 status.className = 'status error';
+                setGlobal('这台设备还有 ' + pendingCount() + ' 份暂存答案，联网后会自动补交', 'error');
                 return 'queued';
             }
             status.textContent = '提交失败：' + error.message;
@@ -964,11 +972,15 @@
 
             // 接着让下一位同学作答
             advanceToNextMember(submittedBy).then(function (next) {
-                if (next) {
-                    setMember(next);
-                    submitStatus.textContent = '成员' + submittedBy + ' 的答案已' +
-                        (result === 'queued' ? '暂存（联网后自动补交）' : '提交') + ' · 请成员' + next + ' 作答';
-                    submitStatus.className = result === 'queued' ? 'status error' : 'status ok';
+                if (next) setMember(next);
+                // 暂存的情况必须留在界面上，不能被「本组已全部提交」或读取失败覆盖
+                if (result === 'queued') {
+                    submitStatus.textContent = '成员' + submittedBy + ' 的答案已暂存在本机，连上 Wi-Fi 后会自动补交' +
+                        (next ? ' · 请成员' + next + ' 继续作答' : '');
+                    submitStatus.className = 'status error';
+                } else if (next) {
+                    submitStatus.textContent = '成员' + submittedBy + ' 的答案已提交 · 请成员' + next + ' 作答';
+                    submitStatus.className = 'status ok';
                 } else {
                     submitStatus.textContent = '本组 ' + groupSize + ' 位同学的答案都已提交完成';
                     submitStatus.className = 'status ok';
