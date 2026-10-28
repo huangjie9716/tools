@@ -461,6 +461,12 @@
         catch (err) { return null; }
     }
 
+    // 评委（游客）账号：能看教师端全部内容，但不能修改数据
+    function isViewer() {
+        var session = readSession();
+        return !!(session && session.viewer);
+    }
+
     function currentRole() {
         var forced = new URLSearchParams(location.search).get('role');
         if (forced === 'teacher' || forced === 'student') return forced;
@@ -1560,7 +1566,8 @@
 
     /* ---------------- 启动 ---------------- */
     isTeacher = currentRole() === 'teacher';
-    roleChip.textContent = isTeacher ? '教师端' : '学生端';
+    var viewer = isTeacher && isViewer();
+    roleChip.textContent = viewer ? '评委端' : (isTeacher ? '教师端' : '学生端');
     roleChip.classList.toggle('teacher', isTeacher);
     studentView.hidden = isTeacher;
     teacherView.hidden = !isTeacher;
@@ -1572,7 +1579,9 @@
         renderDetailSwitch();
         el('btnAiAnalyze').hidden = false;
         el('btnRefresh').addEventListener('click', function () { refreshTeacher(); });
+        el('btnReset').hidden = viewer;          // 评委账号不能清空数据
         el('btnReset').addEventListener('click', function () {
+            if (viewer) { setGlobal('评委账号只能查看，不能清空答题数据', 'error'); return; }
             if (!window.confirm('确定清空本次所有答题数据吗？（开课前用）')) return;
             if (!window.confirm('再确认一次：清空后无法恢复，真的要清空吗？')) return;
             api('/lr_submissions?id=gt.0', {
