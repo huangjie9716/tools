@@ -832,6 +832,14 @@
 
         const isTeacher = currentRole() === 'teacher';
 
+        // 评委（游客）账号：能看教师端全部内容，但不能加减积分
+        function isViewer() {
+            const session = readLoginSession();
+            return !!(session && session.viewer);
+        }
+
+        const isViewerAccount = isTeacher && isViewer();
+
         /* ================= 通用工具 ================= */
         function clampScore(value) {
             const number = Math.round(Number(value) * 100) / 100;
@@ -1039,7 +1047,9 @@
         };
         const CLOUD_JSON = Object.assign({ 'Content-Type': 'application/json' }, CLOUD_AUTH);
         const REQUEST_TIMEOUT = 12000;
-        const OK_TEXT = isTeacher ? '已连接云端积分（可加减）' : '积分实时同步自云端（只读）';
+        const OK_TEXT = isViewerAccount
+            ? '评委模式 · 只读，积分实时同步自云端'
+            : (isTeacher ? '已连接云端积分（可加减）' : '积分实时同步自云端（只读）');
 
         // 离线期间攒下的加减分，联网后自动补传
         const pendingDeltas = new Map();
@@ -1183,7 +1193,7 @@
         }
 
         async function changeScore(no, delta) {
-            if (!isTeacher) return;
+            if (!isTeacher || isViewerAccount) return;
             const previous = scores[no] || 0;
             const next = clampScore(previous + delta);
             if (next === previous) return;
@@ -1301,6 +1311,13 @@
 
         // 学生端直接把这个切换控件从 DOM 里移除，避免任何样式/缓存导致它又冒出来
         if (!isTeacher && teacherTabs && teacherTabs.parentNode) teacherTabs.remove();
+
+        // 评委账号只读：把每组卡片上的加减分按钮隐藏掉
+        if (isViewerAccount) {
+            for (const actions of document.querySelectorAll('.score-actions')) {
+                actions.hidden = true;
+            }
+        }
 
         applyViewMode();
 
