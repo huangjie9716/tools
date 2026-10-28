@@ -1,4 +1,3 @@
-
 # 光的反射 · 公开课智慧课堂平台
 
 ## 文件说明
@@ -9,6 +8,8 @@
 | `answer-submit.html` | 答案提交与统计，含教师端「AI 学情分析」 |
 | `class-pk.html`、`roll-call.html`、`experiment-data.html`、`group-cooperation.html`、`light-reflect-game.html`、`light-reflection-simulation.html` | 各课堂环节页面 |
 | `accounts.json` | 学生 / 教师账号（公开文件，不含任何密钥） |
+| `oc-lock.js` | 课堂环节加锁的共享逻辑（教师锁定 / 学生被拦） |
+| `supabase/module-locks.sql` | 加锁功能所需的建表语句（在 Supabase 里执行一次） |
 | `supabase/functions/ai-analyze/index.ts` | AI 代理函数源码（部署到 Supabase 的那份代码的存档） |
 | `.gitignore` | 防止密钥类文件被提交 |
 
@@ -117,6 +118,36 @@ deepseek-config.json
 > 注意：`.gitignore` 只对**之后的提交**生效。
 > 已经推到 GitHub 上的旧密钥不会因此消失，必须去 DeepSeek 吊销它，
 > 并把 GitHub 上那份 `deepseek-config.json` 删掉。
+
+---
+
+## 课堂环节加锁（教师控制学生能不能进）
+
+教师端可以在首页锁定这四个环节：**实验数据 / 模拟实验 / 答案提交 / 反射游戏**。
+
+- 加锁后，学生点对应卡片会被拦下，提示「该环节已被老师锁定」；
+- 学生如果已经在里面，4 秒内会被自动退回平台首页；
+- 教师端不受影响，随时可以进入任意环节。
+
+### 一次性配置：建表
+
+1. 打开 Supabase 控制台 → 左侧 **SQL Editor** → **New query**
+2. 把 `supabase/module-locks.sql` 的内容整段粘进去
+3. 点 **Run**（可重复执行，不会报错）
+
+这一步只做一次。没执行的话，加锁按钮点了也不生效（页面会静默放行，不影响正常上课）。
+
+### 怎么用
+
+用教师账号登录平台 → 每张卡片右上角有一个小圆角按钮：
+
+| 显示 | 含义 |
+| --- | --- |
+| `🔓 未锁` | 学生可以进入，点一下即加锁 |
+| `🔒 已锁` | 学生进不去，点一下即解锁 |
+
+状态存在 Supabase 的 `module_locks` 表里，所有设备同步；
+学生端的页面每 4 秒复查一次，所以教师加锁后最多 4 秒学生就会被退出来。
 
 ---
 
