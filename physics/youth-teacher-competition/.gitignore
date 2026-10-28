@@ -1,0 +1,20 @@
+# ===== 密钥与本地配置：绝对不能提交 =====
+.env
+.env.*
+!.env.example
+deepseek-config.json
+*.pem
+*.key
+
+# ===== 依赖与日志 =====
+node_modules/
+npm-debug.log*
+yarn-error.log*
+*.log
+
+# ===== 编辑器 / 系统 =====
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
