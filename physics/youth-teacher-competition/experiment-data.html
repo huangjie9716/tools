@@ -235,12 +235,20 @@
         overscroll-behavior: contain;
     }
 
+    .lightbox-frame {
+        position: relative;
+        margin: 0 auto;
+    }
+
     .lightbox img {
+        position: absolute;
+        top: 50%;
+        left: 50%;
         display: block;
-        margin: auto;
         border-radius: 12px;
         max-width: none;
         max-height: none;
+        transform: translate(-50%, -50%);
     }
 
     .lightbox-stage.zoomed { cursor: grab; }
@@ -298,6 +306,15 @@
         .header-actions { width: 100%; justify-content: space-between; }
         .panel { padding: 16px; border-radius: 14px; }
         .gallery { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+        .lightbox-tools {
+            gap: 6px;
+            padding: 6px 8px;
+            max-width: calc(100vw - 84px);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .lightbox-tools button { padding: 6px 10px; font-size: 12px; }
+        .lightbox-tools .zoom-label { min-width: 44px; font-size: 12px; }
     }
 </style>
     <link rel="stylesheet" href="oc-touch.css?v=1" />
@@ -377,6 +394,8 @@
 
 <div class="lightbox" id="lightbox" hidden>
     <div class="lightbox-tools">
+        <button id="lbRotateLeft" type="button" title="向左旋转 90°">⟲ 左转</button>
+        <button id="lbRotateRight" type="button" title="向右旋转 90°">⟳ 右转</button>
         <button id="lbZoomOut" type="button">－ 缩小</button>
         <span class="zoom-label" id="lbZoomLabel">100%</span>
         <button id="lbZoomIn" type="button">＋ 放大</button>
@@ -384,7 +403,9 @@
     </div>
     <button class="close" id="lightboxClose" type="button" aria-label="关闭">×</button>
     <div class="lightbox-stage" id="lightboxStage">
-        <img id="lightboxImg" alt="实验照片" />
+        <div class="lightbox-frame" id="lightboxFrame">
+            <img id="lightboxImg" alt="实验照片" />
+        </div>
     </div>
 </div>
 
@@ -417,6 +438,7 @@
         var btnRefresh = document.getElementById('btnRefresh');
         var lightbox = document.getElementById('lightbox');
         var lightboxStage = document.getElementById('lightboxStage');
+        var lightboxFrame = document.getElementById('lightboxFrame');
         var lightboxImg = document.getElementById('lightboxImg');
         var lightboxClose = document.getElementById('lightboxClose');
 
@@ -592,23 +614,39 @@
             return box;
         }
 
-        /* ---------------- 图片查看：缩放 + 拖动 ---------------- */
+        /* ---------------- 图片查看：缩放 + 拖动 + 旋转 ---------------- */
         var lbZoom = 1;
         var lbBaseW = 0;
         var lbRatio = 1.5;
+        var lbRotation = 0;              // 0 / 90 / 180 / 270，每点一次转 90°
         var lbZoomLabel = document.getElementById('lbZoomLabel');
         var lbZoomIn = document.getElementById('lbZoomIn');
         var lbZoomOut = document.getElementById('lbZoomOut');
         var lbZoomReset = document.getElementById('lbZoomReset');
+        var lbRotateLeft = document.getElementById('lbRotateLeft');
+        var lbRotateRight = document.getElementById('lbRotateRight');
         var MAX_ZOOM = 5;
         var ZOOM_STEP = 0.25;
 
+        // 外框按「旋转后」的可视尺寸布局，图片自身绝对定位居中再旋转，
+        // 这样滚动、居中和拖动平移的边界都仍然准确。
         function lbApplyZoom() {
             if (!lbBaseW) return;
-            lightboxImg.style.width = Math.round(lbBaseW * lbZoom) + 'px';
-            var shownH = (lbBaseW * lbZoom) / (lbRatio || 1.5);
+            var visualW = Math.round(lbBaseW * lbZoom);
+            var visualH = Math.round(visualW / (lbRatio || 1.5));
+            var swapped = lbRotation % 180 !== 0;
+            var cssW = swapped ? visualH : visualW;
+            var cssH = swapped ? visualW : visualH;
+
+            lightboxFrame.style.width = visualW + 'px';
+            lightboxFrame.style.height = visualH + 'px';
+            lightboxImg.style.width = cssW + 'px';
+            lightboxImg.style.height = cssH + 'px';
+            lightboxImg.style.transform = 'translate(-50%, -50%) rotate(' + lbRotation + 'deg)';
+
             var availH = Math.max(0, lightboxStage.clientHeight - 102);
-            lightboxImg.style.marginTop = Math.round(Math.max(0, (availH - shownH) / 2)) + 'px';
+            lightboxFrame.style.marginTop = Math.round(Math.max(0, (availH - visualH) / 2)) + 'px';
+
             lbZoomLabel.textContent = Math.round(lbZoom * 100) + '%';
             lbZoomIn.disabled = lbZoom >= MAX_ZOOM - 0.001;
             lbZoomOut.disabled = lbZoom <= 1.001;
@@ -643,12 +681,24 @@
             var stage = lightboxStage;
             var nw = lightboxImg.naturalWidth || 1200;
             var nh = lightboxImg.naturalHeight || 800;
+            // 旋转 90°/270° 后宽高互换，按旋转后的方向算比例
+            var swapped = lbRotation % 180 !== 0;
+            var effW = swapped ? nh : nw;
+            var effH = swapped ? nw : nh;
             var sw = Math.max(120, stage.clientWidth - 48);
             var sh = Math.max(120, stage.clientHeight - 102);
-            lbRatio = nw / nh;
+            lbRatio = effW / effH;
             // 基准 = 铺满可视区域（小图也放大到满屏，再往上翻倍看细节）
             lbBaseW = Math.min(sw, sh * lbRatio);
             lbApplyZoom();
+        }
+
+        function lbRotate(step) {
+            if (lightbox.hidden || !lbBaseW) return;
+            lbRotation = (lbRotation + step + 360) % 360;
+            lightboxStage.scrollTop = 0;
+            lightboxStage.scrollLeft = 0;
+            lbMeasure();
         }
 
         function openLightbox(url) {
@@ -656,7 +706,13 @@
             lightbox.hidden = false;
             lbZoom = 1;
             lbBaseW = 0;
+            lbRotation = 0;
             lightboxImg.style.width = '';
+            lightboxImg.style.height = '';
+            lightboxImg.style.transform = '';
+            lightboxFrame.style.width = '';
+            lightboxFrame.style.height = '';
+            lightboxFrame.style.marginTop = '';
             lightboxStage.scrollTop = 0;
             lightboxStage.scrollLeft = 0;
             if (lightboxImg.complete && lightboxImg.naturalWidth) lbMeasure();
@@ -667,10 +723,18 @@
             lightbox.hidden = true;
             lightboxImg.removeAttribute('src');
             lightboxImg.style.width = '';
+            lightboxImg.style.height = '';
+            lightboxImg.style.transform = '';
+            lightboxFrame.style.width = '';
+            lightboxFrame.style.height = '';
+            lightboxFrame.style.marginTop = '';
             lbZoom = 1;
             lbBaseW = 0;
+            lbRotation = 0;
         }
 
+        lbRotateLeft.addEventListener('click', function () { lbRotate(-90); });
+        lbRotateRight.addEventListener('click', function () { lbRotate(90); });
         lbZoomIn.addEventListener('click', function () { lbZoomAt(lbZoom + ZOOM_STEP); });
         lbZoomOut.addEventListener('click', function () { lbZoomAt(lbZoom - ZOOM_STEP); });
         lbZoomReset.addEventListener('click', function () {
