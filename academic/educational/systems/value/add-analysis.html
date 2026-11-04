@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>增值评价分析 · 珠海市九洲中学教育质量管理与分析系统</title>
+    <script src="../../shared/auth.js?v=202611032325"></script>
+    <link rel="icon" type="image/png" href="../../shared/assets/favicon.png?v=202611032325">
+    <!-- 引入 SheetJS 和 jStat -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.6/jstat.min.js"></script>
+    <!-- 引入 Plotly.js 用于绘图 -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="stylesheet" href="css/style.css?v=202611032325">
+    <link rel="stylesheet" href="../../shared/styles/cloud.css?v=202611032325">
+</head>
+<body>
+<div class="container">
+    <!-- 选择考试区域 -->
+    <div class="upload-grid">
+        <div class="upload-card exam-picker-card" id="drop1">
+            <span class="exam-picker-head">
+                <svg class="exam-picker-pin" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M513.11 960.22s-336-374.44-336-560c0-185.55 150.44-336 336-336s336 150.45 336 336c0 185.57-336 560-336 560z m0-784c-123.7 0-224 100.3-224 224 0 123.72 100.3 224 224 224s224-100.28 224-224c0-123.7-100.3-224-224-224z m0 336c-61.86 0-112-50.14-112-112s50.14-112 112-112 112 50.14 112 112-50.14 112-112 112z" fill="currentColor"></path></svg>
+                <span class="exam-picker-title">前测成绩表</span>
+            </span>
+            <span class="file-status exam-picker-name is-empty" id="status1">请先选择考试</span>
+            <button type="button" class="jz-card-pick" data-cloud-side="1">选择考试</button>
+        </div>
+        <span class="upload-flow-arrow" aria-hidden="true"><svg class="flow-arrow-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M513.9968 78.1824a432.64 432.64 0 1 0 432.64 432.64 433.1008 433.1008 0 0 0-432.64-432.64z m0 819.2a386.56 386.56 0 1 1 386.56-386.56 387.0208 387.0208 0 0 1-386.56 386.56z"></path><path d="M532.48 362.3936l-128.512 328.192h-46.592L230.4 362.3936h50.6368l0.4608 1.28 84.2752 235.52c5.888 16.384 11.008 32.1024 15.36 46.7456 4.608-15.36 9.8304-31.2832 15.6672-46.7968l88.064-236.8512zM813.7216 597.0432a90.2656 90.2656 0 0 1-15.36 49.8688 100.2496 100.2496 0 0 1-43.3664 36.3008 151.1936 151.1936 0 0 1-63.1296 13.1072 189.7472 189.7472 0 0 1-74.5472-13.0048 105.6256 105.6256 0 0 1-47.5136-39.3216 112.0256 112.0256 0 0 1-18.1248-59.2896v-1.792l44.1344-3.8912v1.8432a87.4496 87.4496 0 0 0 13.056 39.1168 71.68 71.68 0 0 0 31.7952 24.5248 121.9072 121.9072 0 0 0 48.9984 9.472 118.1184 118.1184 0 0 0 42.7008-7.168 58.624 58.624 0 0 0 27.136-19.3536 45.0048 45.0048 0 0 0 8.8064-26.6752 40.6016 40.6016 0 0 0-8.448-25.6 64.4096 64.4096 0 0 0-28.3648-18.5344 582.4512 582.4512 0 0 0-57.5488-15.7696c-29.7984-7.1168-51.2-13.9776-63.0272-20.48a90.2656 90.2656 0 0 1-35.3792-30.72 76.4928 76.4928 0 0 1-11.6736-41.4208 84.8896 84.8896 0 0 1 14.6944-47.0528 88.4224 88.4224 0 0 1 41.6256-33.1264 156.1088 156.1088 0 0 1 60.2112-11.2128 164.7616 164.7616 0 0 1 64.1024 11.776 94.0544 94.0544 0 0 1 43.264 34.8672A101.1712 101.1712 0 0 1 803.84 455.68v1.8432l-44.8512 3.3792v-1.8944c-2.1504-19.8656-9.472-35.072-21.76-45.1584s-30.976-15.36-55.296-15.36c-25.6 0-44.0832 4.6592-55.552 13.824A40.96 40.96 0 0 0 609.28 445.44a34.8672 34.8672 0 0 0 11.9808 27.3408c7.9872 7.2704 29.44 14.8992 63.8464 22.6816s59.136 14.848 72.192 20.7872a100.864 100.864 0 0 1 42.5984 33.7408 82.8928 82.8928 0 0 1 13.824 47.0528z"></path></svg></span>
+        <div class="upload-card exam-picker-card" id="drop2">
+            <span class="exam-picker-head">
+                <svg class="exam-picker-pin" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M513.11 960.22s-336-374.44-336-560c0-185.55 150.44-336 336-336s336 150.45 336 336c0 185.57-336 560-336 560z m0-784c-123.7 0-224 100.3-224 224 0 123.72 100.3 224 224 224s224-100.28 224-224c0-123.7-100.3-224-224-224z m0 336c-61.86 0-112-50.14-112-112s50.14-112 112-112 112 50.14 112 112-50.14 112-112 112z" fill="currentColor"></path></svg>
+                <span class="exam-picker-title">后测成绩表</span>
+            </span>
+            <span class="file-status exam-picker-name is-empty" id="status2">请先选择考试</span>
+            <button type="button" class="jz-card-pick" data-cloud-side="2">选择考试</button>
+        </div>
+    </div>
+
+    <!-- 控制栏：状态 + 层数 -->
+    <div class="control-area" id="controlArea">
+        <div class="info-group">
+            <span><strong>状态</strong> <span id="stateLabel">数据待分析</span></span>
+            <span><strong>匹配人数</strong> <span id="matchCount">-</span></span>
+        </div>
+        <div class="layer-group">
+            <label for="layerInput">分层数</label>
+            <input type="number" id="layerInput" min="2" value="5" step="1">
+            <span class="suggest">💡 建议值：<span id="suggestLayer">5</span> (log₂(N²/100))</span>
+        </div>
+    </div>
+
+    <button class="btn-primary" id="processBtn" disabled><img src="img/analyze-icon.svg?v=202611032325" class="analyze-icon" alt=""> 开始分析</button>
+
+    <!-- ===== 学科选择（置于各视图之上） ===== -->
+    <div class="filter-row" id="subjectRow" style="display:none;">
+        <span class="filter-label"><img src="img/subject-icon.svg?v=202611032325" class="subject-icon" alt=""> 学科：</span>
+        <div class="btn-group" id="subjectButtons"></div>
+    </div>
+
+    <!-- ===== 视图切换卡片（横排） ===== -->
+    <div class="view-cards" id="viewCards" style="display:none;">
+        <button class="view-card active" data-view="result">数据分析结果</button>
+        <button class="view-card" data-view="regression">分层回归分析</button>
+        <button class="view-card" data-view="classstats">班级统计汇总</button>
+    </div>
+
+    <!-- ===== 结果区域（数据分析结果） ===== -->
+    <div class="result-area" id="resultArea">
+        <div class="headline">
+            <h3>数据分析结果</h3>
+            <span style="font-size:13px; color:#6a7a8b;" id="previewNote"></span>
+        </div>
+
+        <!-- 筛选控件 -->
+        <div class="filter-row class-filter">
+            <span class="filter-label"><img src="img/class-icon.svg?v=202611032325" class="class-icon" alt=""> 班级：</span>
+            <div class="btn-group" id="classButtons"></div>
+        </div>
+        <div class="filter-row">
+            <span class="filter-label"><img src="img/sort-icon.svg?v=202611032325" class="sort-icon" alt=""> 排序：</span>
+            <div class="btn-group" id="sortButtons">
+                <button class="btn-sm active" data-sort="id">按学号</button>
+                <button class="btn-sm" data-sort="rank2">按后测名次</button>
+                <button class="btn-sm" data-sort="tValue">按个人T值</button>
+            </div>
+            <div class="download-wrap">
+                <button class="btn-success" id="downloadBtn" style="padding:6px 18px; font-size:14px;">导出表格</button>
+                <button class="btn-success" id="exportResultImage" style="padding:6px 18px; font-size:14px;">导出图片</button>
+            </div>
+        </div>
+        <div class="filter-row">
+            <span class="filter-label">查找：</span>
+            <input type="search" id="resultSearch" class="result-search" placeholder="输入姓名或学号筛选（支持部分匹配）">
+            <div class="btn-group" id="columnModeButtons">
+                <button class="btn-sm active" data-cols="simple">简洁列</button>
+                <button class="btn-sm" data-cols="full">详细列</button>
+            </div>
+            <span class="filter-label">每页：</span>
+            <select id="resultPageSize" class="result-pagesize">
+                <option value="50" selected>50 条</option>
+                <option value="100">100 条</option>
+                <option value="200">200 条</option>
+                <option value="0">全部</option>
+            </select>
+            <div class="btn-group pager" id="resultPager" hidden>
+                <button class="btn-sm" id="resultPrev">上一页</button>
+                <span class="pager-info" id="resultPageInfo"></span>
+                <button class="btn-sm" id="resultNext">下一页</button>
+            </div>
+        </div>
+
+        <div class="table-wrap" id="tableWrap">
+            <table id="resultTable">
+                <thead id="resultHead"></thead>
+                <tbody id="resultBody"></tbody>
+            </table>
+        </div>
+
+        <!-- ===== 建议名单（跟随学科 + 班级筛选） ===== -->
+        <div class="advice-panel" id="advicePanel" style="display:none;">
+            <div class="advice-head">
+                <div class="advice-head-main">
+                    <h4>增值评价建议名单</h4>
+                    <span class="advice-scope" id="adviceScope"></span>
+                </div>
+                <button class="btn-success" id="exportAdviceImage" style="padding:5px 16px; font-size:13px; flex:none;">导出图片</button>
+            </div>
+            <div class="advice-block praise">
+                <div class="advice-title"><svg t="1789029860819" class="advice-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1676" width="200" height="200"><path d="M939.778343 410.406543a62.041806 62.041806 0 0 1 68.245986 65.454105s0 102.368979-101.438352 447.011209c0 0-31.020903 101.128143-70.10724 101.128143h-409.475917c-28.539231 0-101.438352-19.23296-101.438352-72.588912V410.406543s202.876704-149.520751 202.876704-341.22993c5.583762-8.996062-9.926689-69.176613 65.764314-69.176613 0 0 178.6804 19.853378 72.899122 410.096334z m-726.509543 0a40.327174 40.327174 0 0 1 41.56801 41.257801v549.069979s0 22.955468-29.159648 22.955468H84.532054a34.122993 34.122993 0 0 1-35.05362-34.433202l-34.122993-545.65768a33.192366 33.192366 0 0 1 34.122993-33.192366z" fill="#FFA12A" p-id="1677"></path></svg>建议大力表扬的同学名单</div>
+                <div class="advice-item">
+                    <span class="advice-tag tag-over2">超2标</span>
+                    <span class="advice-names" id="adviceOverTwo"></span>
+                </div>
+                <div class="advice-item">
+                    <span class="advice-tag tag-over1">超1标</span>
+                    <span class="advice-names" id="adviceOverOne"></span>
+                </div>
+            </div>
+            <div class="advice-block analyze">
+                <div class="advice-title"><svg t="1789029951734" class="advice-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3552" width="200" height="200"><path d="M371.75808 632.20736c0-77.45536 62.78656-140.24192 140.24192-140.24192 77.45536 0 140.24192 62.78656 140.24192 140.24192 0 32.9728-11.46368 64.0768-31.60064 88.704a221.30176 221.30176 0 0 1 61.36832 51.54304h230.68672a20.03456 20.03456 0 0 0 20.03456-20.03456V471.93088a20.03456 20.03456 0 0 0-20.03456-20.03456H111.30368a20.03456 20.03456 0 0 0-20.03456 20.03456v280.48896a20.03456 20.03456 0 0 0 20.03456 20.03456h230.68672a221.30176 221.30176 0 0 1 61.36832-51.54304 139.85792 139.85792 0 0 1-31.60064-88.704z m73.27232 113.01376a180.92544 180.92544 0 0 0-77.30176 59.29984 20.03456 20.03456 0 0 1-16.0256 8.00256H111.3088c-33.19296 0-60.10368-26.91072-60.10368-60.1088V471.936c0-33.19296 26.91072-60.1088 60.1088-60.1088h801.3824c33.19808 0 60.1088 26.91584 60.1088 60.1088v280.48896c0 33.19296-26.91072 60.10368-60.1088 60.10368h-240.39936c-6.2976 0-12.2368-2.9696-16.02048-8.00256a180.92544 180.92544 0 0 0-77.30176-59.29984c-14.30528-5.72416-17.06496-24.7808-4.9664-34.32448a99.9424 99.9424 0 0 0 38.1696-78.68928c0-55.3216-44.8512-100.1728-100.1728-100.1728-55.32672 0-100.1728 44.8512-100.1728 100.1728a99.9424 99.9424 0 0 0 38.1696 78.68928c12.09856 9.54368 9.33888 28.60032-4.9664 34.32448z m247.28064 187.50976v-20.03456c0-74.37824-45.45024-140.29824-113.34144-167.4752-14.30528-5.72416-17.06496-24.7808-4.9664-34.32448a99.9424 99.9424 0 0 0 38.1696-78.68928c0-55.3216-44.8512-100.1728-100.1728-100.1728-55.32672 0-100.1728 44.8512-100.1728 100.1728a99.9424 99.9424 0 0 0 38.1696 78.68928c12.09856 9.54368 9.33888 28.60032-4.9664 34.32448-67.8912 27.17696-113.34144 93.09696-113.34144 167.4752v20.03456h360.62208z m40.06912-20.03456v40.06912A20.03456 20.03456 0 0 1 712.3456 972.8H311.6544a20.03456 20.03456 0 0 1-20.03456-20.03456v-40.06912c0-80.72704 43.80672-153.2928 111.72864-191.7952a139.85792 139.85792 0 0 1-31.5904-88.69376c0-77.45536 62.78656-140.24192 140.24192-140.24192 77.45536 0 140.24192 62.78656 140.24192 140.24192a139.85792 139.85792 0 0 1-31.5904 88.69376c67.92192 38.5024 111.72864 111.06816 111.72864 191.7952z m-50.3296-500.86912a180.86912 180.86912 0 0 0-103.08096-107.3664c-14.30528-5.72928-17.06496-24.7808-4.9664-34.3296a99.9424 99.9424 0 0 0 38.1696-78.68928c0-55.3216-44.8512-100.1728-100.1728-100.1728-55.32672 0-100.1728 44.8512-100.1728 100.1728A99.9424 99.9424 0 0 0 449.9968 270.1312c12.09856 9.54368 9.33888 28.60032-4.9664 34.32448a180.86912 180.86912 0 0 0-103.08608 107.3664h340.11136z m45.9264 16.04608a20.03456 20.03456 0 0 1-19.6352 24.02304H315.65824a20.03456 20.03456 0 0 1-19.6352-24.02304c12.76928-62.88896 52.47488-116.60288 107.33056-147.72736A139.85792 139.85792 0 0 1 371.7632 191.4368C371.75808 113.99168 434.54464 51.2 512 51.2c77.45536 0 140.24192 62.79168 140.24192 140.24192 0 32.9728-11.46368 64.07168-31.59552 88.704 54.85568 31.1296 94.5664 84.8384 107.33056 147.72736z" fill="#007FFF" p-id="3553"></path></svg>建议单独分析的学生名单</div>
+                <div class="advice-item">
+                    <span class="advice-tag tag-below2">退2标</span>
+                    <span class="advice-names" id="adviceBelowTwo"></span>
+                </div>
+                <div class="advice-item">
+                    <span class="advice-tag tag-below1">退1标</span>
+                    <span class="advice-names" id="adviceBelowOne"></span>
+                </div>
+            </div>
+            <div class="advice-note">说明：超2标的学生已属于超1标，退2标的学生已属于退1标，故名单已去重、互不重复。</div>
+        </div>
+    </div>
+
+    <!-- ===== 回归分析区域 ===== -->
+    <div class="regression-area" id="regressionArea" style="display:none;">
+        <h4>分层回归分析（以前测成绩分层为基础）</h4>
+        <div class="view-note" id="regressionNote">
+            <strong>分析对象说明：</strong>本页回归分析针对<strong>全级学生</strong>（全体匹配学生）整体进行，<strong>不区分班级</strong>，不属于针对各班的分析；如需查看各班情况，请切换到「班级统计汇总」。
+        </div>
+        <div id="regressionFormula" class="regression-formula">加载中...</div>
+        <div id="scatterPlot" class="plot-container"></div>
+        <div style="margin-top:12px; display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+            <button class="btn-success" id="downloadPlotBtn" style="flex:0 1 auto; padding:8px 24px;">导出图片</button>
+        </div>
+    </div>
+
+    <!-- ===== 班级统计区域 ===== -->
+    <div class="class-stats-area" id="classStatsArea" style="display:none;">
+        <div class="class-stats-head">
+            <h4 id="classStatsTitle">班级统计汇总</h4>
+            <div class="class-stats-actions">
+                <button class="btn-success" id="downloadClassStatsBtn" style="padding:6px 18px; font-size:14px;">导出表格</button>
+                <button class="btn-success" id="exportClassStatsImage" style="padding:6px 18px; font-size:14px;">导出图片</button>
+            </div>
+        </div>
+        <div class="filter-row">
+            <span class="filter-label"><img src="img/sort-icon.svg?v=202611032325" class="sort-icon" alt=""> 排序：</span>
+            <div class="btn-group">
+                <button id="sortClassBtn" class="btn-sm">按班级排序</button>
+                <button id="sortTValueBtn" class="btn-sm">按班级T值排序</button>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table id="classStatsTable">
+                <thead>
+                    <tr>
+                        <th>班级</th>
+                        <th>人数</th>
+                        <th>前测标准分均值</th>
+                        <th>后测标准分均值</th>
+                        <th>残差均值</th>
+                        <th>超两标人数</th>
+                        <th>超一标人数</th>
+                        <th>退一标人数</th>
+                        <th>退两标人数</th>
+                        <th>班级T值</th>
+                        <th>判定结论</th>
+                    </tr>
+                </thead>
+                <tbody id="classStatsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== 缺失数据提醒弹窗 ===== -->
+<div class="modal-overlay" id="missingModal" style="display:none;">
+    <div class="modal-box">
+        <div class="modal-head">⚠️ 检测到考试数据缺失</div>
+        <div class="modal-body">
+            <p class="modal-summary">两次成绩按学号匹配后，<strong>有效人数为 <span id="missingValidCount">0</span> 人</strong>。以下学生存在某次考试数据缺失（缺失学生不参与分析）：</p>
+            <div class="modal-list-wrap">
+                <table class="modal-table">
+                    <thead>
+                        <tr><th>学号</th><th>姓名</th><th>缺失情况</th></tr>
+                    </thead>
+                    <tbody id="missingListBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn-sm" id="missingCancelBtn">✖ 取消</button>
+            <button class="btn-success" id="missingContinueBtn">▶ 继续分析</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 班级统计明细弹窗（点击超/退标人数查看名单） ===== -->
+<div class="modal-overlay" id="statDetailModal" style="display:none;">
+    <div class="modal-box">
+        <div class="modal-head" id="statDetailTitle">学生名单</div>
+        <div class="modal-body">
+            <p class="modal-summary" id="statDetailScope"></p>
+            <div class="modal-list-wrap">
+                <table class="modal-table">
+                    <thead>
+                        <tr><th>学号</th><th>姓名</th><th>个人T值</th></tr>
+                    </thead>
+                    <tbody id="statDetailBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <button class="btn-success" id="statDetailCloseBtn">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 重新上传确认弹窗 ===== -->
+<div class="modal-overlay" id="confirmModal" style="display:none;">
+    <div class="modal-box">
+        <div class="modal-head">⚠️ 确认重新选择</div>
+        <div class="modal-body">
+            <p class="modal-summary">确定要重置所有数据吗？<strong>未保存的分析结果将丢失。</strong></p>
+        </div>
+        <div class="modal-foot">
+            <button class="btn-sm" id="confirmCancelBtn">✖ 取消</button>
+            <button class="btn-success" id="confirmOkBtn">✔ 确认重置</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/app.js?v=202611032325"></script>
+<!-- 云端数据访问（选择考试成绩） -->
+<script src="../../shared/cloud/config.js?v=202611032325"></script>
+<script src="../../shared/cloud/api.js?v=202611032325"></script>
+<script src="../../shared/cloud/store.js?v=202611032325"></script>
+<script src="../../shared/cloud/ui.js?v=202611032325"></script>
+<script>
+  (function () {
+    if (!window.JZUI) return;
+    try { window.JZUI.mountNav({ base: '../../', page: 'value' }); } catch (e) {}
+  })();
+</script>
+</body>
+</html>
