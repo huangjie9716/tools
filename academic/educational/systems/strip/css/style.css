@@ -1,0 +1,268 @@
+/* =========================================================
+   导出成绩条（systems/strip/score-strip.html）
+   选「年级 → 考试场次 → 班级 → 学生」，生成成绩与排名表格
+   ========================================================= */
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #f3f5f8;
+  color: #252a38;
+  font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.strip-main {
+  width: min(1560px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 22px 0 60px;
+}
+
+/* ---------- 选择条件 ---------- */
+.strip-panel {
+  display: grid;
+  grid-template-columns: minmax(260px, 330px) minmax(0, 1fr);
+  grid-template-areas:
+    "left    right"
+    "actions actions";
+  align-items: start;
+  gap: 18px 26px;
+  padding: 20px 22px;
+  background: #fff;
+  border: 1px solid #e2e6ee;
+  border-radius: 16px;
+  box-shadow: 0 6px 22px rgba(20, 28, 60, .06);
+}
+.strip-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.strip-col-left { grid-area: left; }
+.strip-col-right { grid-area: right; }
+@media (max-width: 900px) {
+  .strip-panel {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "left" "right" "actions";
+  }
+}
+
+.strip-step { display: flex; flex-direction: column; min-width: 0; }
+.strip-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3f4558;
+}
+.strip-label em {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  color: #707688;
+  margin-left: 8px;
+}
+
+.strip-hint { font-size: 12px; color: #858b9a; }
+
+/* 考试场次：多选标签（左栏空间更大，列表更高） */
+.strip-exams {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 232px;
+  overflow-y: auto;
+  padding: 2px;
+}
+.strip-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1px solid #e2e6ee;
+  border-radius: 10px;
+  background: #fbfcfe;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+.strip-chip:hover { border-color: #b9c3d5; }
+.strip-chip.is-on { border-color: #1b2454; background: #eef1f8; }
+.strip-chip input { margin: 0; cursor: pointer; }
+.strip-chip b { font-weight: 600; }
+.strip-chip i {
+  font-style: normal;
+  margin-left: 6px;
+  font-size: 11.5px;
+  color: #707688;
+}
+
+/* 班级：与「学生」一致的多选平铺勾选 */
+.strip-classes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 6px 10px;
+  max-height: 132px;
+  overflow-y: auto;
+  padding: 2px;
+}
+
+/* 学生：多选列表 */
+.strip-students {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 6px 10px;
+  max-height: 210px;
+  overflow-y: auto;
+  padding: 2px;
+}
+.strip-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid #e6eaf2;
+  border-radius: 9px;
+  background: #fbfcfe;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+.strip-check:hover { border-color: #b9c3d5; }
+.strip-check.is-on { border-color: #1b2454; background: #eef1f8; }
+.strip-check input { margin: 0; cursor: pointer; flex: none; }
+.strip-check span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.strip-check b { font-weight: 600; }
+.strip-check i {
+  font-style: normal;
+  margin-left: 6px;
+  font-size: 11.5px;
+  color: #707688;
+}
+
+.strip-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+/* 工具条按钮选中态（全选 / 取消全选） */
+.strip-tools .jz-btn.ghost.is-on {
+  background: #eef1f8;
+  border-color: #c7d2e6;
+  color: #1b2454;
+}
+
+.strip-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 14px;
+  border-top: 1px solid #eef1f7;
+}
+.strip-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3f4558;
+}
+.strip-inline .jz-select { width: auto; min-width: 132px; }
+.strip-actions #stripRun { margin-left: auto; }
+
+/* ---------- 结果表格 ---------- */
+.strip-result {
+  margin-top: 18px;
+  padding: 18px 20px 20px;
+  background: #fff;
+  border: 1px solid #e2e6ee;
+  border-radius: 16px;
+  box-shadow: 0 6px 22px rgba(20, 28, 60, .06);
+}
+.strip-result-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.strip-result-head h2 { margin: 0; font-size: 18px; color: #1b2454; }
+.strip-result-sub { margin: 6px 0 0; font-size: 12.5px; color: #6e7484; }
+.strip-legend { margin: 0; font-size: 12px; color: #6e7484; }
+.strip-legend b { color: #1b2454; }
+
+.strip-table-wrap { overflow-x: auto; }
+.strip-table {
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 100%;
+}
+.strip-table th,
+.strip-table td {
+  border: 1px solid #e3e7ef;
+  padding: 6px 9px;
+  text-align: center;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.strip-table thead th {
+  background: #f4f6fa;
+  color: #1b2454;
+  font-weight: 700;
+  font-size: 12.5px;
+}
+.strip-table thead tr:first-child th { padding: 7px 9px; }
+.strip-table thead tr:first-child th span { font-weight: 400; color: #6e7484; font-size: 11.5px; }
+.strip-table .col-fixed { text-align: center; }
+.strip-table .col-name { font-weight: 600; }
+.strip-table .col-exam { color: #3f4558; min-width: 160px; white-space: normal; text-align: center; }
+.strip-table .col-band { background: #e9eef7; }
+.strip-table .col-rank-head { color: #6e7484; font-weight: 600; }
+.strip-table .col-score { font-weight: 600; }
+.strip-table .col-rank { color: #707688; font-size: 12px; }
+.strip-table .col-absent { color: #9aa4b5; }
+.strip-table tbody td[rowspan] { vertical-align: middle; background: #fcfdff; }
+.strip-table tbody tr.strip-item-more td { border-top-color: #eef1f7; }
+.strip-table tbody tr.strip-item:hover td:not([rowspan]) { background: #fafbfe; }
+.strip-table tbody tr.strip-head th { background: #f4f6fa; }
+.strip-table tr.strip-gap td { border: 0; height: 12px; padding: 0; }
+
+/* ---------- 打印 ---------- */
+.strip-print-head { display: none; }
+
+@media print {
+  @page { size: A4 landscape; margin: 10mm; }
+  body { background: #fff; }
+  .jz-topbar,
+  .jz-page-head,
+  .strip-panel,
+  .strip-result-head,
+  .strip-legend { display: none !important; }
+  .strip-main { width: auto; margin: 0; padding: 0; }
+  .strip-result {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .strip-table-wrap { overflow: visible; }
+  .strip-print-head { display: block; margin: 0 0 8px; }
+  .strip-print-head h1 { margin: 0; font-size: 15px; color: #1b2454; }
+  .strip-print-head p { margin: 3px 0 0; font-size: 11px; color: #555; }
+  .strip-table { font-size: 10.5px; width: 100%; }
+  .strip-table .col-exam { min-width: 0; white-space: nowrap; }
+  .strip-table th,
+  .strip-table td { border: 1px solid #666; padding: 3px 5px; }
+  .strip-table thead { display: table-header-group; }
+  .strip-table thead th { background: #eee !important; color: #000; }
+  .strip-table tbody tr.strip-head th { background: #eee !important; color: #000; }
+  .strip-table tr.strip-head { break-after: avoid; page-break-after: avoid; }
+  .strip-table tr.strip-item { break-inside: avoid; page-break-inside: avoid; }
+  .strip-table tr.strip-gap td { height: 8px; border: 0; }
+  .strip-table tbody tr.strip-item:hover { background: transparent; }
+}
