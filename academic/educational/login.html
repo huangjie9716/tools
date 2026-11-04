@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录 · 珠海市九洲中学教育质量管理与分析系统</title>
+<link rel="icon" type="image/png" href="shared/assets/favicon.png?v=202611032325">
+<link rel="apple-touch-icon" href="shared/assets/favicon.png?v=202611032325">
+<script>window.JZ_AUTH_PUBLIC = true;</script>
+<!-- 云端账号（Supabase）优先；下面的本地 JS 仅在云端不可用时兜底 -->
+<script src="shared/cloud/config.js?v=202611032325"></script>
+<script src="shared/cloud/api.js?v=202611032325"></script>
+<script src="shared/cloud/store.js?v=202611032325"></script>
+<!-- 账号数据同时提供 JS 版本，保证直接用 file:// 打开时也能登录 -->
+<script src="data/teacher-accounts.hash.js?v=202611032325"></script>
+<script src="shared/auth.js?v=202611032325"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 24px 16vh;
+    font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    color: #252a38;
+    background: #eef2f8;
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::before,
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+  }
+  body::before {
+    z-index: 0;
+    background: url("login-bg.webp") center bottom / cover no-repeat;
+    opacity: .9;
+    filter: saturate(1.05);
+  }
+  body::after {
+    z-index: 1;
+    background: linear-gradient(180deg, rgba(245, 247, 251, .18), rgba(245, 247, 251, .02) 46%, rgba(27, 36, 84, .1));
+  }
+  .login-shell {
+    width: min(860px, 100%);
+    /* 整体上提，让底部的校门露出来 */
+    margin: auto 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+  }
+  .login-card {
+    width: min(460px, 100%);
+    background: #fff;
+    border: 1px solid #e2e6ee;
+    border-radius: 22px;
+    padding: 28px 34px 24px;
+    box-shadow: 0 22px 60px rgba(20, 28, 60, .24);
+  }
+  .login-brand { text-align: center; margin-bottom: 18px; }
+  .login-logo {
+    display: block;
+    width: 140px;
+    height: 140px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    object-fit: contain;
+    clip-path: circle(46.6% at 50% 50%);
+    filter: drop-shadow(0 6px 14px rgba(20, 28, 60, .18));
+  }
+  .login-brand h1 { margin: 0; font-size: 23px; letter-spacing: 2px; color: #1b2454; }
+  .login-brand p { margin: 6px 0 0; font-size: 14px; letter-spacing: 1px; color: #6e7484; }
+  .login-field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; }
+  .login-field label { font-size: 13px; font-weight: 600; color: #3f4558; }
+  .login-input-wrap { position: relative; }
+  .login-input {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-family: inherit;
+    color: #252a38;
+    background: rgba(255, 255, 255, .58);
+    border: 1px solid rgba(27, 36, 84, .16);
+    border-radius: 11px;
+    outline: none;
+    transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+  }
+  .login-input:focus { border-color: #1b2454; background: rgba(255, 255, 255, .92); box-shadow: 0 0 0 3px rgba(27, 36, 84, .14); }
+  .login-eye {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+    color: #707688;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+  }
+  .login-eye:hover { color: #151d40; }
+  .login-eye-icon { width: 21px; height: 21px; display: block; fill: currentColor; }
+  .login-eye-icon[hidden] { display: none; }
+  .login-submit {
+    width: 100%;
+    margin-top: 6px;    padding: 12px 18px;
+    border: 0;
+    border-radius: 11px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #fff;
+    cursor: pointer;
+    font-family: inherit;
+    background: linear-gradient(135deg, #1b2454 0%, #2a3766 55%, #151d40 100%);
+    box-shadow: 0 10px 24px rgba(27, 36, 84, .3);
+    transition: transform .15s ease, box-shadow .18s ease;
+  }
+  .login-submit:hover { box-shadow: 0 12px 30px rgba(27, 36, 84, .42); }
+  .login-submit:active { transform: translateY(1px); }
+  .login-submit[disabled] { opacity: .6; cursor: wait; }
+  .login-error {
+    min-height: 20px;
+    margin: 12px 0 0;
+    font-size: 13px;
+    color: #b02018;
+    text-align: center;
+  }
+  .login-remember {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin-top: 12px;
+    font-size: 12.5px;
+    color: #6e7484;
+    cursor: pointer;
+    user-select: none;
+  }
+  .login-remember input { width: 15px; height: 15px; margin: 0; accent-color: #1b2454; cursor: pointer; }
+  .login-remember:hover { color: #3f4558; }
+  #loginPassword::-ms-reveal,
+  #loginPassword::-ms-clear,
+  #loginPassword::-webkit-credentials-auto-fill-button { display: none !important; }
+  @media (max-width: 480px) {
+    body { padding: 20px 14px; }
+    .login-card { padding: 28px 22px 24px; border-radius: 18px; }
+    .login-logo { width: 116px; height: 116px; }
+    .login-brand h1 { font-size: 20px; }
+  }
+  @media (max-height: 700px) {
+    body { padding: 8px 24px 10vh; }
+    .login-card { padding: 22px 34px 18px; }
+    .login-brand { margin-bottom: 14px; }
+    .login-logo { width: 100px; height: 100px; margin-bottom: 8px; }
+    .login-field { margin-bottom: 12px; }
+  }
+</style>
+</head>
+<body>
+<main class="login-shell">
+  <section class="login-card" aria-label="登录">
+    <div class="login-brand">
+      <img class="login-logo" src="shared/assets/jzzxlogo.webp?v=202611032325" alt="珠海市九洲中学校徽">
+      <h1>珠海市九洲中学</h1>
+      <p>教育质量管理与分析系统</p>
+    </div>
+
+    <form id="loginForm" autocomplete="on">
+      <div class="login-field">
+        <label for="loginName">教师姓名</label>
+        <input id="loginName" name="username" class="login-input" autocomplete="username" placeholder="请输入姓名" autofocus>
+      </div>
+      <div class="login-field">
+        <label for="loginPassword">登录密码</label>
+        <div class="login-input-wrap">
+          <input id="loginPassword" name="password" type="password" class="login-input" autocomplete="current-password" placeholder="请输入身份证号后 8 位" style="padding-right:44px">
+          <button type="button" class="login-eye" id="togglePassword" aria-label="显示密码">
+            <svg class="login-eye-icon" id="eyeClosedIcon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M512.2 626.4C288 626.4 83.4 490.4 3 287.9c-8.5-21.4 2-45.6 23.4-54.1s45.6 2 54.1 23.4C148.4 428.1 321.9 543 512.2 543c189.8 0 363.2-114.5 431.4-284.8 8.6-21.4 32.8-31.7 54.2-23.2 21.4 8.6 31.8 32.8 23.2 54.2-80.7 201.7-285.2 337.2-508.8 337.2z"/><path d="M512.2 793.2c-23 0-41.7-18.7-41.7-41.7V584.7c0-23 18.7-41.7 41.7-41.7 23 0 41.7 18.7 41.7 41.7v166.8c0 23-18.6 41.7-41.7 41.7zM858 700.4c-14.4 0-28.4-7.5-36.1-20.9l-83.4-144.4c-11.5-19.9-4.7-45.4 15.3-56.9 19.9-11.5 45.4-4.7 56.9 15.3L894 637.8c11.5 19.9 4.7 45.4-15.3 56.9-6.5 3.9-13.7 5.7-20.7 5.7zM166.5 700.4c-7.1 0-14.2-1.8-20.8-5.6-19.9-11.5-26.8-37-15.3-56.9l83.4-144.4c11.5-19.9 37-26.8 56.9-15.3s26.8 37 15.3 56.9l-83.4 144.4c-7.6 13.4-21.7 20.9-36.1 20.9z"/></svg>
+            <svg class="login-eye-icon" id="eyeOpenIcon" viewBox="0 0 1638 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" hidden><path d="M1638.398362 512.000512c0 162.099038-335.871664 511.999488-819.199181 511.999488-465.202735 0-819.199181-341.298859-819.199181-511.999488 0-170.700629 353.177247-511.999488 819.199181-511.999488 482.303518-0.819199 819.199181 340.47966 819.199181 511.999488zM819.199181 102.400922C596.581803 102.400922 409.59959 286.311138 409.59959 512.000512c0 225.689374 178.175822 409.59959 409.599591 409.59959 222.617377 0 409.59959-183.910216 409.59959-409.59959 0-225.689374-186.982213-409.59959-409.59959-409.59959z"/><path d="M819.199181 307.200717c-112.947087 0-204.799795 92.467108-204.799795 204.799795s91.852708 204.799795 204.799795 204.799795 204.799795-92.467108 204.799795-204.799795-91.852708-204.799795-204.799795-204.799795z"/></svg>
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="login-submit" id="loginSubmit">登 录</button>
+      <label class="login-remember">
+        <input type="checkbox" id="loginRemember">
+        <span>在此设备记住登录（公用电脑请勿勾选）</span>
+      </label>
+      <div class="login-error" id="loginError"></div>
+    </form>
+  </section>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  var form = document.getElementById("loginForm");
+  var nameInput = document.getElementById("loginName");
+  var passInput = document.getElementById("loginPassword");
+  var submitBtn = document.getElementById("loginSubmit");
+  var errorBox = document.getElementById("loginError");
+  var toggleBtn = document.getElementById("togglePassword");
+  var rememberBox = document.getElementById("loginRemember");
+
+  function setError(msg) {
+    errorBox.textContent = msg || "";
+  }
+
+  function goNext() {
+    // 登录后统一先进入首页，管理员再从首页底部进入后台
+    window.location.replace(new URL("portal.html", window.JZAuth.rootUrl).href);
+  }
+
+  function setBusy(on) {
+    submitBtn.disabled = !!on;
+    submitBtn.textContent = on ? "正在登录…" : "登 录";
+  }
+
+  function doLogin(name, password) {
+    setBusy(true);
+    setError("");
+    var remember = !!(rememberBox && rememberBox.checked);
+    window.JZAuth.login(name, password, { remember: remember }).then(function (res) {
+      setBusy(false);
+      if (!res.ok) {
+        setError(res.error || "登录失败");
+        passInput.focus();
+        passInput.select();
+        return;
+      }
+      goNext();
+    });
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var name = nameInput.value.trim();
+    var pass = passInput.value.trim();
+    if (!name) { setError("请输入姓名"); nameInput.focus(); return; }
+    if (!pass) { setError("请输入身份证号后 8 位"); passInput.focus(); return; }
+    doLogin(name, pass);
+  });
+
+  toggleBtn.addEventListener("click", function () {
+    var showing = passInput.type === "text";
+    passInput.type = showing ? "password" : "text";
+    var visible = passInput.type === "text";
+    var closedIcon = document.getElementById("eyeClosedIcon");
+    var openIcon = document.getElementById("eyeOpenIcon");
+    if (closedIcon) {
+      if (visible) closedIcon.setAttribute("hidden", "");
+      else closedIcon.removeAttribute("hidden");
+    }
+    if (openIcon) {
+      if (visible) openIcon.removeAttribute("hidden");
+      else openIcon.setAttribute("hidden", "");
+    }
+    toggleBtn.setAttribute("aria-label", visible ? "隐藏密码" : "显示密码");
+    passInput.focus();
+  });
+
+  // 已经登录过：用本机登录态重新校验（不再重放密码），通过就直接进入系统
+  var stored = window.JZAuth.current();
+  if (stored) {
+    window.JZAuth.revalidate().then(function (user) {
+      if (user) goNext();
+      else window.JZAuth.logout(false);
+    });
+  }
+})();
+</script>
+</body>
+</html>

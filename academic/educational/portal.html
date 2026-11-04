@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>珠海市九洲中学教育质量管理与分析系统</title>
+<script src="shared/auth.js?v=202611032325"></script>
+<link rel="icon" type="image/png" href="shared/assets/favicon.png?v=202611032325">
+<link rel="apple-touch-icon" href="shared/assets/favicon.png?v=202611032325">
+<link rel="stylesheet" href="shared/styles/cloud.css?v=202611032325">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #f3f5f8;
+    font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    color: #252a38;
+  }
+  .pf-main { max-width: 1560px; margin: 0 auto; padding: 22px 20px 60px; }
+
+
+  .pf-grid { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 20px; align-items: start; }
+  @media (max-width: 1100px) { .pf-grid { grid-template-columns: 1fr; } }
+
+  .pf-card {
+    background: #fff;
+    border: 1px solid #e2e6ee;
+    border-radius: 16px;
+    padding: 20px 22px;
+    box-shadow: 0 6px 22px rgba(20, 28, 60, .06);
+    margin-bottom: 20px;
+  }
+  .pf-card:last-child { margin-bottom: 0; }
+  .pf-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .pf-card-head h2 { margin: 0; font-size: 17px; }
+  .pf-head-icon { width: 20px; height: 20px; flex: 0 0 auto; color: #1b2454; }
+  .pf-card-head > a, .pf-card-head > button {
+    margin-left: auto;
+    font-size: 13px;
+    color: #1b2454;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: inherit;
+  }
+  .pf-card-head > a:hover, .pf-card-head > button:hover { text-decoration: underline; }
+
+  .pf-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  @media (max-width: 700px) { .pf-stats { grid-template-columns: repeat(2, 1fr); } }
+  .pf-stat {
+    background: #f4f6fa;
+    border: 1px solid #e3e8f1;
+    border-radius: 14px;
+    padding: 18px 10px;
+    text-align: center;
+  }
+  .pf-stat b { display: block; font-size: 28px; color: #1b2454; line-height: 1.1; }
+  .pf-stat span { display: block; font-size: 12px; color: #6e7484; margin-top: 6px; }
+
+  .pf-recent { display: flex; flex-direction: column; gap: 8px; }
+  .pf-exam {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid #e4e8f0;
+    border-radius: 12px;
+    background: #fcfdff;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color .16s ease, background .16s ease;
+  }
+  .pf-exam:hover { border-color: #b9c3d5; background: #f4f6fa; }
+  .pf-exam-grade { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; flex: none; }
+  .pf-exam-name { font-weight: 600; font-size: 14px; }
+  .pf-exam-meta { margin-left: auto; font-size: 12px; color: #707688; flex: none; }
+  .pf-empty { font-size: 13px; color: #858b9a; padding: 24px 10px; text-align: center; background: #fbfcfe; border: 1px dashed #e2e7ef; border-radius: 12px; }
+
+  /* 系统通知（由 notice.md 渲染） */
+  .pf-notice { font-size: 14px; line-height: 1.85; color: #3f4558; }
+  .pf-notice > :first-child { margin-top: 0; }
+  .pf-notice > :last-child { margin-bottom: 0; }
+  .pf-notice h2 { margin: 0 0 10px; font-size: 16px; color: #1b2454; }
+  .pf-notice h3 { margin: 14px 0 8px; font-size: 15px; color: #1b2454; }
+  .pf-notice h4,
+  .pf-notice h5,
+  .pf-notice h6 { margin: 12px 0 6px; font-size: 14px; color: #1b2454; }
+  .pf-notice p { margin: 0 0 10px; }
+  .pf-notice ul,
+  .pf-notice ol { margin: 0 0 10px; padding-left: 20px; }
+  .pf-notice li { margin: 4px 0; }
+  .pf-notice li::marker { color: #1b2454; }
+  .pf-notice a { color: #1b2454; text-decoration: underline; text-underline-offset: 2px; }
+  .pf-notice strong { color: #1b2454; }
+  .pf-notice code {
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: #eef1f8;
+    font-size: 12.5px;
+    font-family: ui-monospace, Consolas, "Courier New", monospace;
+  }
+  .pf-notice blockquote {
+    margin: 10px 0;
+    padding: 8px 14px;
+    border-left: 3px solid #c8d1e2;
+    background: #fbfcfe;
+    border-radius: 0 10px 10px 0;
+    color: #6e7484;
+  }
+  .pf-notice hr { height: 0; margin: 14px 0; border: 0; border-top: 1px solid #e7ebf3; }
+
+  .pf-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 480px) { .pf-actions { grid-template-columns: 1fr; } }
+  .pf-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 4px;
+    padding: 18px 16px;
+    border-radius: 14px;
+    border: 1px solid #e4e8f0;
+    background: #fcfdff;
+    text-decoration: none;
+    color: inherit;
+    transition: transform .16s ease, box-shadow .18s ease, border-color .16s ease;
+  }
+  .pf-action:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(20, 28, 60, .14); border-color: #c8d1e2; }
+  .pf-icon { display: inline-flex; width: 40px; height: 40px; margin-bottom: 8px; align-self: center; }
+  .pf-icon svg { width: 100%; height: 100%; display: block; }
+  .pf-action b { font-size: 14px; }
+  .pf-action small { font-size: 12px; color: #707688; line-height: 1.6; }
+
+  .pf-card-link { display: inline-flex; align-items: center; gap: 4px; }
+  .pf-arrow-icon { width: 13px; height: 13px; display: block; }
+  .pf-footer {
+    text-align: center;
+    padding: 10px 0 4px;
+    font-size: 12px;
+    color: #858b9a;
+  }
+  .pf-footer a { color: #707688; text-decoration: none; }
+  .pf-footer a:hover { color: #151d40; text-decoration: underline; }
+
+</style>
+</head>
+<body>
+<main class="pf-main">
+
+  <div class="pf-grid">
+    <div>
+      <section class="pf-card">
+        <div class="pf-card-head">
+          <svg class="pf-head-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M64.5 64.5h344.2v344.2H64.5zM615.3 64.5h344.2v344.2H615.3zM64.5 615.3h344.2v344.2H64.5zM615.3 615.3h344.2v344.2H615.3z" fill="currentColor"/></svg>
+          <h2>数据概览</h2>
+          <button type="button" id="refreshStats">↻ 刷新</button>
+        </div>
+        <div class="pf-stats">
+          <div class="pf-stat"><b id="statGrades">—</b><span>可访问年级</span></div>
+          <div class="pf-stat"><b id="statExams">—</b><span>考试场次</span></div>
+          <div class="pf-stat"><b id="statPapers">—</b><span>试题卷</span></div>
+          <div class="pf-stat"><b id="statStudents">—</b><span>学生总数</span></div>
+        </div>
+        <div id="portalHint" class="jz-alert info" hidden></div>
+      </section>
+
+      <section class="pf-card">
+        <div class="pf-card-head">
+          <svg class="pf-head-icon" viewBox="0 0 1264 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M992.171444 312.62966C975.189616 137.155482 827.415189 0 647.529412 0 469.849434 0 323.616239 133.860922 303.679205 306.210218 131.598564 333.839271 0 482.688318 0 662.588235c0 199.596576 161.815189 361.411765 361.411765 361.411765h184.014581V692.705882H294.530793l337.939795-361.411764 337.939796 361.411764H726.132229v331.294118H933.647059v-1.555371c185.470975-15.299199 331.294118-170.426291 331.294117-359.856394 0-168.969898-116.101408-310.367302-272.769732-349.958575z" fill="currentColor"/></svg>
+          <h2>最近上传的考试</h2>
+          <a class="pf-card-link" href="systems/basic/basic.html">进入基础分析
+            <svg class="pf-arrow-icon" viewBox="0 0 1035 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M530.850448 573.163313c32.005172-31.883636 32.111192-87.434343-0.069818-119.489939C399.437114 322.845737 268.507336 191.603071 137.436629 60.506505c-12.621576-12.625455-27.585939-20.686869-45.26804-23.540364-3.529697-0.570182-7.085253-0.999434-10.630465-1.499798-1.025293 0-2.055758 0-3.081051 0-4.035232 0.575354-8.111838 0.943838-12.091475 1.757091-33.298101 6.818909-54.838303 26.616242-63.959919 59.278222-3.201293 11.479919-2.806949 24.85398-1.135192 35.701657 1.751919 11.344162 7.11499 21.818182 14.479515 30.904889 3.444364 4.252444 7.050343 8.418263 10.918788 12.291879 111.045818 111.127273 222.142061 222.222222 333.247354 333.293899 1.444202 1.444202 3.227152 2.554828 5.187232 4.080485-2.121697 2.222545-3.475394 3.696485-4.879515 5.100606C252.653437 625.450667 145.164468 733.112889 37.416912 840.506182c-15.829333 15.773737-33.541172 31.162182-36.146424 54.273293-1.233455 10.908444-1.859232 22.111677 0 32.929616 0.919273 5.363071 3.262061 10.423596 5.494949 15.358707 23.655434 52.318384 89.514667 64.241778 130.66602 23.186101C268.668953 835.315071 399.501761 703.987071 530.850448 573.163313L530.850448 573.163313zM78.451902 35.466343l-12.091475 1.757091C70.345235 36.410182 74.421841 36.041697 78.451902 35.466343L78.451902 35.466343zM551.467498 36.441212c-38.000485 2.858667-70.434909 37.034667-71.651556 75.106263-0.79903 24.979394 8.131232 45.650747 25.691798 63.197091 111.383273 111.252687 222.661818 222.615273 334.015354 333.893818 1.534707 1.534707 3.686141 2.448808 6.595232 4.327434-3.35903 2.667313-5.116121 3.803798-6.565495 5.253172-68.050747 68.000323-136.075636 136.035556-204.100525 204.065616C591.916791 765.814949 548.391619 809.360808 504.845761 852.880808c-19.449535 19.439192-28.328081 42.706747-24.045899 70.054788 4.829091 30.919111 22.440081 52.516202 51.712 63.010909 29.450343 10.550303 56.692364 4.803232 80.49002-15.848727 1.944566-1.682101 3.798626-3.470222 5.616485-5.288081 130.121697-130.111354 259.955071-260.509737 390.546101-390.141414 33.272242-33.035636 33.454545-88.934141 1.206303-121.050505C879.016912 322.804364 748.093599 191.557818 617.028064 60.456081c-12.626747-12.626747-27.611798-20.655838-45.288727-23.505455-3.534869-0.570182-7.090424-0.994263-10.635636-1.484283-1.030465 0-2.055758 0-3.086222 0.005172C555.835013 35.799919 553.659013 36.274424 551.467498 36.441212L551.467498 36.441212zM551.467498 36.441212" fill="currentColor"></path>
+            </svg>
+          </a>
+        </div>
+        <div class="pf-recent" id="recentExams"><div class="pf-empty"><span class="jz-loading">正在读取…</span></div></div>
+      </section>
+
+      <section class="pf-card">
+        <div class="pf-card-head">
+          <svg class="pf-head-icon" viewBox="0 0 1107 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M787.692308 1024l-487.581539-198.498462H0v-630.153846h300.110769L787.692308 0zM157.538462 667.963077h172.504615L630.153846 787.692308V236.307692L330.043077 352.886154H157.538462zM945.230769 274.116923h157.538462v472.615385h-157.538462z" fill="currentColor"/></svg>
+          <h2>系统通知与提醒</h2>
+        </div>
+        <div class="pf-notice" id="portalNotice"><div class="pf-empty">正在读取…</div></div>
+      </section>
+    </div>
+
+    <aside>
+      <section class="pf-card">
+        <div class="pf-card-head"><h2>常用功能</h2></div>
+        <div class="pf-actions">
+          <a class="pf-action" href="systems/basic/basic.html">
+            <span class="pf-icon" aria-hidden="true">
+              <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                <path d="M128 153.6h288v742.4H128z" fill="#5B8FF9"></path>
+                <path d="M488.0128 153.6H896v335.2832H487.9872z" fill="#FFC107"></path>
+                <path d="M488.0128 560.7168H896V896H487.9872z" fill="#29C287"></path>
+              </svg>
+            </span><b>考试基础分析</b><small>考试概况、基础分析、班级画像、前N名分析、优弱势学科分析</small>
+          </a>
+          <a class="pf-action" href="systems/value/add-analysis.html">
+            <span class="pf-icon" aria-hidden="true">
+              <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                <path d="M512 0a512 512 0 1 0 512 512A512 512 0 0 0 512 0z m285.76 725.968a31.648 31.648 0 0 1-31.648 31.664H257.824a31.664 31.664 0 0 1-31.664-31.664v-3.696a31.664 31.664 0 0 1 31.664-31.648h508.208a31.648 31.648 0 0 1 31.648 31.648z m-8-239.584a31.408 31.408 0 0 1-2.992 0.128 33.6 33.6 0 0 1-33.344-30.528l-6.992-78.688-233.168 248.976-126.208-178.624-125.44 134.592a33.504 33.504 0 0 1-49.024-45.664l181.632-194.864 126.4 178.752 168.16-179.568-65.808 5.84a27.2 27.2 0 0 1-3.008 0.144 33.504 33.504 0 0 1-2.928-66.88l153.232-13.616c0.32 0 0.608 0.128 0.928 0.096a119.904 119.904 0 0 1 13.328 1.792c0.64 0.24 1.168 0.736 1.792 0.992a33.104 33.104 0 0 1 9.312 5.76c0.144 0.128 0.336 0.16 0.48 0.304 0.816 0.768 1.152 1.808 1.888 2.64a33.024 33.024 0 0 1 4.8 6.032c0.224 0.416 0.224 0.928 0.432 1.36a8952 8952 0 0 1 3.344 11.424l13.632 153.248a33.6 33.6 0 0 1-30.4 36.352z" fill="#EB662B"></path>
+              </svg>
+            </span><b>增值评价分析</b><small>两次考试增值与分层回归</small>
+          </a>
+          <a class="pf-action" href="systems/result/result-analysis.html">
+            <span class="pf-icon" aria-hidden="true">
+              <svg viewBox="0 0 1141 1024" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 296.420192v592.357191q0 46.200664 32.671266 78.834762 32.634098 32.708435 78.834762 32.708435h892.048227q46.200664 0 78.834762-32.708435 32.671266-32.634098 32.671266-78.797593V236.206937q0-29.586266-14.681627-55.30699-14.644458-25.646387-40.14217-40.736869L849.006899 15.499338q-28.285363-16.725904-61.105303-15.387832-32.85711 1.300904-59.730063 20.182591L393.244593 255.720492q-15.239157 10.704579-32.968616 4.906265L146.25874 190.452296q-54.080424-17.729458-100.169582 15.648013Q0 239.514949 0 296.420192z m85.227774 618.635445Q74.337352 904.165215 74.337352 888.777383V296.420192q0-18.956025 15.350663-30.106628 15.387832-11.150603 33.41464-5.203614l213.980069 70.17446q53.151207 17.432109 98.868678-14.718796l334.964109-235.463563q19.625061-13.789579 40.290845-1.598253l211.229586 124.738077q18.286989 10.778916 18.286989 31.965062v652.570446q0 15.387832-10.890422 26.278254t-26.278254 10.890422H111.506028q-15.387832 0-26.278254-10.890422z" fill="#000000"></path>
+                <path d="M250.851395 664.873278H160.345669c-17.580784 0-30.180965-12.377169-30.180965-29.697772V541.175924c0-17.320603 12.600181-29.697772 30.180965-29.697772h90.505726c17.580784 0 30.143796 12.377169 30.143796 29.734941v93.962413c0 17.320603-15.053314 29.697772-30.143796 29.697772zM944.641903 664.873278H366.483146c-20.108254 0-37.726206-17.320603-37.726206-37.131507v-81.622413c0-19.773736 17.617952-37.094339 37.726206-37.094339h578.158757c20.145422 0 37.726206 17.320603 37.726206 37.094339v81.622413c-2.52747 22.301206-17.580784 37.131507-37.726206 37.131507z" fill="#FAC858"></path>
+              </svg>
+            </span><b>结果评价分析</b><small>一分一段累计比率 T 值</small>
+          </a>
+          <a class="pf-action" href="systems/trend/trend-analysis.html">
+            <span class="pf-icon" aria-hidden="true">
+              <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                <path d="M201.671111 612.124444l-39.822222-40.391111 230.4-227.555555L540.444444 492.657778l280.462223-283.022222 40.391111 39.822222L540.444444 573.44l-147.626666-148.764444z" fill="#BF5BFF"></path>
+                <path d="M1024 853.333333H0V0h1024zM56.888889 796.444444h910.222222V56.888889H56.888889zM199.111111 967.111111h625.777778v56.888889H199.111111z" fill="#3C22D3"></path>
+              </svg>
+            </span><b>趋势分析</b><small>各班级标准分平均分随考试时间的变化趋势</small>
+          </a>
+          <a class="pf-action" href="systems/question/test-analysis.html">
+            <span class="pf-icon" aria-hidden="true">
+              <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" fill="#2563eb">
+                <path d="M695.834947 296.421053H943.157895L646.736842 0v246.999579c0 29.911579 25.950316 49.421474 49.098105 49.421474z"></path>
+                <path d="M638.814316 358.4c-41.849263 0-50.714947-8.973474-50.714948-51.2V0H182.272C117.948632 0 80.842105 55.754105 80.842105 102.4v819.2C80.842105 978.944 130.586947 1024 182.298947 1024h659.402106C897.024 1024 943.157895 976.572632 943.157895 921.6V358.4H638.814316z m25.357473 384H359.828211a25.573053 25.573053 0 0 1-25.357474-25.6c0-14.093474 11.398737-25.6 25.357474-25.6h304.343578c13.958737 0 25.357474 11.506526 25.357474 25.6a25.6 25.6 0 0 1-25.330526 25.6z m0-153.6H359.828211a25.573053 25.573053 0 0 1-25.357474-25.6c0-14.093474 11.398737-25.6 25.357474-25.6h304.343578c13.958737 0 25.357474 11.506526 25.357474 25.6a25.6 25.6 0 0 1-25.330526 25.6z m-177.529263-153.6h-126.814315a25.573053 25.573053 0 0 1-25.357474-25.6c0-14.093474 11.398737-25.6 25.357474-25.6h126.814315c13.931789 0 25.357474 11.506526 25.357474 25.6a25.6 25.6 0 0 1-25.357474 25.6z"></path>
+              </svg>
+            </span><b>试题分析</b><small>难度、区分度与知识点诊断</small>
+          </a>
+          <a class="pf-action" href="systems/strip/score-strip.html">
+            <span class="pf-icon" aria-hidden="true">
+              <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1001.951626 1001.951626H22.048374V22.048374h979.903252v979.903252" fill="#FFFFFF"></path>
+                <path d="M1001.951626 1024H22.048374a22.048374 22.048374 0 0 1-22.048374-22.048374V22.048374a22.048374 22.048374 0 0 1 22.048374-22.048374h979.903252a22.048374 22.048374 0 0 1 22.048374 22.048374v979.903252a22.048374 22.048374 0 0 1-22.048374 22.048374zM44.096749 979.903251h935.806502V44.096749H44.096749z" fill="#888888"></path>
+                <path d="M22.048374 22.048374h979.903252v256.643078H22.048374z" fill="#04BEBD"></path>
+                <path d="M1001.951626 300.739826H22.048374a22.048374 22.048374 0 0 1-22.048374-22.048374V22.048374a22.048374 22.048374 0 0 1 22.048374-22.048374h979.903252a22.048374 22.048374 0 0 1 22.048374 22.048374v256.643078a22.048374 22.048374 0 0 1-22.048374 22.048374zM44.096749 256.643078h935.806502V44.096749H44.096749z" fill="#888888"></path>
+                <path d="M901.190555 546.72619H119.722673a22.048374 22.048374 0 0 1 0-44.096749h781.467882a22.048374 22.048374 0 0 1 0 44.096749zM901.190555 784.334171H119.722673a22.048374 22.048374 0 1 1 0-44.096749h781.467882a22.048374 22.048374 0 0 1 0 44.096749z" fill="#CCCCCC"></path>
+                <path d="M673.357353 932.352257a22.048374 22.048374 0 0 1-22.048374-22.048374v-540.185172a22.048374 22.048374 0 0 1 44.096748 0v540.185172a22.048374 22.048374 0 0 1-22.048374 22.048374zM347.555875 932.352257a22.048374 22.048374 0 0 1-22.048375-22.048375v-540.185172a22.048374 22.048374 0 0 1 44.096749 0v540.185172a22.048374 22.048374 0 0 1-22.048374 22.048374z" fill="#CCCCCC"></path>
+              </svg>
+            </span><b>导出成绩条</b><small>按年级、考试场次、班级与学生导出各科成绩与排名</small>
+          </a>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <footer class="pf-footer">
+    <a href="admin/admin.html" id="adminFooterLink">管理员入口</a>
+  </footer>
+</main>
+
+<script src="shared/cloud/config.js?v=202611032325"></script>
+<script src="shared/cloud/api.js?v=202611032325"></script>
+<script src="shared/cloud/store.js?v=202611032325"></script>
+<script src="shared/cloud/ui.js?v=202611032325"></script>
+<script src="shared/notice-md.js?v=202611032325"></script>
+<script src="notice-data.js?v=202611032325"></script>
+<script>
+(function () {
+  "use strict";
+  var STORE = window.JZStore, UI = window.JZUI;
+
+  function esc(v) { return UI.escapeHtml(v); }
+
+  function showHint(html, type) {
+    var box = document.getElementById("portalHint");
+    if (!html) { box.hidden = true; return; }
+    box.className = "jz-alert " + (type || "info");
+    box.hidden = false;
+    box.innerHTML = html;
+  }
+
+  async function loadStats() {
+    try { if (window.JZCloud && window.JZCloud.ready) await window.JZCloud.ready(); } catch (e) { /* ignore */ }
+    if (!STORE.isReady()) {
+      showHint('还没有连接云端数据：打开 <a href="admin/admin.html">管理员入口 → 连接设置</a> 填写 Supabase 地址与 anon key（详见《Supabase配置与使用说明.md》）。', "warn");
+      return;
+    }
+    try {
+      var s = await STORE.stats();
+      document.getElementById("statGrades").textContent = s.grades;
+      document.getElementById("statExams").textContent = s.exams;
+      document.getElementById("statPapers").textContent = s.papers;
+      document.getElementById("statStudents").textContent = s.students;
+      if (!s.grades) {
+        showHint('云端还没有数据：请打开 <a href="admin/admin.html">管理员入口</a> 上传第一份成绩。', "info");
+      } else {
+        showHint("");
+      }
+    } catch (err) {
+      showHint("读取云端数据失败：" + esc(err.message) + "。请检查连接设置，或在 Supabase 中执行 database/schema.sql。", "error");
+    }
+  }
+
+  async function loadRecent() {
+    var box = document.getElementById("recentExams");
+    try { if (window.JZCloud && window.JZCloud.ready) await window.JZCloud.ready(); } catch (e) { /* ignore */ }
+    if (!STORE.isReady()) {
+      box.innerHTML = '<div class="pf-empty">未连接云端，暂无考试数据</div>';
+      return;
+    }
+    try {
+      var grades = await STORE.listGrades();
+      var exams = await STORE.listAllExams(8);
+      var gradeMap = {};
+      (grades || []).forEach(function (g) { gradeMap[g.id] = g.name; });
+      if (!exams.length) {
+        box.innerHTML = '<div class="pf-empty">还没有上传过考试</div>';
+        return;
+      }
+      box.innerHTML = exams.map(function (ex) {
+        var dateText = ex.exam_date
+          ? String(ex.exam_date).slice(0, 10)
+          : (ex.created_at ? "上传于 " + String(ex.created_at).slice(0, 10) : "");
+        var meta = [];
+        if (ex.student_count) meta.push(ex.student_count + " 人");
+        if (ex.scope) meta.push(ex.scope);
+        if (dateText) meta.push(dateText);
+        return '<a class="pf-exam" href="systems/basic/basic.html?exam=' + encodeURIComponent(ex.id) + '">' +
+          (gradeMap[ex.grade_id] ? UI.gradeChip(gradeMap[ex.grade_id], "pf-exam-grade")
+            : '<span class="pf-exam-grade">—</span>') +
+          '<span class="pf-exam-name">' + esc(ex.name) + "</span>" +
+          '<span class="pf-exam-meta">' + esc(meta.join(" · ")) + "</span>" +
+          "</a>";
+      }).join("");
+    } catch (err) {
+      box.innerHTML = '<div class="pf-empty">读取失败：' + esc(err.message) + "</div>";
+    }
+  }
+
+  /* ---------------- 系统通知（读根目录 notice.md） ---------------- */
+  /* 渲染逻辑放在 shared/notice-md.js，后台「预览效果」用的是同一份 */
+  function renderNoticeMarkdown(source) {
+    if (window.JZNoticeMarkdown) return window.JZNoticeMarkdown(source);
+    return "";
+  }
+
+  async function loadNotice() {
+    var box = document.getElementById("portalNotice");
+    if (!box) return;
+    var md = "";
+    /* 1) 云端通知（管理员在后台保存后立即生效，无需重新部署） */
+    if (window.JZCloud && typeof window.JZCloud.ready === "function") {
+      try { await window.JZCloud.ready(); } catch (e) { /* 配置读取失败时按未配置处理 */ }
+    }
+    if (window.JZStore && window.JZStore.isReady && window.JZStore.isReady()) {
+      try {
+        var rec = await window.JZStore.getNotice();
+        if (rec && rec.body && rec.body.trim()) md = rec.body;
+      } catch (e) { /* 表未建或网络异常时继续走本地兜底 */ }
+    }
+    /* 2) 根目录 notice.md（http 访问时可直接读取） */
+    if (!md || !md.trim()) {
+      try {
+        var res = await fetch("notice.md", { cache: "no-store" });
+        if (res && res.ok) md = await res.text();
+      } catch (e) { /* file:// 下浏览器不允许读取本地 md，走兜底 */ }
+    }
+    /* 3) 内嵌副本（由 tools/sync-notice.mjs 生成） */
+    if (!md || !md.trim()) {
+      if (typeof window.JZ_NOTICE_MD === "string") md = window.JZ_NOTICE_MD;
+    }
+    if (!md || !md.trim()) {
+      box.innerHTML = '<div class="pf-empty">暂无系统通知或提醒</div>';
+      return;
+    }
+    box.innerHTML = renderNoticeMarkdown(md);
+  }
+
+  function init() {
+    var isAdmin = !!(window.JZAuth && window.JZAuth.isAdmin());
+    if (!isAdmin) {
+      var adminLink = document.getElementById("adminFooterLink");
+      if (adminLink) adminLink.remove();
+    }
+    try { UI.mountNav({ base: "", page: "portal" }); } catch (e) { /* ignore */ }
+    loadStats();
+    loadRecent();
+    loadNotice();
+    document.getElementById("refreshStats").addEventListener("click", function () {
+      loadStats();
+      loadRecent();
+      loadNotice();
+    });
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+</body>
+</html>
