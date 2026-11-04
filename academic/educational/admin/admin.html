@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理员入口 · 珠海市九洲中学教育质量管理与分析系统</title>
+<script src="../shared/auth.js?v=202611032325"></script>
+<link rel="icon" type="image/png" href="../shared/assets/favicon.png?v=202611032325">
+<link rel="stylesheet" href="../shared/styles/cloud.css?v=202611032325">
+<link rel="stylesheet" href="css/admin.css?v=202611032325">
+</head>
+<body>
+<main class="jz-admin-main">
+
+  <!-- ============ 无管理员权限 ============ -->
+  <section id="deniedPanel" class="jz-card jz-login" hidden>
+    <div class="jz-login-head">
+      <div class="jz-login-icon">🔒</div>
+      <h1>无管理员权限</h1>
+      <p>当前登录账号没有管理员权限。请使用管理员账号登录，或返回首页继续使用分析功能。</p>
+    </div>
+    <div class="jz-actions" style="justify-content:center">
+      <a class="jz-btn primary" href="../portal.html">返回首页</a>
+      <button type="button" class="jz-btn ghost" id="switchAccountBtn">切换账号</button>
+    </div>
+  </section>
+
+  <!-- ============ 管理主体 ============ -->
+  <section id="adminPanel" hidden>
+    <div class="jz-admin-topbar">
+      <span class="jz-who" id="adminWho"></span>
+      <span class="jz-sync-tag" id="adminSyncState" title="最近一次成功读写云端的时间">—</span>
+      <button type="button" class="jz-btn ghost small" id="adminRefreshAll" title="重新读取当前页签与连接状态">↻ 刷新全部</button>
+      <button type="button" class="jz-btn ghost small" id="logoutBtn">退出登录</button>
+    </div>
+    <div class="jz-admin-head">
+      <h1>数据管理后台</h1>
+    </div>
+
+    <div id="adminBanner" class="jz-alert info" hidden></div>
+
+    <nav class="jz-tabs" id="adminTabs">
+      <button type="button" data-tab="score" class="active">① 成绩上传</button>
+      <button type="button" data-tab="paper">② 试题卷上传</button>
+      <button type="button" data-tab="manage">③ 数据管理</button>
+      <button type="button" data-tab="config">④ 连接设置</button>
+      <button type="button" data-tab="notice">⑤ 系统通知</button>
+      <button type="button" data-tab="roster">⑥ 任教名单</button>
+      <button type="button" data-tab="account">⑦ 教师账号</button>
+    </nav>
+
+    <!-- ---------- 成绩上传 ---------- -->
+    <div class="jz-tab-panel active" id="panel-score">
+      <div class="jz-card">
+        <h2 class="jz-card-title">上传考试成绩</h2>
+        <p class="jz-card-sub">先选择年级、填写考试名称，再选择成绩文件；同名考试（同一场考试）重复上传会自动覆盖旧数据。</p>
+
+        <div class="jz-grid2">
+          <div class="jz-field">
+            <label for="scoreGrade">年级（毕业年份）<span class="jz-hint">必选，2028届 = 2028年毕业</span></label>
+            <select id="scoreGrade" class="jz-select"></select>
+            <div class="jz-inline">
+              <input id="newGradeInput" class="jz-input" placeholder="新建年级，如 2030届（2030年毕业）">
+              <button type="button" class="jz-btn ghost small" id="addGradeBtn">新建年级</button>
+            </div>
+          </div>
+          <div class="jz-field">
+            <label for="scoreExamName">考试名称<span class="jz-hint">必填，如 2023中考 / 一模</span></label>
+            <input id="scoreExamName" class="jz-input" placeholder="例如：九年级上学期第一次自查">
+            <div class="jz-inline">
+              <select id="scoreScope" class="jz-select" style="flex:0 0 120px">
+                <option value="区域">区域统考</option>
+                <option value="校级" selected>校级考试</option>
+                <option value="其他">其他</option>
+              </select>
+              <input id="scoreDate" type="date" class="jz-input" title="考试日期（可选）">
+            </div>
+          </div>
+        </div>
+
+        <div class="jz-drop" id="scoreDrop" tabindex="0">
+          <input type="file" id="scoreFile" accept=".xlsx,.xlsm,.csv" hidden>
+          <div class="jz-drop-icon" aria-hidden="true"><svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M720 787.5H403.3V565.6c0-14.2 11.5-25.6 25.6-25.6h109.2c5.8 0 11.5-2 16-5.6l50-40c4.5-3.6 10.2-5.6 16-5.6H720c14.2 0 25.6 11.5 25.6 25.6v247.5c0 14.1-11.4 25.6-25.6 25.6z" fill="#FFD45A"/><path d="M788.5 353.6H753v-47c0-49.2-40-89.2-89.2-89.2H271.2c-49.2 0-89.2 40-89.2 89.2v409.5c0 49.2 40 89.2 89.2 89.2H788.4c29.5 0 53.5-24 53.5-53.5V407.1c0.1-29.5-23.9-53.5-53.4-53.5zM217.7 716.1V306.6c0-29.5 24-53.5 53.5-53.5h392.5c29.5 0 53.5 24 53.5 53.5v47h-67.8c-12.1 0-24 4.2-33.4 11.7L546.3 421c-3.2 2.5-7.1 3.9-11.2 3.9H360.4c-29.5 0-53.5 24-53.5 53.5v291.1h-35.7c-29.5 0.2-53.5-23.9-53.5-53.4z m588.6 35.7c0 9.8-8 17.8-17.9 17.8H342.6V478.5c0-9.8 8-17.9 17.9-17.9h174.7c12.1 0 24-4.2 33.4-11.7l69.7-55.7c3.2-2.5 7.1-3.9 11.1-3.9h139c9.8 0 17.9 8 17.9 17.8v344.7z" fill="#593A25"/></svg></div>
+          <div class="jz-drop-title" id="scoreDropTitle">点击选择，或把成绩文件拖到这里</div>
+          <div class="jz-drop-hint">支持 .xlsx / .xlsm / .csv；第一行表头：学号、姓名、班级、总分、各学科…</div>
+          <div class="jz-drop-file" id="scoreFileInfo"></div>
+        </div>
+
+        <div id="scorePreview" hidden>
+          <div class="jz-preview-head">
+            <b>数据预览</b>
+            <span id="scoreSummary"></span>
+          </div>
+          <div class="jz-table-scroll">
+            <table class="jz-table" id="scorePreviewTable"></table>
+          </div>
+          <div class="jz-preview-note" id="scoreWarnings"></div>
+        </div>
+
+        <div class="jz-actions">
+          <button type="button" class="jz-btn primary" id="scoreSaveBtn" disabled>上传并保存到云端</button>
+          <button type="button" class="jz-btn ghost" id="scoreResetBtn">清空重来</button>
+          <span class="jz-save-msg" id="scoreSaveMsg"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- 试题卷上传 ---------- -->
+    <div class="jz-tab-panel" id="panel-paper">
+      <div class="jz-card">
+        <h2 class="jz-card-title">上传试题分析数据</h2>
+        <p class="jz-card-sub">按「年级 → 考试 → 科目」保存。同一场考试的同一科目重复上传会覆盖旧数据；考试不存在时会自动创建。</p>
+
+        <div class="jz-grid2">
+          <div class="jz-field">
+            <label for="paperGrade">年级（毕业年份）<span class="jz-hint">必选，2028届 = 2028年毕业</span></label>
+            <select id="paperGrade" class="jz-select"></select>
+          </div>
+          <div class="jz-field">
+            <label for="paperExam">考试<span class="jz-hint">选择已有考试，或新建</span></label>
+            <select id="paperExam" class="jz-select"></select>
+            <input id="paperNewExam" class="jz-input" placeholder="输入新的考试名称，如 一模" hidden>
+          </div>
+        </div>
+
+        <div class="jz-grid2">
+          <div class="jz-field">
+            <label for="paperSubject">科目<span class="jz-hint">必选</span></label>
+            <select id="paperSubject" class="jz-select">
+              <option value="">请选择科目</option>
+              <option>语文</option><option>数学</option><option>英语</option>
+              <option>物理</option><option>化学</option><option>道法</option>
+              <option>历史</option><option>生物</option><option>地理</option>
+              <option>体育</option><option value="__custom__">其他（自定义）</option>
+            </select>
+            <input id="paperCustomSubject" class="jz-input" placeholder="输入自定义科目名称" hidden>
+          </div>
+          <div class="jz-field">
+            <label>已上传的试题卷<span class="jz-hint">同一场考试</span></label>
+            <div class="jz-chip-row" id="paperExisting">—</div>
+          </div>
+        </div>
+
+        <div class="jz-drop" id="paperDrop" tabindex="0">
+          <input type="file" id="paperFile" accept=".xlsx,.xlsm,.csv" hidden>
+          <div class="jz-drop-icon" aria-hidden="true"><svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M720 787.5H403.3V565.6c0-14.2 11.5-25.6 25.6-25.6h109.2c5.8 0 11.5-2 16-5.6l50-40c4.5-3.6 10.2-5.6 16-5.6H720c14.2 0 25.6 11.5 25.6 25.6v247.5c0 14.1-11.4 25.6-25.6 25.6z" fill="#FFD45A"/><path d="M788.5 353.6H753v-47c0-49.2-40-89.2-89.2-89.2H271.2c-49.2 0-89.2 40-89.2 89.2v409.5c0 49.2 40 89.2 89.2 89.2H788.4c29.5 0 53.5-24 53.5-53.5V407.1c0.1-29.5-23.9-53.5-53.4-53.5zM217.7 716.1V306.6c0-29.5 24-53.5 53.5-53.5h392.5c29.5 0 53.5 24 53.5 53.5v47h-67.8c-12.1 0-24 4.2-33.4 11.7L546.3 421c-3.2 2.5-7.1 3.9-11.2 3.9H360.4c-29.5 0-53.5 24-53.5 53.5v291.1h-35.7c-29.5 0.2-53.5-23.9-53.5-53.4z m588.6 35.7c0 9.8-8 17.8-17.9 17.8H342.6V478.5c0-9.8 8-17.9 17.9-17.9h174.7c12.1 0 24-4.2 33.4-11.7l69.7-55.7c3.2-2.5 7.1-3.9 11.1-3.9h139c9.8 0 17.9 8 17.9 17.8v344.7z" fill="#593A25"/></svg></div>
+          <div class="jz-drop-title" id="paperDropTitle">点击选择，或把试题分析模板拖到这里</div>
+          <div class="jz-drop-hint">第 1 行：表头 + 各题号；第 2 行：满分值 + 各题满分；第 3 行：全校（或全级）+ 各题平均分；第 4 行起：班级名称 + 各题平均分</div>
+          <div class="jz-drop-file" id="paperFileInfo"></div>
+        </div>
+
+        <div id="paperPreview" hidden>
+          <div class="jz-preview-head">
+            <b>模板识别结果</b>
+            <span id="paperSummary"></span>
+          </div>
+          <div class="jz-table-scroll">
+            <table class="jz-table" id="paperPreviewTable"></table>
+          </div>
+        </div>
+
+        <div class="jz-actions">
+          <button type="button" class="jz-btn primary" id="paperSaveBtn" disabled>保存试题卷到云端</button>
+          <button type="button" class="jz-btn ghost" id="paperResetBtn">清空重来</button>
+          <span class="jz-save-msg" id="paperSaveMsg"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- 数据管理 ---------- -->
+    <div class="jz-tab-panel" id="panel-manage">
+      <div class="jz-card">
+        <div class="jz-manage-head">
+          <div>
+            <h2 class="jz-card-title">云端数据一览</h2>
+            <p class="jz-card-sub">按年级查看已上传的考试与试题卷，可删除错误数据。</p>
+          </div>
+          <button type="button" class="jz-btn ghost small" id="manageRefresh">↻ 刷新</button>
+        </div>
+        <div id="manageArea"><div class="jz-empty"><span class="jz-loading">正在读取…</span></div></div>
+      </div>
+    </div>
+
+    <!-- ---------- 连接设置 ---------- -->
+    <div class="jz-tab-panel" id="panel-config">
+      <div class="jz-card">
+        <h2 class="jz-card-title">Supabase 连接设置</h2>
+        <p class="jz-card-sub">项目默认读取根目录的 <code>config/supabase.json</code>（http 访问时）或 <code>config/supabase.js</code>（直接双击 html 打开时），两个文件内容一致、所有访问者共用。下面的输入仅用于临时改用其它项目或本机调试——保存后只对当前浏览器生效，并会覆盖上面的配置文件。</p>
+
+        <div class="jz-field">
+          <label for="cfgUrl">Project URL</label>
+          <input id="cfgUrl" class="jz-input" placeholder="https://xxxxxxxx.supabase.co">
+        </div>
+        <div class="jz-field">
+          <label for="cfgKey">anon public key</label>
+          <input id="cfgKey" class="jz-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+        </div>
+        <div class="jz-actions">
+          <button type="button" class="jz-btn primary" id="cfgTest">测试连接</button>
+          <button type="button" class="jz-btn ghost" id="cfgSave">保存到本机浏览器</button>
+          <button type="button" class="jz-btn ghost" id="cfgClear">清除本机配置</button>
+          <span class="jz-save-msg" id="cfgMsg"></span>
+        </div>
+        <div class="jz-kv" id="cfgState"></div>
+      </div>
+
+      <div class="jz-card" style="margin-top:18px">
+        <h2 class="jz-card-title">云端写入账号（可选，推荐）</h2>
+        <p class="jz-card-sub">默认「简易模式」下（执行过 <code>database/rls-anon-write.sql</code>），任何拿到 anon key 的人都能写入数据；执行过 <code>database/rls-strict.sql</code> 则只有登录了 Supabase 账号的人能写，此时必须先在这里登录才能上传/保存。登录成功后上传请求会携带该账号身份，登录状态只保留到关闭浏览器标签页为止。</p>
+        <div class="jz-grid2">
+          <div class="jz-field">
+            <label for="authEmail">云端账号邮箱</label>
+            <input id="authEmail" class="jz-input" autocomplete="username" placeholder="admin@example.com">
+          </div>
+          <div class="jz-field">
+            <label for="authPass">云端账号密码</label>
+            <input id="authPass" type="password" class="jz-input" autocomplete="current-password" placeholder="Supabase 用户密码">
+          </div>
+        </div>
+        <div class="jz-actions">
+          <button type="button" class="jz-btn primary" id="authLogin">登录云端账号</button>
+          <button type="button" class="jz-btn ghost" id="authLogout">退出云端账号</button>
+          <span class="jz-save-msg" id="authMsg"></span>
+        </div>
+        <div class="jz-kv" id="authState"></div>
+      </div>
+    </div>
+
+    <!-- ---------- 系统通知 ---------- -->
+    <div class="jz-tab-panel" id="panel-notice">
+      <div class="jz-card">
+        <div class="jz-manage-head">
+          <div>
+            <h2 class="jz-card-title">首页「系统通知与提醒」</h2>
+            <p class="jz-card-sub">保存在云端后，首页会优先显示这里的内容，保存即生效，不用重新部署网站。支持 Markdown：<code>- 列表</code>、<code>1. 编号</code>、<code>**加粗**</code>、<code>[文字](链接)</code>、<code>&gt; 引用</code>、<code>---</code> 分隔线。</p>
+          </div>
+          <button type="button" class="jz-btn ghost small" id="noticeReload">↻ 读取云端</button>
+        </div>
+
+        <div class="jz-field">
+          <label for="noticeBody">通知内容（Markdown）
+            <span class="jz-hint">留空则回退显示根目录的 notice.md</span>
+          </label>
+          <textarea id="noticeBody" class="jz-input" rows="12" spellcheck="false"
+            style="font-family:ui-monospace,Consolas,'Courier New',monospace;line-height:1.7;resize:vertical"></textarea>
+        </div>
+
+        <div class="jz-actions">
+          <button type="button" class="jz-btn primary" id="noticeSave">保存到云端</button>
+          <button type="button" class="jz-btn ghost" id="noticeLoadFile">载入 notice.md</button>
+          <button type="button" class="jz-btn ghost" id="noticePreviewBtn">预览效果</button>
+          <button type="button" class="jz-btn ghost" id="noticeClear">清空内容</button>
+          <span class="jz-save-msg" id="noticeMsg"></span>
+        </div>
+        <div class="notice-preview" id="noticePreview" hidden></div>
+        <div class="jz-kv" id="noticeState"></div>
+      </div>
+    </div>
+
+    <!-- ---------- 任教名单 ---------- -->
+    <div class="jz-tab-panel" id="panel-roster">
+      <div class="jz-card">
+        <div class="jz-manage-head">
+          <div>
+            <h2 class="jz-card-title">教师任课名单</h2>
+            <p class="jz-card-sub">按「年级 → 班级」维护班主任与各科任课教师；保存后基础分析里的「班主任 / 任课教师」立即按云端名单显示。把某个科目留空再保存，等于删除该科目的任课教师。</p>
+          </div>
+          <div class="jz-actions" style="margin:0">
+            <button type="button" class="jz-btn ghost small" id="rosterGradeGridBtn">整年级表格编辑</button>
+            <button type="button" class="jz-btn ghost small" id="rosterImport">⬆ 上传名单文件导入</button>
+            <input type="file" id="rosterImportFile" accept=".json,application/json" hidden>
+            <button type="button" class="jz-btn ghost small" id="rosterReload">↻ 读取云端</button>
+          </div>
+        </div>
+
+        <div id="rosterGradeGridWrap" hidden>
+          <div class="roster-grid-head">
+            <b id="rosterGridTitle">整年级表格编辑</b>
+            <span class="jz-hint">一次填完整个年级的班主任与各科教师，最下面点「保存整个年级」即可</span>
+          </div>
+          <div class="jz-table-scroll">
+            <table class="jz-table roster-grid" id="rosterGradeGrid"></table>
+          </div>
+          <div class="jz-actions">
+            <button type="button" class="jz-btn primary" id="rosterGridSave">保存整个年级</button>
+            <button type="button" class="jz-btn ghost" id="rosterGridClose">收起表格</button>
+            <span class="jz-save-msg" id="rosterGridMsg"></span>
+          </div>
+        </div>
+
+        <div class="jz-grid2">
+          <div class="jz-field">
+            <label for="rosterGrade">年级</label>
+            <select id="rosterGrade" class="jz-select"></select>
+          </div>
+          <div class="jz-field">
+            <label for="rosterClass">班级 <span class="jz-hint">选「＋ 新建班级」可新增</span></label>
+            <select id="rosterClass" class="jz-select"></select>
+            <input id="rosterNewClass" class="jz-input" placeholder="新班级名称，如 17班" hidden>
+          </div>
+        </div>
+
+        <div id="rosterFields" class="roster-edit-grid"></div>
+
+        <div class="jz-actions">
+          <button type="button" class="jz-btn primary" id="rosterSave">保存本班</button>
+          <button type="button" class="jz-btn ghost" id="rosterDelete">删除本班</button>
+          <span class="jz-save-msg" id="rosterMsg"></span>
+        </div>
+        <div class="jz-kv" id="rosterState"></div>
+      </div>
+    </div>
+
+    <!-- ---------- 教师账号 ---------- -->
+    <div class="jz-tab-panel" id="panel-account">
+      <div class="jz-card">
+        <div class="jz-manage-head">
+          <div>
+            <h2 class="jz-card-title">教师账号</h2>
+            <p class="jz-card-sub">姓名即账号；密码以「加盐哈希」保存，云端表里没有明文。云端有账号时登录页优先用云端，表为空时回退 <code>data/teacher-accounts.js</code>。</p>
+          </div>
+          <div class="jz-actions" style="margin:0">
+            <button type="button" class="jz-btn ghost small" id="accountImport">⬆ 上传账号文件导入</button>
+            <input type="file" id="accountImportFile" accept=".json,application/json" hidden>
+            <button type="button" class="jz-btn ghost small" id="accountReload">↻ 读取云端</button>
+          </div>
+        </div>
+
+        <div class="jz-grid2">
+          <div class="jz-field">
+            <label for="accountName">姓名（账号）</label>
+            <input id="accountName" class="jz-input" placeholder="如 张三（已有则覆盖）">
+          </div>
+          <div class="jz-field">
+            <label for="accountPassword">密码 <span class="jz-hint">身份证号后 8 位；填完整身份证号会自动截取</span></label>
+            <input id="accountPassword" class="jz-input" placeholder="身份证号后 8 位">
+          </div>
+          <div class="jz-field">
+            <label for="accountRole">角色</label>
+            <select id="accountRole" class="jz-select">
+              <option value="user">普通教师</option>
+              <option value="admin">管理员</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="jz-actions">
+          <button type="button" class="jz-btn primary" id="accountSave">保存账号</button>
+          <span class="jz-save-msg" id="accountMsg"></span>
+        </div>
+
+        <div class="jz-field" style="margin-top:6px">
+          <label for="accountSearch">搜索姓名</label>
+          <input id="accountSearch" class="jz-input" placeholder="输入姓名筛选">
+        </div>
+        <div class="jz-actions account-batch">
+          <span class="jz-hint" id="accountBatchHint">勾选左侧方框可批量操作</span>
+          <button type="button" class="jz-btn ghost small" id="accountBatchAdmin">设为管理员</button>
+          <button type="button" class="jz-btn ghost small" id="accountBatchUser">设为普通教师</button>
+          <button type="button" class="jz-btn ghost small" id="accountBatchDelete">批量删除</button>
+          <span class="jz-save-msg" id="accountBatchMsg"></span>
+        </div>
+        <div class="jz-kv" id="accountState"></div>
+        <div class="jz-table-scroll" style="margin-top:12px">
+          <table class="jz-table" id="accountTable"></table>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="../shared/cloud/config.js?v=202611032325"></script>
+<script src="../shared/cloud/api.js?v=202611032325"></script>
+<script src="../shared/cloud/store.js?v=202611032325"></script>
+<script src="../shared/cloud/ui.js?v=202611032325"></script>
+<script src="../shared/notice-md.js?v=202611032325"></script>
+<!-- 复用基础分析的表格解析器（离线解析 xlsx / csv） -->
+<script src="../shared/base/config.js?v=202611032325"></script>
+<script src="../shared/base/utils.js?v=202611032325"></script>
+<script src="../shared/base/parsers.js?v=202611032325"></script>
+<script src="js/admin.js?v=202611032325"></script>
+</body>
+</html>
