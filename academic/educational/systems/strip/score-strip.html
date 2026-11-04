@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>导出成绩条 · 珠海市九洲中学教育质量管理与分析系统</title>
+<script src="../../shared/auth.js?v=202611032325"></script>
+<link rel="icon" type="image/png" href="../../shared/assets/favicon.png?v=202611032325">
+<link rel="apple-touch-icon" href="../../shared/assets/favicon.png?v=202611032325">
+<link rel="stylesheet" href="../../shared/styles/cloud.css?v=202611032325">
+<link rel="stylesheet" href="css/style.css?v=202611032325">
+</head>
+<body>
+
+<main class="strip-main">
+  <div class="jz-page-head">
+    <h1 class="jz-page-title">导出成绩条</h1>
+  </div>
+
+  <section class="strip-panel" aria-label="选择条件">
+    <div class="strip-col strip-col-left">
+      <div class="strip-step strip-step-grade">
+        <span class="strip-label">1 · 年级</span>
+        <select class="jz-select" id="stripGrade"><option value="">正在读取…</option></select>
+      </div>
+
+      <div class="strip-step strip-step-exams">
+        <span class="strip-label">2 · 考试场次<em id="examCount">未选择</em></span>
+        <div class="strip-exams" id="stripExams"><span class="strip-hint">请先选择年级</span></div>
+        <div class="strip-tools" id="examTools" hidden>
+          <button type="button" class="jz-btn ghost small" id="examAll">全选</button>
+          <button type="button" class="jz-btn ghost small" id="examNone">清空</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="strip-col strip-col-right">
+      <div class="strip-step strip-step-class">
+        <span class="strip-label">3 · 班级<em id="classCount">全部班级</em></span>
+        <div class="strip-classes" id="stripClasses"><span class="strip-hint">请先选择考试</span></div>
+        <div class="strip-tools" id="classTools" hidden>
+          <button type="button" class="jz-btn ghost small" id="classAll">全选</button>
+          <button type="button" class="jz-btn ghost small" id="classNone">清空</button>
+        </div>
+      </div>
+
+      <div class="strip-step strip-step-students">
+        <span class="strip-label">4 · 学生<em id="studentCount">未选择</em></span>
+        <div class="strip-students" id="stripStudents"><span class="strip-hint">请先选择班级</span></div>
+        <div class="strip-tools" id="studentTools" hidden>
+          <button type="button" class="jz-btn ghost small" id="pickAll" title="选中当前班级筛选下的全部学生">选中该班全部</button>
+          <button type="button" class="jz-btn ghost small" id="pickNone">清空</button>
+          <span class="strip-hint" id="studentHint">选好班级后点「选中该班全部」，可一次选上整班学生</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="strip-actions">
+      <label class="strip-inline" for="stripRankScope">排名口径
+        <select class="jz-select" id="stripRankScope">
+          <option value="school">全级排名</option>
+          <option value="class">本班排名</option>
+        </select>
+      </label>
+      <button type="button" class="jz-btn primary" id="stripRun" disabled>生成成绩条</button>
+      <button type="button" class="jz-btn ghost" id="stripExport" disabled>导出 Excel</button>
+      <button type="button" class="jz-btn ghost" id="stripPrint" disabled>打印</button>
+    </div>
+  </section>
+
+  <div class="strip-print-head" id="stripPrintHead"></div>
+
+  <section class="strip-result" id="stripResult" hidden>
+    <div class="strip-result-head">
+      <div>
+        <h2 id="stripTitle">成绩条</h2>
+        <p class="strip-result-sub" id="stripSubtitle"></p>
+      </div>
+      <p class="strip-legend">同一名学生的多场考试各占一行；<b>/</b> 表示缺考或该场考试没有此科目</p>
+    </div>
+    <div class="strip-table-wrap" id="stripTableWrap"></div>
+  </section>
+</main>
+
+<script src="../../shared/cloud/config.js?v=202611032325"></script>
+<script src="../../shared/cloud/api.js?v=202611032325"></script>
+<script src="../../shared/cloud/store.js?v=202611032325"></script>
+<script src="../../shared/cloud/ui.js?v=202611032325"></script>
+<script>
+  /* shared/base/utils.js 底部有依赖 jQuery 风格 $ / $$ 的初始化代码，
+     本页只用到其中的成绩解析工具函数，这里先给出最小实现 */
+  window.$ = window.$ || function (sel) { return document.querySelector(sel); };
+  window.$$ = window.$$ || function (sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); };
+</script>
+<script src="../../shared/base/utils.js?v=202611032325"></script>
+<script src="../../shared/base/parsers.js?v=202611032325"></script>
+<script src="js/xlsx.js?v=202611032325"></script>
+<script src="js/app.js?v=202611032325"></script>
+</body>
+</html>
