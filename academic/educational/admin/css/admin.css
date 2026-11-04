@@ -1,0 +1,369 @@
+/* 管理员后台样式（依赖 shared/styles/cloud.css 的基础变量与按钮） */
+
+body {
+  margin: 0;
+  background: #f3f5f8;
+  font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  color: #252a38;
+}
+
+.jz-admin-main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 20px 70px;
+}
+
+/* ---------- 登录卡片 ---------- */
+.jz-login {
+  max-width: 430px;
+  margin: 56px auto 0;
+}
+.jz-login-head { text-align: center; margin-bottom: 18px; }
+.jz-login-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 10px;
+  border-radius: 18px;
+  background: var(--jz-grad);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  box-shadow: 0 10px 24px rgba(27, 36, 84, .28);
+}
+.jz-login h1 { font-size: 20px; margin: 0 0 8px; }
+.jz-login p { font-size: 13px; color: #6e7484; line-height: 1.7; margin: 0; }
+.jz-login-msg { min-height: 22px; font-size: 13px; color: #c0392b; margin-top: 10px; }
+.jz-login-msg.ok { color: #1a7a46; }
+.jz-login-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #e7eaf2;
+  font-size: 12px;
+  color: #858b9a;
+}
+.jz-back-link { color: #1b2454; text-decoration: none; }
+.jz-back-link:hover { text-decoration: underline; }
+
+/* ---------- 卡片 ---------- */
+.jz-card {
+  background: #fff;
+  border: 1px solid #e2e6ee;
+  border-radius: 16px;
+  padding: 22px 24px;
+  box-shadow: 0 6px 22px rgba(20, 28, 60, .06);
+}
+.jz-card-title { font-size: 17px; margin: 0 0 6px; }
+.jz-card-sub { font-size: 13px; color: #6e7484; line-height: 1.75; margin: 0 0 18px; }
+.jz-card-sub code {
+  background: #f1f4fa;
+  padding: 1px 6px;
+  border-radius: 5px;
+  color: #1b2454;
+}
+
+/* ---------- 顶部账号信息 ---------- */
+.jz-admin-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 0 0 6px;
+}
+
+/* ---------- 顶部信息 ---------- */
+.jz-admin-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin: 0 0 16px;
+}
+.jz-admin-head h1 { font-size: 22px; margin: 0 0 6px; }
+.jz-admin-head p { font-size: 13px; color: #6e7484; margin: 0; line-height: 1.7; }
+.jz-admin-head-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.jz-who { font-size: 13px; color: #3f4558; }
+.jz-sync-tag {
+  font-size: 12px;
+  color: #1a7a46;
+  background: #eefaf2;
+  border: 1px solid #cbe9d7;
+  border-radius: 999px;
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+.jz-sync-tag.is-stale { color: #8a6d3b; background: #fdf6e7; border-color: #f0e0bd; }
+
+/* ---------- 系统通知预览 ---------- */
+.notice-preview {
+  margin: 4px 0 14px;
+  padding: 14px 16px;
+  border: 1px dashed #cfd8e6;
+  border-radius: 12px;
+  background: #fbfcff;
+  font-size: 13.5px;
+  line-height: 1.85;
+  color: #2f3547;
+}
+.notice-preview[hidden] { display: none; }
+.notice-preview ul, .notice-preview ol { margin: 6px 0 6px 20px; padding: 0; }
+.notice-preview blockquote {
+  margin: 8px 0;
+  padding: 4px 12px;
+  border-left: 3px solid #c7d2e6;
+  color: #5b6373;
+  background: #f4f7fc;
+}
+.notice-preview hr { border: 0; border-top: 1px solid #e2e8f1; margin: 12px 0; }
+.notice-preview a { color: #1d4ed8; }
+
+/* ---------- 整年级表格编辑 ---------- */
+.roster-grid-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 4px 0 10px;
+}
+.roster-grid-head b { font-size: 14px; color: #1b2454; }
+.roster-grid th, .roster-grid td { padding: 5px 6px; }
+.roster-grid input {
+  width: 100%;
+  min-width: 74px;
+  padding: 5px 7px;
+  font-family: inherit;
+  font-size: 13px;
+  border: 1px solid #dfe5ef;
+  border-radius: 7px;
+  background: #fff;
+  outline: none;
+}
+.roster-grid input:focus { border-color: #1b2454; box-shadow: 0 0 0 3px rgba(27, 36, 84, .1); }
+.roster-grid td:first-child, .roster-grid th:first-child { white-space: nowrap; font-weight: 700; color: #1b2454; }
+
+/* ---------- 账号批量操作 ---------- */
+.account-batch { flex-wrap: wrap; gap: 8px; margin: 10px 0 2px; }
+.account-batch .jz-hint { margin-right: auto; }
+#accountTable input[type="checkbox"] { width: 15px; height: 15px; accent-color: #1b2454; cursor: pointer; }
+
+/* ---------- 标签页 ---------- */
+.jz-tabs {
+  display: flex;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid #e2e6ee;
+  border-radius: 14px;
+  padding: 6px;
+  margin-bottom: 18px;
+  overflow-x: auto;
+}
+.jz-tabs button {
+  border: none;
+  background: transparent;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #4b5163;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .18s ease, color .18s ease;
+}
+.jz-tabs button:hover { background: #f2f4f8; color: #1b2454; }
+.jz-tabs button.active {
+  background: linear-gradient(135deg, #1b2454 0%, #34457c 55%, #1f2d5c 100%);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 6px 16px rgba(27, 36, 84, .26);
+}
+
+/* 后台主操作按钮：与各分析系统的考试选择按钮统一为渐变蓝 */
+.jz-btn.primary {
+  background: linear-gradient(135deg, #1b2454 0%, #34457c 55%, #1f2d5c 100%);
+  border-color: transparent;
+  color: #fff;
+}
+.jz-btn.primary:hover:not([disabled]) {
+  background: linear-gradient(135deg, #243566 0%, #3d5296 55%, #22315f 100%);
+  border-color: transparent;
+  color: #fff;
+}
+
+.jz-tab-panel { display: none; }
+.jz-tab-panel.active { display: block; }
+
+/* ---------- 表单栅格 ---------- */
+.jz-grid2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 6px 22px;
+}
+.jz-inline { display: flex; gap: 8px; align-items: center; }
+.jz-inline .jz-input, .jz-inline .jz-select { flex: 1 1 auto; }
+
+/* ---------- 拖放区 ---------- */
+.jz-drop {
+  border: 2px dashed #d8dfeb;
+  border-radius: 14px;
+  background: #fbfcfe;
+  padding: 26px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease;
+  outline: none;
+}
+.jz-drop:hover, .jz-drop:focus { border-color: #b9c3d5; background: #f4f6fa; }
+.jz-drop.dragging { border-color: var(--jz-primary); background: #eef1f8; }
+.jz-drop.has-file { border-color: #8ed3ac; background: #f6fdf8; }
+.jz-drop-icon { line-height: 0; margin-bottom: 8px; display: flex; justify-content: center; }
+.jz-drop-icon svg { width: 54px; height: 54px; display: block; }
+.jz-drop-title { font-size: 15px; font-weight: 600; color: #2f3547; margin-bottom: 6px; }
+.jz-drop-hint { font-size: 12px; color: #707688; line-height: 1.7; }
+.jz-drop-file { margin-top: 10px; font-size: 13px; color: #1a7a46; font-weight: 600; }
+
+/* ---------- 预览 ---------- */
+.jz-preview-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 18px 0 10px;
+  font-size: 14px;
+}
+.jz-preview-head span { font-size: 12px; color: #1b2454; background: #eef1f8; padding: 4px 12px; border-radius: 999px; }
+.jz-table-scroll {
+  max-height: 320px;
+  overflow: auto;
+  border: 1px solid #e2e6ee;
+  border-radius: 12px;
+  background: #fff;
+}
+.jz-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.jz-table th, .jz-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f2f0fb;
+  text-align: left;
+  white-space: nowrap;
+}
+.jz-table thead th {
+  position: sticky;
+  top: 0;
+  background: #f4f6fa;
+  color: #1b2454;
+  font-weight: 600;
+  z-index: 1;
+}
+.jz-table tbody tr:hover { background: #fbfcfe; }
+.jz-preview-note { font-size: 12px; color: #a06a00; margin-top: 8px; line-height: 1.7; }
+
+/* ---------- 操作栏 ---------- */
+.jz-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+.jz-save-msg { font-size: 13px; color: #1a7a46; }
+.jz-save-msg.err { color: #c0392b; }
+
+/* ---------- 数据管理 ---------- */
+.jz-manage-head { display: flex; align-items: flex-start; gap: 16px; }
+.jz-manage-head > div:first-child { flex: 1 1 auto; }
+.jz-grade-block { margin-top: 18px; }
+.jz-grade-block:first-child { margin-top: 0; }
+.jz-grade-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #2f3547;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e7eaf2;
+}
+.jz-grade-title .jz-tag { background: #1b2454; }
+.jz-exam-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 4px;
+  border-bottom: 1px dashed #f1effa;
+}
+.jz-exam-row:last-child { border-bottom: none; }
+.jz-exam-row .jz-exam-title { font-weight: 600; font-size: 14px; }
+.jz-exam-row .jz-exam-info { font-size: 12px; color: #707688; }
+.jz-exam-row .jz-exam-ops { margin-left: auto; display: flex; gap: 8px; }
+.jz-chip-row { display: flex; flex-wrap: wrap; gap: 8px; min-height: 38px; align-items: center; }
+.jz-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f2f4f8;
+  border: 1px solid #dde3ee;
+  color: #1b2454;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12px;
+}
+.jz-chip button {
+  border: none;
+  background: transparent;
+  color: #b0453a;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0;
+}
+.jz-chip button:hover { color: #8f241a; }
+
+/* ---------- 连接设置键值表 ---------- */
+.jz-kv {
+  margin-top: 14px;
+  font-size: 13px;
+  color: #3f4558;
+  background: #f8f9fc;
+  border: 1px solid #e7eaf2;
+  border-radius: 12px;
+  padding: 12px 16px;
+  line-height: 2;
+  word-break: break-all;
+}
+.jz-kv b { color: #2f3547; }
+.jz-kv .ok { color: #1a7a46; }
+.jz-kv .bad { color: #c0392b; }
+
+@media (max-width: 640px) {
+  .jz-admin-main { padding: 16px 12px 60px; }
+  .jz-card { padding: 18px 16px; }
+}
+
+/* ---------- 任教名单编辑器 ---------- */
+.roster-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 16px;
+  margin: 18px 0 6px;
+}
+.roster-edit-field { display: flex; flex-direction: column; gap: 6px; }
+.roster-edit-field label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #6e7484;
+  letter-spacing: .02em;
+}
+.roster-edit-field.head-teacher label { color: #1b2454; }
+.roster-edit-field.head-teacher input { border-color: #c7d2fe; background: #f5f7ff; font-weight: 700; }
+.roster-edit-empty { grid-column: 1 / -1; color: #8a90a0; font-size: 13px; padding: 10px 0; }
+
+@media (max-width: 760px) {
+  .roster-edit-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 460px) {
+  .roster-edit-grid { grid-template-columns: 1fr; }
+}
