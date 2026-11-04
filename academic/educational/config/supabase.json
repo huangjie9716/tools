@@ -1,0 +1,5 @@
+{
+  "url": "https://yifsjzwibyvsqdvqfnjb.supabase.co",
+  "anonKey": "sb_publishable_Y7pKPR_lVg9ctJAak06-ow_PY0h_Mmw",
+  "note": "Supabase 连接配置（前端公共配置，所有访问者都会读取本文件）。url 为项目地址，anonKey 为 publishable / anon 公钥；不要把 service_role 密钥写在这里。修改后刷新页面生效。"
+}
