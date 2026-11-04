@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>基础分析 · 珠海市九洲中学教育质量管理与分析系统</title>
+<script src="../../shared/auth.js?v=202611032325"></script>
+<link rel="icon" type="image/png" href="../../shared/assets/favicon.png?v=202611032325">
+<link rel="apple-touch-icon" href="../../shared/assets/favicon.png?v=202611032325">
+<link rel="stylesheet" href="styles/main.css?v=202611032325">
+<link rel="stylesheet" href="../../shared/styles/cloud.css?v=202611032325">
+</head>
+<body>
+
+<main class="shell">
+  <div id="statusBanner" class="banner info" hidden>
+    <span class="banner-icon" id="bannerIcon">ℹ️</span>
+    <div class="banner-text"><span id="bannerText"></span><span class="banner-sub" id="bannerSub"></span></div>
+    <button type="button" class="banner-close" id="bannerClose" aria-label="关闭提示">×</button>
+  </div>
+
+  <section id="examEmpty" class="exam-empty hidden">
+    <p>请选择一场考试开始分析</p>
+    <button type="button" class="btn primary" id="emptyPickExamBtn">选择考试</button>
+  </section>
+
+  <section id="dashboard" class="hidden">
+    <div class="print-only print-head">
+      <h2>基础分析</h2>
+      <p id="printMeta"></p>
+    </div>
+    <div class="jz-cloud-bar no-print" id="cloudExamBar">
+      <span class="jz-cloud-bar-title">
+        <svg class="jz-cloud-bar-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M513.11 960.22s-336-374.44-336-560c0-185.55 150.44-336 336-336s336 150.45 336 336c0 185.57-336 560-336 560z m0-784c-123.7 0-224 100.3-224 224 0 123.72 100.3 224 224 224s224-100.28 224-224c0-123.7-100.3-224-224-224z m0 336c-61.86 0-112-50.14-112-112s50.14-112 112-112 112 50.14 112 112-50.14 112-112 112z" fill="currentColor"></path>
+        </svg>
+        当前考试
+      </span>
+      <span class="jz-cloud-bar-name is-empty" id="cloudExamName">—</span>
+      <button type="button" class="btn primary small" id="pickExamBtn2">选择其他考试</button>
+      <div class="jz-compare-picker" id="globalRefChip">
+        <svg class="jz-compare-picker-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M761.856 405.504l-255.68-170.432A128 128 0 0 0 307.2 341.568v340.864a128 128 0 0 0 199.008 106.496l255.648-170.432a128 128 0 0 0 0-212.992z" fill="currentColor"></path></svg>
+        <span class="jz-compare-picker-label" id="globalRefLabel">比对考试：</span>
+        <span class="jz-compare-picker-name" id="globalRefName">未选择</span>
+        <button type="button" class="jz-compare-picker-btn" id="globalRefPickBtn">选择考试</button>
+        <button type="button" class="jz-compare-clear" id="globalRefClearBtn" hidden aria-label="清除比对考试" title="清除比对考试"><svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor"><path d="M512 177.8c45.1 0 88.9 8.8 130.1 26.2 39.8 16.8 75.5 40.9 106.2 71.6 30.7 30.7 54.8 66.4 71.6 106.2 17.4 41.2 26.2 84.9 26.2 130.1s-8.8 88.9-26.2 130.1c-16.8 39.8-40.9 75.5-71.6 106.2-30.7 30.7-66.4 54.8-106.2 71.6C600.9 837.2 557.2 846 512 846s-88.9-8.8-130.1-26.2c-39.8-16.8-75.5-40.9-106.2-71.6-30.7-30.7-54.8-66.4-71.6-106.2-17.4-41.2-26.2-84.9-26.2-130.1s8.8-88.9 26.2-130.1c16.8-39.8 40.9-75.5 71.6-106.2s66.4-54.8 106.2-71.6c41.2-17.3 85-26.2 130.1-26.2m0-50c-212.2 0-384.2 172-384.2 384.2s172 384.2 384.2 384.2 384.2-172 384.2-384.2-172-384.2-384.2-384.2z"/><path d="M688.1 622.3L568.6 509.1 684 402.3l-49.7-61.8-123.2 114-118.4-112.1-50.3 61.2 110.5 104.7-117 108.4 49.6 61.8 125-115.6 127.3 120.6z"/></svg></button>
+      </div>
+      <span class="meta jz-cloud-bar-meta" id="dataMeta"></span>
+      <button type="button" class="btn ghost small" id="fullScoreBtn">学科满分设置</button>
+      <span class="jz-cloud-bar-spacer"></span>
+    </div>
+    <div class="summary-grid" id="summaryCards"></div>
+
+    <nav class="tabs" aria-label="分析模块">
+      <button type="button" class="tab-btn active" data-tab="overview"><svg class="tab-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M909 779H115a50 50 0 0 1-50-50V115a50 50 0 0 1 50-50h794a50 50 0 0 1 50 50v614a50 50 0 0 1-50 50z m-10-634a20 20 0 0 0-20-20H145a20 20 0 0 0-20 20v554a20 20 0 0 0 20 20h734a20 20 0 0 0 20-20V145zM611 521a30 30 0 0 1-42.426 0L434.218 386.645 299.861 521a30 30 0 0 1-42.427-42.426L413 323.012a30 30 0 0 1 42.426 0l134.351 134.35 134.35-134.35a30 30 0 1 1 42.426 42.426zM182 899h660a30 30 0 0 1 0 60H182a30 30 0 0 1 0-60z"/></svg>考试概况</button>
+      <button type="button" class="tab-btn" data-tab="basic"><svg class="tab-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M224.512 167.04a57.6 57.6 0 0 0-57.6 57.6v574.848a57.6 57.6 0 0 0 57.6 57.6h574.976a57.6 57.6 0 0 0 57.6-57.6V224.512a57.6 57.6 0 0 0-57.6-57.6H224.512m0-86.144h574.976a143.744 143.744 0 0 1 143.744 143.744v574.976a143.744 143.744 0 0 1-143.744 143.744H224.512a143.744 143.744 0 0 1-143.744-143.744V224.512a143.744 143.744 0 0 1 143.744-143.744z"/><path d="M288 777.6a41.6 41.6 0 0 1-41.6-41.6v-448a41.6 41.6 0 0 1 41.6-41.6 41.6 41.6 0 0 1 41.6 41.6v448a41.6 41.6 0 0 1-41.6 41.6z"/><path d="M512 777.6a41.6 41.6 0 0 1-41.6-41.6v-320A41.6 41.6 0 0 1 512 374.4a41.6 41.6 0 0 1 41.6 41.6v320a41.6 41.6 0 0 1-41.6 41.6z"/><path d="M736 777.6a41.6 41.6 0 0 1-41.6-41.6v-192a41.6 41.6 0 0 1 41.6-41.6 41.6 41.6 0 0 1 41.6 41.6v192a41.6 41.6 0 0 1-41.6 41.6z"/></svg>考试基础分析</button>
+      <button type="button" class="tab-btn" data-tab="ranking"><svg class="tab-icon" viewBox="0 0 1025 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M605.256331 507.90582h-180.8263c-27.749445 0-35.937805 7.960906-35.937805 36.16526v442.626388c0 28.204354 8.415815 36.847623 35.937805 36.847623h178.551755c28.886717 0 37.075078-8.188361 37.075078-37.529987V766.749v-223.360284c0-27.067081-8.415815-35.482896-34.800533-35.482896zM257.023545 683.728121h-181.963572c-27.294536 0-35.937805 8.188361-35.937805 34.800533v270.215904c0 26.384718 8.870724 34.800533 35.937805 34.800533h181.963572c25.702355 0 34.345624-8.415815 34.345624-33.663261v-136.472679-136.472678c0-25.019991-8.415815-33.208352-34.345624-33.208352zM955.308752 683.728121h-184.693026c-24.337628 0-32.753443 9.098179-32.753443 33.663261V991.92892c0 22.745446 9.098179 32.07108 32.07108 32.07108H955.308752c22.745446 0 32.07108-9.553088 32.071079-32.525988V717.163927c0.909818-24.565082-8.188361-33.208352-32.071079-33.435806zM226.089738 312.977343a20.015993 20.015993 0 0 1-22.745447-16.604176c-8.415815-28.431808-17.741448-56.863616-27.294535-84.840515-1.592181-4.776544-7.278543-8.188361-11.145269-12.055086-4.09418 3.866726-9.780542 7.051088-11.827632 11.827632-5.913816 15.239449-10.462905 30.706353-15.466904 45.490893-17.968903 55.271435-17.968903 55.271435-75.514882 55.271435h-45.490893a45.490893 45.490893 0 0 0-15.011995 6.823633 48.220347 48.220347 0 0 0 8.415815 12.509996c22.745446 17.513994 45.490893 35.027988 70.28343 51.404709a22.745446 22.745446 0 0 1 8.415815 31.388716c-9.553088 25.247446-17.286539 51.177255-25.019991 77.107064a106.221235 106.221235 0 0 0-1.592181 22.745446 86.432697 86.432697 0 0 0 21.153265-7.733452c22.745446-15.694358 45.490893-32.07108 68.236339-48.90271a19.106175 19.106175 0 0 1 27.067082 0c22.745446 17.286539 45.490893 34.11817 68.236339 50.267437a71.420702 71.420702 0 0 0 19.33363 6.368725 88.934696 88.934696 0 0 0 0-20.698356c-7.960906-26.612172-16.376721-52.99689-25.929809-78.926699a22.745446 22.745446 0 0 1 10.007996-30.478899c22.745446-16.149267 45.490893-33.890715 68.23634-51.632163 4.09418-2.956908 5.458907-9.553088 7.960906-14.557086a47.083074 47.083074 0 0 0-14.102177-4.776544c-27.976899-0.454909-57.091071-0.909818-86.205242 0zM624.135051 113.954687c-22.745446 0-50.039982 6.141271-64.824522-4.776544s-16.83163-39.349622-24.110174-60.275433c-5.458907-16.149267-10.69036-32.525988-15.921812-48.90271h-7.960906c-2.956908 6.368725-6.596179 12.509996-9.098179 19.106175-9.325633 25.247446-19.788538 50.267437-27.52199 75.969791a22.745446 22.745446 0 0 1-27.749445 18.878721H363.927143a42.988894 42.988894 0 0 0-15.466903 6.368725 54.361617 54.361617 0 0 0 9.098178 13.874722c22.745446 17.513994 45.490893 35.027988 70.28343 51.632164a20.925811 20.925811 0 0 1 9.553088 28.659262c-9.325633 25.247446-17.286539 50.9498-24.792537 76.879609a107.813416 107.813416 0 0 0-1.364727 24.337628 129.194136 129.194136 0 0 0 22.745447-9.780542c22.745446-15.466904 44.126166-31.388716 65.506885-47.992892a17.741448 17.741448 0 0 1 25.019992 0c22.745446 17.741448 45.490893 34.800533 70.283429 51.404709a68.236339 68.236339 0 0 0 17.968903 6.141271 57.54598 57.54598 0 0 0 0-18.651267c-8.188361-27.976899-16.83163-55.726344-26.612173-83.020879a19.106175 19.106175 0 0 1 8.415816-26.839627c25.019991-17.286539 49.357619-35.710351 73.467792-54.134163 3.639271-2.729454 5.003998-8.415815 7.505997-12.73745a38.439805 38.439805 0 0 0-13.647268-6.14127h-37.757441zM1011.035096 312.977343h-87.11506a20.015993 20.015993 0 0 1-22.745447-16.83163c-8.64327-28.431808-17.968903-56.636162-27.749445-84.613061-1.592181-4.776544-7.278543-8.188361-11.145268-12.282541-3.866726 4.09418-9.325633 7.505997-11.372724 12.282541-5.686362 15.011995-10.235451 30.478898-15.239449 45.490893-17.741448 55.271435-17.741448 55.271435-75.742336 55.271435h-46.85562a47.083074 47.083074 0 0 0-14.78454 6.596179 45.490893 45.490893 0 0 0 8.415815 12.509996c23.882719 17.968903 47.537983 35.937805 72.103065 52.769436a19.788538 19.788538 0 0 1 8.870724 27.067081c-9.553088 25.929809-17.513994 52.541981-25.4749 78.926699a110.54287 110.54287 0 0 0-1.592181 22.745447 79.381608 79.381608 0 0 0 20.925811-7.733452c22.745446-15.694358 45.490893-32.07108 67.099067-49.130164a19.106175 19.106175 0 0 1 27.067081 0c22.745446 17.741448 46.628165 34.800533 70.28343 51.632163a61.64016 61.64016 0 0 0 17.741448 4.776544 54.134163 54.134163 0 0 0 0-17.059085c-8.415815-27.294536-16.83163-54.361617-26.612173-80.973789a22.745446 22.745446 0 0 1 10.007997-31.843625c24.110173-15.921813 47.310529-33.890715 70.28343-51.632164 4.09418-2.956908 5.458907-9.553088 7.960906-14.329631a45.490893 45.490893 0 0 0-14.329631-3.639272z"/></svg>排名与等级</button>
+      <button type="button" class="tab-btn" data-tab="profile"><svg class="tab-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M597.12 528.192c-106.176 0-192.512-86.336-192.512-192.512s86.4-192.512 192.512-192.512 192.512 86.336 192.512 192.512-86.4 192.512-192.512 192.512z m0-337.024C517.44 191.168 452.608 256 452.608 335.68S517.44 480.192 597.12 480.192s144.512-64.832 144.512-144.512-64.832-144.512-144.512-144.512z"/><path d="M264 880.64a24 24 0 0 1-24-24 375.808 375.808 0 0 1 375.424-375.296 24 24 0 0 1 0 48A327.68 327.68 0 0 0 288 856.64a23.936 23.936 0 0 1-24 24zM345.344 504.832c-89.472 0-151.936-69.504-151.936-169.152a169.344 169.344 0 0 1 169.152-169.152 24 24 0 0 1 0 48.064 121.28 121.28 0 0 0-121.152 121.152c0 60.288 32.128 121.152 103.936 121.152a24 24 0 0 1 0 47.936z"/><path d="M85.376 766.976a24 24 0 0 1-24-24c0-165.824 123.968-286.208 294.72-286.208a24 24 0 0 1 0 48.064c-145.28 0-246.72 97.92-246.72 238.208a24 24 0 0 1-24 23.936zM938.688 880.768a24.064 24.064 0 0 1-23.936-22.208 325.568 325.568 0 0 0-206.144-280.064 23.936 23.936 0 1 1 17.6-44.544 373.056 373.056 0 0 1 236.352 321.024 24 24 0 0 1-22.144 25.728l-1.728 0.064z"/></svg>班级画像</button>
+      <button type="button" class="tab-btn" data-tab="topn"><svg class="tab-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M78.605809 620.348548c25.493776 0 42.489627-16.995851 42.489627-42.489627V301.676349L257.062241 352.6639v135.966805c0 25.493776 16.995851 42.489627 46.738589 59.485478 12.746888 114.721992 106.224066 199.701245 216.697095 199.701244 110.473029 0 203.950207-89.228216 216.697096-199.701244 25.493776-12.746888 46.738589-33.991701 46.738589-59.485478V352.6639l186.954357-72.232365c16.995851-4.248963 25.493776-21.244813 25.493776-38.240664s-8.497925-33.991701-25.493776-38.240664L533.244813 4.248963c-12.746888-4.248963-25.493776-4.248963-33.991701 0L65.858921 203.950207c-21.244813 4.248963-29.742739 21.244813-29.742738 38.240664v335.66805c0 25.493776 16.995851 42.489627 42.489626 42.489627z m437.643154 42.489626c-55.236515 0-101.975104-38.240664-123.219917-89.228215 63.73444 12.746888 123.219917 12.746888 123.219917 12.746887s63.73444 0 123.219917-12.746887c-21.244813 50.987552-67.983402 89.228216-123.219917 89.228215z m178.456431-191.203319c-25.493776 12.746888-89.228216 29.742739-178.456431 29.742738s-152.962656-16.995851-178.456432-29.742738v-84.979253l161.460581 63.734439c4.248963 0 8.497925 4.248963 16.995851 4.248963s8.497925 0 16.99585-4.248963l161.460581-63.734439v84.979253z m-178.456431-378.157677l322.921161 144.464731-322.921161 123.219917-322.921162-123.219917 322.921162-144.464731zM996.381743 956.016598c-89.228216-127.46888-276.182573-208.19917-480.13278-208.199171S125.344398 828.547718 36.116183 956.016598c-12.746888 21.244813-8.497925 46.738589 8.497925 59.485477 21.244813 12.746888 46.738589 8.497925 59.485477-8.497926 72.232365-106.224066 233.692946-169.958506 412.149378-169.958506s339.917012 67.983402 412.149377 169.958506c8.497925 12.746888 21.244813 16.995851 33.991701 16.995851 8.497925 0 16.995851-4.248963 25.493776-8.497925 16.995851-12.746888 21.244813-42.489627 8.497926-59.485477z"/></svg>前N名分析</button>
+      <button type="button" class="tab-btn" data-tab="weakness"><svg class="tab-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M205.248 615.936l5.312 4.48 71.552 71.488 71.552-71.488a38.4 38.4 0 0 1 58.752 48.96l-4.48 5.312-71.552 71.552 71.616 71.552a38.4 38.4 0 0 1-49.024 58.752l-5.312-4.48-71.552-71.552-71.552 71.616a38.4 38.4 0 0 1-58.752-49.024l4.48-5.312 71.488-71.552-71.488-71.552a38.4 38.4 0 0 1 48.96-58.752z m690.496 176.128a38.4 38.4 0 0 1 6.208 76.288l-6.208 0.512H554.176a38.4 38.4 0 0 1-6.208-76.288l6.208-0.512h341.568z m-152.128-206.016a38.4 38.4 0 0 1 6.208 76.288l-6.208 0.512h-189.44a38.4 38.4 0 0 1-6.208-76.288l6.208-0.512h189.44z m152.128-254.4a38.4 38.4 0 0 1 6.208 76.288l-6.208 0.512H554.176a38.4 38.4 0 0 1-6.208-76.352l6.208-0.448h341.568zM424.96 188.544a38.4 38.4 0 0 1 4.48 48.96l-4.48 5.312-140.992 140.992a51.2 51.2 0 0 1-66.688 4.992l-5.76-4.992-72.32-72.32a38.4 38.4 0 0 1 48.96-58.752l5.312 4.48 54.272 54.208 122.88-122.88a38.4 38.4 0 0 1 54.336 0zM743.616 128a38.4 38.4 0 0 1 6.208 76.288l-6.208 0.512h-189.44a38.4 38.4 0 0 1-6.208-76.288L554.24 128h189.44z"/></svg>优弱势分析</button>
+    </nav>
+
+    <section id="tab-overview" class="tab-panel active" aria-labelledby="overviewTitle">
+      <div class="panel-head">
+        <div>
+          <h2 id="overviewTitle"><svg class="title-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M768.256 128a127.744 127.744 0 0 1 127.530667 120.277333l0.213333 7.509334V840.96c0 76.458667-63.36 117.76-131.712 88.064l-6.656-3.072L512 803.114667l-245.632 122.837333c-66.176 33.066667-129.877333-1.28-137.6-70.656l-0.554667-7.04-0.213333-7.253333V255.744a127.829333 127.829333 0 0 1 120.234667-127.573333l7.509333-0.170667h512.512z m0 85.333333H255.744a42.496 42.496 0 0 0-42.112 37.546667L213.333333 255.744V840.96l0.128 6.4c0.426667 6.826667 2.005333 7.936 8.192 5.333333l6.528-3.072 264.746667-132.309333a42.666667 42.666667 0 0 1 32.853333-2.218667l5.290667 2.218667 264.746667 132.309333 6.016 2.901334c7.466667 3.242667 8.618667 1.706667 8.789333-7.68L810.666667 255.786667c0-21.76-16.384-39.68-37.461334-42.154667L768.256 213.333333zM597.333333 298.666667c54.912 0 56.832 79.530667 5.674667 84.992L597.333333 383.914667h-170.666666a42.666667 42.666667 0 0 1-4.992-84.992L426.666667 298.624h170.666666z"/></svg>考试概况</h2>
+          <p>总分及各学科的整体表现，指标解释见表格下方说明。</p>
+        </div>
+        <div class="head-actions no-print">
+          <button type="button" class="btn ghost small" id="exportOverviewXlsx" title="导出 XLSX 表格">导出表格</button>
+          <button type="button" class="btn ghost small" id="exportOverviewImage">导出图片</button>
+          <button type="button" class="btn ghost small" id="printBtn">打印本页</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="overviewTable" class="overview-table">
+          <thead>
+            <tr>
+              <th>学科名称</th>
+              <th>满分</th>
+              <th>参考人数</th>
+              <th>平均分</th>
+              <th>优秀率</th>
+              <th>合格率</th>
+              <th>低分率</th>
+              <th>标准差</th>
+              <th>差异系数</th>
+            </tr>
+          </thead>
+          <tbody id="overviewBody"></tbody>
+        </table>
+      </div>
+      <div class="notes">
+        <div class="note-title">指标解释</div>
+        <ul class="note-list">
+          <li><b>优秀率：</b>得分 ≥ 满分 × 85% 的学生比例。</li>
+          <li><b>合格率：</b>得分 ≥ 满分 × 60% 的学生比例。</li>
+          <li><b>低分率：</b>得分 ≤ 满分 × 30% 的学生比例。</li>
+          <li><b>差异系数：</b>标准差 ÷ 平均分，数值越小说明分数越均衡。</li>
+          <li><b>标准差：</b>按总体标准差计算（除以参考人数）。</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="tab-basic" class="tab-panel" aria-labelledby="basicTitle">
+      <div class="panel-head">
+        <div>
+          <h2 id="basicTitle"><svg class="title-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M768.256 128a127.744 127.744 0 0 1 127.530667 120.277333l0.213333 7.509334V840.96c0 76.458667-63.36 117.76-131.712 88.064l-6.656-3.072L512 803.114667l-245.632 122.837333c-66.176 33.066667-129.877333-1.28-137.6-70.656l-0.554667-7.04-0.213333-7.253333V255.744a127.829333 127.829333 0 0 1 120.234667-127.573333l7.509333-0.170667h512.512z m0 85.333333H255.744a42.496 42.496 0 0 0-42.112 37.546667L213.333333 255.744V840.96l0.128 6.4c0.426667 6.826667 2.005333 7.936 8.192 5.333333l6.528-3.072 264.746667-132.309333a42.666667 42.666667 0 0 1 32.853333-2.218667l5.290667 2.218667 264.746667 132.309333 6.016 2.901334c7.466667 3.242667 8.618667 1.706667 8.789333-7.68L810.666667 255.786667c0-21.76-16.384-39.68-37.461334-42.154667L768.256 213.333333zM597.333333 298.666667c54.912 0 56.832 79.530667 5.674667 84.992L597.333333 383.914667h-170.666666a42.666667 42.666667 0 0 1-4.992-84.992L426.666667 298.624h170.666666z"/></svg>考试基础分析</h2>
+        </div>
+        <div class="head-actions no-print">
+          <button type="button" class="btn ghost small" id="exportBasicXlsx">导出表格</button>
+          <button type="button" class="btn ghost small" id="exportBasicImage">导出图片</button>
+          <button type="button" class="btn ghost small print-panel">打印本页</button>
+        </div>
+      </div>
+      <div class="filter-bar no-print">
+        <div class="filter-group">
+          <span class="filter-group-title">查看视角</span>
+          <div class="view-switch" id="basicModeChips" role="group" aria-label="查看视角">
+            <span class="view-switch-thumb" aria-hidden="true"></span>
+            <button type="button" class="view-switch-btn active" data-basic-mode="class">
+              <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor"><path d="M512 512a192 192 0 1 0 0-384 192 192 0 0 0 0 384z m0 64c-141.385 0-256 100.288-256 224v64a32 32 0 0 0 32 32h448a32 32 0 0 0 32-32v-64c0-123.712-114.615-224-256-224z"></path></svg>
+              班级视角
+            </button>
+            <button type="button" class="view-switch-btn" data-basic-mode="subject">
+              <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor"><path d="M176 128h288c35.346 0 64 28.654 64 64v672c-25.6-21.333-61.867-32-96-32H176V128z m672 0H560c-35.346 0-64 28.654-64 64v672c25.6-21.333 61.867-32 96-32h256V128z"></path></svg>
+              学科视角
+            </button>
+          </div>
+          <label class="subject-view-sort" id="teacherGradeWrap" title="按届自动匹配：2027届=初三、2028届=初二、2029届=初一">任教团队
+            <span class="teacher-grade-label" id="teacherGradeLabel">—</span>
+          </label>
+          <span class="basic-breadcrumb" id="basicBreadcrumb"></span>
+        </div>
+
+        <div class="filter-group" id="subjectViewPicker" hidden>
+          <span class="filter-group-title">分析学科</span>
+          <div class="chips pill-chips" id="subjectViewChips"></div>
+        </div>
+
+        <div class="filter-group">
+          <span class="filter-group-title">显示指标</span>
+          <div class="chips pill-chips" id="metricChips"></div>
+          <label class="subject-view-sort" id="subjectSortWrap" hidden>排序
+            <select id="subjectViewSort">
+              <option value="class">按班号</option>
+              <option value="rank">按班级名次</option>
+              <option value="diff">按与年级平均分差值</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="table-wrap basic-table-wrap">
+        <table id="basicTable" class="basic-table">
+          <thead id="basicHead"></thead>
+          <tbody id="basicBody"></tbody>
+        </table>
+      </div>
+      <div id="basicSubjectSummary" class="subject-diff-summary" hidden></div>
+      <div id="basicSubjectGrid" class="subject-card-grid" hidden></div>
+      <section class="basic-roster" id="basicRoster" hidden>
+        <div class="segment-head">
+          <div>
+            <h3><svg class="title-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M768.256 128a127.744 127.744 0 0 1 127.530667 120.277333l0.213333 7.509334V840.96c0 76.458667-63.36 117.76-131.712 88.064l-6.656-3.072L512 803.114667l-245.632 122.837333c-66.176 33.066667-129.877333-1.28-137.6-70.656l-0.554667-7.04-0.213333-7.253333V255.744a127.829333 127.829333 0 0 1 120.234667-127.573333l7.509333-0.170667h512.512z m0 85.333333H255.744a42.496 42.496 0 0 0-42.112 37.546667L213.333333 255.744V840.96l0.128 6.4c0.426667 6.826667 2.005333 7.936 8.192 5.333333l6.528-3.072 264.746667-132.309333a42.666667 42.666667 0 0 1 32.853333-2.218667l5.290667 2.218667 264.746667 132.309333 6.016 2.901334c7.466667 3.242667 8.618667 1.706667 8.789333-7.68L810.666667 255.786667c0-21.76-16.384-39.68-37.461334-42.154667L768.256 213.333333zM597.333333 298.666667c54.912 0 56.832 79.530667 5.674667 84.992L597.333333 383.914667h-170.666666a42.666667 42.666667 0 0 1-4.992-84.992L426.666667 298.624h170.666666z"/></svg>人数名单（按班级）</h3>
+            <p id="basicRosterDesc">选择低分人数、前 27% 人数或后 27% 人数后，按班级列出符合条件的学生。</p>
+          </div>
+          <div class="head-actions no-print">
+            <label class="roster-subject">名单学科
+              <select id="basicRosterSubject"><option value="__total__">总分</option></select>
+            </label>
+            <button type="button" class="btn ghost small" id="exportRosterXlsx">导出表格</button>
+          </div>
+        </div>
+        <div class="roster-grid" id="basicRosterContent"></div>
+        <div class="roster-note" id="basicRosterNote"></div>
+      </section>
+      <div class="notes">
+        <div class="note-title">指标与排名说明</div>
+        <ul class="note-list">
+          <li><b>显示与排名：</b>每次显示一项指标；平均分、优秀率、合格率、前 27% 比率越高排名越高，低分率、后 27% 比率越低排名越高；前/后 27% 人数与低分人数不显示排名。</li>
+          <li><b>排序：</b>学科视角可按班号、按班级名次，或按与年级的差值排序；差值取「本班该指标 − 年级同指标」，即平均分对年级平均分、优秀率对年级优秀率、合格率对年级合格率、低分率对年级低分率。低分率越低越好，差值为负（低于年级）排在前面；低分人数与前/后 27% 人数、比率不参与与年级对比。</li>
+          <li><b>前 27% 比率：</b>该班进入年级该学科前 27% 的人数 ÷ 班级人数；后 27% 比率同理，按全级该学科有效成绩排序。</li>
+          <li><b>前/后 27% 人数：</b>按全级该学科有效成绩排序，取年级前/后 27% 分数线，统计各班进入该线的人数，同分一并计入；不显示排名，只显示与参考成绩相比的人数变化。</li>
+          <li><b>参考成绩：</b>排名类显示名次升降；前/后 27% 人数和低分人数显示人数增减；按当前满分计算。</li>
+          <li><b>班主任 / 任课教师：</b>按「届（毕业年份）」自动匹配任教团队（2027届=初三、2028届=初二、2029届=初一），无需手动选择；班级视角显示班主任，学科视角在每科下方显示各班任课教师。</li>
+          <li><b>低分人数：</b>低分率 × 该学科参考人数；各指标均按该学科有效成绩计算。</li>
+          <li id="refNoteLine" hidden><b>比对考试：</b><span id="refNoteText"></span></li>
+        </ul>
+      </div>
+
+      <section class="segment-section">
+        <div class="segment-head">
+          <div>
+            <h3><svg class="title-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M768.256 128a127.744 127.744 0 0 1 127.530667 120.277333l0.213333 7.509334V840.96c0 76.458667-63.36 117.76-131.712 88.064l-6.656-3.072L512 803.114667l-245.632 122.837333c-66.176 33.066667-129.877333-1.28-137.6-70.656l-0.554667-7.04-0.213333-7.253333V255.744a127.829333 127.829333 0 0 1 120.234667-127.573333l7.509333-0.170667h512.512z m0 85.333333H255.744a42.496 42.496 0 0 0-42.112 37.546667L213.333333 255.744V840.96l0.128 6.4c0.426667 6.826667 2.005333 7.936 8.192 5.333333l6.528-3.072 264.746667-132.309333a42.666667 42.666667 0 0 1 32.853333-2.218667l5.290667 2.218667 264.746667 132.309333 6.016 2.901334c7.466667 3.242667 8.618667 1.706667 8.789333-7.68L810.666667 255.786667c0-21.76-16.384-39.68-37.461334-42.154667L768.256 213.333333zM597.333333 298.666667c54.912 0 56.832 79.530667 5.674667 84.992L597.333333 383.914667h-170.666666a42.666667 42.666667 0 0 1-4.992-84.992L426.666667 298.624h170.666666z"/></svg>各班级各学科分数段人数</h3>
+            <p>先选择科目，再查看各班达到各分数线的学生人数；每列均为“≥ 分数线”，各列可重叠计数。</p>
+          </div>
+          <div class="head-actions no-print">
+            <button type="button" class="btn ghost small" id="exportSegmentXlsx">导出表格</button>
+            <button type="button" class="btn ghost small" id="exportSegmentImage">导出图片</button>
+          </div>
+        </div>
+        <div class="filters no-print">
+          <label>分析科目
+            <select id="segmentSubject"><option value="">请选择科目</option></select>
+          </label>
+          <span class="spacer"></span>
+          <span class="count-note" id="segmentCount"></span>
+        </div>
+        <div class="segment-empty" id="segmentEmpty">请选择科目查看分数段人数。</div>
+        <div class="table-wrap segment-table-wrap" id="segmentTableWrap" hidden>
+          <table id="segmentTable" class="segment-table">
+            <thead id="segmentHead"></thead>
+            <tbody id="segmentBody"></tbody>
+          </table>
+        </div>
+        <div class="notes" id="segmentNotes" hidden>
+          <div class="note-title">分数段说明</div>
+          <ul class="note-list">
+            <li><b>计数口径：</b>每列为该科有效成绩 ≥ 对应分数线的累计人数，各列可重叠。</li>
+            <li><b>分数线：</b>120 分科目为 102/72/120/115/110/105/100/95/90；80 分科目为 68/48/80/75/70/65/60/55/50；60 分科目为 51/36/60/57/54/51/48/45/42。</li>
+            <li><b>其他：</b>体育仅统计满分；其他满分按 85%/60% 和 95%—70% 生成；参考人数为有效成绩人数，0 分计入统计。</li>
+          </ul>
+        </div>
+      </section>
+    </section>
+
+    <section id="tab-ranking" class="tab-panel" aria-labelledby="rankingTitle">
+      <div class="panel-head">
+        <div>
+          <h2 id="rankingTitle"><svg class="title-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M768.256 128a127.744 127.744 0 0 1 127.530667 120.277333l0.213333 7.509334V840.96c0 76.458667-63.36 117.76-131.712 88.064l-6.656-3.072L512 803.114667l-245.632 122.837333c-66.176 33.066667-129.877333-1.28-137.6-70.656l-0.554667-7.04-0.213333-7.253333V255.744a127.829333 127.829333 0 0 1 120.234667-127.573333l7.509333-0.170667h512.512z m0 85.333333H255.744a42.496 42.496 0 0 0-42.112 37.546667L213.333333 255.744V840.96l0.128 6.4c0.426667 6.826667 2.005333 7.936 8.192 5.333333l6.528-3.072 264.746667-132.309333a42.666667 42.666667 0 0 1 32.853333-2.218667l5.290667 2.218667 264.746667 132.309333 6.016 2.901334c7.466667 3.242667 8.618667 1.706667 8.789333-7.68L810.666667 255.786667c0-21.76-16.384-39.68-37.461334-42.154667L768.256 213.333333zM597.333333 298.666667c54.912 0 56.832 79.530667 5.674667 84.992L597.333333 383.914667h-170.666666a42.666667 42.666667 0 0 1-4.992-84.992L426.666667 298.624h170.666666z"/></svg>考试排名与等级</h2>
+          <p>按所选科目排名，同分采用平均排名；支持班级筛选、等级筛选与搜索。</p>
+        </div>
+        <div class="head-actions no-print">
+          <button type="button" class="btn ghost small" id="rankDownloadSchool">导出全级全科名单</button>
+          <button type="button" class="btn ghost small" id="rankDownloadClassAll" hidden>导出班级全科名单</button>
+          <button type="button" class="btn ghost small" id="rankDownloadClassCurrent" hidden>导出班级当前学科名单</button>
+          <button type="button" class="btn ghost small" id="exportRanking">导出表格</button>
+          <button type="button" class="btn ghost small print-panel">打印本页</button>
+        </div>
+      </div>
+      <div class="filters no-print">
+        <label>分析科目
+          <select id="rankSubject"><option value="__total__">总分</option></select>
+        </label>
+        <label>班级
+          <select id="classFilter"><option value="all">全级</option></select>
+        </label>
+        <label>等级
+          <select id="gradeFilter"><option value="all">全部等级</option></select>
+        </label>
+        <label>排序
+          <select id="rankSort">
+            <option value="school">按校排名</option>
+            <option value="class">按班排名</option>
+            <option value="id">按学号</option>
+            <option value="name">按姓名</option>
+          </select>
+        </label>
+        <label>搜索
+          <input id="searchInput" type="search" placeholder="输入姓名或学号" autocomplete="off">
+        </label>
+        <span class="spacer"></span>
+        <span class="count-note" id="rankCount"></span>
+      </div>
+      <div class="grade-summary" id="gradeSummary"></div>
+      <div class="table-wrap">
+        <table id="rankingTable">
+          <thead>
+            <tr>
+              <th>学号</th>
+              <th>姓名</th>
+              <th>班级</th>
+              <th id="rankScoreHead">总分</th>
+              <th>校排名<small>平均排名</small></th>
+              <th>班排名<small>平均排名</small></th>
+              <th>等级</th>
+            </tr>
+          </thead>
+          <tbody id="rankingBody"></tbody>
+        </table>
+      </div>
+      <div class="notes">
+        <p><b>分析科目：</b>可切换总分或各学科；排名、班排名、等级和等级分布按该科目重新计算。</p>
+        <p><b>平均排名：</b>取并列组名次区间的中点。例如 3 人并列第 1—3 名，平均排名为第 2 名，下一组从第 4 名开始；不改变不同分数组之间的先后顺序；名次显示四舍五入为整数。</p>
+        <p><b>等级：</b>按全级排序和固定累计百分比划分，并按人数取整；同分跨等级边界时按排序位置划分。</p>
+        <div class="legend-grid" id="gradeLegend"></div>
+      </div>
+    </section>
+
+    <section id="tab-profile" class="tab-panel" aria-label="班级画像">
+      <div class="panel-head">
+        <div class="head-actions no-print">
+          <button type="button" class="btn ghost small print-panel">打印本页</button>
+        </div>
+      </div>
+      <section class="heat-section">
+        <div class="segment-head">
+          <div>
+            <h2 class="section-heading heat-section-title"><svg class="title-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M768.256 128a127.744 127.744 0 0 1 127.530667 120.277333l0.213333 7.509334V840.96c0 76.458667-63.36 117.76-131.712 88.064l-6.656-3.072L512 803.114667l-245.632 122.837333c-66.176 33.066667-129.877333-1.28-137.6-70.656l-0.554667-7.04-0.213333-7.253333V255.744a127.829333 127.829333 0 0 1 120.234667-127.573333l7.509333-0.170667h512.512z m0 85.333333H255.744a42.496 42.496 0 0 0-42.112 37.546667L213.333333 255.744V840.96l0.128 6.4c0.426667 6.826667 2.005333 7.936 8.192 5.333333l6.528-3.072 264.746667-132.309333a42.666667 42.666667 0 0 1 32.853333-2.218667l5.290667 2.218667 264.746667 132.309333 6.016 2.901334c7.466667 3.242667 8.618667 1.706667 8.789333-7.68L810.666667 255.786667c0-21.76-16.384-39.68-37.461334-42.154667L768.256 213.333333zM597.333333 298.666667c54.912 0 56.832 79.530667 5.674667 84.992L597.333333 383.914667h-170.666666a42.666667 42.666667 0 0 1-4.992-84.992L426.666667 298.624h170.666666z"/></svg>班级学科质量看板</h2>
+            <p class="heat-legend">
+              <span class="hl-item"><i class="hl-dot hl-green"></i>绿色：班级排名前 5</span>
+              <span class="hl-item"><i class="hl-dot hl-orange"></i>橙色：中间名次</span>
+              <span class="hl-item"><i class="hl-dot hl-red"></i>红色：班级排名后 5</span>
+              <span class="hl-item"><i class="hl-dot hl-base"></i>灰色：全级基准</span>
+              <span class="hl-note">低分率越低排名越靠前</span>
+            </p>
+          </div>
+        </div>
+        <div class="filter-group no-print">
+          <span class="filter-group-title">看板指标</span>
+          <div class="chips pill-chips" id="heatMetricChips">
+            <button type="button" class="chip active" data-heat-metric="mean">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M7 20v-6"/><path d="M12 20V6"/><path d="M17 20v-9"/></svg>
+              平均分
+            </button>
+            <button type="button" class="chip" data-heat-metric="excellentRate">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6l2.6 5.3 5.9.9-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.8l5.9-.9z"/></svg>
+              优秀率
+            </button>
+            <button type="button" class="chip" data-heat-metric="passRate">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4"/><path d="M8.4 12.3l2.5 2.5 4.7-5.2"/></svg>
+              合格率
+            </button>
+            <button type="button" class="chip" data-heat-metric="lowRate">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6l13 13"/><path d="M18 11v8h-8"/></svg>
+              低分率
+            </button>
+          </div>
+          <span class="spacer"></span>
+          <button type="button" class="btn ghost small" id="heatDownloadXlsx">导出表格</button>
+          <button type="button" class="btn ghost small" id="heatDownloadImage">导出图片</button>
+        </div>
+        <div class="table-wrap heat-table-wrap">
+          <table id="heatTable" class="heat-table">
+            <thead id="heatHead"></thead>
+            <tbody id="heatBody"></tbody>
+          </table>
+        </div>
+        <div class="notes">
+          <div class="note-title">看板口径</div>
+          <ul class="note-list">
+            <li><b>指标：</b>平均分、优秀率（≥ 85%）、合格率（≥ 60%）、低分率（≤ 30%）。</li>
+            <li><b>颜色：</b>按学科班级排名，前 5 绿色、6—11 橙色、后 5 红色；低分率越低越靠前；以全级为基准。</li>
+            <li><b>范围：</b>看板显示本次考试；参考成绩对比见“考试基础分析”。</li>
+          </ul>
+        </div>
+      </section>
+      <section class="profile-section">
+        <div class="profile-section-head">
+          <div>
+            <h2 class="section-heading"><svg class="title-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M768.256 128a127.744 127.744 0 0 1 127.530667 120.277333l0.213333 7.509334V840.96c0 76.458667-63.36 117.76-131.712 88.064l-6.656-3.072L512 803.114667l-245.632 122.837333c-66.176 33.066667-129.877333-1.28-137.6-70.656l-0.554667-7.04-0.213333-7.253333V255.744a127.829333 127.829333 0 0 1 120.234667-127.573333l7.509333-0.170667h512.512z m0 85.333333H255.744a42.496 42.496 0 0 0-42.112 37.546667L213.333333 255.744V840.96l0.128 6.4c0.426667 6.826667 2.005333 7.936 8.192 5.333333l6.528-3.072 264.746667-132.309333a42.666667 42.666667 0 0 1 32.853333-2.218667l5.290667 2.218667 264.746667 132.309333 6.016 2.901334c7.466667 3.242667 8.618667 1.706667 8.789333-7.68L810.666667 255.786667c0-21.76-16.384-39.68-37.461334-42.154667L768.256 213.333333zM597.333333 298.666667c54.912 0 56.832 79.530667 5.674667 84.992L597.333333 383.914667h-170.666666a42.666667 42.666667 0 0 1-4.992-84.992L426.666667 298.624h170.666666z"/></svg>各班级雷达图与学科贡献率柱状图</h2>
+            <p>比对时自动剔除缺失学科，用共同学科重新计算总分和贡献率；雷达图与柱状图同刻度，雷达图蓝色本次、橙色比对；柱状图实心为本次、虚线为比对，颜色随贡献正负。</p>
+          </div>
+        </div>
+        <div class="profile-legend">
+          <span><i class="legend-line current"></i>本次考试</span>
+          <span id="profileRefLegend" hidden><i class="legend-line reference"></i>比对考试</span>
+          <span class="profile-scale" id="profileScaleNote"></span>
+        </div>
+        <div class="profile-subject-legend" id="barSubjectLegend"></div>
+        <div class="profile-grid" id="profileGrid"></div>
+      </section>
+      <div class="notes">
+        <div class="note-title">计算说明</div>
+        <ul class="note-list">
+          <li><b>贡献率：</b>单科 T 标准分均分 − 总分 T 标准分均分；T 标准分均值 500、标准差 100，正值优势、负值拖累。</li>
+          <li><b>口径：</b>按同时具有该科和总分有效成绩的学生计算；0 分计入统计。</li>
+          <li><b>图表：</b>比对时缺失学科剔除，用共同学科重新计算总分和贡献率；柱状图与雷达图同刻度，雷达图蓝色本次、橙色比对；柱状图实心本次、虚线比对，颜色随贡献正负。</li>
+          <li id="profileRefLine" hidden><b>比对考试：</b><span id="profileRefText"></span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="tab-topn" class="tab-panel" aria-labelledby="topnTitle">
+      <div class="panel-head">
+        <div>
+          <h2 id="topnTitle"><svg class="title-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M768.256 128a127.744 127.744 0 0 1 127.530667 120.277333l0.213333 7.509334V840.96c0 76.458667-63.36 117.76-131.712 88.064l-6.656-3.072L512 803.114667l-245.632 122.837333c-66.176 33.066667-129.877333-1.28-137.6-70.656l-0.554667-7.04-0.213333-7.253333V255.744a127.829333 127.829333 0 0 1 120.234667-127.573333l7.509333-0.170667h512.512z m0 85.333333H255.744a42.496 42.496 0 0 0-42.112 37.546667L213.333333 255.744V840.96l0.128 6.4c0.426667 6.826667 2.005333 7.936 8.192 5.333333l6.528-3.072 264.746667-132.309333a42.666667 42.666667 0 0 1 32.853333-2.218667l5.290667 2.218667 264.746667 132.309333 6.016 2.901334c7.466667 3.242667 8.618667 1.706667 8.789333-7.68L810.666667 255.786667c0-21.76-16.384-39.68-37.461334-42.154667L768.256 213.333333zM597.333333 298.666667c54.912 0 56.832 79.530667 5.674667 84.992L597.333333 383.914667h-170.666666a42.666667 42.666667 0 0 1-4.992-84.992L426.666667 298.624h170.666666z"/></svg>前 N 名分析（总分）</h2>
+          <p>统计各班进入全级前 N 名分数线的人数，同分一并计入。</p>
+        </div>
+        <div class="head-actions no-print">
+          <span class="topn-mode-label" id="topnModeLabel">模式一</span>
+          <button type="button" class="btn ghost small" id="exportTopnXlsx">导出表格</button>
+          <button type="button" class="btn ghost small" id="exportTopnImage">导出图片</button>
+          <button type="button" class="btn ghost small print-panel">打印本页</button>
+        </div>
+      </div>
+      <div class="topn-controls no-print">
+        <span class="filter-group-title">层次模式</span>
+        <div class="view-switch" id="topnModeButtons" role="group" aria-label="层次模式">
+          <span class="view-switch-thumb" aria-hidden="true"></span>
+          <button type="button" class="view-switch-btn active" data-topn-mode="1" title="层次：10/30/50/100/150/200/300">模式一</button>
+          <button type="button" class="view-switch-btn" data-topn-mode="2" title="层次：40/80/140/300/460/580">模式二</button>
+        </div>
+      </div>
+      <div class="topn-note" id="topnNote">按总分降序，取第 N 名学生的总分为线，同分一并计入；选择比对考试后显示人数变化。</div>
+      <div class="topn-legend"><i></i>橙色为该层次人数前 3 的班级（并列计入）</div>
+      <div class="table-wrap topn-table-wrap">
+        <table id="topnTable" class="topn-table">
+          <thead id="topnHead"></thead>
+          <tbody id="topnBody"></tbody>
+        </table>
+      </div>
+      <div class="notes">
+        <div class="note-title">统计说明</div>
+        <ul class="note-list">
+          <li><b>分数线：</b>按总分降序取第 N 名分数，同分一并计入，实际人数可能略高于 N；表中为各班人数，“合计”为全级实际人数。</li>
+          <li><b>人数变化：</b>选择比对考试后显示人数变化（+ 增加、- 减少、0 持平）。</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="tab-weakness" class="tab-panel" aria-labelledby="weaknessTitle">
+      <div class="panel-head">
+        <div>
+          <h2 id="weaknessTitle"><svg class="title-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M768.256 128a127.744 127.744 0 0 1 127.530667 120.277333l0.213333 7.509334V840.96c0 76.458667-63.36 117.76-131.712 88.064l-6.656-3.072L512 803.114667l-245.632 122.837333c-66.176 33.066667-129.877333-1.28-137.6-70.656l-0.554667-7.04-0.213333-7.253333V255.744a127.829333 127.829333 0 0 1 120.234667-127.573333l7.509333-0.170667h512.512z m0 85.333333H255.744a42.496 42.496 0 0 0-42.112 37.546667L213.333333 255.744V840.96l0.128 6.4c0.426667 6.826667 2.005333 7.936 8.192 5.333333l6.528-3.072 264.746667-132.309333a42.666667 42.666667 0 0 1 32.853333-2.218667l5.290667 2.218667 264.746667 132.309333 6.016 2.901334c7.466667 3.242667 8.618667 1.706667 8.789333-7.68L810.666667 255.786667c0-21.76-16.384-39.68-37.461334-42.154667L768.256 213.333333zM597.333333 298.666667c54.912 0 56.832 79.530667 5.674667 84.992L597.333333 383.914667h-170.666666a42.666667 42.666667 0 0 1-4.992-84.992L426.666667 298.624h170.666666z"/></svg>学生优弱势科目分析</h2>
+          <p>用“总分排名 − 学科排名”的差值识别每名学生的相对优势与相对弱势科目。</p>
+        </div>
+        <div class="head-actions no-print">
+          <button type="button" class="btn ghost small" id="exportWeaknessXlsx">导出表格</button>
+          <button type="button" class="btn ghost small" id="exportWeakImage" hidden>导出图片</button>
+          <button type="button" class="btn ghost small print-panel">打印本页</button>
+        </div>
+      </div>
+      <div class="filters weak-filters no-print">
+        <div class="filter-group">
+          <span class="filter-group-label">查看范围</span>
+          <select id="weakScope"><option value="all">全级</option></select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-group-label">搜索学生</span>
+          <input id="weakSearch" class="weak-search" type="search" placeholder="输入姓名或学号" autocomplete="off">
+        </div>
+        <div class="filter-group">
+          <span class="filter-group-label">排序</span>
+          <select id="weakSort">
+            <option value="total">按总分排序</option>
+            <option value="id">按学号排序</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-group-label">快速筛选</span>
+          <div class="view-switch" id="weakTypeChips" role="group" aria-label="快速筛选" data-tone="all">
+            <span class="view-switch-thumb" aria-hidden="true"></span>
+            <button type="button" class="view-switch-btn active" data-weak-filter="all" title="显示全部学生">
+              <span class="weak-filter-label">全部</span>
+              <span class="weak-filter-count" hidden></span>
+            </button>
+            <button type="button" class="view-switch-btn" data-weak-filter="strongAdv" title="筛选至少一科差值 ≥ +50 的学生">
+              <span class="weak-filter-label">只看强优势</span>
+              <span class="weak-filter-count" hidden></span>
+            </button>
+            <button type="button" class="view-switch-btn" data-weak-filter="strongWeak" title="筛选至少一科差值 ≤ -50 的学生">
+              <span class="weak-filter-label">只看强弱势</span>
+              <span class="weak-filter-count" hidden></span>
+            </button>
+          </div>
+          <span class="spacer"></span>
+          <span class="count-note" id="weakCount"></span>
+        </div>
+      </div>
+      <div class="weak-legend">
+        <span class="diff-badge strong-adv">强优势（差值 ≥ +50）</span>
+        <span class="diff-badge strong-weak">强弱势（差值 ≤ -50）</span>
+        <span class="weak-legend-note"><b class="plain-adv">+</b> 正贡献 / <b class="plain-weak">-</b> 负贡献，颜色区分</span>
+      </div>
+      <div class="table-wrap weak-table-wrap">
+        <table id="weakTable" class="weak-table">
+          <thead id="weakHead"></thead>
+          <tbody id="weakBody"></tbody>
+        </table>
+      </div>
+      <div class="weak-pager no-print" id="weakPager" hidden>
+        <span class="weak-pager-info" id="weakPagerInfo"></span>
+        <span class="spacer"></span>
+        <label class="weak-pager-size">每页
+          <select id="weakPageSize">
+            <option value="20">20 条</option>
+            <option value="50" selected>50 条</option>
+            <option value="100">100 条</option>
+            <option value="0">全部</option>
+          </select>
+        </label>
+        <button type="button" class="btn ghost small" id="weakPrevPage">上一页</button>
+        <button type="button" class="btn ghost small" id="weakNextPage">下一页</button>
+      </div>
+      <div class="notes">
+        <div class="note-title">计算说明</div>
+        <ul class="note-list">
+          <li><b>差值：</b>总分排名 − 学科排名；正数表示该科排名优于总分，负数表示落后。</li>
+          <li><b>分类：</b>差值 ≥ +50 强优势；0 &lt; 差值 &lt; +50 正贡献；差值 = 0 持平；-50 &lt; 差值 &lt; 0 负贡献；差值 ≤ -50 强弱势。</li>
+          <li><b>口径：</b>排名为全级平均排名；选择班级仅筛选名单；缺考显示“—”，0 分计入统计。</li>
+        </ul>
+      </div>
+    </section>
+
+  </section>
+</main>
+
+<!-- 学生学科诊断报告 -->
+<div class="modal-mask" id="studentReportModal" hidden>
+  <div class="modal student-report" role="dialog" aria-modal="true" aria-labelledby="srTitle">
+    <div class="modal-head">
+      <div>
+        <h3 id="srTitle">学生学科诊断报告</h3>
+        <p id="srSub">—</p>
+      </div>
+      <div class="sr-head-actions no-print">
+        <button type="button" class="btn ghost small" id="srExportImage">导出图片</button>
+        <button type="button" class="modal-close" id="srClose" aria-label="关闭">×</button>
+      </div>
+    </div>
+    <div class="modal-body" id="srBody"></div>
+    <div class="modal-foot">
+      <button type="button" class="btn ghost" id="srCloseBtn">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 满分设置 -->
+<div class="modal-mask" id="fullScoreModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="fullScoreTitle">
+    <div class="modal-head">
+      <div>
+        <h3 id="fullScoreTitle">学科满分设置</h3>
+        <p>修改后立即重新计算全部指标，并按学科名称记住设置；体育默认 60 分。</p>
+      </div>
+      <button type="button" class="modal-close" data-close="fullScoreModal" aria-label="关闭">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="score-list" id="fullScoreList"></div>
+      <div class="total-full"><span>总分满分（上传学科满分之和）</span><b id="totalFullPreview">0</b></div>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn ghost small" id="resetFullScores">恢复默认</button>
+      <button type="button" class="btn ghost small" data-close="fullScoreModal">取消</button>
+      <button type="button" class="btn primary small" id="saveFullScores">保存并重新计算</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<!-- 经典脚本按依赖顺序加载，保证直接用 file:// 打开也能运行 -->
+<script src="js/teacher-roster.js?v=202611032325"></script>
+<script src="../../shared/base/config.js?v=202611032325"></script>
+<script src="../../shared/base/utils.js?v=202611032325"></script>
+<script src="js/teacher.js?v=202611032325"></script>
+<script src="../../shared/base/parsers.js?v=202611032325"></script>
+<script src="js/statistics.js?v=202611032325"></script>
+<script src="js/overview.js?v=202611032325"></script>
+<script src="js/basic.js?v=202611032325"></script>
+<script src="js/segment.js?v=202611032325"></script>
+<script src="js/topn.js?v=202611032325"></script>
+<script src="js/profile.js?v=202611032325"></script>
+<script src="js/heatmap.js?v=202611032325"></script>
+<script src="js/weakness.js?v=202611032325"></script>
+<script src="js/student-report.js?v=202611032325"></script>
+<script src="js/ranking.js?v=202611032325"></script>
+<script src="js/import.js?v=202611032325"></script>
+<script src="js/fullscore.js?v=202611032325"></script>
+<script src="js/exports.js?v=202611032325"></script>
+<script src="js/app.js?v=202611032325"></script>
+<!-- 云端数据访问与选择考试 -->
+<script src="../../shared/cloud/config.js?v=202611032325"></script>
+<script src="../../shared/cloud/api.js?v=202611032325"></script>
+<script src="../../shared/cloud/store.js?v=202611032325"></script>
+<script src="../../shared/cloud/ui.js?v=202611032325"></script>
+<script src="js/cloud-int.js?v=202611032325"></script>
+</body>
+</html>
