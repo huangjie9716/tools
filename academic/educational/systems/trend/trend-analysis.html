@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>趋势分析 · 珠海市九洲中学教育质量管理与分析系统</title>
+<script src="../../shared/auth.js?v=202611032325"></script>
+<link rel="icon" type="image/png" href="../../shared/assets/favicon.png?v=202611032325">
+<link rel="apple-touch-icon" href="../../shared/assets/favicon.png?v=202611032325">
+<link rel="stylesheet" href="../../shared/styles/cloud.css?v=202611032325">
+<link rel="stylesheet" href="css/style.css?v=202611032325">
+</head>
+<body>
+<main class="tr-main">
+
+  <div id="trAlert" class="jz-alert info" hidden></div>
+
+  <div class="tr-layout">
+    <!-- ============ 左栏：筛选条件 ============ -->
+    <aside class="tr-side">
+      <div class="tr-mode-switch" id="trModeSwitch" role="group" aria-label="分析对象">
+        <span class="tr-mode-thumb" aria-hidden="true"></span>
+        <button type="button" class="tr-mode-btn active" data-mode="grade">
+          <svg class="tr-mode-ico" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor"><path d="M368.128 218.624c-102.912 0-186.368 83.456-186.368 186.368 0 102.912 83.456 186.368 186.368 186.368 102.912 0 186.368-83.456 186.368-186.368-0.512-102.912-83.968-186.368-186.368-186.368z m131.072 206.848c-8.704 56.32-54.272 101.888-110.08 110.592C299.008 549.888 222.72 473.6 236.544 383.488c8.704-55.808 54.272-101.888 110.08-110.08 90.112-13.824 166.4 62.464 152.576 152.064zM677.376 219.648c-38.4-4.608-73.728 3.584-104.96 18.944-9.216 4.096-15.872 13.312-15.872 24.064 0 14.848 11.776 26.624 26.624 26.624 6.144 0 11.264-2.048 15.36-5.632v0.512c26.624-12.8 57.344-17.408 90.112-8.704 49.664 13.312 88.576 54.272 97.28 104.96 14.336 83.968-49.664 156.672-131.072 156.672-14.336 0.512-26.112 11.776-26.112 26.624 0 14.336 11.776 26.112 26.112 26.624H656.384c100.864-1.024 182.272-81.408 184.32-182.272 3.072-93.696-69.632-176.64-163.328-188.416zM893.44 749.056c1.024-8.192 1.536-16.384 1.536-25.088 0-60.928-23.04-116.736-60.928-159.232-4.608-4.608-11.264-7.68-18.432-7.68-14.848 0-26.624 11.776-26.624 26.624 0 6.144 2.56 11.776 6.144 15.872 0 0-0.512 0-0.512 0.512 29.696 32.768 47.616 76.288 47.616 123.904 0 9.216-0.512 14.848-1.536 23.552V749.056c0 14.848 11.776 26.624 26.624 26.624 13.312 0 23.552-9.728 25.6-22.528h0.512v-4.096zM555.008 595.968c-20.48 0-32.768 21.504-23.04 39.936 13.824 26.112 22.016 55.808 22.016 87.552 0 17.408-2.56 33.792-6.656 49.664-4.608 16.384 8.704 32.768 25.6 32.768 12.288 0 22.528-8.192 25.6-19.968 5.632-19.968 8.704-40.96 8.704-62.464 0-41.472-10.752-79.872-29.184-114.176-4.608-8.704-13.312-13.312-23.04-13.312zM162.816 805.376c17.408 0 30.208-16.384 25.6-32.768-4.608-15.872-6.656-32.256-6.656-49.664 0-31.744 8.192-61.44 22.016-87.552 9.728-17.92-2.56-39.936-23.04-39.936-9.728 0-18.432 5.12-23.04 13.312-18.432 33.792-29.184 72.704-29.184 114.176 0 21.504 3.072 42.496 8.704 62.464 3.072 11.776 13.312 19.968 25.6 19.968z"></path></svg>
+          年级趋势
+        </button>
+        <button type="button" class="tr-mode-btn" data-mode="student">
+          <svg class="tr-mode-ico" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor"><path d="M510.08 476.288c-102.08 0-185.152-90.496-185.152-201.792 0-111.232 83.008-201.792 185.152-201.792s185.152 90.56 185.152 201.792c0 111.296-83.072 201.792-185.152 201.792z m0-339.776c-69.76 0-126.592 61.952-126.592 137.984 0 76.096 56.768 137.984 126.592 137.984s126.592-61.888 126.592-137.984c0-76.032-56.704-137.984-126.592-137.984zM691.776 949.248H332.16a137.28 137.28 0 0 1-108.544-52.608 137.344 137.344 0 0 1-25.92-117.76l22.016-117.76c20.352-85.312 88.96-130.432 192-130.432a31.936 31.936 0 0 1 0 63.808c-42.688 0-111.872 6.144-129.536 79.872l-22.016 117.76c-5.696 23.872-0.64 46.976 13.568 65.024s35.52 28.352 58.496 28.352h359.616c22.912 0 44.224-10.368 58.432-28.352s19.328-41.152 13.888-63.488l-22.656-120.768c-17.344-72.256-86.784-83.264-129.408-83.264a32 32 0 0 1 0-63.872c102.976 0 171.776 49.984 191.808 133.696l22.656 120.896a136.32 136.32 0 0 1-26.176 116.224 137.472 137.472 0 0 1-108.608 52.672z"></path></svg>
+          学生趋势
+        </button>
+      </div>
+
+      <div class="tr-side-head">
+        <h2 class="tr-side-title">筛选条件</h2>
+      </div>
+
+      <div class="jz-field">
+        <label for="trGrade"><span class="tr-step-no">1</span>年级<span class="jz-hint">按毕业年份</span></label>
+        <select id="trGrade" class="jz-select"></select>
+      </div>
+
+      <!-- 年级趋势：学科多选 -->
+      <div class="jz-field" id="trSubjectGroupGrade">
+        <label><span class="tr-step-no" id="trStepSubjectGrade">2</span>学科<span class="jz-hint">可多选对比</span></label>
+        <div class="tr-class-tools">
+          <button type="button" class="jz-btn ghost small" id="trSubjectAll">全选</button>
+          <button type="button" class="jz-btn ghost small" id="trSubjectClear">清空</button>
+        </div>
+        <div class="tr-class-list" id="trSubjectChipsGrade"></div>
+        <span class="tr-class-tip" id="trSubjectTip"></span>
+      </div>
+
+      <!-- 学生趋势：班级多选 -->
+      <div class="jz-field" id="trClassGroupStudent" hidden>
+        <label><span class="tr-step-no" id="trStepClassStudent">2</span>班级<span class="jz-hint">可多选</span></label>
+        <div class="tr-class-tools">
+          <button type="button" class="jz-btn ghost small" id="trStudentClassAll">全选</button>
+          <button type="button" class="jz-btn ghost small" id="trStudentClassNone">清空</button>
+        </div>
+        <div class="tr-class-list" id="trStudentClassChips"></div>
+        <span class="tr-class-tip" id="trStudentClassTip"></span>
+      </div>
+
+      <!-- 学生趋势：学科多选 -->
+      <div class="jz-field" id="trSubjectGroupStudent" hidden>
+        <label><span class="tr-step-no" id="trStepSubjectStudent">3</span>学科<span class="jz-hint">可多选同时显示</span></label>
+        <div class="tr-class-list" id="trSubjectChips"></div>
+      </div>
+
+      <!-- 年级趋势：班级多选 -->
+      <div class="jz-field" id="trClassGroupGrade">
+        <label><span class="tr-step-no" id="trStepClassGrade">3</span>班级<span class="jz-hint">可多选对比</span></label>
+        <div class="tr-class-tools">
+          <button type="button" class="jz-btn ghost small" id="trSelectAll">全选</button>
+          <button type="button" class="jz-btn ghost small" id="trClearClasses">清空</button>
+        </div>
+        <div class="tr-class-list" id="trClassList"></div>
+        <span class="tr-class-tip" id="trClassTip"></span>
+      </div>
+
+      <div class="jz-field">
+        <label for="trNorm"><span class="tr-step-no">4</span>标准分常模<span class="jz-hint">决定曲线高低</span></label>
+        <select id="trNorm" class="jz-select">
+          <option value="exam" selected>每场考试各自标准化（默认）</option>
+          <option value="first">首场考试（固定常模）</option>
+        </select>
+      </div>
+    </aside>
+
+    <!-- ============ 右栏：学生选择 + 图表 ============ -->
+    <div class="tr-content">
+      <section class="tr-card" id="trStudentPickCard" hidden>
+        <div class="tr-card-head">
+          <div>
+            <h2 class="tr-card-title">学生选择</h2>
+          </div>
+        </div>
+        <input id="trStudentSearch" class="tr-search" type="search" placeholder="搜索姓名或学号" autocomplete="off">
+        <div class="tr-student-list" id="trStudentList"></div>
+      </section>
+
+      <section class="tr-card" id="trChartCard">
+        <div class="tr-card-head">
+          <div>
+            <h2 class="tr-card-title" id="trChartTitle">标准分平均分变化趋势</h2>
+            <p class="tr-card-sub" id="trChartSub">—</p>
+          </div>
+          <div class="tr-chart-actions">
+            <button type="button" class="jz-btn ghost small" id="trReload">↻ 重新读取数据</button>
+            <button type="button" class="jz-btn ghost small" id="trDownloadImage">导出图片</button>
+          </div>
+        </div>
+        <div class="tr-legend" id="trLegend"></div>
+        <div class="tr-chart" id="trChart">
+          <div class="jz-empty"><span class="jz-loading">正在读取云端考试数据…</span></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ============ 说明 ============ -->
+  <section class="tr-card">
+    <div class="tr-card-head"><div><h2 class="tr-card-title">计算说明</h2></div></div>
+    <ul class="tr-notes">
+      <li><b>两种模式：</b>「年级趋势」按年级/学科（可多选）/班级（可多选）看标准分平均分的变化，例如只选 1 个班级 + 多个学科，即可对比该班各学科的趋势；「学生趋势」先勾选班级（可多选，不勾选 = 全部班级）再选学生（可搜索姓名、学号定位；再次点击已选学生即取消选择），可同时勾选多个学科（含总分）对比其标准分变化。</li>
+      <li><b>学生匹配：</b>跨考试按学号匹配；缺少学号时用「姓名 + 班级」匹配。</li>
+      <li><b>标准分：</b>T = 500 + 100 × (原始分 − 常模均值) ÷ 常模标准差，均值 500、标准差 100，即通常所说的标准分（T 分数）。</li>
+      <li><b>常模：</b>默认「每场考试各自标准化」，以每场考试全级数据为基准，全级平均分恒为 500，曲线体现相对位置的变化，最适合看趋势；如需固定基准，可切换为「首场考试（固定常模）」，用所选年级最早一场考试的全级均值和标准差作为固定基准，后续各场沿用同一基准，因此全级线也会随考试难度上下波动。</li>
+      <li><b>平均分：</b>先按学科对每名学生换算标准分，再按班级求平均；由于换算为线性变换，等价于「班级原始平均分 → 标准分」。</li>
+      <li><b>缺考：</b>留空或非数字视为缺考，不计入平均分；某场考试缺少该学科时不显示该点，折线自动断开。</li>
+      <li><b>排序：</b>横坐标按考试日期从早到晚排列；未填日期的考试排在最后，并按上传时间排序。考试名称过长时会在「学期 / 期中 / 期末 / 月考」等位置自动换行显示。</li>
+      <li><b>数据来源：</b>使用云端已上传的成绩（管理员入口上传的成绩表），无需再次导入。</li>
+    </ul>
+  </section>
+</main>
+
+<script src="../../shared/cloud/config.js?v=202611032325"></script>
+<script src="../../shared/cloud/api.js?v=202611032325"></script>
+<script src="../../shared/cloud/store.js?v=202611032325"></script>
+<script src="../../shared/cloud/ui.js?v=202611032325"></script>
+<script src="js/app.js?v=202611032325"></script>
+</body>
+</html>
