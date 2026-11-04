@@ -1,0 +1,286 @@
+/* =========================================================
+   趋势分析 · 页面样式
+   ========================================================= */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #f3f5f8;
+  font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  color: #252a38;
+}
+
+.tr-main { max-width: 1560px; margin: 0 auto; padding: 18px 20px 60px; }
+
+.tr-card {
+  background: #fff;
+  border: 1px solid #e2e6ee;
+  border-radius: 16px;
+  padding: 18px 20px 20px;
+  box-shadow: 0 6px 22px rgba(20, 28, 60, .06);
+  margin-bottom: 18px;
+}
+.tr-card:last-child { margin-bottom: 0; }
+
+.tr-card-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px; }
+.tr-card-head > div { min-width: 0; }
+.tr-card-head > .jz-btn, .tr-card-head > button { margin-left: auto; flex: none; }
+.tr-card-title { margin: 0; font-size: 16px; font-weight: 800; color: #1b2454; }
+.tr-card-sub { margin: 6px 0 0; font-size: 12.5px; color: #78859a; line-height: 1.7; }
+
+.tr-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.tr-grid.tr-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 900px) { .tr-grid, .tr-grid.tr-grid-2 { grid-template-columns: 1fr; } }
+
+/* 分段选择器（Segmented Control）：位于左栏筛选条件顶部 */
+.tr-mode-switch {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  padding: 4px;
+  margin-bottom: 14px;
+  box-sizing: border-box;
+  background: #f2f4f8;
+  border: 1px solid #e6eaf2;
+  border-radius: 8px;
+}
+/* 滑块：品牌蓝填充，跟随选中段滑动 */
+.tr-mode-thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 0;
+  height: 36px;
+  border-radius: 6px;
+  background: #1b2454;
+  box-shadow: 0 1px 2px rgba(255, 255, 255, .85), 0 2px 6px rgba(27, 36, 84, .22);
+  transition: transform .24s cubic-bezier(.4, 0, .2, 1), width .24s cubic-bezier(.4, 0, .2, 1);
+  pointer-events: none;
+}
+.tr-mode-btn {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: #78859a;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .2s ease;
+}
+.tr-mode-ico { width: 16px; height: 16px; display: block; flex: none; opacity: .9; }
+.tr-mode-btn:hover { color: #3b4a6b; }
+.tr-mode-btn.active,
+.tr-mode-btn.active:hover { color: #fff; }
+.tr-mode-btn.active .tr-mode-ico { opacity: 1; }
+
+/* ---------- 左右分栏 ---------- */
+.tr-layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+  margin-bottom: 18px;
+}
+@media (max-width: 1024px) {
+  .tr-layout { grid-template-columns: 1fr; }
+  .tr-side { position: static; }
+}
+
+.tr-side {
+  position: sticky;
+  top: 12px;
+  background: #fff;
+  border: 1px solid #e2e6ee;
+  border-radius: 16px;
+  padding: 16px 16px 6px;
+  box-shadow: 0 6px 22px rgba(20, 28, 60, .06);
+}
+.tr-side-head { margin-bottom: 12px; }
+.tr-side-title { margin: 0; font-size: 14px; font-weight: 800; color: #1b2454; }
+.tr-side .jz-field { margin-bottom: 16px; }
+.tr-side .jz-field:last-child { margin-bottom: 10px; }
+
+/* 步骤编号：1 年级 → 2 学科 → 3 班级 → 4 常模 */
+.tr-step-no {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(27, 36, 84, .09);
+  color: #1b2454;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.tr-side .jz-field > label { font-size: 13px; font-weight: 700; color: #1f2937; }
+
+.tr-side .tr-class-list { gap: 6px; }
+.tr-side .tr-class-chip { padding: 4px 10px; font-size: 12px; }
+
+/* 班级勾选：固定 4 列，整齐排布 */
+.tr-side #trClassList,
+.tr-side #trStudentClassChips {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.tr-side #trClassList .tr-class-chip,
+.tr-side #trStudentClassChips .tr-class-chip {
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 6px;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+.tr-side #trClassList .tr-class-chip input,
+.tr-side #trStudentClassChips .tr-class-chip input { flex: none; width: 12px; height: 12px; }
+
+.tr-content { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.tr-content > .tr-card { margin-bottom: 0; }
+/* 图表卡片撑满左栏高度，图表在剩余空间里垂直居中 */
+#trChartCard { display: flex; flex-direction: column; flex: 1 1 auto; }
+#trChartCard .tr-chart { flex: 1 1 auto; display: flex; align-items: center; }
+/* 空状态色块铺满图表区域并居中 */
+#trChartCard .tr-chart .tr-empty {
+  flex: 1 1 auto;
+  align-self: stretch;
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}
+
+/* ---------- 学生选择 ---------- */
+.tr-search {
+  width: 100%;
+  border: 1px solid #dbe3ef;
+  background: #fff;
+  border-radius: 10px;
+  padding: 8px 11px;
+  font-family: inherit;
+  font-size: 13px;
+  color: #334155;
+}
+.tr-search:focus { outline: none; border-color: #2f4a86; box-shadow: 0 0 0 3px rgba(47, 74, 134, .14); }
+
+.tr-student-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 8px 10px;
+  max-height: 240px;
+  overflow: auto;
+  margin-top: 12px;
+}
+.tr-student {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 38px;
+  padding: 7px 10px;
+  border: 1px solid #e6eaf2;
+  border-radius: 9px;
+  background: #fbfcfe;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .15s ease, background .15s ease;
+}
+.tr-student::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  flex: none;
+  box-sizing: border-box;
+  border: 1px solid #b8c2d5;
+  border-radius: 4px;
+  background: #fff;
+  transition: background .15s ease, border-color .15s ease;
+}
+.tr-student > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tr-student small {
+  flex: none;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #707688;
+}
+.tr-student:hover { border-color: #b9c3d5; }
+.tr-student.is-on { border-color: #1b2454; background: #eef1f8; color: #1b2454; }
+.tr-student.is-on::before {
+  border-color: #1b2454;
+  background: #1b2454 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.3 4.7 8.8 9.8 3.6' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 11px 11px no-repeat;
+}
+.tr-student.is-on small { color: #707688; }.tr-student-empty { font-size: 12.5px; color: #94a3b8; padding: 8px 4px; }
+
+.tr-field-class { margin-top: 4px; }
+.tr-class-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.tr-class-tip { font-size: 12px; color: #94a3b8; }
+
+.tr-class-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.tr-class-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid #dbe3ef;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  user-select: none;
+  transition: background .16s ease, border-color .16s ease, color .16s ease;
+}
+.tr-class-chip:hover { border-color: #c4cee0; background: #f8fafc; }
+.tr-class-chip input { margin: 0; accent-color: #1b2454; }
+.tr-class-chip.is-on {
+  background: linear-gradient(135deg, #1b2454, #2f4a86);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(27, 36, 84, .24);
+}
+.tr-class-chip.is-on input { accent-color: #fff; }
+.tr-class-empty { font-size: 12.5px; color: #94a3b8; }
+
+/* ---------- 图例 ---------- */
+.tr-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0 0 6px; font-size: 12px; color: #475569; }
+.tr-legend-item { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.tr-legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+.tr-legend-item.is-school { font-weight: 800; color: #1b2454; }
+
+.tr-chart-actions { margin-left: auto; display: flex; align-items: center; gap: 12px; flex: none; }
+.tr-chart { width: 100%; overflow-x: auto; }
+.tr-chart svg { width: 100%; min-width: 680px; height: auto; display: block; }
+.tr-chart .tr-empty { font-size: 13px; color: #858b9a; padding: 46px 10px; text-align: center; background: #fbfcfe; border: 1px dashed #e2e7ef; border-radius: 12px; }
+
+/* ---------- 说明 ---------- */
+.tr-notes { margin: 0; padding-left: 20px; color: #5b6478; font-size: 12.8px; line-height: 1.95; }
+.tr-notes b { color: #1b2454; }
