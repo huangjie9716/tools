@@ -18,6 +18,8 @@ var JZ_ROSTER_EMBEDDED = {
   "subjectAliases": {
     "道法": "政治",
     "道德与法治": "政治",
+    "思想品德": "政治",
+    "思想政治": "政治",
     "体育与健康": "体育"
   },
   "grades": {
