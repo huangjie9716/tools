@@ -89,22 +89,14 @@
             return null;
         }
 
-        // ---- 学科名称规范化：不同考试/不同表格里的同义写法视为同一学科 ----
-        const SUBJECT_ALIASES = {
-            '道法': '政治',
-            '道德与法治': '政治',
-            '思想品德': '政治',
-            '思想政治': '政治',
-            '体育与健康': '体育',
-            '外语': '英语'
-        };
-
+        // ---- 学科名称规范化：不同考试/不同表格里的同义写法视为同一学科（统一显示为「道法」）----
         function canonicalSubjectName(name) {
+            if (window.JZSubjects && window.JZSubjects.normalize) return window.JZSubjects.normalize(name);
             const raw = String(name === null || name === undefined ? '' : name).replace(/\s+/g, '').trim();
             if (!raw) return '';
-            // 上传时重名列会被追加「(2)」后缀，比较学科时要去掉
             const base = raw.replace(/[（(]\d+[）)]$/, '');
-            return SUBJECT_ALIASES[base] || base;
+            const aliases = { '政治': '道法', '思想品德': '道法', '思想政治': '道法', '道德与法治': '道法', '道德': '道法', '品德': '道法', '体育与健康': '体育', '外语': '英语' };
+            return aliases[base] || base;
         }
 
         // 非学科列（学号/姓名/班级/总分/排名/等级等）不应被当成学科
@@ -154,7 +146,7 @@
                 if (!hasScore) return;
                 cols.push({
                     key: key,
-                    name: String(key).replace(/\s+/g, '').trim(),
+                    name: canonicalSubjectName(key),
                     canonical: canonicalSubjectName(key)
                 });
             });
