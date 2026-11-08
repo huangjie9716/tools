@@ -593,6 +593,19 @@ tbody tr:nth-child(even):hover td{background:#f8fafc}
 .topn-table tbody tr.total-row td{position:static}
 .topn-count{font-weight:700;color:#334155}
 .topn-top3{color:#ea580c;font-weight:900;font-size:14px}
+
+/* ---------- 前 100 名分段极差 ---------- */
+.top100-section{margin-top:26px;padding-top:20px;border-top:1px solid #e7edf6}
+.top100-section .panel-head{margin-bottom:10px}
+.top100-subtitle{display:flex;align-items:center;gap:8px;margin:20px 2px 8px;font-size:15px;color:#1e293b}
+.top100-table-wrap{max-height:none;box-shadow:none;margin-top:0}
+.top100-table{font-size:13px}
+.top100-table thead th{position:static;font-size:12.5px;padding:9px 10px;white-space:nowrap}
+.top100-table tbody td{padding:8px 10px;text-align:center;white-space:nowrap}
+.top100-table tbody td.subject-cell{text-align:left}
+.top100-table tbody td.top100-rank{font-weight:800;color:#1e293b}
+.top100-table tbody td.top100-total{font-weight:700;color:#1b2454}
+.top100-table tbody td.top100-range{font-weight:700;color:#b45309}
 .profile-legend{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:0 2px 12px;color:#475569;font-size:12.5px}
 .profile-legend .legend-line{display:inline-block;width:24px;height:0;border-top:2px solid #1b2454;vertical-align:middle;margin-right:6px}
 .profile-legend .legend-line.reference{border-top:2px dashed #f59e0b}
