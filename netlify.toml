@@ -1,0 +1,21 @@
+# ============================================================
+# Netlify 配置
+# ------------------------------------------------------------
+# 作用：让首页的留言板 / 访问计数不再直连 supabase.co
+#       （该域名在国内网络、微信/QQ 内置浏览器里连不上），
+#       改为请求本站同域地址 /api/sb/...，由 Netlify 函数
+#       netlify/functions/sb.js 转发给 Supabase。
+#
+# 浏览器侧只跟自己的域名打交道：既绕开封锁，也不需要 CORS。
+# ============================================================
+
+[functions]
+  # 函数源码目录（也是 Netlify 的默认值，写出来更直观）
+  directory = "netlify/functions"
+
+[[redirects]]
+  # /api/sb/rest/v1/messages  ->  /.netlify/functions/sb/rest/v1/messages
+  from = "/api/sb/*"
+  to = "/.netlify/functions/sb/:splat"
+  status = 200
+  force = true
