@@ -130,10 +130,57 @@ function prepareFullScores(){
       state.fullScores[sub.name] = getDefaultFull(sub.name);
     }
   }
-  state.totalFull = state.subjects.reduce((sum, sub) => sum + getFull(sub.name), 0);
+  state.totalFull = state.subjects.reduce((sum, sub) => {
+    if (!state.includeBioGeo && isBioGeoSubject(sub.name)) return sum;
+    return sum + getFull(sub.name);
+  }, 0);
+}
+
+/* ---------------------------------------------------------
+   总分是否包含生物 / 地理（初一阶段这两科是否计入总分可配置）
+   --------------------------------------------------------- */
+const BIO_GEO_SUBJECT_NAMES = ["生物", "地理"];
+
+function isBioGeoSubject(name){
+  const key = cleanText(name).replace(/\(\d+\)$/, "");
+  return BIO_GEO_SUBJECT_NAMES.indexOf(key) >= 0;
+}
+
+/* 记录学生原始总分，切换“是否包含生物地理”时都以它为基准重新计算 */
+function rememberBaseTotals(students){
+  (students || []).forEach(s => {
+    if (!s) return;
+    if (!Object.prototype.hasOwnProperty.call(s, "baseTotal")) s.baseTotal = s.total;
+  });
+}
+
+function applyTotalInclusionTo(students, subjects){
+  rememberBaseTotals(students);
+  (students || []).forEach(s => {
+    if (!s) return;
+    const base = s.baseTotal;
+    if (!state.includeBioGeo) {
+      s.total = base;
+      return;
+    }
+    let total = isValidScore(base) ? Number(base) : null;
+    if (total === null) return;
+    let added = false;
+    for (const sub of (subjects || [])) {
+      if (!isBioGeoSubject(sub.name)) continue;
+      const v = s.scores ? s.scores[sub.name] : null;
+      if (isValidScore(v)) {
+        total += Number(v);
+        added = true;
+      }
+    }
+    s.total = added ? round2(total) : base;
+  });
 }
 
 function refreshComputed(){
+  applyTotalInclusionTo(state.students, state.subjects);
+  if (state.reference) applyTotalInclusionTo(state.reference.students, state.reference.subjects);
   prepareFullScores();
   computeRankings();
 }
