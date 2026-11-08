@@ -206,7 +206,7 @@ function fmtAxisTick(tick){
 function shortSubject(name){
   const s = String(name || "");
   if (s.length <= 3) return s;
-  if (/道德|道法/.test(s)) return "道法";
+  if (/道德|道法|政治|品德/.test(s)) return "道法";
   return s.slice(0, 2);
 }
 
