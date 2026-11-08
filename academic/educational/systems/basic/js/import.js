@@ -31,6 +31,10 @@ function applyDataset(dataset, fileName){
   state.subjectView = state.subjects[0] ? state.subjects[0].name : "__total__";
   state.subjectViewSort = "class";
   state.rosterSubject = "__total__";
+  /* 每次载入新考试时，“总分是否包含生物地理”恢复为默认不包含 */
+  state.includeBioGeo = false;
+  rememberBaseTotals(state.students);
+  if (typeof updateBioGeoToggleUi === "function") updateBioGeoToggleUi();
   if (typeof applyBasicUiPreferences === "function") applyBasicUiPreferences();
 
   prepareFullScores();
