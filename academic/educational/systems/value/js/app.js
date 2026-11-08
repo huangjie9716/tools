@@ -72,15 +72,137 @@
         const CHECK_ICON = '<img src="img/check-icon.svg" class="check-icon" alt="">';
 
         // ---- 工具：查找列名 ----
+        // 先精确匹配，再忽略大小写精确匹配，最后才退化为包含匹配；
+        // 避免「总分」误命中「总分排名」、「班级」误命中「班级排名」等派生列。
         function findKey(row, patterns) {
             if (!row) return null;
-            const keys = Object.keys(row);
+            const keys = Object.keys(row).filter(k => k !== null && k !== undefined);
+            const low = s => String(s).replace(/\s+/g, '').toLowerCase();
             for (let p of patterns) {
-                for (let k of keys) {
-                    if (k.includes(p)) return k;
-                }
+                const hit = keys.find(k => low(k) === low(p));
+                if (hit) return hit;
+            }
+            for (let p of patterns) {
+                const hit = keys.find(k => low(k).includes(low(p)) && !/排名|名次|等级|等第/.test(String(k)));
+                if (hit) return hit;
             }
             return null;
+        }
+
+        // ---- 学科名称规范化：不同考试/不同表格里的同义写法视为同一学科 ----
+        const SUBJECT_ALIASES = {
+            '道法': '政治',
+            '道德与法治': '政治',
+            '思想品德': '政治',
+            '思想政治': '政治',
+            '体育与健康': '体育',
+            '外语': '英语'
+        };
+
+        function canonicalSubjectName(name) {
+            const raw = String(name === null || name === undefined ? '' : name).replace(/\s+/g, '').trim();
+            if (!raw) return '';
+            // 上传时重名列会被追加「(2)」后缀，比较学科时要去掉
+            const base = raw.replace(/[（(]\d+[）)]$/, '');
+            return SUBJECT_ALIASES[base] || base;
+        }
+
+        // 非学科列（学号/姓名/班级/总分/排名/等级等）不应被当成学科
+        const META_COLUMN_PATTERNS = [
+            '学号', '学生学号', '考号', '考试号', '考生号', '准考证号', '学籍号', '学生编号', '编号', '序号',
+            '姓名', '学生姓名', '名字', '班级', '班级名称', '班级号', '班别', '行政班', '教学班', '所在班级', '班号',
+            '总分', '总成绩', '合计', '总计', '成绩', '分数', '排名', '名次', '等级', '等第',
+            '考场', '考室', '座位', '性别', '备注', '学校', '年级'
+        ];
+
+        function isMetaColumn(name) {
+            const k = String(name === null || name === undefined ? '' : name).replace(/\s+/g, '').trim();
+            if (!k) return true;
+            if (META_COLUMN_PATTERNS.indexOf(k) >= 0) return true;
+            if (/^(id|name|class|score|total)$/i.test(k)) return true;
+            return /排名|名次|等级|等第|总分|总成绩|合计|总计|成绩|分数/.test(k);
+        }
+
+        function toScore(v) {
+            if (v === null || v === undefined) return null;
+            if (typeof v === 'number') return isFinite(v) ? v : null;
+            const s = String(v).replace(/,/g, '').trim();
+            if (!s) return null;
+            const n = parseFloat(s);
+            return isFinite(n) ? n : null;
+        }
+
+        function firstScore(row, keys) {
+            for (let i = 0; i < keys.length; i++) {
+                const v = toScore(row[keys[i]]);
+                if (v !== null) return v;
+            }
+            return null;
+        }
+
+        // 分别识别一张成绩表里的学科列（按表头顺序，保留原始列名与规范化名称）
+        function detectSubjectColumns(rows, metaKeys) {
+            const first = (rows && rows[0]) || {};
+            const metaSet = new Set((metaKeys || []).filter(Boolean));
+            const cols = [];
+            Object.keys(first).forEach(key => {
+                if (metaSet.has(key) || isMetaColumn(key)) return;
+                let hasScore = false;
+                for (let i = 0; i < rows.length; i++) {
+                    if (toScore(rows[i] ? rows[i][key] : null) !== null) { hasScore = true; break; }
+                }
+                if (!hasScore) return;
+                cols.push({
+                    key: key,
+                    name: String(key).replace(/\s+/g, '').trim(),
+                    canonical: canonicalSubjectName(key)
+                });
+            });
+            return cols;
+        }
+
+        // 同名/别名列合并为一个学科（逐行取第一个有效分数）
+        function groupSubjectColumns(cols) {
+            const grouped = new Map();
+            (cols || []).forEach(c => {
+                if (!grouped.has(c.canonical)) grouped.set(c.canonical, { name: c.name, keys: [] });
+                grouped.get(c.canonical).keys.push(c.key);
+            });
+            return grouped;
+        }
+
+        // ---- 学科对齐提示 ----
+        function renderValueNotice(info) {
+            const el = document.getElementById('valueNotice');
+            if (!el) return;
+            const commonNames = info.commonSubjects.map(s => s.label);
+            const lines = [];
+            lines.push('<div><strong>参与分析：</strong>' +
+                (info.pairableCount !== undefined
+                    ? '两次都参加考试的学生 ' + info.matchedCount + ' 人，其中至少有一门共同学科两次成绩齐全、实际参与分析的 ' + info.pairableCount + ' 人。'
+                    : '') +
+                '两次考试都有成绩的学科共 ' + (commonNames.length + 1) +
+                ' 科（含总分）：' + ['总分'].concat(commonNames).map(valueEscapeHtml).join('、') + '</div>');
+            if (info.onlyPre.length || info.onlyPost.length) {
+                const parts = [];
+                if (info.onlyPre.length) parts.push('仅前测有：' + info.onlyPre.join('、'));
+                if (info.onlyPost.length) parts.push('仅后测有：' + info.onlyPost.join('、'));
+                lines.push('<div style="margin-top:6px;"><strong>未纳入分析：</strong>' +
+                    valueEscapeHtml(parts.join('；')) +
+                    '。增值评价要求同一学科在两次考试中都有成绩，以上学科无法计算增值。</div>');
+            }
+            if (info.partialSubjects.length) {
+                const parts = info.partialSubjects.map(p => p.label + ' ' + p.excluded + ' 人');
+                lines.push('<div style="margin-top:6px;"><strong>该科缺考已排除：</strong>' +
+                    valueEscapeHtml(parts.join('；')) + '（两次该科成绩不齐全的学生不参与该科分析）。</div>');
+            }
+            if (info.skippedSubjects.length) {
+                const parts = info.skippedSubjects.map(p => p.label + '（' + p.reason + '）');
+                lines.push('<div style="margin-top:6px;color:#b91c1c;"><strong>未能分析：</strong>' +
+                    valueEscapeHtml(parts.join('；')) + '</div>');
+            }
+            el.innerHTML = lines.join('');
+            el.style.display = 'block';
         }
 
         // ---- 自动填充建议层数 ----
@@ -203,7 +325,7 @@
         // ---- 对单个学科执行完整分析 ----
         function analyzeSubject(subjectName, commonData, layer) {
             const N = commonData.length;
-            if (N === 0) return null;
+            if (N < 2) return null;
 
             const s1 = commonData.map(r => r.score1);
             const s2 = commonData.map(r => r.score2);
@@ -985,6 +1107,12 @@
 
             log('🔍 开始处理，层数 = ' + layer, '');
 
+            const noticeEl = document.getElementById('valueNotice');
+            if (noticeEl) {
+                noticeEl.style.display = 'none';
+                noticeEl.innerHTML = '';
+            }
+
             const h1 = file1Data[0] || {};
             const h2 = file2Data[0] || {};
             // 识别各列
@@ -1008,85 +1136,105 @@
                 return;
             }
 
-            // ---- 按表头顺序识别学科（总分固定在最前） ----
-            // 排除列：学号、姓名、班级相关列，以及成绩列本身
-            const excludePatterns = ['学号', 'ID', 'id', '编号', '姓名', '名字', 'name', 'Name', '班级', 'class', 'Class', '班级号', '总分', '成绩', '分数', 'score', 'Score'];
-            const keys1 = Object.keys(h1);
-            const subjectKeys = [];
-            // 遍历表头，按出现顺序添加非排除列
-            for (let k of keys1) {
-                if (excludePatterns.some(p => k.includes(p))) continue;
-                // 避免重复添加（如果后测表有不同列名，但这里以前测表为准）
-                if (!subjectKeys.includes(k)) {
-                    subjectKeys.push(k);
+            // ---- 分别识别两次考试的学科，再取「两次都有的学科」 ----
+            // 两次考试科目不一定一致（如初二上期中新增物理、初一下期末没有物理），
+            // 绝不能按列的位置硬对齐，必须按学科名称逐科匹配。
+            const cols1 = detectSubjectColumns(file1Data, [idKey1, nameKey1, classKey1, scoreKey1]);
+            const cols2 = detectSubjectColumns(file2Data, [idKey2, nameKey2, classKey2, scoreKey2]);
+
+            // canonical -> { name, keys: [] }（同名/别名列合并，逐行取第一个有效分数）
+            const grouped1 = groupSubjectColumns(cols1);
+            const grouped2 = groupSubjectColumns(cols2);
+
+            const commonSubjects = [];   // 两次考试都有的学科
+            const onlyPre = [];          // 仅前测有的学科
+            const onlyPost = [];         // 仅后测有的学科
+            grouped1.forEach((info, canonical) => {
+                if (grouped2.has(canonical)) {
+                    commonSubjects.push({
+                        canonical: canonical,
+                        label: info.name,
+                        keys1: info.keys,
+                        keys2: grouped2.get(canonical).keys
+                    });
+                } else {
+                    onlyPre.push(info.name);
                 }
-            }
-            // 最终学科列表：'总分' + 按表头顺序出现的其他学科
-            const subjectList = ['总分', ...subjectKeys];
+            });
+            grouped2.forEach((info, canonical) => {
+                if (!grouped1.has(canonical)) onlyPost.push(info.name);
+            });
+
+            // 最终学科列表：'总分' + 两次都有的学科（按前测表头顺序）
+            const subjectList = ['总分', ...commonSubjects.map(s => s.label)];
             allSubjects = subjectList;
 
-            log('📚 识别到学科（按表头顺序）：' + subjectList.join(', '), '');
+            // 显示名（学科按钮/表格标题）-> 规范化学科名（取分用）
+            const labelToCanonical = new Map();
+            commonSubjects.forEach(s => labelToCanonical.set(s.label, s.canonical));
 
-            // 提取数据（包含姓名）
-            const map1 = new Map();
-            const map2 = new Map();
+            log('📚 两次都有的学科（参与增值分析）：' + subjectList.join(', '), '');
+            if (onlyPre.length || onlyPost.length) {
+                log('⚠️ 未纳入分析 —— 仅前测有：' + (onlyPre.join('、') || '无') + '；仅后测有：' + (onlyPost.join('、') || '无'), '');
+            }
 
-            file1Data.forEach(row => {
-                const id = String(row[idKey1]).trim();
-                const name = nameKey1 ? String(row[nameKey1]).trim() : '';
-                const cls = classKey1 ? String(row[classKey1]).trim() : '';
-                const score = parseFloat(row[scoreKey1]);
-                if (id && id !== 'undefined' && !isNaN(score)) {
-                    const subjects = {};
-                    subjectList.forEach(sub => {
-                        if (sub === '总分') {
-                            subjects[sub] = score;
-                        } else {
-                            subjects[sub] = parseFloat(row[sub]) || 0;
-                        }
+            // 提取数据（把每一科的分数存成规范化学科名 -> 数值/ null，缺失绝不填 0）
+            function buildSideMap(rows, idKey, nameKey, classKey, scoreKey, grouped) {
+                const out = new Map();
+                (rows || []).forEach(row => {
+                    const rawId = row[idKey];
+                    const id = rawId === null || rawId === undefined ? '' : String(rawId).trim();
+                    if (!id || id === 'undefined' || id === 'null') return;
+                    const name = nameKey ? String(row[nameKey] === null || row[nameKey] === undefined ? '' : row[nameKey]).trim() : '';
+                    const cls = classKey ? String(row[classKey] === null || row[classKey] === undefined ? '' : row[classKey]).trim() : '';
+                    const scores = {};
+                    grouped.forEach((info, canonical) => {
+                        scores[canonical] = firstScore(row, info.keys);
                     });
-                    map1.set(id, { name: name, class: cls, subjects: subjects });
-                }
-            });
+                    scores['总分'] = toScore(row[scoreKey]);
+                    out.set(id, { name: name, class: cls, scores: scores });
+                });
+                return out;
+            }
 
-            file2Data.forEach(row => {
-                const id = String(row[idKey2]).trim();
-                const name = nameKey2 ? String(row[nameKey2]).trim() : '';
-                const cls = classKey2 ? String(row[classKey2]).trim() : '';
-                const score = parseFloat(row[scoreKey2]);
-                if (id && id !== 'undefined' && !isNaN(score)) {
-                    const subjects = {};
-                    subjectList.forEach(sub => {
-                        if (sub === '总分') {
-                            subjects[sub] = score;
-                        } else {
-                            subjects[sub] = parseFloat(row[sub]) || 0;
-                        }
-                    });
-                    map2.set(id, { name: name, class: cls, subjects: subjects });
-                }
-            });
+            const map1 = buildSideMap(file1Data, idKey1, nameKey1, classKey1, scoreKey1, grouped1);
+            const map2 = buildSideMap(file2Data, idKey2, nameKey2, classKey2, scoreKey2, grouped2);
 
-            // 对齐（按学号）
+            // 对齐（按学号）：只取两次都参加考试的学生
             const common = [];
             for (let [id, v1] of map1) {
-                if (map2.has(id)) {
-                    common.push({
-                        id: id,
-                        name: v1.name || map2.get(id).name || '',
-                        class: v1.class || map2.get(id).class || '',
-                        subjects1: v1.subjects,
-                        subjects2: map2.get(id).subjects
-                    });
-                }
+                const v2 = map2.get(id);
+                if (!v2) continue;
+                common.push({
+                    id: id,
+                    name: v1.name || v2.name || '',
+                    class: v1.class || v2.class || '',
+                    scores1: v1.scores,
+                    scores2: v2.scores
+                });
             }
             if (common.length === 0) {
                 log('❌ 两次成绩无交集学号，请检查数据', 'err');
                 alert('两次成绩表没有共同的学号，无法匹配！');
                 return;
             }
-            log('匹配到 ' + common.length + ' 名共同学生', 'ok');
-            matchCount.textContent = common.length;
+
+            // 两次都参加考试、且至少有一门共同学科两次成绩齐全的学生，才算真正可做增值分析
+            const hasPairScore = (r) => subjectList.some(sub => {
+                const canonical = sub === '总分' ? '总分' : labelToCanonical.get(sub);
+                return canonical && r.scores1[canonical] !== null && r.scores1[canonical] !== undefined &&
+                    r.scores2[canonical] !== null && r.scores2[canonical] !== undefined;
+            });
+            const pairable = common.filter(hasPairScore);
+            if (pairable.length === 0) {
+                log('❌ 无学生同时具备两次考试的共同学科成绩', 'err');
+                alert('两次考试没有任何一门共同学科的学生成绩可以配对，无法进行增值分析。\n' +
+                    '请确认两次考试是否上传正确，或学科名称是否一致。');
+                return;
+            }
+
+            log('匹配到 ' + common.length + ' 名共同学生，其中 ' + pairable.length + ' 人有可比成绩', 'ok');
+            matchCount.textContent = pairable.length;
 
             // ---- 缺失数据检测与用户确认（不改变匹配逻辑，仅统计未匹配学号）----
             const missingStudents = [];
@@ -1097,35 +1245,73 @@
                 if (!map1.has(id)) missingStudents.push({ id: id, name: v.name || '未知', note: '缺少前测成绩' });
             }
             if (missingStudents.length > 0) {
-                log(`⚠️ 检测到 ${missingStudents.length} 名学生存在考试数据缺失，有效人数 ${common.length} 人`, '');
-                const proceed = await confirmMissingData(common.length, missingStudents);
+                log(`⚠️ 检测到 ${missingStudents.length} 名学生存在考试数据缺失，有效人数 ${pairable.length} 人`, '');
+                const proceed = await confirmMissingData(pairable.length, missingStudents);
                 if (!proceed) {
                     log('⏹️ 用户取消分析，未生成结果', '');
                     return;
                 }
             }
 
-            // ---- 分析每个学科 ----
+            // ---- 分析每个学科（只分析两次都有成绩的学科；学生该科两次成绩齐全才纳入该科）----
             subjectResults = {};
             classStatsCache = {};
+
+            const partialSubjects = [];   // 该科有学生缺考被排除
+            const skippedSubjects = [];   // 该科参与人数不足，未能分析
+
             allSubjects.forEach(sub => {
+                const canonical = sub === '总分' ? '总分' : labelToCanonical.get(sub);
+                if (!canonical) return;
+
+                let excluded = 0;
+                const subjectData = [];
+                common.forEach(r => {
+                    const s1 = r.scores1[canonical];
+                    const s2 = r.scores2[canonical];
+                    if (s1 === null || s1 === undefined || s2 === null || s2 === undefined) {
+                        excluded++;
+                        return;
+                    }
+                    subjectData.push({
+                        id: r.id,
+                        name: r.name,
+                        class: r.class,
+                        score1: s1,
+                        score2: s2
+                    });
+                });
+
+                if (subjectData.length < 2) {
+                    skippedSubjects.push({ label: sub, reason: '两次都有该科成绩的学生不足 2 人', count: subjectData.length });
+                    log(`⚠️ ${sub}：两次都有该科成绩的学生只有 ${subjectData.length} 人，不足 2 人，跳过`, 'err');
+                    return;
+                }
+                if (excluded > 0) partialSubjects.push({ label: sub, excluded: excluded });
+
                 log(`🔍 正在分析学科：${sub}`, '');
-                const subjectData = common.map(r => ({
-                    id: r.id,
-                    name: r.name,
-                    class: r.class,
-                    score1: r.subjects1[sub] || 0,
-                    score2: r.subjects2[sub] || 0
-                }));
                 const result = analyzeSubject(sub, subjectData, layer);
-                if (result) {
+                if (result && result.data.length) {
                     subjectResults[sub] = result.data;
                     const stats = computeClassStatsForSubject(result.data);
                     classStatsCache[sub] = stats;
-                    log(`${sub} 分析完成，有效人数 ${result.data.length}`, 'ok');
+                    log(`${sub} 分析完成，有效人数 ${result.data.length}` +
+                        (excluded > 0 ? `（${excluded} 人该科成绩不全已排除）` : ''), 'ok');
                 } else {
+                    skippedSubjects.push({ label: sub, reason: '有效数据不足，分析失败', count: 0 });
                     log(`⚠️ ${sub} 分析失败，跳过`, 'err');
                 }
+            });
+
+            // ---- 学科对齐情况提示（两次考试科目不一致时必须让用户看见）----
+            renderValueNotice({
+                commonSubjects: commonSubjects,
+                onlyPre: onlyPre,
+                onlyPost: onlyPost,
+                partialSubjects: partialSubjects,
+                skippedSubjects: skippedSubjects,
+                matchedCount: common.length,
+                pairableCount: pairable.length
             });
 
             // 初始化排序按钮事件
@@ -1173,7 +1359,12 @@
                 if (exportClassStatsImgBtn) exportClassStatsImgBtn.onclick = exportClassStatsImage;
                 log('🎉 所有学科分析完成！', 'ok');
             } else {
-                alert('没有成功分析任何学科，请检查数据。');
+                const reasons = [];
+                if (onlyPre.length) reasons.push('仅前测有：' + onlyPre.join('、'));
+                if (onlyPost.length) reasons.push('仅后测有：' + onlyPost.join('、'));
+                skippedSubjects.forEach(s => reasons.push(s.label + '：' + s.reason));
+                alert('没有成功分析任何学科，请检查数据。' +
+                    (reasons.length ? '\n\n' + reasons.join('\n') : ''));
             }
         }
 
@@ -1537,6 +1728,11 @@
             classButtons.innerHTML = '';
             previewNote.textContent = '';
             subjectRow.style.display = 'none';
+            const noticeReset = document.getElementById('valueNotice');
+            if (noticeReset) {
+                noticeReset.style.display = 'none';
+                noticeReset.innerHTML = '';
+            }
             viewCards.style.display = 'none';
             viewCards.querySelectorAll('.view-card').forEach(c => c.classList.toggle('active', c.dataset.view === 'result'));
             currentView = 'result';
