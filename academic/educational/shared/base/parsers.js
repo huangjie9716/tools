@@ -387,9 +387,11 @@ function buildDataset(rows){
   const usedNames = new Set();
   for (let c = 0; c < headers.length; c++) {
     if (fixed.has(c)) continue;
-    const name = headers[c];
-    if (!name || NON_SUBJECT_HEADER.test(name)) continue;
+    const rawName = headers[c];
+    if (!rawName || NON_SUBJECT_HEADER.test(rawName)) continue;
     if (numericCounts[c] < 1) continue;
+    /* 前端统一学科显示口径：政治/思想品德/道德与法治… → 道法 */
+    const name = (typeof normalizeSubjectName === "function") ? normalizeSubjectName(rawName) : rawName;
     let uniqueName = name;
     let suffix = 2;
     while (usedNames.has(uniqueName)) { uniqueName = name + "(" + suffix + ")"; suffix++; }
