@@ -65,6 +65,11 @@
     return isFinite(n) ? n : null;
   }
   function normHead(v) { return text(v).replace(/\s+/g, ""); }
+  /* 前端统一学科显示口径：政治/思想品德/道德与法治… → 道法 */
+  function normSubjectName(v) {
+    var h = normHead(v);
+    return (h && typeof window.normalizeSubjectName === "function") ? window.normalizeSubjectName(h) : h;
+  }
   function findCol(heads, aliases) {
     for (var i = 0; i < heads.length; i++) {
       if (!heads[i]) continue;
@@ -116,7 +121,7 @@
       if (i === idIdx || i === nameIdx || i === classIdx || i === totalIdx) continue;
       if (!heads[i]) continue;
       if (SKIP_HEADER.test(heads[i])) continue;
-      subjectCols.push({ name: heads[i], idx: i });
+      subjectCols.push({ name: normSubjectName(heads[i]), idx: i });
     }
 
     var students = [];
