@@ -11,9 +11,10 @@
   async function loadPaper(paper, grade, exam) {
     if (!paper) return;
     if (grade && grade.id) UI.rememberGrade(grade.id);
+    var subject = (typeof window.normalizeSubjectName === "function") ? window.normalizeSubjectName(paper.subject) : paper.subject;
     var name = (grade && grade.name ? grade.name + " · " : "") +
-      (exam && exam.name ? exam.name + " · " : "") + paper.subject;
-    UI.busy(true, "正在读取「" + paper.subject + "」试题卷…");
+      (exam && exam.name ? exam.name + " · " : "") + subject;
+    UI.busy(true, "正在读取「" + subject + "」试题卷…");
     try {
       var rows = paper.rows || [];
       var parsed = parseExcelData(rows);
@@ -26,7 +27,7 @@
       }
       var pickBtn = document.getElementById("pickPaperBtn");
       if (pickBtn) pickBtn.textContent = "选择其他试题";
-      UI.rememberExam("question", exam, grade, { paperId: paper.id, subject: paper.subject, name: name });
+      UI.rememberExam("question", exam, grade, { paperId: paper.id, subject: subject, name: name });
       UI.toast("已载入：" + name, "success");
     } catch (err) {
       var msg = document.getElementById("statusMsg");
