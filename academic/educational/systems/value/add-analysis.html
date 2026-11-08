@@ -52,6 +52,9 @@
 
     <button class="btn-primary" id="processBtn" disabled><img src="img/analyze-icon.svg?v=202611032325" class="analyze-icon" alt=""> 开始分析</button>
 
+    <!-- ===== 学科对齐提示（两次考试科目不一致时说明哪些学科不参与分析） ===== -->
+    <div class="view-note" id="valueNotice" style="display:none; margin-top:14px;"></div>
+
     <!-- ===== 学科选择（置于各视图之上） ===== -->
     <div class="filter-row" id="subjectRow" style="display:none;">
         <span class="filter-label"><img src="img/subject-icon.svg?v=202611032325" class="subject-icon" alt=""> 学科：</span>
@@ -262,7 +265,7 @@
     </div>
 </div>
 
-<script src="js/app.js?v=202611032325"></script>
+<script src="js/app.js?v=202611081130"></script>
 <!-- 云端数据访问（选择考试成绩） -->
 <script src="../../shared/cloud/config.js?v=202611032325"></script>
 <script src="../../shared/cloud/api.js?v=202611032325"></script>
