@@ -19,7 +19,27 @@ function datasetForCurrent(){
 }
 
 function datasetTotalFull(dataset){
-  return dataset.subjects.reduce((sum, sub) => sum + getFull(sub.name), 0);
+  return (dataset.subjects || []).reduce((sum, sub) => {
+    if (!state.includeBioGeo && isBioGeoSubject(sub.name)) return sum;
+    return sum + getFull(sub.name);
+  }, 0);
+}
+
+/* “总分包含生物地理”勾选框：只有成绩里出现生物/地理时才显示，默认不勾选 */
+function updateBioGeoToggleUi(){
+  const wrap = document.getElementById("bioGeoWrap");
+  const input = document.getElementById("includeBioGeo");
+  const label = document.getElementById("bioGeoLabel");
+  if (!wrap || !input) return;
+  const extras = (state.subjects || []).filter(sub => isBioGeoSubject(sub.name)).map(sub => sub.name);
+  const show = extras.length > 0;
+  if (!show) state.includeBioGeo = false;
+  wrap.hidden = !show;
+  input.checked = show && !!state.includeBioGeo;
+  if (label) label.textContent = show ? "总分包含" + extras.join("、") : "总分包含生物、地理";
+  wrap.title = show
+    ? "勾选后，总分将在原有总分基础上加上" + extras.join("、") + "成绩"
+    : "";
 }
 
 function metricValue(stat, metric){
@@ -240,6 +260,8 @@ function updateReferenceUi(){
 /* 把已经构建好的比对数据集应用到界面 */
 function applyReferenceDataset(dataset, label){
   dataset.fileName = label || dataset.fileName || "";
+  rememberBaseTotals(dataset.students);
+  applyTotalInclusionTo(dataset.students, dataset.subjects);
   state.reference = dataset;
   updateReferenceUi();
   if (state.students && state.students.length) {
