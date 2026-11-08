@@ -4,15 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>增值评价分析 · 珠海市九洲中学教育质量管理与分析系统</title>
-    <script src="../../shared/auth.js?v=202611032325"></script>
-    <link rel="icon" type="image/png" href="../../shared/assets/favicon.png?v=202611032325">
+    <script src="../../shared/auth.js?v=202611081245"></script>
+<script src="../../shared/base/subjects.js?v=202611081245"></script>
+    <link rel="icon" type="image/png" href="../../shared/assets/favicon.png?v=202611081245">
     <!-- 引入 SheetJS 和 jStat -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.6/jstat.min.js"></script>
     <!-- 引入 Plotly.js 用于绘图 -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <link rel="stylesheet" href="css/style.css?v=202611032325">
-    <link rel="stylesheet" href="../../shared/styles/cloud.css?v=202611032325">
+    <link rel="stylesheet" href="css/style.css?v=202611081245">
+    <link rel="stylesheet" href="../../shared/styles/cloud.css?v=202611081245">
 </head>
 <body>
 <div class="container">
@@ -50,14 +51,14 @@
         </div>
     </div>
 
-    <button class="btn-primary" id="processBtn" disabled><img src="img/analyze-icon.svg?v=202611032325" class="analyze-icon" alt=""> 开始分析</button>
+    <button class="btn-primary" id="processBtn" disabled><img src="img/analyze-icon.svg?v=202611081245" class="analyze-icon" alt=""> 开始分析</button>
 
     <!-- ===== 学科对齐提示（两次考试科目不一致时说明哪些学科不参与分析） ===== -->
     <div class="view-note" id="valueNotice" style="display:none; margin-top:14px;"></div>
 
     <!-- ===== 学科选择（置于各视图之上） ===== -->
     <div class="filter-row" id="subjectRow" style="display:none;">
-        <span class="filter-label"><img src="img/subject-icon.svg?v=202611032325" class="subject-icon" alt=""> 学科：</span>
+        <span class="filter-label"><img src="img/subject-icon.svg?v=202611081245" class="subject-icon" alt=""> 学科：</span>
         <div class="btn-group" id="subjectButtons"></div>
     </div>
 
@@ -77,11 +78,11 @@
 
         <!-- 筛选控件 -->
         <div class="filter-row class-filter">
-            <span class="filter-label"><img src="img/class-icon.svg?v=202611032325" class="class-icon" alt=""> 班级：</span>
+            <span class="filter-label"><img src="img/class-icon.svg?v=202611081245" class="class-icon" alt=""> 班级：</span>
             <div class="btn-group" id="classButtons"></div>
         </div>
         <div class="filter-row">
-            <span class="filter-label"><img src="img/sort-icon.svg?v=202611032325" class="sort-icon" alt=""> 排序：</span>
+            <span class="filter-label"><img src="img/sort-icon.svg?v=202611081245" class="sort-icon" alt=""> 排序：</span>
             <div class="btn-group" id="sortButtons">
                 <button class="btn-sm active" data-sort="id">按学号</button>
                 <button class="btn-sm" data-sort="rank2">按后测名次</button>
@@ -178,7 +179,7 @@
             </div>
         </div>
         <div class="filter-row">
-            <span class="filter-label"><img src="img/sort-icon.svg?v=202611032325" class="sort-icon" alt=""> 排序：</span>
+            <span class="filter-label"><img src="img/sort-icon.svg?v=202611081245" class="sort-icon" alt=""> 排序：</span>
             <div class="btn-group">
                 <button id="sortClassBtn" class="btn-sm">按班级排序</button>
                 <button id="sortTValueBtn" class="btn-sm">按班级T值排序</button>
@@ -267,10 +268,10 @@
 
 <script src="js/app.js?v=202611081130"></script>
 <!-- 云端数据访问（选择考试成绩） -->
-<script src="../../shared/cloud/config.js?v=202611032325"></script>
-<script src="../../shared/cloud/api.js?v=202611032325"></script>
-<script src="../../shared/cloud/store.js?v=202611032325"></script>
-<script src="../../shared/cloud/ui.js?v=202611032325"></script>
+<script src="../../shared/cloud/config.js?v=202611081245"></script>
+<script src="../../shared/cloud/api.js?v=202611081245"></script>
+<script src="../../shared/cloud/store.js?v=202611081245"></script>
+<script src="../../shared/cloud/ui.js?v=202611081245"></script>
 <script>
   (function () {
     if (!window.JZUI) return;
@@ -279,3 +280,4 @@
 </script>
 </body>
 </html>
+
