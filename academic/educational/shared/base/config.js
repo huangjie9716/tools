@@ -55,6 +55,7 @@ const state = {
   classes: [],
   fullScores: {},
   includeZero: true,
+  includeBioGeo: false,
   totalFull: 0,
   fileName: "",
   blankRows: 0,
