@@ -22,6 +22,11 @@
       .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
 
+  /* 学科显示统一口径：政治/思想品德/道德与法治… → 道法 */
+  function subjectLabel(v) {
+    return (typeof window.normalizeSubjectName === "function") ? window.normalizeSubjectName(v) : v;
+  }
+
   /* ---------------- 届（毕业年份）配色 ----------------
      同一届始终同一个颜色，相邻的届颜色一定不同，方便一眼区分。 */
   var GRADE_PALETTE = [
@@ -491,7 +496,7 @@
     box.innerHTML = P.papers.map(function (p) {
       var meta = p.question_count ? p.question_count + " 题" : "";
       return '<button type="button" class="jz-subject-item' + (P.paper && P.paper.id === p.id ? " selected" : "") +
-        '" data-paper-id="' + esc(p.id) + '">' + esc(p.subject) +
+        '" data-paper-id="' + esc(p.id) + '">' + esc(subjectLabel(p.subject)) +
         (meta ? '<span class="jz-sub-meta">' + esc(meta) + "</span>" : "") + "</button>";
     }).join("");
   }
