@@ -7,7 +7,7 @@
 <script src="../../shared/auth.js?v=202611032325"></script>
 <link rel="icon" type="image/png" href="../../shared/assets/favicon.png?v=202611032325">
 <link rel="apple-touch-icon" href="../../shared/assets/favicon.png?v=202611032325">
-<link rel="stylesheet" href="styles/main.css?v=202611032325">
+<link rel="stylesheet" href="styles/main.css?v=202611081235">
 <link rel="stylesheet" href="../../shared/styles/cloud.css?v=202611032325">
 </head>
 <body>
@@ -47,6 +47,10 @@
       </div>
       <span class="meta jz-cloud-bar-meta" id="dataMeta"></span>
       <button type="button" class="btn ghost small" id="fullScoreBtn">学科满分设置</button>
+      <label class="bio-geo-toggle" id="bioGeoWrap" hidden>
+        <input type="checkbox" id="includeBioGeo">
+        <span id="bioGeoLabel">总分包含生物、地理</span>
+      </label>
       <span class="jz-cloud-bar-spacer"></span>
     </div>
     <div class="summary-grid" id="summaryCards"></div>
@@ -528,7 +532,7 @@
     </div>
     <div class="modal-body">
       <div class="score-list" id="fullScoreList"></div>
-      <div class="total-full"><span>总分满分（上传学科满分之和）</span><b id="totalFullPreview">0</b></div>
+      <div class="total-full"><span id="totalFullLabel">总分满分（上传学科满分之和）</span><b id="totalFullPreview">0</b></div>
     </div>
     <div class="modal-foot">
       <button type="button" class="btn ghost small" id="resetFullScores">恢复默认</button>
@@ -542,13 +546,13 @@
 
 <!-- 经典脚本按依赖顺序加载，保证直接用 file:// 打开也能运行 -->
 <script src="js/teacher-roster.js?v=202611032325"></script>
-<script src="../../shared/base/config.js?v=202611032325"></script>
+<script src="../../shared/base/config.js?v=202611081235"></script>
 <script src="../../shared/base/utils.js?v=202611032325"></script>
 <script src="js/teacher.js?v=202611032325"></script>
 <script src="../../shared/base/parsers.js?v=202611032325"></script>
-<script src="js/statistics.js?v=202611032325"></script>
+<script src="js/statistics.js?v=202611081235"></script>
 <script src="js/overview.js?v=202611032325"></script>
-<script src="js/basic.js?v=202611032325"></script>
+<script src="js/basic.js?v=202611081235"></script>
 <script src="js/segment.js?v=202611032325"></script>
 <script src="js/topn.js?v=202611032325"></script>
 <script src="js/profile.js?v=202611032325"></script>
@@ -556,10 +560,10 @@
 <script src="js/weakness.js?v=202611032325"></script>
 <script src="js/student-report.js?v=202611032325"></script>
 <script src="js/ranking.js?v=202611032325"></script>
-<script src="js/import.js?v=202611032325"></script>
-<script src="js/fullscore.js?v=202611032325"></script>
+<script src="js/import.js?v=202611081235"></script>
+<script src="js/fullscore.js?v=202611081235"></script>
 <script src="js/exports.js?v=202611032325"></script>
-<script src="js/app.js?v=202611032325"></script>
+<script src="js/app.js?v=202611081235"></script>
 <!-- 云端数据访问与选择考试 -->
 <script src="../../shared/cloud/config.js?v=202611032325"></script>
 <script src="../../shared/cloud/api.js?v=202611032325"></script>
@@ -568,3 +572,4 @@
 <script src="js/cloud-int.js?v=202611032325"></script>
 </body>
 </html>
+
