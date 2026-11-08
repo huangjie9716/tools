@@ -29,9 +29,18 @@ function subjectTeacherFor(className, subjectName){
   if (subjectName === "__total__" || subjectName === "总分") return headTeacherFor(className);
   const info = teacherInfoForClass(className);
   if (!info || !info.subjectTeachers) return "—";
+  const teachers = info.subjectTeachers;
+  const norm = (typeof window.normalizeSubjectName === "function")
+    ? window.normalizeSubjectName
+    : (v) => String(v === null || v === undefined ? "" : v).replace(/\s+/g, "").trim();
+  /* 名单里可能写作“政治/道德与法治”，统一成“道法”后再匹配 */
+  const target = norm(subjectName);
+  const key = Object.keys(teachers).find(k => norm(k) === target);
+  if (key !== undefined) return teachers[key];
   const aliases = TEACHER_ROSTER.subjectAliases || {};
-  const key = aliases[subjectName] || subjectName;
-  return info.subjectTeachers[key] || info.subjectTeachers[subjectName] || "—";
+  const aliasKey = aliases[subjectName];
+  if (aliasKey && teachers[aliasKey]) return teachers[aliasKey];
+  return teachers[subjectName] || "—";
 }
 
 /* =========================================================
