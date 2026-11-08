@@ -55,6 +55,13 @@
     return text(v).replace(/\s+/g, "");
   }
 
+  /* 前端统一学科显示口径：政治/思想品德/道德与法治… → 道法 */
+  function normSubject(v) {
+    var s = normHeader(v);
+    if (!s) return "";
+    return window.JZSubjects && window.JZSubjects.normalize ? window.JZSubjects.normalize(s) : s;
+  }
+
   function findCol(headers, aliases) {
     for (var i = 0; i < headers.length; i++) {
       if (!headers[i]) continue;
@@ -133,7 +140,7 @@
     var used = {};
     for (c = 0; c < rawHeader.length; c++) {
       if (fixed.indexOf(c) >= 0) continue;
-      var name = rawHeader[c];
+      var name = normSubject(rawHeader[c]);
       if (!name || SKIP_HEADER.test(name)) continue;
       if (!numericCount[c]) continue;
       var unique = name;
@@ -223,7 +230,7 @@
      格式转换
      ========================================================= */
   function toAoA(header, rows) {
-    var out = [ (header || []).slice() ];
+    var out = [ (header || []).map(normSubject) ];
     (rows || []).forEach(function (row) { out.push(row.slice()); });
     return out;
   }
@@ -234,14 +241,14 @@
       var obj = {};
       for (var i = 0; i < h.length; i++) {
         if (!h[i]) continue;
-        obj[h[i]] = row[i] === undefined ? "" : row[i];
+        obj[normSubject(h[i])] = row[i] === undefined ? "" : row[i];
       }
       return obj;
     });
   }
 
   function subjectNames(header) {
-    return (header || []).slice(4);
+    return (header || []).slice(4).map(normSubject);
   }
 
   /* =========================================================
@@ -496,7 +503,14 @@
      科目为「班主任」时表示班主任
      ========================================================= */
   var ROSTER_HEAD_SUBJECT = "班主任";
-  var ROSTER_SUBJECT_ALIASES = { "道法": "政治", "道德与法治": "政治", "体育与健康": "体育" };
+  /* 前端统一显示“道法”，名单数据里可能仍沿用“政治”等旧写法，这里保留映射用于查找 */
+  var ROSTER_SUBJECT_ALIASES = {
+    "道法": "政治",
+    "道德与法治": "政治",
+    "思想品德": "政治",
+    "思想政治": "政治",
+    "体育与健康": "体育"
+  };
 
   function normalizeRosterRow(row) {
     return {
