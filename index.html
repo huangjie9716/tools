@@ -536,6 +536,46 @@
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5td3RneG1xbG1lemNqdG54Z3FrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4MzI2OTAsImV4cCI6MjEwMTQwODY5MH0.90TChC0s47NOGJlEkRNhD0uePRfcwdndK5SyeRRKgWo';
         var SUPABASE_REST = SUPABASE_URL + '/rest/v1/';
 
+        // 同域反向代理（netlify/functions/sb.js）：
+        // supabase.co 在国内移动网络 / 微信 / QQ 内置浏览器里连不上，
+        // 所以优先请求自己站点上的 /api/sb/...，由 Netlify 从服务器转发；
+        // 代理不存在或返回的不是 JSON 时，自动回退到直连（旧地址照样能用）。
+        var SUPABASE_PROXY_BASE =
+            (location.protocol === 'http:' || location.protocol === 'https:')
+                ? location.origin + '/api/sb'
+                : '';
+
+        // 探测结果缓存，避免每条请求都先探一次
+        var supabaseBase = null;
+
+        async function resolveSupabaseBase() {
+            if (supabaseBase) return supabaseBase;
+            if (!SUPABASE_PROXY_BASE) {
+                supabaseBase = SUPABASE_URL;
+                return supabaseBase;
+            }
+            try {
+                var probe = await fetch(
+                    SUPABASE_PROXY_BASE + '/rest/v1/site_visits?select=count&limit=1',
+                    {
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+                        },
+                        cache: 'no-store'
+                    }
+                );
+                var type = probe.headers.get('content-type') || '';
+                // 代理正常时返回 PostgREST 的 JSON；函数没部署时 Netlify 会给 HTML 404
+                if (type.indexOf('application/json') !== -1) {
+                    supabaseBase = SUPABASE_PROXY_BASE;
+                    return supabaseBase;
+                }
+            } catch (e) { /* 代理不可用，落到直连 */ }
+            supabaseBase = SUPABASE_URL;
+            return supabaseBase;
+        }
+
         /**
          * 调用 PostgREST 接口（等价于 supabase-js 的 from().select()/insert()/update()）
          * @param {string} path   如 'messages?select=name&limit=5'
@@ -556,7 +596,7 @@
                     }
                 }
             }
-            var response = await fetch(SUPABASE_REST + path, {
+            var response = await fetch((await resolveSupabaseBase()) + '/rest/v1/' + path, {
                 method: opts.method || 'GET',
                 headers: headers,
                 body: opts.body,
@@ -769,6 +809,7 @@
                     var next = parseVisitCount(res.data);
                     if (next === null) throw new Error('接口返回格式异常');
                     el.textContent = next;
+                    el.removeAttribute('title');
                 } catch (err) {
                     // 自增失败不再假装成功：退一步只显示数据库里的现有值，
                     // 并在控制台留下原因，方便日后排查。
@@ -783,6 +824,7 @@
                         el.textContent = (current === null) ? '--' : current;
                     } catch (_) {
                         el.textContent = '--';
+                        el.setAttribute('title', '暂时连不上服务器，稍后刷新试试');
                     }
                 }
             }
@@ -1053,6 +1095,16 @@
                 return div.innerHTML;
             }
 
+            // 把浏览器的英文报错（Failed to fetch 等）换成看得懂的话
+            function friendlyError(err) {
+                var msg = (err && err.message) || '未知错误';
+                if ((err && err.name === 'TypeError') ||
+                    /failed to fetch|networkerror|load failed|fetch fail/i.test(msg)) {
+                    return '网络连接失败，请检查网络后刷新重试';
+                }
+                return msg;
+            }
+
             // 留言者信息前的人像图标（SVG）
             var USER_ICON_SVG = '<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:0.85em;height:0.85em;vertical-align:-0.1em;margin-right:0.2em;display:inline-block;">' +
                 '<path d="M517.333333 490.666667a192 192 0 1 1 192-192 192 192 0 0 1-192 192z m0-341.333334a149.333333 149.333333 0 1 0 149.333334 149.333334 149.333333 149.333333 0 0 0-149.333334-149.333334z" fill="currentColor"/>' +
@@ -1105,7 +1157,7 @@
                         if (!isNaN(parsed)) count = parsed;
                     }
                 } catch (err) {
-                    container.innerHTML = '<div class="error-message">加载留言失败：' + escapeHtml(err.message) + '</div>';
+                    container.innerHTML = '<div class="error-message">加载留言失败：' + escapeHtml(friendlyError(err)) + '</div>';
                     messagesState.total = 0;
                     messagesState.totalPages = 1;
                     renderMessagesPagination();
@@ -1185,7 +1237,7 @@
                             body: JSON.stringify([{ name: name, content: content, approved: false }])
                         });
                     } catch (err) {
-                        feedback.innerHTML = '<div class="error-message">提交失败：' + escapeHtml(err.message) +
+                        feedback.innerHTML = '<div class="error-message">提交失败：' + escapeHtml(friendlyError(err)) +
                         '</div>';
                         btn.disabled = false;
                         btn.textContent = '投递';
