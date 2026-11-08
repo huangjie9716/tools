@@ -135,4 +135,116 @@ function renderTopN(){
   }
   rows.push(totalHtml + '</tr>');
   body.innerHTML = rows.join('');
+  renderTop100();
+}
+
+/* =========================================================
+   前 100 名分段极差
+   ========================================================= */
+function top100CompetitionRanks(students){
+  const valid = students.filter(s => isValidScore(s.total)).sort((a, b) =>
+    Number(b.total) - Number(a.total) ||
+    String(a.id).localeCompare(String(b.id), "zh-CN", { numeric: true }) ||
+    String(a.name).localeCompare(String(b.name), "zh-CN")
+  );
+  const rankMap = new Map();
+  let lastScore = null;
+  let lastRank = 0;
+  valid.forEach((s, i) => {
+    const score = Number(s.total);
+    if (lastScore === null || score !== lastScore) {
+      lastRank = i + 1;
+      lastScore = score;
+    }
+    rankMap.set(s, lastRank);
+  });
+  return { valid: valid, rankMap: rankMap };
+}
+
+function top100RangeOf(values){
+  const arr = [];
+  for (const v of values) {
+    if (isValidScore(v)) arr.push(Number(v));
+  }
+  if (!arr.length) return null;
+  let max = arr[0];
+  let min = arr[0];
+  for (const v of arr) {
+    if (v > max) max = v;
+    if (v < min) min = v;
+  }
+  return { max: max, min: min, range: round2(max - min) };
+}
+
+function renderTop100(){
+  const head = $("#top100Head");
+  const body = $("#top100Body");
+  const rangeHead = $("#top100RangeHead");
+  const rangeBody = $("#top100RangeBody");
+  if (!head || !body || !rangeHead || !rangeBody) return;
+
+  const subjects = state.subjects.map(sub => sub.name);
+  const ranked = top100CompetitionRanks(state.students);
+  const valid = ranked.valid;
+  const rankMap = ranked.rankMap;
+
+  /* 取前 100 名，第 100 名同分的一并纳入（所以实际可能是 99、100、101 …） */
+  let selected = [];
+  if (valid.length) {
+    const k = Math.min(100, valid.length);
+    const cutoff = Number(valid[k - 1].total);
+    selected = valid.filter(s => Number(s.total) >= cutoff);
+  }
+
+  const note = $("#top100Note");
+  if (note) {
+    if (!valid.length) {
+      note.textContent = "暂无有效成绩。";
+    } else if (valid.length > 100) {
+      note.textContent = "按总分降序取全级前 100 名，第 100 名同分一并纳入，本次实际纳入 " + selected.length +
+        " 人；列出总分与各科成绩，并按每 10 人一段统计极差（同分同名次，同一分段内人数可能多于 10 人）。";
+    } else {
+      note.textContent = "全级有效成绩共 " + valid.length + " 人，未满 100 人，按实际人数列出；并按每 10 人一段统计极差。";
+    }
+  }
+
+  head.innerHTML = '<tr><th>排名</th><th>学号</th><th>姓名</th><th>班级</th><th>总分</th>' +
+    subjects.map(name => '<th>' + escapeHtml(name) + '</th>').join('') + '</tr>';
+
+  body.innerHTML = selected.map(s => {
+    const rank = rankMap.get(s);
+    let html = '<tr>' +
+      '<td class="top100-rank">' + rank + '</td>' +
+      '<td>' + escapeHtml(s.id) + '</td>' +
+      '<td>' + escapeHtml(s.name) + '</td>' +
+      '<td>' + escapeHtml(s.className || '') + '</td>' +
+      '<td class="top100-total">' + fmtScore(s.total) + '</td>';
+    for (const name of subjects) {
+      html += '<td>' + fmtScore(s.scores ? s.scores[name] : null) + '</td>';
+    }
+    return html + '</tr>';
+  }).join('');
+
+  rangeHead.innerHTML = '<tr><th>分段</th><th>人数</th><th>总分最高</th><th>总分最低</th><th>总分极差</th>' +
+    subjects.map(name => '<th>' + escapeHtml(name) + '极差</th>').join('') + '</tr>';
+
+  const rows = [];
+  for (let start = 1; start <= 100; start += 10) {
+    const end = start + 9;
+    const members = selected.filter(s => {
+      const rank = rankMap.get(s);
+      return rank >= start && rank <= end;
+    });
+    const totalRange = top100RangeOf(members.map(s => s.total));
+    let html = '<tr><td class="subject-cell">' + start + '–' + end + '</td><td>' + members.length + '</td>' +
+      '<td>' + (totalRange ? fmtScore(totalRange.max) : '—') + '</td>' +
+      '<td>' + (totalRange ? fmtScore(totalRange.min) : '—') + '</td>' +
+      '<td class="top100-range">' + (totalRange ? fmtScore(totalRange.range) : '—') + '</td>';
+    for (const name of subjects) {
+      const subRange = top100RangeOf(members.map(s => s.scores ? s.scores[name] : null));
+      html += '<td>' + (subRange ? fmtScore(subRange.range) : '—') + '</td>';
+    }
+    rows.push(html + '</tr>');
+  }
+  rangeBody.innerHTML = rows.join('');
 }
