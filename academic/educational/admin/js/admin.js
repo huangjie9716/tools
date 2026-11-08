@@ -180,7 +180,7 @@
     }
     if (!papers.length) { box.innerHTML = '<span class="jz-exam-info">这场考试还没有试题卷</span>'; return; }
     box.innerHTML = papers.map(function (p) {
-      return '<span class="jz-chip">' + esc(p.subject) + (p.question_count ? " · " + p.question_count + "题" : "") +
+      return '<span class="jz-chip">' + esc(subjectLabel(p.subject)) + (p.question_count ? " · " + p.question_count + "题" : "") +
         '<button type="button" data-del-paper="' + esc(p.id) + '" title="删除">×</button></span>';
     }).join("");
   }
@@ -534,7 +534,7 @@
     info.push(hasScores ? "成绩已上传" : "未上传成绩");
     var paperChips = papers.length
       ? papers.map(function (p) {
-          return '<span class="jz-chip">' + esc(p.subject) + (p.question_count ? " · " + p.question_count + "题" : "") +
+          return '<span class="jz-chip">' + esc(subjectLabel(p.subject)) + (p.question_count ? " · " + p.question_count + "题" : "") +
             '<button type="button" data-del-paper="' + esc(p.id) + '" title="删除该试题卷">×</button></span>';
         }).join("")
       : '<span class="jz-exam-info">试题卷：无</span>';
@@ -771,9 +771,13 @@
      教师任课名单（云端 teacher_assignments 表）
      ========================================================= */
   var ROSTER_HEAD = "班主任";
-  var ROSTER_DEFAULT_SUBJECTS = ["语文", "数学", "英语", "物理", "化学", "政治", "历史", "体育", "地理", "生物"];
+  var ROSTER_DEFAULT_SUBJECTS = ["语文", "数学", "英语", "物理", "化学", "道法", "历史", "体育", "地理", "生物"];
   var R = { rows: null, grade: "", className: "" };
   var ROSTER_GRADE_ORDER = ["初一", "初二", "初三"];
+
+  function subjectLabel(v) {
+    return (typeof window.normalizeSubjectName === "function") ? window.normalizeSubjectName(v) : v;
+  }
 
   function rosterRows() { return R.rows || []; }
 
@@ -812,13 +816,25 @@
     return map;
   }
 
+  /* 返回 [{ raw, label }]：label 统一显示为“道法”，raw 保留云端原始写法，便于更新同一条记录 */
   function rosterSubjectList(grade) {
-    var set = {};
+    var raw = [];
     rosterRows().forEach(function (r) {
-      if (r.grade === grade && r.subject && r.subject !== ROSTER_HEAD) set[r.subject] = true;
+      if (r.grade === grade && r.subject && r.subject !== ROSTER_HEAD && raw.indexOf(r.subject) < 0) raw.push(r.subject);
     });
-    var list = ROSTER_DEFAULT_SUBJECTS.slice();
-    Object.keys(set).forEach(function (s) { if (list.indexOf(s) < 0) list.push(s); });
+    var list = [];
+    var seen = {};
+    function add(rawKey, displaySource) {
+      var label = subjectLabel(displaySource || rawKey);
+      if (!label || seen[label]) return;
+      seen[label] = true;
+      list.push({ raw: rawKey, label: label });
+    }
+    ROSTER_DEFAULT_SUBJECTS.forEach(function (s) {
+      var existing = raw.filter(function (r) { return subjectLabel(r) === subjectLabel(s); })[0];
+      add(existing || s, existing || s);
+    });
+    raw.forEach(function (r) { add(r, r); });
     return list;
   }
 
@@ -853,8 +869,8 @@
       "</div>";
     html += subjects.map(function (s) {
       return '<div class="roster-edit-field">' +
-        "<label>" + esc(s) + "</label>" +
-        '<input class="jz-input" data-roster-subject="' + esc(s) + '" value="' + esc(current[s] || "") + '" placeholder="留空表示暂无">' +
+        "<label>" + esc(s.label) + "</label>" +
+        '<input class="jz-input" data-roster-subject="' + esc(s.raw) + '" value="' + esc(current[s.raw] || "") + '" placeholder="留空表示暂无">' +
         "</div>";
     }).join("");
     box.innerHTML = html;
@@ -892,12 +908,12 @@
       return;
     }
     var head = '<thead><tr><th>班级</th><th>' + ROSTER_HEAD + "</th>" +
-      subjects.map(function (s) { return "<th>" + esc(s) + "</th>"; }).join("") + "</tr></thead>";
+      subjects.map(function (s) { return "<th>" + esc(s.label) + "</th>"; }).join("") + "</tr></thead>";
     var body = classes.map(function (cls) {
       var map = rosterClassSubjects(grade, cls);
       var cells = subjects.map(function (s) {
-        return '<td><input data-grid-class="' + esc(cls) + '" data-grid-subject="' + esc(s) + '" value="' +
-          esc(map[s] || "") + '" placeholder="—"></td>';
+        return '<td><input data-grid-class="' + esc(cls) + '" data-grid-subject="' + esc(s.raw) + '" value="' +
+          esc(map[s.raw] || "") + '" placeholder="—"></td>';
       }).join("");
       return "<tr><td>" + esc(cls) + "</td>" +
         '<td><input data-grid-class="' + esc(cls) + '" data-grid-subject="' + ROSTER_HEAD + '" value="' +
