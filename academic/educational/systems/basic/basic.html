@@ -8,7 +8,7 @@
 <script src="../../shared/base/subjects.js?v=202611081245"></script>
 <link rel="icon" type="image/png" href="../../shared/assets/favicon.png?v=202611081245">
 <link rel="apple-touch-icon" href="../../shared/assets/favicon.png?v=202611081245">
-<link rel="stylesheet" href="styles/main.css?v=202611081235">
+<link rel="stylesheet" href="styles/main.css?v=202611081535">
 <link rel="stylesheet" href="../../shared/styles/cloud.css?v=202611081245">
 </head>
 <body>
@@ -412,6 +412,29 @@
           <li><b>人数变化：</b>选择比对考试后显示人数变化（+ 增加、- 减少、0 持平）。</li>
         </ul>
       </div>
+
+      <!-- ===== 前 100 名分段极差 ===== -->
+      <div class="top100-section">
+        <div class="panel-head">
+          <div>
+            <h2 id="top100Title"><svg class="title-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M768.256 128a127.744 127.744 0 0 1 127.530667 120.277333l0.213333 7.509334V840.96c0 76.458667-63.36 117.76-131.712 88.064l-6.656-3.072L512 803.114667l-245.632 122.837333c-66.176 33.066667-129.877333-1.28-137.6-70.656l-0.554667-7.04-0.213333-7.253333V255.744a127.829333 127.829333 0 0 1 120.234667-127.573333l7.509333-0.170667h512.512z m0 85.333333H255.744a42.496 42.496 0 0 0-42.112 37.546667L213.333333 255.744V840.96l0.128 6.4c0.426667 6.826667 2.005333 7.936 8.192 5.333333l6.528-3.072 264.746667-132.309333a42.666667 42.666667 0 0 1 32.853333-2.218667l5.290667 2.218667 264.746667 132.309333 6.016 2.901334c7.466667 3.242667 8.618667 1.706667 8.789333-7.68L810.666667 255.786667c0-21.76-16.384-39.68-37.461334-42.154667L768.256 213.333333zM597.333333 298.666667c54.912 0 56.832 79.530667 5.674667 84.992L597.333333 383.914667h-170.666666a42.666667 42.666667 0 0 1-4.992-84.992L426.666667 298.624h170.666666z"/></svg>前 100 名分段极差</h2>
+            <p id="top100Note">按总分降序取全级前 100 名（第 100 名同分一并纳入），列出总分与各科成绩，并按每 10 人一段统计极差。</p>
+          </div>
+        </div>
+        <div class="table-wrap top100-table-wrap">
+          <table id="top100Table" class="topn-table top100-table">
+            <thead id="top100Head"></thead>
+            <tbody id="top100Body"></tbody>
+          </table>
+        </div>
+        <h3 class="top100-subtitle">每 10 人分段极差（同分同名次，按名次区间分段）</h3>
+        <div class="table-wrap top100-table-wrap">
+          <table id="top100RangeTable" class="topn-table top100-table">
+            <thead id="top100RangeHead"></thead>
+            <tbody id="top100RangeBody"></tbody>
+          </table>
+        </div>
+      </div>
     </section>
 
     <section id="tab-weakness" class="tab-panel" aria-labelledby="weaknessTitle">
@@ -555,7 +578,7 @@
 <script src="js/overview.js?v=202611081245"></script>
 <script src="js/basic.js?v=202611081235"></script>
 <script src="js/segment.js?v=202611081245"></script>
-<script src="js/topn.js?v=202611081245"></script>
+<script src="js/topn.js?v=202611081535"></script>
 <script src="js/profile.js?v=202611081245"></script>
 <script src="js/heatmap.js?v=202611081245"></script>
 <script src="js/weakness.js?v=202611081245"></script>
@@ -573,5 +596,6 @@
 <script src="js/cloud-int.js?v=202611081245"></script>
 </body>
 </html>
+
 
 
