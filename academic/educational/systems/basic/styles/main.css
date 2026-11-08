@@ -821,6 +821,20 @@ tbody tr:nth-child(even):hover td{background:#f8fafc}
 #cloudExamBar .btn.ghost:hover,#cloudExamBar #fullScoreBtn:hover{background:#fff;border-color:#b9c3d6;color:#1b2454}
 #cloudExamBar #fullScoreBtn{margin-left:auto}
 
+/* 「总分包含生物、地理」勾选框：仅在成绩含这两科时出现 */
+#cloudExamBar .bio-geo-toggle{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 12px;
+  border:1px solid #dbe2ee;border-radius:999px;background:#fff;
+  color:#475569;font-size:12.5px;font-weight:600;line-height:1.5;
+  white-space:nowrap;cursor:pointer;user-select:none;
+}
+#cloudExamBar .bio-geo-toggle[hidden]{display:none}
+#cloudExamBar .bio-geo-toggle:hover{border-color:#b9c3d6;color:#1b2454}
+#cloudExamBar .bio-geo-toggle input{
+  width:14px;height:14px;margin:0;padding:0;flex:0 0 auto;
+  accent-color:var(--accent-red);cursor:pointer;
+}
+
 /* 右：比对考试（与左栏对称），中间竖向分隔线 */
 #cloudExamBar .jz-compare-picker{
   display:inline-flex;align-items:center;gap:8px;max-width:100%;
