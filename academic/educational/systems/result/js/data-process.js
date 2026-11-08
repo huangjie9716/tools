@@ -28,6 +28,11 @@
         });
     }
 
+    /** 学科名称统一显示口径：政治/思想品德/道德与法治… → 道法 */
+    function subjectDisplayName(h) {
+        return (typeof window.normalizeSubjectName === 'function') ? window.normalizeSubjectName(h) : String(h).trim();
+    }
+
     /** 解析二维数组（本地文件与云端考试成绩共用同一套解析逻辑） */
     function parseRows(rows) {
                     if (!rows || rows.length < 2) { throw new Error('数据行数不足'); }
@@ -47,12 +52,12 @@
                     if (idxTotal===-1 && header.length>3) idxTotal=3;
                     const startSub = idxTotal + 1;
                     for (let i=startSub; i<header.length; i++) {
-                        if (header[i]) subjectCols.push({ idx:i, name:header[i] });
+                        if (header[i]) subjectCols.push({ idx:i, name:subjectDisplayName(header[i]) });
                     }
                     if (subjectCols.length===0) {
                         for (let i=0; i<header.length; i++) {
                             if (i!==idxId && i!==idxName && i!==idxClass && i!==idxTotal && header[i]) {
-                                subjectCols.push({ idx:i, name:header[i] });
+                                subjectCols.push({ idx:i, name:subjectDisplayName(header[i]) });
                             }
                         }
                     }
