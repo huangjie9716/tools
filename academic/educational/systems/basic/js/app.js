@@ -80,6 +80,17 @@ function bindEvents(){
   $("#resetFullScores").addEventListener("click", resetFullScoreSettings);
   $("#fullScoreList").addEventListener("input", updateTotalFullPreview);
 
+  const includeBioGeoInput = $("#includeBioGeo");
+  if (includeBioGeoInput) {
+    includeBioGeoInput.addEventListener("change", e => {
+      state.includeBioGeo = !!e.target.checked;
+      refreshComputed();
+      updateTotalFullPreview();
+      renderAll();
+      toast(state.includeBioGeo ? "总分已包含生物、地理" : "总分未包含生物、地理", "success");
+    });
+  }
+
   $("#rankSubject").addEventListener("change", e => {
     state.rankSubject = e.target.value;
     state.gradeFilter = "all";
