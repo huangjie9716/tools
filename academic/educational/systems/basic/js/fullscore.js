@@ -24,10 +24,19 @@ function openFullScoreSettings(){
 function updateTotalFullPreview(){
   let sum = 0;
   $$("#fullScoreList input").forEach(input => {
+    const subject = input.getAttribute("data-subject");
+    if (!state.includeBioGeo && typeof isBioGeoSubject === "function" && isBioGeoSubject(subject)) return;
     const v = Number(input.value);
     if (Number.isFinite(v) && v > 0) sum += v;
   });
   $("#totalFullPreview").textContent = sum ? String(round2(sum)) : "0";
+  const label = $("#totalFullLabel");
+  if (label) {
+    const extras = (state.subjects || []).filter(sub => isBioGeoSubject(sub.name)).map(sub => sub.name);
+    label.textContent = extras.length && !state.includeBioGeo
+      ? "总分满分（未含" + extras.join("、") + "）"
+      : "总分满分（上传学科满分之和）";
+  }
 }
 function saveFullScoreSettings(){
   const inputs = $$("#fullScoreList input");
