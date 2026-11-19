@@ -10,12 +10,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: rsync to server
-        uses: burnett01/rsync-deployments@7.0.1
-        with:
-          switches: -avz --delete --exclude=.git --exclude=.github --exclude=netlify
-          path: ./
-          remote_path: /var/www/physicshuang/
-          remote_host: ${{ secrets.SSH_HOST }}
-          remote_user: ${{ secrets.SSH_USER }}
-          remote_key: ${{ secrets.SSH_KEY }}
+      - name: prepare ssh
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s' "${{ secrets.SSH_KEY_B64 }}" | base64 -d > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+          ssh-keygen -lf ~/.ssh/deploy_key
+
+      - name: check connection
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            "whoami; ls -ld /var/www/physicshuang"
+
+      - name: rsync
+        run: |
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes" \
+            --exclude=.git --exclude=.github --exclude=netlify \
+            ./ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/physicshuang/"
