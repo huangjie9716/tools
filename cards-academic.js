@@ -18,7 +18,7 @@
 window.CARDS_ACADEMIC = {
     cards: [
         {
-            title: '珠海市九洲中学教育质量管理与分析系统',
+            title: '中学教育质量管理与分析系统',
             desc: '',
             date: '2026.11.4',
             version: 'v1.0',

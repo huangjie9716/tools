@@ -59,8 +59,8 @@ window.CARDS_PHYSICS = [
         video: ''
     },
     {
-        title: '珠海市九洲中学2025级学生物理小组积分可视化系统',
-        desc: '珠海市九洲中学2025级1班和2班专用，小组合作探究学习崭新模式',
+        title: '2025级学生物理小组积分可视化系统',
+        desc: '2025级1班和2班专用，小组合作探究学习崭新模式',
         date: '2026.08.30',
         version: 'v1.1',
         file: 'physics/class/group-cooperation.html',
@@ -70,7 +70,7 @@ window.CARDS_PHYSICS = [
         video: ''
     },
      {
-        title: '2026香洲区公开课智慧平台',
+        title: '2026年课堂智慧平台',
         desc: '仅供10月29日公开课使用',
         date: '2026.10.25',
         version: 'v1.0',
